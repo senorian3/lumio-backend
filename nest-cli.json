@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/lumio/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/lumio/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/lumio",
+  "projects": {
+    "lumio": {
+      "type": "application",
+      "root": "apps/lumio",
+      "entryFile": "main",
+      "sourceRoot": "apps/lumio/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/lumio/tsconfig.app.json"
+      }
+    },
+    "files": {
+      "type": "application",
+      "root": "apps/files",
+      "entryFile": "main",
+      "sourceRoot": "apps/files/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/files/tsconfig.app.json"
+      }
+    }
+  }
+}
