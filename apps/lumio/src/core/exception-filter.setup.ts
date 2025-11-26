@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { CoreConfig } from '../core/core.config';
-import { DomainExceptionsFilter } from 'apps/libs/core/exceptions/filters/domain-exceptions.filters';
+import { DomainExceptionsFilter } from 'libs/core/exceptions/filters/domain-exceptions.filters';
 import { AllExceptionsFilter } from './exceptions/filters/all-exceptions.filter';
 
 export function exceptionFilterSetup(
