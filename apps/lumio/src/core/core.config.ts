@@ -4,10 +4,10 @@ import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from 'apps/libs/settings/config-valdation.utility';
 
 export enum Environments {
-  DEVELOPMENT = 'development',
-  STAGING = 'staging',
-  PRODUCTION = 'production',
-  TESTING = 'testing',
+  DEVELOPMENT = 'lumio.development',
+  STAGING = 'lumio.staging',
+  PRODUCTION = 'lumio.production',
+  TESTING = 'lumio.testing',
 }
 
 @Injectable()
