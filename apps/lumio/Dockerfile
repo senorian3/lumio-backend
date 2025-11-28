@@ -32,4 +32,4 @@ RUN yarn build:${SERVICE}
 
 EXPOSE ${PORT}
 
-CMD yarn 'start:lumio'
+CMD yarn 'start:prod:lumio'
