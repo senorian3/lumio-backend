@@ -1,0 +1,22 @@
+// Prisma schema for Files microservice
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../generated/prisma-files"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Add your file-related models here in the future
+// Example:
+// model File {
+//   id        Int      @id @default(autoincrement())
+//   filename  String
+//   path      String
+//   size      Int
+//   createdAt DateTime @default(now())
+// }
