@@ -13,7 +13,7 @@
     "start:dev:lumio": "dotenv -e apps/lumio/.env.lumio.development -- nest start --watch lumio",
     "start:dev:files": "dotenv -e apps/files/.env.files.development -- nest start --watch files",
     "start:staging:lumio": "dotenv -e apps/lumio/.env.lumio.staging -- node dist/apps/lumio/main",
-    "start:staging:files": "dotenv -e apps/files/.env.lumio.staging -- nest start --watch files",
+    "start:staging:files": "dotenv -e apps/files/.env.lumio.staging -- node dist/apps/files/main",
     "docker:up:lumio": "docker-compose -f apps/lumio/docker.compose.lumio.yml up -d",
     "docker:up:files": "docker-compose -f apps/files/docker.compose.files.yml up -d",
     "docker:down:lumio": "docker-compose -f apps/lumio/docker.compose.lumio.yml down",
