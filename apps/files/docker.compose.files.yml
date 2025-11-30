@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -13,10 +11,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - postgres_network
+      - lumio_network
 
 volumes:
   postgres_data:
 
 networks:
-  postgres_network:
+  lumio_network:
+    external: true
