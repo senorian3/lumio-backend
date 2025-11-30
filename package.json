@@ -23,6 +23,8 @@
     "start:debug": "nest start --debug --watch",
     "prisma:generate:lumio": "dotenv -e apps/lumio/.env.lumio.development -- prisma generate --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:generate:files": "dotenv -e apps/files/.env.files.development -- prisma generate --schema apps/files/src/prisma/schema.prisma",
+    "prisma:test:lumio": "dotenv -e apps/lumio/.env.lumio.test -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
+    "prisma:test:files": "dotenv -e apps/lumio/.env.files.test -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:dev:lumio": "dotenv -e apps/lumio/.env.lumio.development -- prisma migrate dev --schema apps/lumio/src/prisma/schema.prisma && yarn prisma:generate:lumio",
     "prisma:dev:files": "dotenv -e apps/files/.env.files.development -- prisma migrate dev --schema apps/files/src/prisma/schema.prisma && yarn prisma:generate:files",
     "prisma:prod:lumio": "dotenv -e apps/lumio/.env.lumio.production -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
