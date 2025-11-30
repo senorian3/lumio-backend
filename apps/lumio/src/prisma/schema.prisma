@@ -12,9 +12,23 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id                 Int                @id @default(autoincrement())
+  username           String             @unique @db.VarChar(30)
+  email              String             @unique @db.VarChar(255)
+  password           String             @db.VarChar(20)
+  createdAt          DateTime           @default(now())
+  deletedAt          DateTime?
+  emailConfirmation  EmailConfirmation?
+}
+
+model EmailConfirmation {
+  id               Int      @id @default(autoincrement())
+  confirmationCode String   @db.VarChar(255)
+  expirationDate   DateTime @db.Timestamp(6)
+  isConfirmed      Boolean
+  userId           Int      @unique
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Post {
