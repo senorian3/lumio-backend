@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MessagingService } from './messaging.service';
-import { messagingConfig } from './messaging.config';
+import { MessagingConfig } from './messaging-config.class';
 
 @Module({
-  imports: [ConfigModule.forFeature(messagingConfig)],
-  providers: [MessagingService],
-  exports: [MessagingService],
+  imports: [ConfigModule],
+  providers: [MessagingService, MessagingConfig],
+  exports: [MessagingService, MessagingConfig],
 })
 export class MessagingModule {}

@@ -2,7 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 import { MessagingModule } from '../../../libs/messaging/messaging.module';
-import { UserEventsConsumer } from './user-events.consumer';
+import { UserEventsConsumer } from './features/messaging/user-events.consumer';
 import { CoreConfig } from './core/core.config';
 import { configModule } from 'libs/core/config-dynamic.module';
 import { CoreModule } from './core/core.module';

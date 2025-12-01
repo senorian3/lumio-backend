@@ -1,13 +1,13 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
+import { MessagingConfig } from './messaging-config.class';
 
 @Injectable()
 export class MessagingService implements OnModuleInit, OnModuleDestroy {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private messagingConfig: MessagingConfig) {}
 
   async onModuleInit() {
     await this.connect();
@@ -19,16 +19,24 @@ export class MessagingService implements OnModuleInit, OnModuleDestroy {
 
   private async connect() {
     try {
-      const url = this.configService.get('messaging.rabbitmq.url');
+      const url = this.messagingConfig.rabbitmqUrl;
       this.connection = await amqp.connect(url);
       this.channel = await this.connection.createChannel();
 
-      await this.channel.assertExchange('user.exchange', 'topic', {
-        durable: true,
-      });
-      await this.channel.assertExchange('file.exchange', 'topic', {
-        durable: true,
-      });
+      await this.channel.assertExchange(
+        this.messagingConfig.rabbitmqExchanges.user,
+        'topic',
+        {
+          durable: true,
+        },
+      );
+      await this.channel.assertExchange(
+        this.messagingConfig.rabbitmqExchanges.file,
+        'topic',
+        {
+          durable: true,
+        },
+      );
 
       console.log('Connected to RabbitMQ');
     } catch (error) {
@@ -47,27 +55,51 @@ export class MessagingService implements OnModuleInit, OnModuleDestroy {
   }
 
   async publishUserCreated(event: any): Promise<void> {
-    await this.publish('user.exchange', 'user.created', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.user,
+      'user.created',
+      event,
+    );
   }
 
   async publishUserUpdated(event: any): Promise<void> {
-    await this.publish('user.exchange', 'user.updated', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.user,
+      'user.updated',
+      event,
+    );
   }
 
   async publishUserDeleted(event: any): Promise<void> {
-    await this.publish('user.exchange', 'user.deleted', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.user,
+      'user.deleted',
+      event,
+    );
   }
 
   async publishFileUploaded(event: any): Promise<void> {
-    await this.publish('file.exchange', 'file.uploaded', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.file,
+      'file.uploaded',
+      event,
+    );
   }
 
   async publishFileDeleted(event: any): Promise<void> {
-    await this.publish('file.exchange', 'file.deleted', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.file,
+      'file.deleted',
+      event,
+    );
   }
 
   async publishAvatarUpdated(event: any): Promise<void> {
-    await this.publish('file.exchange', 'avatar.updated', event);
+    await this.publish(
+      this.messagingConfig.rabbitmqExchanges.file,
+      'avatar.updated',
+      event,
+    );
   }
 
   private async publish(

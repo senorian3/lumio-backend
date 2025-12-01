@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as amqp from 'amqplib';
-import { PrismaService } from './prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { MessagingConfig } from '../../../../../libs/messaging/messaging-config.class';
 
 @Injectable()
 export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {
@@ -9,7 +9,7 @@ export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: amqp.Channel;
 
   constructor(
-    private configService: ConfigService,
+    private messagingConfig: MessagingConfig,
     private prisma: PrismaService,
   ) {}
 
@@ -23,13 +23,17 @@ export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {
 
   private async connectAndConsume() {
     try {
-      const url = this.configService.get('messaging.rabbitmq.url');
+      const url = this.messagingConfig.rabbitmqUrl;
       this.connection = await amqp.connect(url);
       this.channel = await this.connection.createChannel();
 
-      await this.channel.assertExchange('user.exchange', 'topic', {
-        durable: true,
-      });
+      await this.channel.assertExchange(
+        this.messagingConfig.rabbitmqExchanges.user,
+        'topic',
+        {
+          durable: true,
+        },
+      );
 
       const queue = await this.channel.assertQueue('files.user.events', {
         durable: true,
