@@ -1,27 +1,35 @@
-import { IsStringWithTrim } from '../../../../../../../../libs/core/decorators/validation/is-string-with-trim';
 import {
-  passwordConstraints,
-  usernameConstraints,
-} from '../../../users/domain/entities/user.entity';
-import { IsEmail, Matches } from 'class-validator';
+  IsEmail,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { Trim } from '../../../../../../../../libs/core/decorators/transform/trim';
 
 export class registrationInputDto {
-  @IsStringWithTrim(
-    usernameConstraints.minLength,
-    usernameConstraints.maxLength,
-  )
-  @Matches(/^[A-Za-z0-9_-]{6,30}$/, {
+  @IsString({ message: 'Username must be a string' })
+  @MinLength(6, { message: 'Minimum number of characters 6' })
+  @MaxLength(30, { message: 'Maximum number of characters 30' })
+  @Trim()
+  @Matches(/^[A-Za-z0-9_-]+$/, {
     message:
-      'Username must be 6-30 characters long and contain only letters, numbers, underscores, or hyphens',
+      'Username must contain only letters, numbers, underscores, or hyphens',
   })
   username: string;
 
-  @IsStringWithTrim(
-    passwordConstraints.minLength,
-    passwordConstraints.maxLength,
-  )
+  @IsString({
+    message:
+      'Password must contain 0-9, a-z, A-Z, ! " # $ % & \' ( ) * + , - . / : ; < = > ? @ [ \\ ] ^ _ { | } ~ ',
+  })
+  @MinLength(6, { message: 'Minimum number of characters 6' })
+  @MaxLength(20, { message: 'Maximum number of characters 20' })
+  @Trim()
   password: string;
 
-  @IsEmail()
+  @IsEmail(
+    {},
+    { message: 'The email must match the format example@example.com' },
+  )
   email: string;
 }

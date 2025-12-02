@@ -30,13 +30,13 @@ export class RegisterUserUseCase
     if (user) {
       if (user.username === dto.username) {
         throw new DomainException(
-          'Login is already taken',
+          ' User with this username is already registered',
           DomainExceptionCode.BadRequest,
           [],
         );
       } else {
         throw new DomainException(
-          'Email is already registered',
+          'User with this email is already registered',
           DomainExceptionCode.BadRequest,
           [],
         );
