@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CoreModule } from './core/core.module';
 import { TestMessagingController } from './features/messaging/test-messaging.controller';
 import { UserEventsPublisher } from './features/messaging/user-events.publisher';
+import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserEventsPublisher } from './features/messaging/user-events.publisher'
     }),
     CoreModule,
     MessagingModule,
+    UserAccountsModule,
   ],
   controllers: [AppController, TestMessagingController],
   providers: [AppService, UserEventsPublisher],
