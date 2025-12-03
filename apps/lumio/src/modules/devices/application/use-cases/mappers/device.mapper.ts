@@ -5,7 +5,7 @@ export const outputDevicesMapper = (
   device: SessionEntity,
 ): OutputDeviceType => {
   return {
-    deviceId: device.id.toString(),
+    deviceName: device.deviceName,
     title: device.deviceName,
     ip: device.ip,
     lastActiveDate: device.createdAt.toISOString(),
