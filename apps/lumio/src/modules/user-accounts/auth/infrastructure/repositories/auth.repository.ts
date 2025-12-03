@@ -52,4 +52,15 @@ export class AuthRepository {
       },
     });
   }
+
+  async deleteSession(sessionId: number, userId: number): Promise<void> {
+    await this.prisma.session.delete({
+      where: {
+        id: sessionId,
+        userId,
+      },
+    });
+
+    return;
+  }
 }

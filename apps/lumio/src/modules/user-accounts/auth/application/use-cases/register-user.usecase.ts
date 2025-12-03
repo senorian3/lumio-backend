@@ -3,8 +3,8 @@ import { registrationDto } from '../../dto/registration.dto';
 import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
 import { BadRequestDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
 import { CreateUserCommand } from '../../../users/application/use-cases/create-user.use-case';
-import { NodemailerService } from '../../../adapters/nodemeiler/nodemeiler.service';
-import { EmailService } from '../../../adapters/nodemeiler/template/email-examples';
+import { NodemailerService } from '../../../adapters/nodemailer/nodemeiler.service';
+import { EmailService } from '../../../adapters/nodemailer/template/email-examples';
 
 export class RegisterUserCommand {
   constructor(public dto: registrationDto) {}

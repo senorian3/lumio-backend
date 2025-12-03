@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
-import { MessagingConfig } from './messaging-config.class';
+import { MessagingConfig } from './messaging-config';
 
 @Injectable()
 export class MessagingService implements OnModuleInit, OnModuleDestroy {

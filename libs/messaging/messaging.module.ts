@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MessagingService } from './messaging.service';
-import { MessagingConfig } from './messaging-config.class';
+import { MessagingConfig } from './messaging-config';
 
 @Module({
   imports: [ConfigModule],

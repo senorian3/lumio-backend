@@ -15,6 +15,8 @@ import { RegisterUserCommand } from '../../application/use-cases/register-user.u
 import { loginInputDto } from '../input-dto/login.input-dto';
 import { Response, Request } from 'express';
 import { LoginUserCommand } from '../../application/use-cases/login-user.usecase';
+import { RefreshTokenGuard } from 'apps/lumio/src/core/guards/refresh/refresh-token.guard';
+import { LogoutUserCommand } from '../../application/use-cases/logout-user.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -58,5 +60,14 @@ export class AuthController {
     });
 
     return { accessToken };
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Post('logout')
+  @HttpCode(204)
+  async logout(@Req() req: any): Promise<void> {
+    return await this.commandBus.execute(
+      new LogoutUserCommand(req.user.userId, req.user.deviceId),
+    );
   }
 }

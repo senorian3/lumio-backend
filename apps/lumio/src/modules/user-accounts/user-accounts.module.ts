@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { throttlerModule } from '../../../../../libs/core/guards/throttler/throttler.module';
+import { throttlerModule } from '../../core/guards/throttler/throttler.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthController } from './auth/presentation/controllers/auth.controller';
 import { CreateUserUseCase } from './users/application/use-cases/create-user.use-case';
 import { RegisterUserUseCase } from './auth/application/use-cases/register-user.usecase';
-import { NodemailerService } from './adapters/nodemeiler/nodemeiler.service';
+import { NodemailerService } from './adapters/nodemailer/nodemeiler.service';
 import { CryptoService } from './adapters/crypto.service';
 import { UserRepository } from './users/infrastructure/repositories/user.repository';
-import { EmailService } from './adapters/nodemeiler/template/email-examples';
-import { JwtStrategy } from '../../../../../libs/core/guards/bearer/jwt.strategy';
+import { EmailService } from './adapters/nodemailer/template/email-examples';
+import { JwtStrategy } from '../../core/guards/bearer/jwt.strategy';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -45,6 +45,7 @@ const commandHandlers = [
     AuthService,
     AuthRepository,
     JwtStrategy,
+    JwtService,
     {
       provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
       useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {

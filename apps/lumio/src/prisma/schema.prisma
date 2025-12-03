@@ -32,6 +32,7 @@ model Session {
   ip         String    @db.VarChar(50)
   userId     Int
   user       User      @relation(fields: [userId], references: [id])
+  tokenVersion Int     @default(1)
 }
 
 model EmailConfirmation {

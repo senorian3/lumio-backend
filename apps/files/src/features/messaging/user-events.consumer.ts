@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { PrismaService } from '../../prisma/prisma.service';
-import { MessagingConfig } from '../../../../../libs/messaging/messaging-config.class';
+import { MessagingConfig } from '../../../../../libs/messaging/messaging-config';
 
 @Injectable()
 export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {

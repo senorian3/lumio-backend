@@ -10,6 +10,7 @@ import { CoreModule } from './core/core.module';
 import { TestMessagingController } from './features/messaging/test-messaging.controller';
 import { UserEventsPublisher } from './features/messaging/user-events.publisher';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
+import { UserAccountsConfig } from './modules/user-accounts/config/user-accounts.config';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { UserAccountsModule } from './modules/user-accounts/user-accounts.module
     UserAccountsModule,
   ],
   controllers: [AppController, TestMessagingController],
-  providers: [AppService, UserEventsPublisher],
+  providers: [AppService, UserEventsPublisher, UserAccountsConfig],
   exports: [],
 })
 export class AppModule {

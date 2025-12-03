@@ -9,6 +9,7 @@ export class SessionEntity implements Session {
   deviceId: string;
   deviceName: string;
   ip: string;
+  tokenVersion: number;
 
   userId: number;
   user?: UserEntity;
