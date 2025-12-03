@@ -63,4 +63,15 @@ export class AuthRepository {
 
     return;
   }
+
+  async deleteAllSessionsExcludeCurrent(sessionId: number, userId: number) {
+    await this.prisma.session.deleteMany({
+      where: {
+        id: { not: sessionId },
+        userId: userId,
+      },
+    });
+
+    return;
+  }
 }
