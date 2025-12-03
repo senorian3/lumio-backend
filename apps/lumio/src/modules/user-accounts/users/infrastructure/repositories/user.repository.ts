@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../prisma/prisma.service';
-import { User } from '../../../../../../../../generated/prisma/client';
 import { CreateUserDomainDto } from '../../domain/dto/create-user.domain.dto';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
 import { EmailConfirmation } from 'generated/prisma-lumio';
+import { UserEntity } from '../../domain/entities/user.entity';
 
 @Injectable()
 export class UserRepository {
@@ -13,7 +13,7 @@ export class UserRepository {
   async doesExistByUsernameOrEmail(
     username: string,
     email: string,
-  ): Promise<User | null> {
+  ): Promise<UserEntity | null> {
     return this.prisma.user.findFirst({
       where: {
         OR: [
@@ -27,7 +27,7 @@ export class UserRepository {
   async createUser(
     dto: CreateUserDomainDto,
     passwordHash: string,
-  ): Promise<User> {
+  ): Promise<UserEntity> {
     return this.prisma.user.create({
       data: {
         username: dto.username,
@@ -61,6 +61,14 @@ export class UserRepository {
       where: code ? { confirmationCode: code } : { userId: userId! },
       include: {
         user: true,
+      },
+    });
+  }
+
+  async findUserByEmail(email: string): Promise<UserEntity | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        email: email,
       },
     });
   }

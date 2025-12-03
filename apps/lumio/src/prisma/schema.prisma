@@ -12,13 +12,26 @@ datasource db {
 }
 
 model User {
-  id                 Int                @id @default(autoincrement())
-  username           String             @unique @db.VarChar(40)
-  email              String             @unique @db.VarChar(255)
-  password           String             @db.VarChar(200)
-  createdAt          DateTime           @default(now())
+  id                 Int                  @id @default(autoincrement())
+  username           String               @unique @db.VarChar(40)
+  email              String               @unique @db.VarChar(255)
+  password           String               @db.VarChar(200)
+  createdAt          DateTime             @default(now())
   deletedAt          DateTime?
   emailConfirmation  EmailConfirmation?
+  sessions           Session[]
+}
+
+model Session {
+  id         Int      @id @default(autoincrement())
+  deletedAt  DateTime? @db.Timestamp(6)
+  createdAt  DateTime  @default(now()) @db.Timestamp(6)
+  expiresAt  DateTime  @db.Timestamp(6)
+  deviceId   String    @db.VarChar(255)
+  deviceName String    @db.VarChar(255)
+  ip         String    @db.VarChar(50)
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id])
 }
 
 model EmailConfirmation {

@@ -1,5 +1,6 @@
 import { User } from 'generated/prisma-lumio';
 import { EmailConfirmationEntity } from './email-confirmation.entity';
+import { SessionEntity } from '../../../sessions/domain/entities/session.entity';
 
 export const usernameConstraints = {
   minLength: 6,
@@ -19,6 +20,7 @@ export class UserEntity implements User {
   createdAt: Date;
   deletedAt: Date | null;
 
-  // связь с EmailConfirmation
   emailConfirmation?: EmailConfirmationEntity | null;
+
+  sessions?: SessionEntity[];
 }
