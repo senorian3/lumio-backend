@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { throttlerModule } from '../../core/guards/throttler/throttler.module';
-import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthController } from './auth/presentation/controllers/auth.controller';
 import { CreateUserUseCase } from './users/application/use-cases/create-user.use-case';
 import { RegisterUserUseCase } from './auth/application/use-cases/register-user.usecase';
@@ -29,13 +26,9 @@ const commandHandlers = [
 ];
 
 @Module({
-  imports: [PrismaModule, throttlerModule],
+  imports: [PrismaModule],
   controllers: [AuthController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
     UserAccountsConfig,
     NodemailerService,
     ...commandHandlers,
