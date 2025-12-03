@@ -17,6 +17,10 @@ import { Response, Request } from 'express';
 import { LoginUserCommand } from '../../application/use-cases/login-user.usecase';
 import { RefreshTokenGuard } from 'apps/lumio/src/core/guards/refresh/refresh-token.guard';
 import { LogoutUserCommand } from '../../application/use-cases/logout-user.usecase';
+import { PasswordRecoveryCommand } from '../../application/use-cases/password-recovery.usecase';
+import { PasswordRecoveryInputDto } from '../input-dto/password-recovery.input-dto';
+import { NewPasswordInputDto } from '../input-dto/new-password.input-dto1';
+import { NewPasswordCommand } from '../../application/use-cases/new-password.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -68,6 +72,24 @@ export class AuthController {
   async logout(@Req() req: any): Promise<void> {
     return await this.commandBus.execute(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
+    );
+  }
+
+  @Post('password-recovery')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(ThrottlerGuard)
+  async passwordRecovery(@Body() dto: PasswordRecoveryInputDto) {
+    await this.commandBus.execute<PasswordRecoveryCommand, void>(
+      new PasswordRecoveryCommand(dto),
+    );
+  }
+
+  @Post('new-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(ThrottlerGuard)
+  async newPassword(@Body() dto: NewPasswordInputDto) {
+    await this.commandBus.execute<NewPasswordCommand, void>(
+      new NewPasswordCommand(dto),
     );
   }
 }
