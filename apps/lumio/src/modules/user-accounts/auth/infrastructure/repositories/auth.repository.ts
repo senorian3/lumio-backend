@@ -20,6 +20,7 @@ export class AuthRepository {
       },
     });
   }
+
   async updateSession(
     sessionId: number,
     iat: number,

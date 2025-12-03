@@ -72,4 +72,28 @@ export class UserRepository {
       },
     });
   }
+
+  async updateCodeAndExpirationDate(
+    userId: number,
+    newConfirmationCode: string,
+    newExpirationDate: Date,
+  ): Promise<void> {
+    await this.prisma.emailConfirmation.update({
+      where: { userId },
+      data: {
+        confirmationCode: newConfirmationCode,
+        expirationDate: newExpirationDate,
+        isConfirmed: false,
+      },
+    });
+  }
+
+  async updatePassword(userId: number, newPasswordHash: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: newPasswordHash,
+      },
+    });
+  }
 }

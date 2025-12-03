@@ -17,11 +17,15 @@ import { UserAccountsConfig } from './config/user-accounts.config';
 import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecase';
 import { AuthService } from './auth/application/service/auth.service';
 import { AuthRepository } from './auth/infrastructure/repositories/auth.repository';
+import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
+import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 
 const commandHandlers = [
   CreateUserUseCase,
   RegisterUserUseCase,
   LoginUserUseCase,
+  PasswordRecoveryUseCase,
+  NewPasswordUseCase,
 ];
 
 @Module({
