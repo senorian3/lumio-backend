@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
 import { AuthController } from './auth/presentation/controllers/auth.controller';
 import { CreateUserUseCase } from './users/application/use-cases/create-user.use-case';
 import { RegisterUserUseCase } from './auth/application/use-cases/register-user.usecase';
@@ -26,7 +25,7 @@ const commandHandlers = [
 ];
 
 @Module({
-  imports: [PrismaModule],
+  imports: [],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
