@@ -46,7 +46,10 @@ export class DeleteDeviceUseCase
       throw NotFoundDomainException.create('Device is not found', 'deviceId');
     }
 
-    if (foundDevice.user.id !== userId) {
+    if (
+      foundDevice.user.id !== userId ||
+      foundDevice.deviceId === paramDeviceId
+    ) {
       throw ForbiddenDomainException.create(
         "You can't terminate current session!",
         'userId',
