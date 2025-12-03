@@ -11,10 +11,12 @@ import { TestMessagingController } from './features/messaging/test-messaging.con
 import { UserEventsPublisher } from './features/messaging/user-events.publisher';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { UserAccountsConfig } from './modules/user-accounts/config/user-accounts.config';
+import { throttlerModule } from './core/guards/throttler/throttler.module';
 
 @Module({
   imports: [
     configModule,
+    throttlerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
         const uri = coreConfig.dbUrl;
