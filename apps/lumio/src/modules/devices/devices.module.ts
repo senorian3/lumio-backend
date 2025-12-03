@@ -6,8 +6,13 @@ import { AuthController } from '../user-accounts/auth/presentation/controllers/a
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { AuthRepository } from '../user-accounts/auth/infrastructure/repositories/auth.repository';
+import { DeleteAllDevicesUseCase } from './application/use-cases/delete-all-devices.usecase';
 
-const commandHandlers = [DeleteDeviceUseCase, DeleteDeviceUseCase];
+const commandHandlers = [
+  DeleteDeviceUseCase,
+  DeleteDeviceUseCase,
+  DeleteAllDevicesUseCase,
+];
 
 @Module({
   imports: [PrismaModule, JwtModule, UserAccountsModule],
