@@ -12,6 +12,7 @@ import { UserEventsPublisher } from './features/messaging/user-events.publisher'
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { UserAccountsConfig } from './modules/user-accounts/config/user-accounts.config';
 import { throttlerModule } from './core/guards/throttler/throttler.module';
+import { DevicesModule } from './modules/devices/devices.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { throttlerModule } from './core/guards/throttler/throttler.module';
     CoreModule,
     MessagingModule,
     UserAccountsModule,
+    DevicesModule,
   ],
   controllers: [AppController, TestMessagingController],
   providers: [AppService, UserEventsPublisher, UserAccountsConfig],
