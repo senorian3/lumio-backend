@@ -1,8 +1,7 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { registrationDto } from '../../dto/registration.dto';
 import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { DomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../../../../../libs/core/exceptions/domain-exception-codes';
+import { BadRequestDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
 import { CreateUserCommand } from '../../../users/application/use-cases/create-user.use-case';
 import { NodemailerService } from '../../../adapters/nodemeiler/nodemeiler.service';
 import { EmailService } from '../../../adapters/nodemeiler/template/email-examples';
@@ -29,16 +28,14 @@ export class RegisterUserUseCase
     );
     if (user) {
       if (user.username === dto.username) {
-        throw new DomainException(
-          ' User with this username is already registered',
-          DomainExceptionCode.BadRequest,
-          [],
+        throw BadRequestDomainException.create(
+          'User with this username is already registered',
+          'username',
         );
       } else {
-        throw new DomainException(
+        throw BadRequestDomainException.create(
           'User with this email is already registered',
-          DomainExceptionCode.BadRequest,
-          [],
+          'email',
         );
       }
     }
@@ -51,10 +48,9 @@ export class RegisterUserUseCase
         userId: newUserId,
       });
     if (!emailConfirmation) {
-      throw new DomainException(
+      throw BadRequestDomainException.create(
         'Email confirmation not found',
-        DomainExceptionCode.BadRequest,
-        [],
+        'email',
       );
     }
     this.nodemailerService

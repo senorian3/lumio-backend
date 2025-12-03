@@ -37,7 +37,7 @@ export class NodemailerService {
 
     try {
       await this.transporter.sendMail({
-        from: `"BloggerPlatform" <${this.userAccountsConfig.smtpUser}>`,
+        from: `"Techgram" <${this.userAccountsConfig.smtpUser}>`,
         to: email,
         subject,
         html,

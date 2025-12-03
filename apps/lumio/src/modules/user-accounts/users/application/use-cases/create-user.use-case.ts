@@ -1,8 +1,7 @@
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { DomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../../../../../libs/core/exceptions/domain-exception-codes';
+import { BadRequestDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '../../../adapters/crypto.service';
 
 export class CreateUserCommand {
@@ -23,11 +22,7 @@ export class CreateUserUseCase
       dto.email,
     );
     if (user) {
-      throw new DomainException(
-        'User already exists',
-        DomainExceptionCode.BadRequest,
-        [],
-      );
+      throw BadRequestDomainException.create('User already exists');
     }
 
     const hashedPassword = await this.cryptoService.createPasswordHash(
