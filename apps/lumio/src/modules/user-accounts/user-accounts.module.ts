@@ -6,6 +6,7 @@ import { NodemailerService } from './adapters/nodemailer/nodemeiler.service';
 import { CryptoService } from './adapters/crypto.service';
 import { UserRepository } from './users/infrastructure/repositories/user.repository';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
+import { RecaptchaService } from './adapters/recaptcha.service';
 import { JwtStrategy } from '../../core/guards/bearer/jwt.strategy';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -37,6 +38,7 @@ const commandHandlers = [
     ...commandHandlers,
     CryptoService,
     EmailService,
+    RecaptchaService,
     UserRepository,
     AuthService,
     AuthRepository,
