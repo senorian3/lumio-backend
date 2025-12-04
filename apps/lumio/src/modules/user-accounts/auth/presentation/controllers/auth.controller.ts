@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -21,6 +22,7 @@ import { PasswordRecoveryCommand } from '../../application/use-cases/password-re
 import { PasswordRecoveryInputDto } from '../input-dto/password-recovery.input-dto';
 import { NewPasswordInputDto } from '../input-dto/new-password.input-dto1';
 import { NewPasswordCommand } from '../../application/use-cases/new-password.usecase';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -92,4 +94,23 @@ export class AuthController {
       new NewPasswordCommand(dto),
     );
   }
+
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  async githubLogin() {
+    // Guard сам сделает 302 на GitHub, код не нужен
+  }
+
+  // @Get('github/callback')
+  // @UseGuards(AuthGuard('github'))
+  // async githubCallback(@Req() req, @Res() res: Response) {
+  //   // const ip: string =
+  //   //   req.socket.remoteAddress ||
+  //   //   (Array.isArray(req.headers['x-forwarded-for'])
+  //   //     ? req.headers['x-forwarded-for'][0]
+  //   //     : req.headers['x-forwarded-for']) ||
+  //   //   'unknown';
+  //   //const deviceName = req.headers['user-agent'] || 'unknown';
+  //   // const user = req.user;
+  // }
 }
