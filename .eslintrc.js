@@ -28,12 +28,12 @@ module.exports = {
           {
             group: ['apps/lumio/src/*'],
             message:
-              'Используйте относительные импорты или алиасы (@lumio/*) вместо абсолютных путей.',
+              'Use relative imports or aliases (@lumio/*) instead of absolute paths.',
           },
           {
             group: ['apps/files/src/*'],
             message:
-              'Используйте относительные импорты или алиасы (@files/*) вместо абсолютных путей.',
+              'Use relative imports or aliases (@files/*) instead of absolute paths.',
           },
         ],
       },
