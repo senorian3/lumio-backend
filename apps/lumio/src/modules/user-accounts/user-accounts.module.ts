@@ -19,6 +19,7 @@ import { AuthRepository } from './auth/infrastructure/repositories/auth.reposito
 import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
+import { RecaptchaService } from './adapters/recaptcha.service';
 
 const commandHandlers = [
   CreateUserUseCase,
@@ -37,6 +38,7 @@ const commandHandlers = [
     ...commandHandlers,
     CryptoService,
     EmailService,
+    RecaptchaService,
     UserRepository,
     AuthService,
     AuthRepository,
