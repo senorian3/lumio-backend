@@ -11,16 +11,16 @@ import {
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { registrationInputDto } from '../input-dto/registration.input-dto';
 import { CommandBus } from '@nestjs/cqrs';
-import { RegisterUserCommand } from '../../application/use-cases/register-user.usecase';
 import { loginInputDto } from '../input-dto/login.input-dto';
 import { Response, Request } from 'express';
-import { LoginUserCommand } from '../../application/use-cases/login-user.usecase';
-import { RefreshTokenGuard } from 'apps/lumio/src/core/guards/refresh/refresh-token.guard';
-import { LogoutUserCommand } from '../../application/use-cases/logout-user.usecase';
-import { PasswordRecoveryCommand } from '../../application/use-cases/password-recovery.usecase';
+import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { PasswordRecoveryInputDto } from '../input-dto/password-recovery.input-dto';
 import { NewPasswordInputDto } from '../input-dto/new-password.input-dto1';
+import { LoginUserCommand } from '../../application/use-cases/login-user.usecase';
+import { LogoutUserCommand } from '../../application/use-cases/logout-user.usecase';
 import { NewPasswordCommand } from '../../application/use-cases/new-password.usecase';
+import { PasswordRecoveryCommand } from '../../application/use-cases/password-recovery.usecase';
+import { RegisterUserCommand } from '../../application/use-cases/register-user.usecase';
 
 @Controller('auth')
 export class AuthController {

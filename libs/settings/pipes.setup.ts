@@ -1,9 +1,9 @@
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   INestApplication,
   ValidationError,
   ValidationPipe,
 } from '@nestjs/common';
-import { BadRequestDomainException } from '../core/exceptions/domain-exceptions';
 
 type ErrorResponse = { message: string; field: string };
 

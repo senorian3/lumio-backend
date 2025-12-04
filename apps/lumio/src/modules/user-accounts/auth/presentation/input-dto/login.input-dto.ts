@@ -1,5 +1,5 @@
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
-import { Trim } from '../../../../../../../../libs/core/decorators/transform/trim';
+import { Trim } from '@libs/core/decorators/transform/trim';
 
 export class loginInputDto {
   @IsEmail(

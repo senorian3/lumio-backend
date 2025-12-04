@@ -1,6 +1,6 @@
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { SessionEntity } from '../../../sessions/domain/entities/session.entity';
 
 export class LogoutUserCommand {
   constructor(

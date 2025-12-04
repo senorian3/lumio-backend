@@ -1,6 +1,6 @@
 import { User } from 'generated/prisma-lumio';
 import { EmailConfirmationEntity } from './email-confirmation.entity';
-import { SessionEntity } from '../../../sessions/domain/entities/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
 
 export const usernameConstraints = {
   minLength: 6,

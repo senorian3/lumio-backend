@@ -1,6 +1,6 @@
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { SessionEntity } from '../../../sessions/domain/entities/session.entity';
 
 @Injectable()
 export class AuthRepository {

@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AuthRepository } from '../../../user-accounts/auth/infrastructure/repositories/auth.repository';
-import { SessionEntity } from '../../../user-accounts/sessions/domain/entities/session.entity';
-import { BadRequestDomainException } from 'libs/core/exceptions/domain-exceptions';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
 
 export class DeleteAllDevicesCommand {
   constructor(

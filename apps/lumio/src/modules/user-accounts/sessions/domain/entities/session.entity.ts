@@ -1,5 +1,5 @@
+import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 import { Session } from 'generated/prisma-lumio';
-import { UserEntity } from '../../../users/domain/entities/user.entity';
 
 export class SessionEntity implements Session {
   id: number;

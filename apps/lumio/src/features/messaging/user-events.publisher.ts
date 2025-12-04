@@ -3,8 +3,8 @@ import {
   UserCreatedEvent,
   UserUpdatedEvent,
   UserDeletedEvent,
-} from 'libs/messaging/dto/user-events.dto';
-import { MessagingService } from 'libs/messaging/messaging.service';
+} from '@libs/messaging/dto/user-events.dto';
+import { MessagingService } from '@libs/messaging/messaging.service';
 
 @Injectable()
 export class UserEventsPublisher {

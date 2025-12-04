@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SessionEntity } from '../../user-accounts/sessions/domain/entities/session.entity';
-import { OutputDeviceType } from '../dto/output';
+import { PrismaService } from '@lumio/prisma/prisma.service';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
 import { outputDevicesMapper } from '../application/use-cases/mappers/device.mapper';
-import { PrismaService } from 'apps/lumio/src/prisma/prisma.service';
+import { OutputDeviceType } from '../dto/output';
 @Injectable()
 export class QueryDevicesRepository {
   constructor(private readonly prisma: PrismaService) {}

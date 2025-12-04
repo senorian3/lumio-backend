@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedDomainException } from '../../../../../../libs/core/exceptions/domain-exceptions';
+import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { Request } from 'express';
-import { UserAccountsConfig } from 'apps/lumio/src/modules/user-accounts/config/user-accounts.config';
-import { AuthRepository } from './../../../modules/user-accounts/auth/infrastructure/repositories/auth.repository';
-import { SessionEntity } from 'apps/lumio/src/modules/user-accounts/sessions/domain/entities/session.entity';
+import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
+import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {

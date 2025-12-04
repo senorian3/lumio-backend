@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { QueryDevicesRepository } from '../../infrastructure/devices.query.repository';
-import { BadRequestDomainException } from 'libs/core/exceptions/domain-exceptions';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { OutputDeviceType } from '../../dto/output';
+import { QueryDevicesRepository } from '../../infrastructure/devices.query.repository';
 
 export class GetAllDevicesCommand {
   constructor(public userId: number) {}
