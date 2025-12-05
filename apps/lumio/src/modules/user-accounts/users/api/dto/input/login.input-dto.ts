@@ -1,7 +1,7 @@
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 import { Trim } from '@libs/core/decorators/transform/trim';
 
-export class loginInputDto {
+export class InputLoginDto {
   @IsEmail(
     {},
     { message: 'The email must match the format example@example.com' },

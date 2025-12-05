@@ -1,7 +1,7 @@
 import { IsString, MaxLength, MinLength } from 'class-validator';
 import { Trim } from '@libs/core/decorators/transform/trim';
 
-export class NewPasswordInputDto {
+export class InputNewPasswordDto {
   @MinLength(6, { message: 'Minimum number of characters 6' })
   @MaxLength(20, { message: 'Maximum number of characters 20' })
   @Trim()

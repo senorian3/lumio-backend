@@ -13,7 +13,6 @@ import ms from 'ms';
 import { UserAccountsConfig } from './config/user-accounts.config';
 import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecase';
 import { AuthService } from './auth/application/auth.service';
-import { AuthRepository } from './sessions/infrastructure/session.repository';
 import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
@@ -23,6 +22,7 @@ import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { UserRepository } from './users/infrastructure/user.repository';
+import { SessionRepository } from './sessions/infrastructure/session.repository';
 
 const commandHandlers = [
   CreateUserUseCase,
@@ -45,7 +45,7 @@ const commandHandlers = [
     RecaptchaService,
     UserRepository,
     AuthService,
-    AuthRepository,
+    SessionRepository,
     JwtStrategy,
     GithubStrategy,
     JwtService,

@@ -24,9 +24,10 @@ export class SessionsController {
 
   @Get()
   async getAllSessions(@Req() req: any): Promise<OutputSessionType[]> {
-    return await this.queryBus.execute(
-      new GetAllSessionsCommand(req.user.userId),
-    );
+    return await this.queryBus.execute<
+      GetAllSessionsCommand,
+      OutputSessionType[]
+    >(new GetAllSessionsCommand(req.user.userId));
   }
 
   @Delete(':deviceId')
@@ -35,7 +36,7 @@ export class SessionsController {
     @Req() req: any,
     @Param('deviceId') paramDeviceId: string,
   ): Promise<void> {
-    return await this.commandBus.execute(
+    return await this.commandBus.execute<DeleteSessionCommand, void>(
       new DeleteSessionCommand(
         req.user.userId,
         req.user.deviceId,
@@ -47,7 +48,7 @@ export class SessionsController {
   @Delete()
   @HttpCode(204)
   async deleteAllSessions(@Req() req: any): Promise<void> {
-    return await this.commandBus.execute(
+    return await this.commandBus.execute<DeleteAllSessionsCommand, void>(
       new DeleteAllSessionsCommand(req.user.userId, req.user.deviceId),
     );
   }

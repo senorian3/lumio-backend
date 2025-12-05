@@ -3,7 +3,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
-import { registrationDto } from '../../../users/api/models/dto/transfer/registration.dto';
+import { registrationDto } from '../../../users/api/dto/transfer/registration.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
 
 export class RegisterUserCommand {

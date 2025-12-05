@@ -20,17 +20,17 @@ import { LogoutUserCommand } from '../application/use-cases/logout-user.usecase'
 import { NewPasswordCommand } from '../application/use-cases/new-password.usecase';
 import { PasswordRecoveryCommand } from '../application/use-cases/password-recovery.usecase';
 import { RegisterUserCommand } from '../application/use-cases/register-user.usecase';
-import { loginInputDto } from '../../users/api/models/dto/input/login.input-dto';
-import { NewPasswordInputDto } from '../../users/api/models/dto/input/new-password.input-dto';
-import { PasswordRecoveryInputDto } from '../../users/api/models/dto/input/password-recovery.input-dto';
-import { registrationInputDto } from '../../users/api/models/dto/input/registration.input-dto';
+import { InputLoginDto } from '../../users/api/dto/input/login.input-dto';
+import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input-dto';
+import { registrationInputDto } from '../../users/api/dto/input/registration.input-dto';
+import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input-dto';
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async register(@Body() dto: registrationInputDto) {
+  async register(@Body() dto: registrationInputDto): Promise<void> {
     await this.commandBus.execute<RegisterUserCommand, void>(
       new RegisterUserCommand(dto),
     );
@@ -39,10 +39,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
-    @Body() dto: loginInputDto,
+    @Body() dto: InputLoginDto,
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
-  ) {
+  ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -50,12 +50,12 @@ export class AuthController {
         : req.headers['x-forwarded-for']) ||
       'unknown';
 
-    const userAgent = req.headers['user-agent'] || 'unknown';
+    const userAgent = (req.headers['user-agent'] || 'unknown').trim();
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginUserCommand,
       { accessToken: string; refreshToken: string }
-    >(new LoginUserCommand(dto, userAgent!, ip));
+    >(new LoginUserCommand(dto, userAgent, ip));
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -71,23 +71,23 @@ export class AuthController {
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() req: any): Promise<void> {
-    return await this.commandBus.execute(
+    return await this.commandBus.execute<LogoutUserCommand, void>(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
     );
   }
 
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async passwordRecovery(@Body() dto: PasswordRecoveryInputDto) {
-    await this.commandBus.execute<PasswordRecoveryCommand, void>(
+  async passwordRecovery(@Body() dto: InputPasswordRecoveryDto): Promise<void> {
+    return await this.commandBus.execute<PasswordRecoveryCommand, void>(
       new PasswordRecoveryCommand(dto),
     );
   }
 
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async newPassword(@Body() dto: NewPasswordInputDto) {
-    await this.commandBus.execute<NewPasswordCommand, void>(
+  async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
+    return await this.commandBus.execute<NewPasswordCommand, void>(
       new NewPasswordCommand(dto),
     );
   }
@@ -102,7 +102,10 @@ export class AuthController {
   @SkipThrottle()
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubCallback(@Req() req, @Res() res: Response) {
+  async githubCallback(
+    @Req() req,
+    @Res() res: Response,
+  ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])

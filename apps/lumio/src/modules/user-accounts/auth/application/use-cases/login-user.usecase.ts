@@ -8,8 +8,8 @@ import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
-import { loginDto } from '../../../users/api/models/dto/transfer/login.dto';
-import { AuthRepository } from '../../../sessions/infrastructure/session.repository';
+import { loginDto } from '../../../users/api/dto/transfer/login.dto';
+import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
 
 export class LoginUserCommand {
   constructor(
@@ -36,7 +36,7 @@ export class LoginUserUseCase
 
     private authService: AuthService,
 
-    private authRepository: AuthRepository,
+    private sessionRepository: SessionRepository,
   ) {}
   async execute({ dto, deviceName, ip }: LoginUserCommand): Promise<{
     accessToken: string;
@@ -49,7 +49,7 @@ export class LoginUserUseCase
 
     const userId = result!.id;
 
-    const existSession = await this.authRepository.findSession({
+    const existSession = await this.sessionRepository.findSession({
       userId,
       deviceName: deviceName,
     });
@@ -77,16 +77,20 @@ export class LoginUserUseCase
       );
     }
     if (existSession) {
-      await this.authRepository.updateSession(existSession.id, iat, exp);
-    } else {
-      await this.authRepository.createSession(
-        userId,
+      await this.sessionRepository.updateSession({
+        sessionId: existSession.id,
         iat,
         exp,
+      });
+    } else {
+      await this.sessionRepository.createSession({
+        userId,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
         deviceId,
         ip,
         deviceName,
-      );
+      });
     }
     const accessToken = this.accessTokenContext.sign({ userId });
 

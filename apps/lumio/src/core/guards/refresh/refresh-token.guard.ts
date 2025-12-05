@@ -21,6 +21,7 @@ export class RefreshTokenGuard implements CanActivate {
     if (!refreshToken) {
       throw UnauthorizedDomainException.create(
         'There is no refresh token in request',
+        'refreshToken',
       );
     }
 
@@ -32,13 +33,19 @@ export class RefreshTokenGuard implements CanActivate {
       await this.sessionRepository.findSession(payload.deviceId);
 
     if (!session) {
-      throw UnauthorizedDomainException.create("User doesn't have session");
+      throw UnauthorizedDomainException.create(
+        "User doesn't have session",
+        'deviceId',
+      );
     }
 
     const exp: Date = new Date(payload.exp * 1000);
 
     if (session.userId !== payload.userId || session.expiresAt !== exp) {
-      throw UnauthorizedDomainException.create("User doesn't have session");
+      throw UnauthorizedDomainException.create(
+        "User doesn't have session",
+        'session',
+      );
     }
 
     request.user = payload;

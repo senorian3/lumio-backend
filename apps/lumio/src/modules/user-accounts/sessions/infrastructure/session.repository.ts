@@ -1,9 +1,13 @@
 import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { CreateSessionDomainDto } from '@lumio/modules/user-accounts/sessions/domain/dto/create-session.domain.dto';
+import { UpdateSessionDomainDto } from '../domain/dto/update-sesion.domain.dto';
+import { DeleteSessionDomainDto } from '../domain/dto/delete-session.domain.dto';
+import { DeleteAllSessionsExcludeCurrentDomainDto } from '../domain/dto/delete-all-sessions-exclude-current.domain.dto';
 
 @Injectable()
-export class AuthRepository {
+export class SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findSession(filters: {
@@ -16,60 +20,52 @@ export class AuthRepository {
         deletedAt: null,
         ...(filters.userId && { userId: filters.userId }),
         ...(filters.deviceId && { deviceId: filters.deviceId }),
-        ...(filters.deviceName && { deviceName: filters.deviceName.trim() }),
+        ...(filters.deviceName && { deviceName: filters.deviceName }),
       },
     });
   }
 
-  async updateSession(
-    sessionId: number,
-    iat: number,
-    exp: number,
-  ): Promise<SessionEntity> {
+  async updateSession(dto: UpdateSessionDomainDto): Promise<SessionEntity> {
     return this.prisma.session.update({
-      where: { id: sessionId },
+      where: { id: dto.sessionId },
       data: {
-        createdAt: new Date(iat * 1000),
-        expiresAt: new Date(exp * 1000),
+        createdAt: dto.iat,
+        expiresAt: dto.exp,
       },
     });
   }
-  async createSession(
-    userId: number,
-    iat: number,
-    exp: number,
-    deviceId: string,
-    ip: string,
-    deviceName: string,
-  ): Promise<SessionEntity> {
+  async createSession(dto: CreateSessionDomainDto): Promise<SessionEntity> {
     return this.prisma.session.create({
       data: {
-        userId,
-        deviceId,
-        ip,
-        deviceName: deviceName.trim(),
-        createdAt: new Date(iat * 1000),
-        expiresAt: new Date(exp * 1000),
+        userId: dto.userId,
+        deviceId: dto.deviceId,
+        ip: dto.ip,
+        deviceName: dto.deviceName,
+        createdAt: dto.iat,
+        expiresAt: dto.exp,
       },
     });
   }
 
-  async deleteSession(sessionId: number, userId: number): Promise<void> {
+  async deleteSession(dto: DeleteSessionDomainDto): Promise<void> {
     await this.prisma.session.delete({
       where: {
-        id: sessionId,
-        userId,
+        userId: dto.userId,
+        deviceId: dto.deviceId,
+        id: dto.sessionId,
       },
     });
 
     return;
   }
 
-  async deleteAllSessionsExcludeCurrent(sessionId: number, userId: number) {
+  async deleteAllSessionsExcludeCurrent(
+    dto: DeleteAllSessionsExcludeCurrentDomainDto,
+  ) {
     await this.prisma.session.deleteMany({
       where: {
-        id: { not: sessionId },
-        userId: userId,
+        id: { not: dto.sessionId },
+        userId: dto.userId,
       },
     });
 
