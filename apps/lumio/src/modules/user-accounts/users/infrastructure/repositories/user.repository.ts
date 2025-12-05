@@ -2,7 +2,7 @@ import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
-import { EmailConfirmation } from 'generated/prisma-lumio';
+import { EmailConfirmation, GitHub, User } from 'generated/prisma-lumio';
 import { UserEntity } from '../../domain/entities/user.entity';
 import { CreateUserDomainDto } from '../../domain/dto/create-user.domain.dto';
 
@@ -27,6 +27,7 @@ export class UserRepository {
   async createUser(
     dto: CreateUserDomainDto,
     passwordHash: string,
+    isConfirmed?: boolean, // необязательный флаг
   ): Promise<UserEntity> {
     return this.prisma.user.create({
       data: {
@@ -35,7 +36,7 @@ export class UserRepository {
         password: passwordHash,
         emailConfirmation: {
           create: {
-            isConfirmed: false,
+            isConfirmed: isConfirmed ?? false,
             confirmationCode: randomUUID(),
             expirationDate: add(new Date(), { days: 7 }),
           },
@@ -46,6 +47,7 @@ export class UserRepository {
       },
     });
   }
+
   async findByCodeOrIdEmailConfirmation({
     code,
     userId,
@@ -93,6 +95,56 @@ export class UserRepository {
       where: { id: userId },
       data: {
         password: newPasswordHash,
+      },
+    });
+  }
+
+  async findGitHubByGitId(gitId: string): Promise<GitHub | null> {
+    return this.prisma.gitHub.findUnique({
+      where: { gitId },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async createGitHub(data: {
+    gitId: string;
+    email: string;
+    username: string;
+    userId: number;
+  }) {
+    return this.prisma.gitHub.create({
+      data: {
+        gitId: data.gitId,
+        email: data.email,
+        username: data.username,
+        userId: data.userId,
+      },
+    });
+  }
+
+  async updateGitHub(
+    id: number,
+    data: {
+      userId?: number;
+      email?: string;
+      username?: string;
+    },
+  ) {
+    return this.prisma.gitHub.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async findUserById(id: number): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        emailConfirmation: true,
+        sessions: true,
+        github: true,
       },
     });
   }

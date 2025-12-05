@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -19,6 +20,8 @@ import { NewPasswordInputDto } from '../input-dto/new-password.input-dto1';
 import { LoginUserCommand } from '../../application/use-cases/login-user.usecase';
 import { LogoutUserCommand } from '../../application/use-cases/logout-user.usecase';
 import { NewPasswordCommand } from '../../application/use-cases/new-password.usecase';
+import { AuthGuard } from '@nestjs/passport';
+import { LoginUserGitHubCommand } from '../../application/use-cases/login-user-github.usecase';
 import { PasswordRecoveryCommand } from '../../application/use-cases/password-recovery.usecase';
 import { RegisterUserCommand } from '../../application/use-cases/register-user.usecase';
 
@@ -91,5 +94,39 @@ export class AuthController {
     await this.commandBus.execute<NewPasswordCommand, void>(
       new NewPasswordCommand(dto),
     );
+  }
+
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  async githubLogin() {
+    // Guard сам сделает 302 на GitHub, код не нужен
+  }
+
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  async githubCallback(@Req() req, @Res() res: Response) {
+    const ip: string =
+      req.socket.remoteAddress ||
+      (Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : req.headers['x-forwarded-for']) ||
+      'unknown';
+    const deviceName = req.headers['user-agent'] || 'unknown';
+    const user = req.user;
+
+    const { accessToken, refreshToken } = await this.commandBus.execute<
+      LoginUserGitHubCommand,
+      { accessToken: string; refreshToken: string }
+    >(new LoginUserGitHubCommand(user, deviceName, ip));
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    //res.json({ accessToken });   ----- это прирвать запрос для теста сработал поинт или нет
+    return { accessToken };
   }
 }

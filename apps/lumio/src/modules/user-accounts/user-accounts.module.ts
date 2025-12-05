@@ -18,6 +18,9 @@ import { AuthService } from './auth/application/service/auth.service';
 import { AuthRepository } from './auth/infrastructure/repositories/auth.repository';
 import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
+import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
+import { PassportModule } from '@nestjs/passport';
+import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-github.usecase';
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 
@@ -27,10 +30,11 @@ const commandHandlers = [
   LoginUserUseCase,
   PasswordRecoveryUseCase,
   NewPasswordUseCase,
+  LoginUserGitHubUseCase,
 ];
 
 @Module({
-  imports: [],
+  imports: [PassportModule],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
@@ -43,6 +47,7 @@ const commandHandlers = [
     AuthService,
     AuthRepository,
     JwtStrategy,
+    GithubStrategy,
     JwtService,
     {
       provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
