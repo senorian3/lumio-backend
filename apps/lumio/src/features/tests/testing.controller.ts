@@ -16,8 +16,10 @@ export class TestingController {
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAllData(): Promise<void> {
+    await this.prismaService.session.deleteMany();
     await this.prismaService.emailConfirmation.deleteMany();
-    await this.prismaService.user.deleteMany();
+    await this.prismaService.gitHub.deleteMany();
     await this.prismaService.post.deleteMany();
+    await this.prismaService.user.deleteMany();
   }
 }

@@ -21,6 +21,7 @@ import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-r
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
 import { PassportModule } from '@nestjs/passport';
+import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-github.usecase';
 
 const commandHandlers = [
   CreateUserUseCase,
@@ -28,6 +29,7 @@ const commandHandlers = [
   LoginUserUseCase,
   PasswordRecoveryUseCase,
   NewPasswordUseCase,
+  LoginUserGitHubUseCase,
 ];
 
 @Module({
