@@ -8,7 +8,6 @@ import { CoreModule } from './core/core.module';
 import { TestMessagingController } from './modules/features/messaging/test-messaging.controller';
 import { UserEventsPublisher } from './modules/features/messaging/user-events.publisher';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
-import { UserAccountsConfig } from './modules/user-accounts/config/user-accounts.config';
 import { throttlerModule } from './core/guards/throttler/throttler.module';
 import { SessionsModule } from './modules/user-accounts/sessions/sessions.module';
 
@@ -30,7 +29,7 @@ import { SessionsModule } from './modules/user-accounts/sessions/sessions.module
     SessionsModule,
   ],
   controllers: [TestMessagingController],
-  providers: [UserEventsPublisher, UserAccountsConfig],
+  providers: [UserEventsPublisher],
 })
 export class AppModule {
   static async forRoot(coreConfig: CoreConfig): Promise<DynamicModule> {

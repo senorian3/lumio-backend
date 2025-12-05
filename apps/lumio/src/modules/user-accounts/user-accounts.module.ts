@@ -8,7 +8,7 @@ import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from './constants/auth-tokens.inject-constants';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserAccountsConfig } from './config/user-accounts.config';
 import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecase';
@@ -22,9 +22,39 @@ import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { UserRepository } from './users/infrastructure/user.repository';
-import { SessionRepository } from './sessions/infrastructure/session.repository';
+import { SessionsModule } from './sessions/sessions.module';
 
-const commandHandlers = [
+const createJwtServiceProvider = (
+  provide: string | symbol,
+  secretKey: keyof UserAccountsConfig,
+  expiresInKey: keyof UserAccountsConfig,
+) => ({
+  provide,
+  useFactory: (config: UserAccountsConfig): JwtService => {
+    return new JwtService({
+      secret: config[secretKey] as string,
+      signOptions: {
+        expiresIn: config[expiresInKey] as ms.StringValue,
+      },
+    });
+  },
+  inject: [UserAccountsConfig],
+});
+
+const jwtProviders = [
+  createJwtServiceProvider(
+    ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+    'accessTokenSecret',
+    'accessTokenExpireIn',
+  ),
+  createJwtServiceProvider(
+    REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
+    'refreshTokenSecret',
+    'refreshTokenExpireIn',
+  ),
+];
+
+const useCases = [
   CreateUserUseCase,
   RegisterUserUseCase,
   LoginUserUseCase,
@@ -33,46 +63,26 @@ const commandHandlers = [
   LoginUserGitHubUseCase,
 ];
 
+const services = [
+  NodemailerService,
+  CryptoService,
+  EmailService,
+  RecaptchaService,
+  AuthService,
+];
+
+const strategies = [GithubStrategy, JwtStrategy];
+
 @Module({
-  imports: [PassportModule],
+  imports: [PassportModule, SessionsModule, JwtModule],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
-    NodemailerService,
-    ...commandHandlers,
-    CryptoService,
-    EmailService,
-    RecaptchaService,
     UserRepository,
-    AuthService,
-    SessionRepository,
-    JwtStrategy,
-    GithubStrategy,
-    JwtService,
-    {
-      provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
-      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
-        return new JwtService({
-          secret: userAccountConfig.accessTokenSecret,
-          signOptions: {
-            expiresIn: userAccountConfig.accessTokenExpireIn as ms.StringValue,
-          },
-        });
-      },
-      inject: [UserAccountsConfig],
-    },
-    {
-      provide: REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
-      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
-        return new JwtService({
-          secret: userAccountConfig.refreshTokenSecret,
-          signOptions: {
-            expiresIn: userAccountConfig.refreshTokenExpireIn as ms.StringValue,
-          },
-        });
-      },
-      inject: [UserAccountsConfig],
-    },
+    ...useCases,
+    ...services,
+    ...strategies,
+    ...jwtProviders,
   ],
 })
 export class UserAccountsModule {}

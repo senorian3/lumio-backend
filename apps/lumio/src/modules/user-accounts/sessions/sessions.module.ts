@@ -1,29 +1,25 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { UserAccountsConfig } from '../config/user-accounts.config';
-import { UserAccountsModule } from '../user-accounts.module';
-import { AuthController } from '../auth/api/auth.controller';
 import { QuerySessionsRepository } from './infrastructure/session.query.repository';
 import { DeleteAllSessionssUseCase } from './application/use-cases/delete-all-sessions.usecase';
 import { GetAllSessionsUseCase } from './application/use-cases/get-all-sessions.usecase';
 import { DeleteSessionUseCase } from './application/use-cases/delete-session.usecase';
 import { SessionRepository } from './infrastructure/session.repository';
+import { SessionsController } from './api/sessions.controller';
 
-const commandHandlers = [
+const useCases = [
   DeleteAllSessionssUseCase,
   GetAllSessionsUseCase,
   DeleteSessionUseCase,
 ];
 
-@Module({
-  imports: [JwtModule, UserAccountsModule],
+const repositories = [SessionRepository, QuerySessionsRepository];
 
-  controllers: [AuthController],
-  providers: [
-    UserAccountsConfig,
-    ...commandHandlers,
-    SessionRepository,
-    QuerySessionsRepository,
-  ],
+@Module({
+  imports: [JwtModule],
+  controllers: [SessionsController],
+  providers: [UserAccountsConfig, ...useCases, ...repositories],
+  exports: [SessionRepository],
 })
 export class SessionsModule {}
