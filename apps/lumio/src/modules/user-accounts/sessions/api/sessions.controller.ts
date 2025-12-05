@@ -9,34 +9,34 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
-import { DeleteAllDevicesCommand } from '../../application/use-cases/delete-all-devices.usecase';
-import { DeleteDeviceCommand } from '../../application/use-cases/delete-device.usecase';
-import { GetAllDevicesCommand } from '../../application/use-cases/get-all-devices.usecase';
-import { OutputDeviceType } from '../../dto/output';
+import { OutputSessionType } from './models/dto/output/output';
+import { GetAllSessionsCommand } from '../application/use-cases/get-all-sessions.usecase';
+import { DeleteSessionCommand } from '../application/use-cases/delete-session.usecase';
+import { DeleteAllSessionsCommand } from '../application/use-cases/delete-all-sessions.usecase';
 
 @UseGuards(RefreshTokenGuard)
 @Controller('security/devices')
-export class DevicesController {
+export class SessionsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
   @Get()
-  async getAllDevices(@Req() req: any): Promise<OutputDeviceType[]> {
+  async getAllSessions(@Req() req: any): Promise<OutputSessionType[]> {
     return await this.queryBus.execute(
-      new GetAllDevicesCommand(req.user.userId),
+      new GetAllSessionsCommand(req.user.userId),
     );
   }
 
   @Delete(':deviceId')
   @HttpCode(204)
-  async deleteDevice(
+  async deleteSession(
     @Req() req: any,
     @Param('deviceId') paramDeviceId: string,
   ): Promise<void> {
     return await this.commandBus.execute(
-      new DeleteDeviceCommand(
+      new DeleteSessionCommand(
         req.user.userId,
         req.user.deviceId,
         paramDeviceId,
@@ -46,9 +46,9 @@ export class DevicesController {
 
   @Delete()
   @HttpCode(204)
-  async deleteAllDevices(@Req() req: any): Promise<void> {
+  async deleteAllSessions(@Req() req: any): Promise<void> {
     return await this.commandBus.execute(
-      new DeleteAllDevicesCommand(req.user.userId, req.user.deviceId),
+      new DeleteAllSessionsCommand(req.user.userId, req.user.deviceId),
     );
   }
 }

@@ -1,22 +1,22 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { AuthRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
 
-export class DeleteAllDevicesCommand {
+export class DeleteAllSessionsCommand {
   constructor(
     public userId: number,
     public deviceId: string,
   ) {}
 }
 
-@CommandHandler(DeleteAllDevicesCommand)
-export class DeleteAllDevicesUseCase
-  implements ICommandHandler<DeleteAllDevicesCommand>
+@CommandHandler(DeleteAllSessionsCommand)
+export class DeleteAllSessionssUseCase
+  implements ICommandHandler<DeleteAllSessionsCommand>
 {
   constructor(private readonly authRepository: AuthRepository) {}
 
-  async execute({ userId, deviceId }: DeleteAllDevicesCommand): Promise<void> {
+  async execute({ userId, deviceId }: DeleteAllSessionsCommand): Promise<void> {
     const currentSession: SessionEntity | null =
       await this.authRepository.findSession({
         userId: userId,

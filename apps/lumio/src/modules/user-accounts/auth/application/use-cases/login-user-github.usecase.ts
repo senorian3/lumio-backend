@@ -1,16 +1,18 @@
-import { GitHubDto } from '../../dto/github.dto';
+import { GitHubDto } from '../../../users/api/models/dto/transfer/github.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
+
+import { JwtService } from '@nestjs/jwt';
+
+import { randomUUID } from 'crypto';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
+import { AuthRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
+import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
-} from '../../../constants/auth-tokens.inject-constants';
-import { JwtService } from '@nestjs/jwt';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { CryptoService } from '../../../adapters/crypto.service';
-import { randomUUID } from 'crypto';
-import { ForbiddenDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
+} from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 
 export class LoginUserGitHubCommand {
   constructor(

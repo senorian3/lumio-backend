@@ -2,11 +2,11 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
-import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemeiler.service';
+import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
-import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/repositories/user.repository';
-import { passwordRecoveryDto } from '../../dto/password-recovery.dto';
+import { passwordRecoveryDto } from '../../../users/api/models/dto/transfer/password-recovery.dto';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
 
 export class PasswordRecoveryCommand {
   constructor(public dto: passwordRecoveryDto) {}

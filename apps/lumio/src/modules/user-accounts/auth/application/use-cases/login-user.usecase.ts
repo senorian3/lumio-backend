@@ -1,15 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from '../service/auth.service';
+import { AuthService } from '../auth.service';
 import { randomUUID } from 'crypto';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
-import { loginDto } from '../../dto/login.dto';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { loginDto } from '../../../users/api/models/dto/transfer/login.dto';
+import { AuthRepository } from '../../../sessions/infrastructure/session.repository';
 
 export class LoginUserCommand {
   constructor(

@@ -2,15 +2,15 @@ import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { MessagingModule } from '@libs/messaging/messaging.module';
 import { CoreConfig } from './core/core.config';
-import { TestingModule } from './features/tests/testing.module';
+import { TestingModule } from './modules/features/tests/testing.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CoreModule } from './core/core.module';
-import { TestMessagingController } from './features/messaging/test-messaging.controller';
-import { UserEventsPublisher } from './features/messaging/user-events.publisher';
+import { TestMessagingController } from './modules/features/messaging/test-messaging.controller';
+import { UserEventsPublisher } from './modules/features/messaging/user-events.publisher';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { UserAccountsConfig } from './modules/user-accounts/config/user-accounts.config';
 import { throttlerModule } from './core/guards/throttler/throttler.module';
-import { DevicesModule } from './modules/devices/devices.module';
+import { SessionsModule } from './modules/user-accounts/sessions/sessions.module';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { DevicesModule } from './modules/devices/devices.module';
     CoreModule,
     MessagingModule,
     UserAccountsModule,
-    DevicesModule,
+    SessionsModule,
   ],
   controllers: [TestMessagingController],
   providers: [UserEventsPublisher, UserAccountsConfig],

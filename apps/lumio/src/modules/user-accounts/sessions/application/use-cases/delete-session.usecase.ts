@@ -3,11 +3,11 @@ import {
   NotFoundDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { AuthRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-export class DeleteDeviceCommand {
+export class DeleteSessionCommand {
   constructor(
     public userId: number,
     public userDeviceId: string,
@@ -15,9 +15,9 @@ export class DeleteDeviceCommand {
   ) {}
 }
 
-@CommandHandler(DeleteDeviceCommand)
-export class DeleteDeviceUseCase
-  implements ICommandHandler<DeleteDeviceCommand>
+@CommandHandler(DeleteSessionCommand)
+export class DeleteSessionUseCase
+  implements ICommandHandler<DeleteSessionCommand>
 {
   constructor(private readonly authRepository: AuthRepository) {}
 
@@ -25,30 +25,30 @@ export class DeleteDeviceUseCase
     userId,
     userDeviceId,
     paramDeviceId,
-  }: DeleteDeviceCommand): Promise<void> {
-    const currentUserDevice: SessionEntity | null =
+  }: DeleteSessionCommand): Promise<void> {
+    const currentUserSession: SessionEntity | null =
       await this.authRepository.findSession({
         userId: userId,
         deviceId: userDeviceId,
       });
 
-    if (!currentUserDevice) {
+    if (!currentUserSession) {
       throw UnauthorizedDomainException.create(
         "User doesn't have session",
         'userId',
       );
     }
 
-    const foundDevice: SessionEntity | null =
+    const foundSession: SessionEntity | null =
       await this.authRepository.findSession({ deviceId: paramDeviceId });
 
-    if (!foundDevice) {
+    if (!foundSession) {
       throw NotFoundDomainException.create('Device is not found', 'deviceId');
     }
 
     if (
-      foundDevice.user.id !== userId ||
-      foundDevice.deviceId === paramDeviceId
+      foundSession.user.id !== userId ||
+      foundSession.deviceId === paramDeviceId
     ) {
       throw ForbiddenDomainException.create(
         "You can't terminate current session!",

@@ -1,6 +1,6 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { AuthRepository } from '../../../sessions/infrastructure/session.repository';
 
 export class LogoutUserCommand {
   constructor(
@@ -16,19 +16,19 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
     accessToken: string;
     refreshToken: string;
   }> {
-    const foundSessionByDeviceAndUserId: SessionEntity | null =
+    const foundSessionByDeviceIdAndUserId: SessionEntity | null =
       await this.authRepository.findSession({
         userId: +userId,
         deviceId: deviceId,
       });
 
-    if (!foundSessionByDeviceAndUserId) {
+    if (!foundSessionByDeviceIdAndUserId) {
       return;
     }
 
     await this.authRepository.deleteSession(
-      foundSessionByDeviceAndUserId.id,
-      foundSessionByDeviceAndUserId.user.id,
+      foundSessionByDeviceIdAndUserId.id,
+      foundSessionByDeviceIdAndUserId.user.id,
     );
 
     return;

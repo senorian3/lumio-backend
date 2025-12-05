@@ -1,4 +1,4 @@
-export class OutputDeviceType {
+export class OutputSessionType {
   constructor(
     public deviceName: string,
     public ip: string,

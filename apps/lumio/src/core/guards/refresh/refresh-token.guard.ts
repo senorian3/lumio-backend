@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { Request } from 'express';
-import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
+import { AuthRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
@@ -28,21 +28,21 @@ export class RefreshTokenGuard implements CanActivate {
       secret: this.userAccountsConfig.refreshTokenSecret,
     });
 
-    const device: SessionEntity | null = await this.authRepository.findSession(
+    const session: SessionEntity | null = await this.authRepository.findSession(
       payload.deviceId,
     );
 
-    if (!device) {
+    if (!session) {
       throw UnauthorizedDomainException.create("User doesn't have session");
     }
 
     const exp: Date = new Date(payload.exp * 1000);
 
-    if (device.userId !== payload.userId || device.expiresAt !== exp) {
+    if (session.userId !== payload.userId || session.expiresAt !== exp) {
       throw UnauthorizedDomainException.create("User doesn't have session");
     }
 
-    if (payload.tokenVersion !== device.tokenVersion) {
+    if (payload.tokenVersion !== session.tokenVersion) {
       throw UnauthorizedDomainException.create('Token version mismatch');
     }
 

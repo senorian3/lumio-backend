@@ -2,7 +2,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateUserDto } from '../../dto/create-user.dto';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
+import { UserRepository } from '../../infrastructure/user.repository';
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}
