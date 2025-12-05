@@ -1,8 +1,8 @@
-import { configModule } from '../../../libs/core/config-dynamic.module';
+import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MessagingModule } from '../../../libs/messaging/messaging.module';
+import { MessagingModule } from '@libs/messaging/messaging.module';
 import { CoreConfig } from './core/core.config';
 import { TestingModule } from './features/tests/testing.module';
 import { PrismaModule } from './prisma/prisma.module';

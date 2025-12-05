@@ -1,11 +1,12 @@
-import { passwordRecoveryDto } from '../../dto/password-recovery.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { NodemailerService } from '../../../adapters/nodemailer/nodemeiler.service';
-import { EmailService } from '../../../adapters/nodemailer/template/email-examples';
-import { ForbiddenDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
+import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemeiler.service';
+import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
+import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/repositories/user.repository';
+import { passwordRecoveryDto } from '../../dto/password-recovery.dto';
+import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 
 export class PasswordRecoveryCommand {
   constructor(public dto: passwordRecoveryDto) {}
@@ -19,9 +20,20 @@ export class PasswordRecoveryUseCase
     private userRepository: UserRepository,
     private nodemailerService: NodemailerService,
     private emailService: EmailService,
+    private recaptchaService: RecaptchaService,
   ) {}
 
   async execute({ dto }: PasswordRecoveryCommand): Promise<void> {
+    const isRecaptchaValid = await this.recaptchaService.verify(
+      dto.recaptchaToken,
+    );
+    if (!isRecaptchaValid) {
+      throw ForbiddenDomainException.create(
+        'reCAPTCHA verification failed',
+        'recaptchaToken',
+      );
+    }
+
     const user = await this.userRepository.findUserByEmail(dto.email);
     if (!user) {
       throw ForbiddenDomainException.create('User does not exist', 'email');

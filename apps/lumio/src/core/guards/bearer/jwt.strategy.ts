@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { UserAccountsConfig } from '../../../modules/user-accounts/config/user-accounts.config';
+import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

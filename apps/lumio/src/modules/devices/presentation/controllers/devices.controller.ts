@@ -8,11 +8,11 @@ import {
   Get,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { RefreshTokenGuard } from 'apps/lumio/src/core/guards/refresh/refresh-token.guard';
-import { DeleteDeviceCommand } from '../../application/use-cases/delete-device.usecase';
+import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { DeleteAllDevicesCommand } from '../../application/use-cases/delete-all-devices.usecase';
-import { OutputDeviceType } from '../../dto/output';
+import { DeleteDeviceCommand } from '../../application/use-cases/delete-device.usecase';
 import { GetAllDevicesCommand } from '../../application/use-cases/get-all-devices.usecase';
+import { OutputDeviceType } from '../../dto/output';
 
 @UseGuards(RefreshTokenGuard)
 @Controller('security/devices')

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { CryptoService } from '../../../adapters/crypto.service';
-import { ForbiddenDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
+import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/repositories/user.repository';
 
 @Injectable()
 export class AuthService {

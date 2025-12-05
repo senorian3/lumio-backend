@@ -5,7 +5,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Trim } from '../../../../../../../../libs/core/decorators/transform/trim';
+import { Trim } from '@libs/core/decorators/transform/trim';
 
 export class registrationInputDto {
   @IsString({ message: 'Username must be a string' })

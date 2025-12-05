@@ -1,10 +1,10 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemeiler.service';
+import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
+import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
+import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/repositories/user.repository';
 import { registrationDto } from '../../dto/registration.dto';
-import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { BadRequestDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
-import { CreateUserCommand } from '../../../users/application/use-cases/create-user.use-case';
-import { NodemailerService } from '../../../adapters/nodemailer/nodemeiler.service';
-import { EmailService } from '../../../adapters/nodemailer/template/email-examples';
 
 export class RegisterUserCommand {
   constructor(public dto: registrationDto) {}

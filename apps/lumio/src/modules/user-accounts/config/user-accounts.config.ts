@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IsNotEmpty } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
-import { configValidationUtility } from '../../../../../../libs/settings/config-valdation.utility';
+import { configValidationUtility } from '@libs/settings/config-valdation.utility';
 
 @Injectable()
 export class UserAccountsConfig {

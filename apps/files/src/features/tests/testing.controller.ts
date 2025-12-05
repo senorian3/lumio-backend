@@ -1,3 +1,4 @@
+import { PrismaService } from '@files/prisma/prisma.service';
 import {
   Controller,
   Delete,
@@ -5,7 +6,6 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('testing')
 export class TestingController {

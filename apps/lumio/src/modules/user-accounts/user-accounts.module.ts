@@ -6,7 +6,6 @@ import { NodemailerService } from './adapters/nodemailer/nodemeiler.service';
 import { CryptoService } from './adapters/crypto.service';
 import { UserRepository } from './users/infrastructure/repositories/user.repository';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
-import { JwtStrategy } from '../../core/guards/bearer/jwt.strategy';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -22,6 +21,8 @@ import { NewPasswordUseCase } from './auth/application/use-cases/new-password.us
 import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
 import { PassportModule } from '@nestjs/passport';
 import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-github.usecase';
+import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
+import { RecaptchaService } from './adapters/recaptcha.service';
 
 const commandHandlers = [
   CreateUserUseCase,
@@ -41,6 +42,7 @@ const commandHandlers = [
     ...commandHandlers,
     CryptoService,
     EmailService,
+    RecaptchaService,
     UserRepository,
     AuthService,
     AuthRepository,

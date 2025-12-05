@@ -21,5 +21,22 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['apps/lumio/src/*'],
+            message:
+              'Use relative imports or aliases (@lumio/*) instead of absolute paths.',
+          },
+          {
+            group: ['apps/files/src/*'],
+            message:
+              'Use relative imports or aliases (@files/*) instead of absolute paths.',
+          },
+        ],
+      },
+    ],
   },
 };

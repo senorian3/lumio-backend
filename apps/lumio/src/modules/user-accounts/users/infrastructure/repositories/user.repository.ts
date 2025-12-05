@@ -1,10 +1,10 @@
+import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { CreateUserDomainDto } from '../../domain/dto/create-user.domain.dto';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
 import { EmailConfirmation, GitHub, User } from 'generated/prisma-lumio';
 import { UserEntity } from '../../domain/entities/user.entity';
+import { CreateUserDomainDto } from '../../domain/dto/create-user.domain.dto';
 
 @Injectable()
 export class UserRepository {

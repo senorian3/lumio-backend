@@ -1,6 +1,6 @@
 export class OutputDeviceType {
   constructor(
-    public deviceId: string,
+    public deviceName: string,
     public ip: string,
     public lastActiveDate: string,
     public title: string,

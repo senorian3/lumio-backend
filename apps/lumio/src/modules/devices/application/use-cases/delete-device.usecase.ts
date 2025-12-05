@@ -1,11 +1,11 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AuthRepository } from '../../../user-accounts/auth/infrastructure/repositories/auth.repository';
-import { SessionEntity } from '../../../user-accounts/sessions/domain/entities/session.entity';
 import {
-  ForbiddenDomainException,
-  NotFoundDomainException,
   UnauthorizedDomainException,
-} from 'libs/core/exceptions/domain-exceptions';
+  NotFoundDomainException,
+  ForbiddenDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
+import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class DeleteDeviceCommand {
   constructor(
@@ -46,7 +46,10 @@ export class DeleteDeviceUseCase
       throw NotFoundDomainException.create('Device is not found', 'deviceId');
     }
 
-    if (foundDevice.user.id !== userId) {
+    if (
+      foundDevice.user.id !== userId ||
+      foundDevice.deviceId === paramDeviceId
+    ) {
       throw ForbiddenDomainException.create(
         "You can't terminate current session!",
         'userId',
