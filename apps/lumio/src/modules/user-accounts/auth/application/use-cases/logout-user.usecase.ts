@@ -1,4 +1,4 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 

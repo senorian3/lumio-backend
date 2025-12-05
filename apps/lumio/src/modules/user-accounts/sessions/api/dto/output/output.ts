@@ -3,6 +3,5 @@ export class OutputSessionType {
     public deviceName: string,
     public ip: string,
     public lastActiveDate: string,
-    public title: string,
   ) {}
 }

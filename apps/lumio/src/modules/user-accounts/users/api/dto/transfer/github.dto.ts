@@ -1,5 +1,7 @@
 export class GitHubDto {
-  gitId: string;
-  username: string;
-  email: string;
+  constructor(
+    public gitId: string,
+    public username: string,
+    public email: string,
+  ) {}
 }

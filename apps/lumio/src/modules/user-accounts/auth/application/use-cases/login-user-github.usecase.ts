@@ -14,7 +14,7 @@ import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrast
 
 export class LoginUserGitHubCommand {
   constructor(
-    public user: GitHubDto,
+    public userGithubDto: GitHubDto,
     public deviceName: string,
     public ip: string,
   ) {}
@@ -42,12 +42,21 @@ export class LoginUserGitHubUseCase
     private cryptoService: CryptoService,
   ) {}
 
-  async execute({ user, deviceName, ip }: LoginUserGitHubCommand): Promise<{
+  async execute({
+    userGithubDto,
+    deviceName,
+    ip,
+  }: LoginUserGitHubCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
-    const github = await this.userRepository.findGitHubByGitId(user.gitId);
-    const existingUser = await this.userRepository.findUserByEmail(user.email);
+    const github = await this.userRepository.findGitHubByGitId(
+      userGithubDto.gitId,
+    );
+    const existingUser = await this.userRepository.findUserByEmail(
+      userGithubDto.email,
+    );
+
     let appUser;
 
     if (!existingUser && !github) {
@@ -57,8 +66,8 @@ export class LoginUserGitHubUseCase
         await this.cryptoService.createPasswordHash(newPassword);
       appUser = await this.userRepository.createUser(
         {
-          email: user.email,
-          username: user.username,
+          email: userGithubDto.email,
+          username: userGithubDto.username,
           password: passwordHash,
         },
         passwordHash,
@@ -66,25 +75,25 @@ export class LoginUserGitHubUseCase
       );
 
       await this.userRepository.createGitHub({
-        gitId: user.gitId,
-        email: user.email,
-        username: user.username,
+        gitId: userGithubDto.gitId,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
         userId: appUser.id,
       });
     } else if (github && !existingUser) {
       appUser = await this.userRepository.findUserById(github.userId);
       await this.userRepository.updateGitHub(github.id, {
         userId: appUser.id,
-        email: user.email,
-        username: user.username,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
       });
     } else if (existingUser && !github) {
       appUser = existingUser;
 
       await this.userRepository.createGitHub({
-        gitId: user.gitId,
-        email: user.email,
-        username: user.username,
+        gitId: userGithubDto.gitId,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
         userId: appUser.id,
       });
     } else {

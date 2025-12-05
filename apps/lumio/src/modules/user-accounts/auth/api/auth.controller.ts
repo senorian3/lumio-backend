@@ -22,7 +22,7 @@ import { PasswordRecoveryCommand } from '../application/use-cases/password-recov
 import { RegisterUserCommand } from '../application/use-cases/register-user.usecase';
 import { InputLoginDto } from '../../users/api/dto/input/login.input-dto';
 import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input-dto';
-import { registrationInputDto } from '../../users/api/dto/input/registration.input-dto';
+import { InputRegistrationDto } from '../../users/api/dto/input/registration.input-dto';
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input-dto';
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -30,8 +30,8 @@ export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async register(@Body() dto: registrationInputDto): Promise<void> {
-    await this.commandBus.execute<RegisterUserCommand, void>(
+  async register(@Body() dto: InputRegistrationDto): Promise<void> {
+    return await this.commandBus.execute<RegisterUserCommand, void>(
       new RegisterUserCommand(dto),
     );
   }

@@ -1,7 +1,7 @@
 import { User } from 'generated/prisma-lumio';
 import { EmailConfirmationEntity } from './email-confirmation.entity';
 import { GitHubEntity } from './github.entity';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 
 export const usernameConstraints = {
   minLength: 6,

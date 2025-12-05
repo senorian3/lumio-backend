@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
-import { OutputSessionType } from '../api/models/dto/output/output';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
+import { OutputSessionType } from '../api/dto/output/output';
 import { outputSessionsMapper } from '../application/mappers/session.mapper';
 @Injectable()
 export class QuerySessionsRepository {

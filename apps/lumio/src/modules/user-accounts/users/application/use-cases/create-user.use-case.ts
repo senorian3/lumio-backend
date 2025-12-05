@@ -5,7 +5,7 @@ import { CreateUserDto } from '../../api/dto/transfer/create-user.dto';
 import { UserRepository } from '../../infrastructure/user.repository';
 
 export class CreateUserCommand {
-  constructor(public dto: CreateUserDto) {}
+  constructor(public createDto: CreateUserDto) {}
 }
 
 @CommandHandler(CreateUserCommand)
@@ -16,20 +16,23 @@ export class CreateUserUseCase
     private userRepository: UserRepository,
     private cryptoService: CryptoService,
   ) {}
-  async execute({ dto }: CreateUserCommand): Promise<number> {
+  async execute({ createDto }: CreateUserCommand): Promise<number> {
     const user = await this.userRepository.doesExistByUsernameOrEmail(
-      dto.username,
-      dto.email,
+      createDto.username,
+      createDto.email,
     );
     if (user) {
       throw BadRequestDomainException.create('User already exists');
     }
 
     const hashedPassword = await this.cryptoService.createPasswordHash(
-      dto.password,
+      createDto.password,
     );
 
-    const newUser = await this.userRepository.createUser(dto, hashedPassword);
+    const newUser = await this.userRepository.createUser(
+      createDto,
+      hashedPassword,
+    );
 
     return newUser.id;
   }

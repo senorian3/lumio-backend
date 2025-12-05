@@ -1,13 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
+import { DeleteAllSessionsDto } from '../../api/dto/transfer/delete-all-sessions.dto';
 
 export class DeleteAllSessionsCommand {
-  constructor(
-    public userId: number,
-    public deviceId: string,
-  ) {}
+  constructor(public deleteAllSessionsDto: DeleteAllSessionsDto) {}
 }
 
 @CommandHandler(DeleteAllSessionsCommand)
@@ -16,11 +14,13 @@ export class DeleteAllSessionssUseCase
 {
   constructor(private readonly sessionRepository: SessionRepository) {}
 
-  async execute({ userId, deviceId }: DeleteAllSessionsCommand): Promise<void> {
+  async execute({
+    deleteAllSessionsDto,
+  }: DeleteAllSessionsCommand): Promise<void> {
     const currentSession: SessionEntity | null =
       await this.sessionRepository.findSession({
-        userId: userId,
-        deviceId: deviceId,
+        userId: deleteAllSessionsDto.userId,
+        deviceId: deleteAllSessionsDto.deviceId,
       });
 
     if (!currentSession) {

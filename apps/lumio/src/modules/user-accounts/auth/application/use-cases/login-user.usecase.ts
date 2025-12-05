@@ -13,7 +13,7 @@ import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrast
 
 export class LoginUserCommand {
   constructor(
-    public dto: loginDto,
+    public loginDto: loginDto,
     public deviceName: string,
     public ip: string,
   ) {}
@@ -38,16 +38,16 @@ export class LoginUserUseCase
 
     private sessionRepository: SessionRepository,
   ) {}
-  async execute({ dto, deviceName, ip }: LoginUserCommand): Promise<{
+  async execute({ loginDto, deviceName, ip }: LoginUserCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
     const result = await this.authService.checkUserCredentials(
-      dto.email,
-      dto.password,
+      loginDto.email,
+      loginDto.password,
     );
 
-    const userId = result!.id;
+    const userId = result.id;
 
     const existSession = await this.sessionRepository.findSession({
       userId,
@@ -55,6 +55,7 @@ export class LoginUserUseCase
     });
 
     let deviceId: string;
+
     if (existSession) {
       deviceId = existSession.deviceId;
     } else {
@@ -72,7 +73,7 @@ export class LoginUserUseCase
 
     if (!iat || !exp) {
       throw ForbiddenDomainException.create(
-        'Refresh token not verified',
+        'Refresh token is not verified',
         'email',
       );
     }

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { Request } from 'express';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
 
 @Injectable()

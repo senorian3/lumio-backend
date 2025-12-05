@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QuerySessionsRepository } from '../../infrastructure/session.query.repository';
-import { OutputSessionType } from '../../api/models/dto/output/output';
+import { OutputSessionType } from '../../api/dto/output/output';
 
 export class GetAllSessionsCommand {
   constructor(public userId: number) {}

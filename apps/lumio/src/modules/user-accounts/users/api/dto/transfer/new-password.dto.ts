@@ -1,4 +1,6 @@
 export class NewPasswordDto {
-  newPassword: string;
-  recoveryCode: string;
+  constructor(
+    public newPassword: string,
+    public recoveryCode: string,
+  ) {}
 }

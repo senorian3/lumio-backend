@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { Trim } from '@libs/core/decorators/transform/trim';
 
-export class registrationInputDto {
+export class InputRegistrationDto {
   @IsString({ message: 'Username must be a string' })
   @MinLength(6, { message: 'Minimum number of characters 6' })
   @MaxLength(30, { message: 'Maximum number of characters 30' })

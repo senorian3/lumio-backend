@@ -1,4 +1,4 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { CreateSessionDomainDto } from '@lumio/modules/user-accounts/sessions/domain/dto/create-session.domain.dto';

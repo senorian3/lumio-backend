@@ -3,11 +3,11 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
-import { registrationDto } from '../../../users/api/dto/transfer/registration.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
+import { registrationDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/registration.dto';
 
 export class RegisterUserCommand {
-  constructor(public dto: registrationDto) {}
+  constructor(public registerDto: registrationDto) {}
 }
 
 @CommandHandler(RegisterUserCommand)
@@ -21,13 +21,13 @@ export class RegisterUserUseCase
     private readonly commandBus: CommandBus,
   ) {}
 
-  async execute({ dto }: RegisterUserCommand): Promise<void> {
+  async execute({ registerDto }: RegisterUserCommand): Promise<void> {
     const user = await this.userRepository.doesExistByUsernameOrEmail(
-      dto.username,
-      dto.email,
+      registerDto.username,
+      registerDto.email,
     );
     if (user) {
-      if (user.username === dto.username) {
+      if (user.username === registerDto.username) {
         throw BadRequestDomainException.create(
           'User with this username is already registered',
           'username',
@@ -40,22 +40,24 @@ export class RegisterUserUseCase
       }
     }
     const newUserId = await this.commandBus.execute<CreateUserCommand, number>(
-      new CreateUserCommand({ ...dto }),
+      new CreateUserCommand({ ...registerDto }),
     );
 
     const emailConfirmation =
       await this.userRepository.findByCodeOrIdEmailConfirmation({
         userId: newUserId,
       });
+
     if (!emailConfirmation) {
       throw BadRequestDomainException.create(
         'Email confirmation not found',
         'email',
       );
     }
+
     this.nodemailerService
       .sendEmail(
-        dto.email,
+        registerDto.email,
         emailConfirmation.confirmationCode,
         this.emailService.registrationEmail.bind(this.emailService),
       )

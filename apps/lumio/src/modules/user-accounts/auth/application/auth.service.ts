@@ -2,31 +2,40 @@ import { Injectable } from '@nestjs/common';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
+import { UserEntity } from '../../users/domain/entities/user.entity';
 @Injectable()
 export class AuthService {
   constructor(
     private userRepository: UserRepository,
     private cryptoService: CryptoService,
   ) {}
-  async checkUserCredentials(email: string, password: string) {
+  async checkUserCredentials(
+    email: string,
+    password: string,
+  ): Promise<UserEntity> {
     const user = await this.userRepository.findUserByEmail(email);
+
     if (!user) {
       throw ForbiddenDomainException.create(
         'The email must match the format example@example.com',
         'email',
       );
     }
+
     const hash = user.password;
+
     const isPassCorrect = await this.cryptoService.comparePasswords(
       password,
       hash,
     );
+
     if (!isPassCorrect) {
       throw ForbiddenDomainException.create(
         'The email must match the format example@example.com',
         'email',
       );
     }
+
     return user;
   }
 }

@@ -4,15 +4,12 @@ import {
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/api/models/session.entity';
+import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { DeleteSessionDto } from '../../api/dto/transfer/delete-session.dto';
 
 export class DeleteSessionCommand {
-  constructor(
-    public userId: number,
-    public userDeviceId: string,
-    public paramDeviceId: string,
-  ) {}
+  constructor(public deleteSessionDto: DeleteSessionDto) {}
 }
 
 @CommandHandler(DeleteSessionCommand)
@@ -21,15 +18,11 @@ export class DeleteSessionUseCase
 {
   constructor(private readonly sessionRepository: SessionRepository) {}
 
-  async execute({
-    userId,
-    userDeviceId,
-    paramDeviceId,
-  }: DeleteSessionCommand): Promise<void> {
+  async execute({ deleteSessionDto }: DeleteSessionCommand): Promise<void> {
     const currentUserSession: SessionEntity | null =
       await this.sessionRepository.findSession({
-        userId: userId,
-        deviceId: userDeviceId,
+        userId: deleteSessionDto.userId,
+        deviceId: deleteSessionDto.userDeviceId,
       });
 
     if (!currentUserSession) {
@@ -40,15 +33,17 @@ export class DeleteSessionUseCase
     }
 
     const foundSessionByParamDeviceId: SessionEntity | null =
-      await this.sessionRepository.findSession({ deviceId: paramDeviceId });
+      await this.sessionRepository.findSession({
+        deviceId: deleteSessionDto.paramDeviceId,
+      });
 
     if (!foundSessionByParamDeviceId) {
       throw NotFoundDomainException.create('Device is not found', 'deviceId');
     }
 
     if (
-      foundSessionByParamDeviceId.user.id !== userId ||
-      foundSessionByParamDeviceId.deviceId === paramDeviceId
+      foundSessionByParamDeviceId.user.id !== deleteSessionDto.userId ||
+      foundSessionByParamDeviceId.deviceId === deleteSessionDto.paramDeviceId
     ) {
       throw ForbiddenDomainException.create(
         "You can't terminate current session!",
@@ -57,8 +52,8 @@ export class DeleteSessionUseCase
     }
 
     await this.sessionRepository.deleteSession({
-      deviceId: paramDeviceId,
-      userId: userId,
+      deviceId: deleteSessionDto.paramDeviceId,
+      userId: deleteSessionDto.userId,
       sessionId: foundSessionByParamDeviceId.id,
     });
 

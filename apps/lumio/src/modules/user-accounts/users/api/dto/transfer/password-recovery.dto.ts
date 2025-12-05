@@ -1,4 +1,6 @@
 export class passwordRecoveryDto {
-  email: string;
-  recaptchaToken: string;
+  constructor(
+    public email: string,
+    public recaptchaToken: string,
+  ) {}
 }
