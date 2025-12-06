@@ -9,7 +9,7 @@ export class QuerySessionsRepository {
 
   async getAllSessions(userId: number): Promise<OutputSessionType[]> {
     const allSessions: SessionEntity[] = await this.prisma.session.findMany({
-      where: { user: { id: userId } },
+      where: { user: { id: userId }, deletedAt: null },
     });
 
     return allSessions.map((sessionData) => outputSessionsMapper(sessionData));

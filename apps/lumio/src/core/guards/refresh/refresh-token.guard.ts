@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { Request } from 'express';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 @Injectable()
@@ -29,8 +28,9 @@ export class RefreshTokenGuard implements CanActivate {
       secret: this.userAccountsConfig.refreshTokenSecret,
     });
 
-    const session: SessionEntity | null =
-      await this.sessionRepository.findSession({ deviceId: payload.deviceId });
+    const session = await this.sessionRepository.findSession({
+      deviceId: payload.deviceId,
+    });
 
     if (!session) {
       throw UnauthorizedDomainException.create(
@@ -39,9 +39,11 @@ export class RefreshTokenGuard implements CanActivate {
       );
     }
 
-    const exp: Date = new Date(payload.exp * 1000);
+    const sameUser = session.userId === payload.userId;
+    const sameDevice = session.deviceId === payload.deviceId;
+    const sameExpiry = session.expiresAt.getTime() === payload.exp * 1000;
 
-    if (session.userId !== payload.userId || session.expiresAt !== exp) {
+    if (!sameUser || !sameDevice || !sameExpiry) {
       throw UnauthorizedDomainException.create(
         "User doesn't have session",
         'session',
@@ -49,7 +51,6 @@ export class RefreshTokenGuard implements CanActivate {
     }
 
     request.user = payload;
-
     return true;
   }
 }
