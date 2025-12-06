@@ -9,7 +9,6 @@ import { TestMessagingController } from '../features/messaging/test-messaging.co
 import { UserEventsPublisher } from '../features/messaging/user-events.publisher';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';
 import { throttlerModule } from '../core/guards/throttler/throttler.module';
-import { SessionsModule } from '../modules/user-accounts/sessions/sessions.module';
 
 @Module({
   imports: [
@@ -26,7 +25,6 @@ import { SessionsModule } from '../modules/user-accounts/sessions/sessions.modul
     CoreModule,
     MessagingModule,
     UserAccountsModule,
-    SessionsModule,
   ],
   controllers: [TestMessagingController],
   providers: [UserEventsPublisher],
