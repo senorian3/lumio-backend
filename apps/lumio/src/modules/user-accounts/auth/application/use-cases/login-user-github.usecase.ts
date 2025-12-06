@@ -4,13 +4,14 @@ import { Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
+
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 
 export class LoginUserGitHubCommand {
   constructor(
