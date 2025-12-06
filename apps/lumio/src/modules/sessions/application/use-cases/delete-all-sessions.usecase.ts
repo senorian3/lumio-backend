@@ -30,8 +30,6 @@ export class DeleteAllSessionssUseCase
       );
     }
 
-    console.log(currentSession);
-
     await this.sessionRepository.deleteAllSessionsExcludeCurrent({
       userId: currentSession.userId,
       sessionId: currentSession.id,

@@ -58,8 +58,14 @@ export class SessionRepository {
 
   async deleteSession(dto: DeleteSessionDomainDto): Promise<void> {
     await this.prisma.session.update({
-      where: { id: dto.sessionId },
-      data: { deletedAt: dto.deletedAt },
+      where: {
+        userId: dto.userId,
+        deviceId: dto.deviceId,
+        id: dto.sessionId,
+      },
+      data: {
+        deletedAt: dto.deletedAt,
+      },
     });
 
     return;
