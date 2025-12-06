@@ -2,6 +2,7 @@ import { User } from 'generated/prisma-lumio';
 import { EmailConfirmationEntity } from './email-confirmation.entity';
 import { GitHubEntity } from './github.entity';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
+import { GoogleEntity } from './google.entity';
 
 export const usernameConstraints = {
   minLength: 6,
@@ -26,4 +27,6 @@ export class UserEntity implements User {
   sessions?: SessionEntity[];
 
   github?: GitHubEntity | null;
+
+  google?: GoogleEntity | null; // новая связь
 }

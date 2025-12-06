@@ -6,6 +6,7 @@ import {
   Req,
   Param,
   Get,
+  HttpStatus,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
@@ -13,9 +14,10 @@ import { OutputSessionType } from './dto/output/output';
 import { GetAllSessionsCommand } from '../application/use-cases/get-all-sessions.usecase';
 import { DeleteSessionCommand } from '../application/use-cases/delete-session.usecase';
 import { DeleteAllSessionsCommand } from '../application/use-cases/delete-all-sessions.usecase';
+import { SECURITY_BASE } from '@lumio/core/routs/routs';
 
 @UseGuards(RefreshTokenGuard)
-@Controller('security/devices')
+@Controller(SECURITY_BASE)
 export class SessionsController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -31,7 +33,7 @@ export class SessionsController {
   }
 
   @Delete(':deviceId')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSession(
     @Req() req: any,
     @Param('deviceId') paramDeviceId: string,
@@ -46,7 +48,7 @@ export class SessionsController {
   }
 
   @Delete()
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAllSessions(@Req() req: any): Promise<void> {
     return await this.commandBus.execute<DeleteAllSessionsCommand, void>(
       new DeleteAllSessionsCommand({

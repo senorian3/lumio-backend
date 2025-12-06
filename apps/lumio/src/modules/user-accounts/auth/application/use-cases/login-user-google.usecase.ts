@@ -1,31 +1,30 @@
-import { GitHubDto } from '../../../users/api/dto/transfer/github.dto';
+import { GoogleDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/google.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
-import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
-
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
+import { JwtService } from '@nestjs/jwt';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
+import { randomUUID } from 'crypto';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 
-export class LoginUserGitHubCommand {
+export class LoginUserGoogleCommand {
   constructor(
-    public userGithubDto: GitHubDto,
+    public userGoogleDto: GoogleDto,
     public deviceName: string,
     public ip: string,
   ) {}
 }
 
-@CommandHandler(LoginUserGitHubCommand)
-export class LoginUserGitHubUseCase
+@CommandHandler(LoginUserGoogleCommand)
+export class LoginUserGoogleUseCase
   implements
     ICommandHandler<
-      LoginUserGitHubCommand,
+      LoginUserGoogleCommand,
       { accessToken: string; refreshToken: string }
     >
 {
@@ -44,60 +43,50 @@ export class LoginUserGitHubUseCase
   ) {}
 
   async execute({
-    userGithubDto,
+    userGoogleDto,
     deviceName,
     ip,
-  }: LoginUserGitHubCommand): Promise<{
+  }: LoginUserGoogleCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
-    const github = await this.userRepository.findGitHubByGitId(
-      userGithubDto.gitId,
+    const google = await this.userRepository.findGoogleByGoogleId(
+      userGoogleDto.googleId,
     );
+
     const existingUser = await this.userRepository.findUserByEmail(
-      userGithubDto.email,
+      userGoogleDto.email,
     );
 
     let appUser;
 
-    if (!existingUser && !github) {
+    if (!existingUser && !google) {
       const isConfitmed = true;
       const newPassword = randomUUID().replace(/-/g, '').slice(0, 12);
       const passwordHash =
         await this.cryptoService.createPasswordHash(newPassword);
       appUser = await this.userRepository.createUser(
         {
-          email: userGithubDto.email,
-          username: userGithubDto.username,
+          email: userGoogleDto.email,
+          username: userGoogleDto.username,
           password: passwordHash,
         },
         passwordHash,
         isConfitmed,
       );
 
-      await this.userRepository.createGitHub({
-        gitId: userGithubDto.gitId,
-        email: userGithubDto.email,
-        username: userGithubDto.username,
-        userId: appUser.id,
-      });
-    } else if (github && !existingUser) {
-      appUser = await this.userRepository.findUserById(github.userId);
+      await this.userRepository.createGoogle(userGoogleDto, appUser.id);
+    } else if (google && !existingUser) {
+      appUser = await this.userRepository.findUserById(google.userId);
 
-      await this.userRepository.updateGitHub(github.id, {
-        userId: appUser.id,
-        email: userGithubDto.email,
-        username: userGithubDto.username,
+      await this.userRepository.updateGoogle(userGoogleDto.googleId, {
+        email: google.email,
+        username: google.username,
       });
-    } else if (existingUser && !github) {
+    } else if (existingUser && !google) {
       appUser = existingUser;
 
-      await this.userRepository.createGitHub({
-        gitId: userGithubDto.gitId,
-        email: userGithubDto.email,
-        username: userGithubDto.username,
-        userId: appUser.id,
-      });
+      await this.userRepository.createGoogle(userGoogleDto, existingUser.id);
     } else {
       appUser = existingUser;
     }

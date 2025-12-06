@@ -12,12 +12,7 @@ export enum Environments {
 
 @Injectable()
 export class CoreConfig {
-  @IsNumber(
-    {},
-    {
-      message: 'Set Env variable PORT, example: 3000',
-    },
-  )
+  @IsNumber({}, { message: 'Set Env variable PORT, example: 3000' })
   port: number = Number(this.configService.get('PORT'));
 
   @IsNotEmpty({
@@ -28,7 +23,7 @@ export class CoreConfig {
 
   @IsEnum(Environments, {
     message:
-      'Ser correct NODE_ENV value, available values: ' +
+      'Set correct NODE_ENV value, available values: ' +
       configValidationUtility.getEnumValues(Environments).join(', '),
   })
   env: string = this.configService.get('NODE_ENV');
@@ -48,6 +43,26 @@ export class CoreConfig {
   includeTestingModule: boolean = configValidationUtility.convertToBoolean(
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
+
+  // --- OAuth2 GitHub ---
+  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_ID' })
+  githubClientId: string = this.configService.get('GITHUB_CLIENT_ID');
+
+  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_SECRET' })
+  githubClientSecret: string = this.configService.get('GITHUB_CLIENT_SECRET');
+
+  @IsNotEmpty({ message: 'Set Env variable GITHUB_CALLBACK_URL' })
+  githubCallbackUrl: string = this.configService.get('GITHUB_CALLBACK_URL');
+
+  // --- OAuth2 Google ---
+  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_ID' })
+  googleClientId: string = this.configService.get('GOOGLE_CLIENT_ID');
+
+  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_SECRET' })
+  googleClientSecret: string = this.configService.get('GOOGLE_CLIENT_SECRET');
+
+  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CALLBACK_URL' })
+  googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
 
   constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
