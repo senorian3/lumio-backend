@@ -11,18 +11,27 @@ export class SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findSession(filters: {
+    id?: number;
     userId?: number;
     deviceId?: string;
     deviceName?: string;
   }): Promise<SessionEntity | null> {
-    return this.prisma.session.findFirst({
-      where: {
-        deletedAt: null,
-        ...(filters.userId && { userId: filters.userId }),
-        ...(filters.deviceId && { deviceId: filters.deviceId }),
-        ...(filters.deviceName && { deviceName: filters.deviceName }),
-      },
-    });
+    const where: any = { deletedAt: null };
+
+    if (filters.id !== undefined) {
+      where.id = filters.id;
+    }
+    if (filters.userId !== undefined) {
+      where.userId = filters.userId;
+    }
+    if (filters.deviceId !== undefined) {
+      where.deviceId = filters.deviceId;
+    }
+    if (filters.deviceName !== undefined) {
+      where.deviceName = filters.deviceName;
+    }
+
+    return this.prisma.session.findFirst({ where });
   }
 
   async updateSession(dto: UpdateSessionDomainDto): Promise<SessionEntity> {
@@ -49,14 +58,8 @@ export class SessionRepository {
 
   async deleteSession(dto: DeleteSessionDomainDto): Promise<void> {
     await this.prisma.session.update({
-      where: {
-        userId: dto.userId,
-        deviceId: dto.deviceId,
-        id: dto.sessionId,
-      },
-      data: {
-        deletedAt: dto.deletedAt,
-      },
+      where: { id: dto.sessionId },
+      data: { deletedAt: dto.deletedAt },
     });
 
     return;
@@ -67,12 +70,10 @@ export class SessionRepository {
   ) {
     await this.prisma.session.updateMany({
       where: {
-        id: { not: dto.sessionId },
         userId: dto.userId,
+        id: { not: dto.sessionId },
       },
-      data: {
-        deletedAt: dto.deletedAt,
-      },
+      data: { deletedAt: dto.deletedAt },
     });
 
     return;

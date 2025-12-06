@@ -34,19 +34,25 @@ export class DeleteSessionUseCase
 
     const foundSessionByParamDeviceId: SessionEntity | null =
       await this.sessionRepository.findSession({
-        deviceId: deleteSessionDto.paramDeviceId,
+        id: +deleteSessionDto.paramDeviceId,
       });
 
     if (!foundSessionByParamDeviceId) {
       throw NotFoundDomainException.create('Device is not found', 'deviceId');
     }
 
+    if (foundSessionByParamDeviceId.userId !== deleteSessionDto.userId) {
+      throw ForbiddenDomainException.create(
+        "You can't terminate someone else's session!",
+        'session',
+      );
+    }
+
     if (
-      foundSessionByParamDeviceId.user.id !== deleteSessionDto.userId ||
-      foundSessionByParamDeviceId.deviceId === deleteSessionDto.paramDeviceId
+      foundSessionByParamDeviceId.deviceId === deleteSessionDto.userDeviceId
     ) {
       throw ForbiddenDomainException.create(
-        "You can't terminate current session!",
+        "You can't terminate your current session!",
         'session',
       );
     }
