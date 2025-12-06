@@ -33,6 +33,7 @@ export class DeleteAllSessionssUseCase
     await this.sessionRepository.deleteAllSessionsExcludeCurrent({
       userId: currentSession.user.id,
       sessionId: currentSession.id,
+      deletedAt: new Date(),
     });
 
     return;

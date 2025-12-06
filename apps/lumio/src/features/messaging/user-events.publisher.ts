@@ -8,7 +8,7 @@ import { MessagingService } from '@libs/messaging/messaging.service';
 
 @Injectable()
 export class UserEventsPublisher {
-  constructor(private messagingService: MessagingService) {}
+  constructor(private readonly messagingService: MessagingService) {}
 
   async publishUserCreated(
     userId: number,

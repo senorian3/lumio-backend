@@ -98,9 +98,7 @@ export class AuthController {
   @SkipThrottle()
   @Get(AUTH_ROUTES.GITHUB)
   @UseGuards(AuthGuard('github'))
-  async githubLogin() {
-    // Guard сам сделает 302 на GitHub, код не нужен
-  }
+  async githubLogin() {}
 
   @SkipThrottle()
   @Get(AUTH_ROUTES.GITHUB_CALLBACK)

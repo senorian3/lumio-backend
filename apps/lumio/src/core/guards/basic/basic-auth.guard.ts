@@ -12,7 +12,7 @@ export class BasicAuthGuard implements CanActivate {
     const authHeader: string | undefined = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Basic ')) {
-      throw UnauthorizedDomainException.create();
+      throw UnauthorizedDomainException.create('Invalid credentials', 'user');
     }
 
     const base64Credentials = authHeader.split(' ')[1];
@@ -24,7 +24,7 @@ export class BasicAuthGuard implements CanActivate {
     if (username === this.validUsername && password === this.validPassword) {
       return true;
     } else {
-      throw UnauthorizedDomainException.create();
+      throw UnauthorizedDomainException.create('Invalid credentials', 'user');
     }
   }
 }

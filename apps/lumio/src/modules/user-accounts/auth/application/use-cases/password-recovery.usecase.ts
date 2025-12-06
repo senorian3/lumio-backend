@@ -17,10 +17,10 @@ export class PasswordRecoveryUseCase
   implements ICommandHandler<PasswordRecoveryCommand, void>
 {
   constructor(
-    private userRepository: UserRepository,
-    private nodemailerService: NodemailerService,
-    private emailService: EmailService,
-    private recaptchaService: RecaptchaService,
+    private readonly userRepository: UserRepository,
+    private readonly nodemailerService: NodemailerService,
+    private readonly emailService: EmailService,
+    private readonly recaptchaService: RecaptchaService,
   ) {}
 
   async execute({

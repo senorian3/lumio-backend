@@ -13,8 +13,8 @@ export class NewPasswordUseCase
   implements ICommandHandler<NewPasswordCommand, void>
 {
   constructor(
-    private userRepository: UserRepository,
-    private cryptoService: CryptoService,
+    private readonly userRepository: UserRepository,
+    private readonly cryptoService: CryptoService,
   ) {}
 
   async execute({ newPasswordDto }: NewPasswordCommand): Promise<void> {

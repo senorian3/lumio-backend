@@ -3,5 +3,6 @@ export class DeleteSessionDomainDto {
     public deviceId: string,
     public userId: number,
     public sessionId: number,
+    public deletedAt: Date,
   ) {}
 }

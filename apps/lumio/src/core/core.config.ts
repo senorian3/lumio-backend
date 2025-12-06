@@ -65,6 +65,7 @@ export class CoreConfig {
   googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
 
   constructor(private configService: ConfigService<any, true>) {
+  constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }

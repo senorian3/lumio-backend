@@ -50,7 +50,7 @@ export class UserAccountsConfig {
   })
   smtpPassword: string;
 
-  constructor(private configService: ConfigService<any, true>) {
+  constructor(private readonly configService: ConfigService<any, true>) {
     this.accessTokenExpireIn = this.configService.get('ACCESS_TOKEN_EXPIRE_IN');
     this.refreshTokenExpireIn = this.configService.get(
       'REFRESH_TOKEN_EXPIRE_IN',

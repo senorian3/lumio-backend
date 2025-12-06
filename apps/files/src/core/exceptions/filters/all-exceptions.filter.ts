@@ -5,7 +5,7 @@ import { CoreConfig, Environments } from '@files/core/core.config';
 
 @Catch()
 export class AllExceptionsFilter extends BaseExceptionFilter {
-  constructor(private coreConfig: CoreConfig) {
+  constructor(private readonly coreConfig: CoreConfig) {
     super();
   }
   onCatch(exception: unknown, response: Response): void {

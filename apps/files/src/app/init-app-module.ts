@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { DynamicModule } from '@nestjs/common';
-import { CoreConfig } from './core/core.config';
 import { FilesModule } from './files.module';
+import { CoreConfig } from '@files/core/core.config';
 
 export async function initAppModule(): Promise<DynamicModule> {
   const appContext = await NestFactory.createApplicationContext(FilesModule);
