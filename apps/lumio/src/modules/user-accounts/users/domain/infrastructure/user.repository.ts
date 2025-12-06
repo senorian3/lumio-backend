@@ -3,9 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
 import { EmailConfirmation, GitHub, User } from 'generated/prisma-lumio';
-import { CreateUserDomainDto } from '../domain/dto/create-user.domain.dto';
-import { UserEntity } from '../domain/entities/user.entity';
-
+import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
+import { UserEntity } from '../entities/user.entity';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}

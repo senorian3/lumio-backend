@@ -1,10 +1,10 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { CreateSessionDomainDto } from '@lumio/modules/user-accounts/sessions/domain/dto/create-session.domain.dto';
-import { UpdateSessionDomainDto } from '../domain/dto/update-sesion.domain.dto';
-import { DeleteSessionDomainDto } from '../domain/dto/delete-session.domain.dto';
-import { DeleteAllSessionsExcludeCurrentDomainDto } from '../domain/dto/delete-all-sessions-exclude-current.domain.dto';
+import { UpdateSessionDomainDto } from '../dto/update-sesion.domain.dto';
+import { DeleteSessionDomainDto } from '../dto/delete-session.domain.dto';
+import { DeleteAllSessionsExcludeCurrentDomainDto } from '../dto/delete-all-sessions-exclude-current.domain.dto';
+import { CreateSessionDomainDto } from '../dto/create-session.domain.dto';
+import { SessionEntity } from '../session.entity';
 
 @Injectable()
 export class SessionRepository {

@@ -21,8 +21,8 @@ import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
-import { UserRepository } from './users/infrastructure/user.repository';
-import { SessionsModule } from './sessions/sessions.module';
+import { SessionsModule } from '../sessions/sessions.module';
+import { UserRepository } from './users/domain/infrastructure/user.repository';
 
 const createJwtServiceProvider = (
   provide: string | symbol,

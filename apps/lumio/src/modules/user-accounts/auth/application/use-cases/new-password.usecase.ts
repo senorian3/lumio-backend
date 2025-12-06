@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { NewPasswordDto } from '../../../users/api/dto/transfer/new-password.dto';
-import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 
 export class NewPasswordCommand {
   constructor(public newPasswordDto: NewPasswordDto) {}

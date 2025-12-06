@@ -5,10 +5,10 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
   if (isSwaggerEnabled) {
     const swaggerPath = 'api/swagger';
     const config = new DocumentBuilder()
-      .setTitle('BLOGGER API')
+      .setTitle('LUMIO API')
       .addBearerAuth()
       .setVersion('1.0')
-      .setDescription('Blogger API description')
+      .setDescription('Lumio API description')
       .addBearerAuth()
       .addBasicAuth(
         {
@@ -21,7 +21,7 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
 
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup(swaggerPath, app, document, {
-      customSiteTitle: 'Blogger Swagger',
+      customSiteTitle: 'Lumio Swagger',
     });
   }
 }

@@ -3,10 +3,10 @@ import {
   NotFoundDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DeleteSessionDto } from '../../api/dto/transfer/delete-session.dto';
+import { SessionEntity } from '../../domain/session.entity';
+import { SessionRepository } from '../../domain/infrastructure/session.repository';
 
 export class DeleteSessionCommand {
   constructor(public deleteSessionDto: DeleteSessionDto) {}

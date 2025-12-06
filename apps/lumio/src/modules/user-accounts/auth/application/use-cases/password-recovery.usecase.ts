@@ -5,8 +5,8 @@ import { add } from 'date-fns';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
-import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/user.repository';
 import { passwordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/password-recovery.dto';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 
 export class PasswordRecoveryCommand {
   constructor(public passwordRecoveryDto: passwordRecoveryDto) {}

@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { QuerySessionsRepository } from '../../infrastructure/session.query.repository';
+import { QuerySessionsRepository } from '../../domain/infrastructure/session.query.repository';
 import { OutputSessionType } from '../../api/dto/output/output';
 
 export class GetAllSessionsCommand {

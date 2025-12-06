@@ -13,10 +13,6 @@ export class NodemailerService {
     const user = this.userAccountsConfig.smtpUser;
     const password = this.userAccountsConfig.smtpPassword;
 
-    if (!user || !password) {
-      throw new Error('Отсутствуют данные для аутентификации email');
-    }
-
     this.transporter = nodemailer.createTransport({
       host,
       port,

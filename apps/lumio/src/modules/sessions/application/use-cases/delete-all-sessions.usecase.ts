@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { DeleteAllSessionsDto } from '../../api/dto/transfer/delete-all-sessions.dto';
+import { SessionEntity } from '../../domain/session.entity';
+import { SessionRepository } from '../../domain/infrastructure/session.repository';
 
 export class DeleteAllSessionsCommand {
   constructor(public deleteAllSessionsDto: DeleteAllSessionsDto) {}

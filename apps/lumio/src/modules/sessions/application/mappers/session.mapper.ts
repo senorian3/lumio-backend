@@ -1,5 +1,5 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
 import { OutputSessionType } from '../../api/dto/output/output';
+import { SessionEntity } from '../../domain/session.entity';
 
 export const outputSessionsMapper = (
   session: SessionEntity,

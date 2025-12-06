@@ -9,7 +9,7 @@ import {
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 import { loginDto } from '../../../users/api/dto/transfer/login.dto';
-import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 export class LoginUserCommand {
   constructor(
@@ -80,8 +80,8 @@ export class LoginUserUseCase
     if (existSession) {
       await this.sessionRepository.updateSession({
         sessionId: existSession.id,
-        iat,
-        exp,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
       });
     } else {
       await this.sessionRepository.createSession({

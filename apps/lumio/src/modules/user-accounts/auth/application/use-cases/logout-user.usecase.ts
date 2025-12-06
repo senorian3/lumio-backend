@@ -1,5 +1,5 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/session.entity';
-import { SessionRepository } from '@lumio/modules/user-accounts/sessions/infrastructure/session.repository';
+import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class LogoutUserCommand {
