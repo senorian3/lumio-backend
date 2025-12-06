@@ -2,16 +2,16 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { Request } from 'express';
-import { AuthRepository } from '@lumio/modules/user-accounts/auth/infrastructure/repositories/auth.repository';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userAccountsConfig: UserAccountsConfig,
-    private readonly authRepository: AuthRepository,
+    private readonly sessionRepository: SessionRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -21,6 +21,7 @@ export class RefreshTokenGuard implements CanActivate {
     if (!refreshToken) {
       throw UnauthorizedDomainException.create(
         'There is no refresh token in request',
+        'refreshToken',
       );
     }
 
@@ -28,22 +29,23 @@ export class RefreshTokenGuard implements CanActivate {
       secret: this.userAccountsConfig.refreshTokenSecret,
     });
 
-    const device: SessionEntity | null = await this.authRepository.findSession(
-      payload.deviceId,
-    );
+    const session: SessionEntity | null =
+      await this.sessionRepository.findSession(payload.deviceId);
 
-    if (!device) {
-      throw UnauthorizedDomainException.create("User doesn't have session");
+    if (!session) {
+      throw UnauthorizedDomainException.create(
+        "User doesn't have session",
+        'deviceId',
+      );
     }
 
     const exp: Date = new Date(payload.exp * 1000);
 
-    if (device.userId !== payload.userId || device.expiresAt !== exp) {
-      throw UnauthorizedDomainException.create("User doesn't have session");
-    }
-
-    if (payload.tokenVersion !== device.tokenVersion) {
-      throw UnauthorizedDomainException.create('Token version mismatch');
+    if (session.userId !== payload.userId || session.expiresAt !== exp) {
+      throw UnauthorizedDomainException.create(
+        "User doesn't have session",
+        'session',
+      );
     }
 
     request.user = payload;

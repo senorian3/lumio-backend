@@ -1,6 +1,6 @@
-import { SessionEntity } from '@lumio/modules/user-accounts/sessions/domain/entities/session.entity';
+import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
 
 export class LogoutUserCommand {
   constructor(
@@ -11,25 +11,26 @@ export class LogoutUserCommand {
 
 @CommandHandler(LogoutUserCommand)
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(private sessionRepository: SessionRepository) {}
   async execute({ userId, deviceId }: LogoutUserCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
-    const foundSessionByDeviceAndUserId: SessionEntity | null =
-      await this.authRepository.findSession({
+    const foundSessionByDeviceIdAndUserId: SessionEntity | null =
+      await this.sessionRepository.findSession({
         userId: +userId,
         deviceId: deviceId,
       });
 
-    if (!foundSessionByDeviceAndUserId) {
+    if (!foundSessionByDeviceIdAndUserId) {
       return;
     }
 
-    await this.authRepository.deleteSession(
-      foundSessionByDeviceAndUserId.id,
-      foundSessionByDeviceAndUserId.user.id,
-    );
+    await this.sessionRepository.deleteSession({
+      userId: foundSessionByDeviceIdAndUserId.user.id,
+      deviceId: foundSessionByDeviceIdAndUserId.deviceId,
+      sessionId: foundSessionByDeviceIdAndUserId.id,
+    });
 
     return;
   }

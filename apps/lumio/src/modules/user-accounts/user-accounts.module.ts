@@ -1,21 +1,18 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth/presentation/controllers/auth.controller';
 import { CreateUserUseCase } from './users/application/use-cases/create-user.use-case';
 import { RegisterUserUseCase } from './auth/application/use-cases/register-user.usecase';
-import { NodemailerService } from './adapters/nodemailer/nodemeiler.service';
+import { NodemailerService } from './adapters/nodemailer/nodemailer.service';
 import { CryptoService } from './adapters/crypto.service';
-import { UserRepository } from './users/infrastructure/repositories/user.repository';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from './constants/auth-tokens.inject-constants';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserAccountsConfig } from './config/user-accounts.config';
 import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecase';
-import { AuthService } from './auth/application/service/auth.service';
-import { AuthRepository } from './auth/infrastructure/repositories/auth.repository';
+import { AuthService } from './auth/application/auth.service';
 import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
@@ -23,8 +20,41 @@ import { PassportModule } from '@nestjs/passport';
 import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-github.usecase';
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
+import { AuthController } from './auth/api/auth.controller';
+import { SessionsModule } from '../sessions/sessions.module';
+import { UserRepository } from './users/domain/infrastructure/user.repository';
 
-const commandHandlers = [
+const createJwtServiceProvider = (
+  provide: string | symbol,
+  secretKey: keyof UserAccountsConfig,
+  expiresInKey: keyof UserAccountsConfig,
+) => ({
+  provide,
+  useFactory: (config: UserAccountsConfig): JwtService => {
+    return new JwtService({
+      secret: config[secretKey] as string,
+      signOptions: {
+        expiresIn: config[expiresInKey] as ms.StringValue,
+      },
+    });
+  },
+  inject: [UserAccountsConfig],
+});
+
+const jwtProviders = [
+  createJwtServiceProvider(
+    ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+    'accessTokenSecret',
+    'accessTokenExpireIn',
+  ),
+  createJwtServiceProvider(
+    REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
+    'refreshTokenSecret',
+    'refreshTokenExpireIn',
+  ),
+];
+
+const useCases = [
   CreateUserUseCase,
   RegisterUserUseCase,
   LoginUserUseCase,
@@ -33,46 +63,26 @@ const commandHandlers = [
   LoginUserGitHubUseCase,
 ];
 
+const services = [
+  NodemailerService,
+  CryptoService,
+  EmailService,
+  RecaptchaService,
+  AuthService,
+];
+
+const strategies = [GithubStrategy, JwtStrategy];
+
 @Module({
-  imports: [PassportModule],
+  imports: [PassportModule, SessionsModule, JwtModule],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
-    NodemailerService,
-    ...commandHandlers,
-    CryptoService,
-    EmailService,
-    RecaptchaService,
     UserRepository,
-    AuthService,
-    AuthRepository,
-    JwtStrategy,
-    GithubStrategy,
-    JwtService,
-    {
-      provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
-      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
-        return new JwtService({
-          secret: userAccountConfig.accessTokenSecret,
-          signOptions: {
-            expiresIn: userAccountConfig.accessTokenExpireIn as ms.StringValue,
-          },
-        });
-      },
-      inject: [UserAccountsConfig],
-    },
-    {
-      provide: REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
-      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
-        return new JwtService({
-          secret: userAccountConfig.refreshTokenSecret,
-          signOptions: {
-            expiresIn: userAccountConfig.refreshTokenExpireIn as ms.StringValue,
-          },
-        });
-      },
-      inject: [UserAccountsConfig],
-    },
+    ...useCases,
+    ...services,
+    ...strategies,
+    ...jwtProviders,
   ],
 })
 export class UserAccountsModule {}

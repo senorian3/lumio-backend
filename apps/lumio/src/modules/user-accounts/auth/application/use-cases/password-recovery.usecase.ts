@@ -2,14 +2,14 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
-import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemeiler.service';
+import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
-import { UserRepository } from '@lumio/modules/user-accounts/users/infrastructure/repositories/user.repository';
-import { passwordRecoveryDto } from '../../dto/password-recovery.dto';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { passwordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/password-recovery.dto';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 
 export class PasswordRecoveryCommand {
-  constructor(public dto: passwordRecoveryDto) {}
+  constructor(public passwordRecoveryDto: passwordRecoveryDto) {}
 }
 
 @CommandHandler(PasswordRecoveryCommand)
@@ -23,10 +23,13 @@ export class PasswordRecoveryUseCase
     private recaptchaService: RecaptchaService,
   ) {}
 
-  async execute({ dto }: PasswordRecoveryCommand): Promise<void> {
+  async execute({
+    passwordRecoveryDto,
+  }: PasswordRecoveryCommand): Promise<void> {
     const isRecaptchaValid = await this.recaptchaService.verify(
-      dto.recaptchaToken,
+      passwordRecoveryDto.recaptchaToken,
     );
+
     if (!isRecaptchaValid) {
       throw ForbiddenDomainException.create(
         'reCAPTCHA verification failed',
@@ -34,10 +37,12 @@ export class PasswordRecoveryUseCase
       );
     }
 
-    const user = await this.userRepository.findUserByEmail(dto.email);
+    const user = await this.userRepository.findUserByEmail(
+      passwordRecoveryDto.email,
+    );
+
     if (!user) {
       throw ForbiddenDomainException.create('User does not exist', 'email');
-      return;
     }
 
     const newConfirmationCode = randomUUID();

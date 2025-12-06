@@ -1,19 +1,19 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from '../service/auth.service';
+import { AuthService } from '../auth.service';
 import { randomUUID } from 'crypto';
 import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
-import { loginDto } from '../../dto/login.dto';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
+import { loginDto } from '../../../users/api/dto/transfer/login.dto';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 export class LoginUserCommand {
   constructor(
-    public dto: loginDto,
+    public loginDto: loginDto,
     public deviceName: string,
     public ip: string,
   ) {}
@@ -36,25 +36,26 @@ export class LoginUserUseCase
 
     private authService: AuthService,
 
-    private authRepository: AuthRepository,
+    private sessionRepository: SessionRepository,
   ) {}
-  async execute({ dto, deviceName, ip }: LoginUserCommand): Promise<{
+  async execute({ loginDto, deviceName, ip }: LoginUserCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
     const result = await this.authService.checkUserCredentials(
-      dto.email,
-      dto.password,
+      loginDto.email,
+      loginDto.password,
     );
 
-    const userId = result!.id;
+    const userId = result.id;
 
-    const existSession = await this.authRepository.findSession({
+    const existSession = await this.sessionRepository.findSession({
       userId,
       deviceName: deviceName,
     });
 
     let deviceId: string;
+
     if (existSession) {
       deviceId = existSession.deviceId;
     } else {
@@ -72,21 +73,25 @@ export class LoginUserUseCase
 
     if (!iat || !exp) {
       throw ForbiddenDomainException.create(
-        'Refresh token not verified',
+        'Refresh token is not verified',
         'email',
       );
     }
     if (existSession) {
-      await this.authRepository.updateSession(existSession.id, iat, exp);
+      await this.sessionRepository.updateSession({
+        sessionId: existSession.id,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
+      });
     } else {
-      await this.authRepository.createSession(
+      await this.sessionRepository.createSession({
         userId,
-        iat,
-        exp,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
         deviceId,
         ip,
         deviceName,
-      );
+      });
     }
     const accessToken = this.accessTokenContext.sign({ userId });
 

@@ -1,20 +1,21 @@
-import { GitHubDto } from '../../dto/github.dto';
+import { GitHubDto } from '../../../users/api/dto/transfer/github.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
-} from '../../../constants/auth-tokens.inject-constants';
-import { JwtService } from '@nestjs/jwt';
-import { AuthRepository } from '../../infrastructure/repositories/auth.repository';
-import { UserRepository } from '../../../users/infrastructure/repositories/user.repository';
-import { CryptoService } from '../../../adapters/crypto.service';
-import { randomUUID } from 'crypto';
-import { ForbiddenDomainException } from '../../../../../../../../libs/core/exceptions/domain-exceptions';
+} from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 
 export class LoginUserGitHubCommand {
   constructor(
-    public user: GitHubDto,
+    public userGithubDto: GitHubDto,
     public deviceName: string,
     public ip: string,
   ) {}
@@ -35,19 +36,28 @@ export class LoginUserGitHubUseCase
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
     private refreshTokenContext: JwtService,
 
-    private authRepository: AuthRepository,
+    private sessionRepository: SessionRepository,
 
     private userRepository: UserRepository,
 
     private cryptoService: CryptoService,
   ) {}
 
-  async execute({ user, deviceName, ip }: LoginUserGitHubCommand): Promise<{
+  async execute({
+    userGithubDto,
+    deviceName,
+    ip,
+  }: LoginUserGitHubCommand): Promise<{
     accessToken: string;
     refreshToken: string;
   }> {
-    const github = await this.userRepository.findGitHubByGitId(user.gitId);
-    const existingUser = await this.userRepository.findUserByEmail(user.email);
+    const github = await this.userRepository.findGitHubByGitId(
+      userGithubDto.gitId,
+    );
+    const existingUser = await this.userRepository.findUserByEmail(
+      userGithubDto.email,
+    );
+
     let appUser;
 
     if (!existingUser && !github) {
@@ -57,8 +67,8 @@ export class LoginUserGitHubUseCase
         await this.cryptoService.createPasswordHash(newPassword);
       appUser = await this.userRepository.createUser(
         {
-          email: user.email,
-          username: user.username,
+          email: userGithubDto.email,
+          username: userGithubDto.username,
           password: passwordHash,
         },
         passwordHash,
@@ -66,25 +76,25 @@ export class LoginUserGitHubUseCase
       );
 
       await this.userRepository.createGitHub({
-        gitId: user.gitId,
-        email: user.email,
-        username: user.username,
+        gitId: userGithubDto.gitId,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
         userId: appUser.id,
       });
     } else if (github && !existingUser) {
       appUser = await this.userRepository.findUserById(github.userId);
       await this.userRepository.updateGitHub(github.id, {
         userId: appUser.id,
-        email: user.email,
-        username: user.username,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
       });
     } else if (existingUser && !github) {
       appUser = existingUser;
 
       await this.userRepository.createGitHub({
-        gitId: user.gitId,
-        email: user.email,
-        username: user.username,
+        gitId: userGithubDto.gitId,
+        email: userGithubDto.email,
+        username: userGithubDto.username,
         userId: appUser.id,
       });
     } else {
@@ -93,7 +103,7 @@ export class LoginUserGitHubUseCase
 
     const userId = appUser.id;
 
-    const existSession = await this.authRepository.findSession({
+    const existSession = await this.sessionRepository.findSession({
       userId,
       deviceName: deviceName,
     });
@@ -121,16 +131,22 @@ export class LoginUserGitHubUseCase
       );
     }
     if (existSession) {
-      await this.authRepository.updateSession(existSession.id, iat, exp);
+      const newIat = new Date(iat * 1000);
+      const newExp = new Date(exp * 1000);
+      await this.sessionRepository.updateSession({
+        sessionId: existSession.id,
+        iat: newIat,
+        exp: newExp,
+      });
     } else {
-      await this.authRepository.createSession(
+      await this.sessionRepository.createSession({
         userId,
-        iat,
-        exp,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
         deviceId,
         ip,
         deviceName,
-      );
+      });
     }
     const accessToken = this.accessTokenContext.sign({ userId });
 

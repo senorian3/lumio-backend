@@ -46,7 +46,7 @@ export class UserAccountsConfig {
   smtpUser: string;
 
   @IsNotEmpty({
-    message: 'Set Env variable SMTP_PASSWORD',
+    message: 'Set Env variable SMPT_COM_PASS',
   })
   smtpPassword: string;
 
@@ -62,7 +62,7 @@ export class UserAccountsConfig {
     this.smtpPort = this.configService.get<number>('SMTP_PORT');
     this.smtpSecure = this.configService.get<boolean>('SMTP_SECURE');
     this.smtpUser = this.configService.get<string>('SMTP_FROM_GMAIL');
-    this.smtpPassword = this.configService.get<string>('GMAIL_COM_PASS');
+    this.smtpPassword = this.configService.get<string>('SMPT_COM_PASS');
 
     configValidationUtility.validateConfig(this);
   }
