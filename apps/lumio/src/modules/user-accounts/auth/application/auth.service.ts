@@ -6,8 +6,8 @@ import { UserRepository } from '../../users/domain/infrastructure/user.repositor
 @Injectable()
 export class AuthService {
   constructor(
-    private userRepository: UserRepository,
-    private cryptoService: CryptoService,
+    private readonly userRepository: UserRepository,
+    private readonly cryptoService: CryptoService,
   ) {}
   async checkUserCredentials(
     email: string,

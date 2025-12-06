@@ -48,11 +48,14 @@ export class SessionRepository {
   }
 
   async deleteSession(dto: DeleteSessionDomainDto): Promise<void> {
-    await this.prisma.session.delete({
+    await this.prisma.session.update({
       where: {
         userId: dto.userId,
         deviceId: dto.deviceId,
         id: dto.sessionId,
+      },
+      data: {
+        deletedAt: dto.deletedAt,
       },
     });
 
@@ -62,10 +65,13 @@ export class SessionRepository {
   async deleteAllSessionsExcludeCurrent(
     dto: DeleteAllSessionsExcludeCurrentDomainDto,
   ) {
-    await this.prisma.session.deleteMany({
+    await this.prisma.session.updateMany({
       where: {
         id: { not: dto.sessionId },
         userId: dto.userId,
+      },
+      data: {
+        deletedAt: dto.deletedAt,
       },
     });
 

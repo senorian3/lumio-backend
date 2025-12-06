@@ -31,16 +31,12 @@ export class LoginUserGitHubUseCase
 {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
-    private accessTokenContext: JwtService,
-
+    private readonly accessTokenContext: JwtService,
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
-    private refreshTokenContext: JwtService,
-
-    private sessionRepository: SessionRepository,
-
-    private userRepository: UserRepository,
-
-    private cryptoService: CryptoService,
+    private readonly refreshTokenContext: JwtService,
+    private readonly sessionRepository: SessionRepository,
+    private readonly userRepository: UserRepository,
+    private readonly cryptoService: CryptoService,
   ) {}
 
   async execute({
@@ -127,7 +123,7 @@ export class LoginUserGitHubUseCase
     if (!iat || !exp) {
       throw ForbiddenDomainException.create(
         'Refresh token not verified',
-        'email',
+        'refreshToken',
       );
     }
     if (existSession) {

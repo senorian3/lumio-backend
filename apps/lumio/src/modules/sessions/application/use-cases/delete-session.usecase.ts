@@ -28,7 +28,7 @@ export class DeleteSessionUseCase
     if (!currentUserSession) {
       throw UnauthorizedDomainException.create(
         "User doesn't have session",
-        'userId',
+        'session',
       );
     }
 
@@ -55,6 +55,7 @@ export class DeleteSessionUseCase
       deviceId: deleteSessionDto.paramDeviceId,
       userId: deleteSessionDto.userId,
       sessionId: foundSessionByParamDeviceId.id,
+      deletedAt: new Date(),
     });
 
     return;

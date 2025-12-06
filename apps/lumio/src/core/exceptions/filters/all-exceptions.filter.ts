@@ -5,7 +5,7 @@ import { BaseExceptionFilter } from '@libs/core/exceptions/filters/base-exceptio
 
 @Catch()
 export class AllExceptionsFilter extends BaseExceptionFilter {
-  constructor(private coreConfig: CoreConfig) {
+  constructor(private readonly coreConfig: CoreConfig) {
     super();
   }
   onCatch(exception: unknown, response: Response): void {

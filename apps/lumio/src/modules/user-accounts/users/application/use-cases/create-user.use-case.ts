@@ -13,16 +13,27 @@ export class CreateUserUseCase
   implements ICommandHandler<CreateUserCommand, number>
 {
   constructor(
-    private userRepository: UserRepository,
-    private cryptoService: CryptoService,
+    private readonly userRepository: UserRepository,
+    private readonly cryptoService: CryptoService,
   ) {}
   async execute({ createDto }: CreateUserCommand): Promise<number> {
     const user = await this.userRepository.doesExistByUsernameOrEmail(
       createDto.username,
       createDto.email,
     );
+
     if (user) {
-      throw BadRequestDomainException.create('User already exists');
+      if (user.username === createDto.username) {
+        throw BadRequestDomainException.create(
+          'User with this username is already registered',
+          'username',
+        );
+      } else {
+        throw BadRequestDomainException.create(
+          'User with this email is already registered',
+          'email',
+        );
+      }
     }
 
     const hashedPassword = await this.cryptoService.createPasswordHash(

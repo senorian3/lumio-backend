@@ -15,9 +15,9 @@ export class RegisterUserUseCase
   implements ICommandHandler<RegisterUserCommand, void>
 {
   constructor(
-    private userRepository: UserRepository,
-    private nodemailerService: NodemailerService,
-    private emailService: EmailService,
+    private readonly userRepository: UserRepository,
+    private readonly nodemailerService: NodemailerService,
+    private readonly emailService: EmailService,
     private readonly commandBus: CommandBus,
   ) {}
 
@@ -51,7 +51,7 @@ export class RegisterUserUseCase
     if (!emailConfirmation) {
       throw BadRequestDomainException.create(
         'Email confirmation not found',
-        'email',
+        'userId',
       );
     }
 

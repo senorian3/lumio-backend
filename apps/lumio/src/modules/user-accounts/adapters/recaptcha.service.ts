@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-interface RecaptchaResponse {
+class RecaptchaResponse {
   success: boolean;
   score: number;
   action: string;
@@ -18,7 +18,7 @@ export class RecaptchaService {
     'https://www.google.com/recaptcha/api/siteverify';
   private readonly scoreThreshold = 0.5;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.secretKey =
       this.configService.get<string>('RECAPTCHA_SECRET_KEY') || '';
     if (!this.secretKey) {

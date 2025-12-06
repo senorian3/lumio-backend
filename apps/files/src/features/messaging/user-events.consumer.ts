@@ -9,8 +9,8 @@ export class UserEventsConsumer implements OnModuleInit, OnModuleDestroy {
   private channel: amqp.Channel;
 
   constructor(
-    private messagingConfig: MessagingConfig,
-    private prisma: PrismaService,
+    private readonly messagingConfig: MessagingConfig,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit() {

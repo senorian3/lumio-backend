@@ -29,14 +29,11 @@ export class LoginUserUseCase
 {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
-    private accessTokenContext: JwtService,
-
+    private readonly accessTokenContext: JwtService,
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
-    private refreshTokenContext: JwtService,
-
-    private authService: AuthService,
-
-    private sessionRepository: SessionRepository,
+    private readonly refreshTokenContext: JwtService,
+    private readonly authService: AuthService,
+    private readonly sessionRepository: SessionRepository,
   ) {}
   async execute({ loginDto, deviceName, ip }: LoginUserCommand): Promise<{
     accessToken: string;
@@ -74,7 +71,7 @@ export class LoginUserUseCase
     if (!iat || !exp) {
       throw ForbiddenDomainException.create(
         'Refresh token is not verified',
-        'email',
+        'refreshToken',
       );
     }
     if (existSession) {

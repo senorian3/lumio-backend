@@ -11,7 +11,7 @@ export class LogoutUserCommand {
 
 @CommandHandler(LogoutUserCommand)
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
-  constructor(private sessionRepository: SessionRepository) {}
+  constructor(private readonly sessionRepository: SessionRepository) {}
   async execute({ userId, deviceId }: LogoutUserCommand): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -30,6 +30,7 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
       userId: foundSessionByDeviceIdAndUserId.user.id,
       deviceId: foundSessionByDeviceIdAndUserId.deviceId,
       sessionId: foundSessionByDeviceIdAndUserId.id,
+      deletedAt: new Date(),
     });
 
     return;

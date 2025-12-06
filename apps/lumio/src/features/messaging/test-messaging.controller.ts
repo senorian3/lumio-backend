@@ -3,7 +3,7 @@ import { UserEventsPublisher } from './user-events.publisher';
 
 @Controller('test-messaging')
 export class TestMessagingController {
-  constructor(private userEventsPublisher: UserEventsPublisher) {}
+  constructor(private readonly userEventsPublisher: UserEventsPublisher) {}
 
   @Get('user-created')
   async testUserCreated() {
