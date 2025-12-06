@@ -5,6 +5,8 @@ import { add } from 'date-fns';
 import { EmailConfirmation, GitHub, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
+import { GoogleEntity } from '@lumio/modules/user-accounts/users/domain/entities/google.entity';
+import { GoogleDomainDto } from '@lumio/modules/user-accounts/users/domain/dto/google.domain.dto';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -130,8 +132,8 @@ export class UserRepository {
       email?: string;
       username?: string;
     },
-  ) {
-    return this.prisma.gitHub.update({
+  ): Promise<void> {
+    await this.prisma.gitHub.update({
       where: { id },
       data,
     });
@@ -144,6 +146,47 @@ export class UserRepository {
         emailConfirmation: true,
         sessions: true,
         github: true,
+      },
+    });
+  }
+
+  async findGoogleByGoogleId(googleId: string): Promise<GoogleEntity | null> {
+    return this.prisma.google.findUnique({
+      where: { googleId },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async createGoogle(
+    data: GoogleDomainDto,
+    userId: number,
+  ): Promise<GoogleEntity> {
+    return this.prisma.google.create({
+      data: {
+        email: data.email,
+        username: data.username,
+        googleId: data.googleId,
+        userId: userId,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async updateGoogle(
+    googleId: string,
+    data: {
+      email?: string;
+      username?: string;
+    },
+  ): Promise<void> {
+    await this.prisma.google.update({
+      where: { googleId },
+      data: {
+        ...data,
       },
     });
   }

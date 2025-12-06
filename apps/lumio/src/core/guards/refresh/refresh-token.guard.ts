@@ -30,7 +30,7 @@ export class RefreshTokenGuard implements CanActivate {
     });
 
     const session: SessionEntity | null =
-      await this.sessionRepository.findSession(payload.deviceId);
+      await this.sessionRepository.findSession({ deviceId: payload.deviceId });
 
     if (!session) {
       throw UnauthorizedDomainException.create(

@@ -1,15 +1,17 @@
+// github.strategy.ts
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github';
 import axios from 'axios';
+import { CoreConfig } from '@lumio/core/core.config';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
-  constructor() {
+  constructor(private readonly coreConfig: CoreConfig) {
     super({
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.GITHUB_CALLBACK_URL,
+      clientID: coreConfig.githubClientId,
+      clientSecret: coreConfig.githubClientSecret,
+      callbackURL: coreConfig.githubCallbackUrl,
       scope: ['user:email'],
     });
   }

@@ -24,8 +24,11 @@ import { InputLoginDto } from '../../users/api/dto/input/login.input-dto';
 import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input-dto';
 import { InputRegistrationDto } from '../../users/api/dto/input/registration.input-dto';
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input-dto';
+import { LoginUserGoogleCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
+import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
+
 @UseGuards(ThrottlerGuard)
-@Controller('auth')
+@Controller(AUTH_BASE)
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
   @Post('registration')
@@ -36,7 +39,7 @@ export class AuthController {
     );
   }
 
-  @Post('login')
+  @Post(AUTH_ROUTES.LOGIN)
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: InputLoginDto,
@@ -68,7 +71,7 @@ export class AuthController {
   }
   @SkipThrottle()
   @UseGuards(RefreshTokenGuard)
-  @Post('logout')
+  @Post(AUTH_ROUTES.LOGOUT)
   @HttpCode(204)
   async logout(@Req() req: any): Promise<void> {
     return await this.commandBus.execute<LogoutUserCommand, void>(
@@ -76,7 +79,7 @@ export class AuthController {
     );
   }
 
-  @Post('password-recovery')
+  @Post(AUTH_ROUTES.PASSWORD_RECOVERY)
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() dto: InputPasswordRecoveryDto): Promise<void> {
     return await this.commandBus.execute<PasswordRecoveryCommand, void>(
@@ -84,7 +87,7 @@ export class AuthController {
     );
   }
 
-  @Post('new-password')
+  @Post(AUTH_ROUTES.NEW_PASSWORD)
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
     return await this.commandBus.execute<NewPasswordCommand, void>(
@@ -93,12 +96,12 @@ export class AuthController {
   }
 
   @SkipThrottle()
-  @Get('github')
+  @Get(AUTH_ROUTES.GITHUB)
   @UseGuards(AuthGuard('github'))
   async githubLogin() {}
 
   @SkipThrottle()
-  @Get('github/callback')
+  @Get(AUTH_ROUTES.GITHUB_CALLBACK)
   @UseGuards(AuthGuard('github'))
   async githubCallback(
     @Req() req,
@@ -125,7 +128,46 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //res.json({ accessToken });   ----- это прервать запрос для теста сработал поинт или нет
+    res.json({ accessToken });
+    return { accessToken };
+  }
+
+  @UseGuards(AuthGuard('google'))
+  @Get(AUTH_ROUTES.GOOGLE)
+  async googleLogin() {
+    // Guard сам инициирует редирект — ничего не нужно
+  }
+
+  @UseGuards(AuthGuard('google'))
+  @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
+  async googleCallback(
+    @Req() req: any,
+    @Res() res: Response,
+  ): Promise<{ accessToken: string }> {
+    const ip: string =
+      req.socket.remoteAddress ||
+      (Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : req.headers['x-forwarded-for']) ||
+      'unknown';
+
+    const deviceName = req.headers['user-agent'] || 'unknown';
+
+    const user = req.user;
+
+    const { accessToken, refreshToken } = await this.commandBus.execute<
+      LoginUserGoogleCommand,
+      { accessToken: string; refreshToken: string }
+    >(new LoginUserGoogleCommand(user, deviceName, ip));
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ accessToken });
     return { accessToken };
   }
 }

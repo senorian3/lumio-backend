@@ -23,6 +23,8 @@ import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UserRepository } from './users/domain/infrastructure/user.repository';
+import { GoogleStrategy } from '@lumio/core/guards/oauth2-google/oauth2-google.guard';
+import { LoginUserGoogleUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -61,6 +63,7 @@ const useCases = [
   PasswordRecoveryUseCase,
   NewPasswordUseCase,
   LoginUserGitHubUseCase,
+  LoginUserGoogleUseCase,
 ];
 
 const services = [
@@ -71,7 +74,7 @@ const services = [
   AuthService,
 ];
 
-const strategies = [GithubStrategy, JwtStrategy];
+const strategies = [GithubStrategy, JwtStrategy, GoogleStrategy];
 
 @Module({
   imports: [PassportModule, SessionsModule, JwtModule],
