@@ -80,8 +80,8 @@ export class LoginUserUseCase
     if (existSession) {
       await this.sessionRepository.updateSession({
         sessionId: existSession.id,
-        iat,
-        exp,
+        iat: new Date(iat * 1000),
+        exp: new Date(exp * 1000),
       });
     } else {
       await this.sessionRepository.createSession({
