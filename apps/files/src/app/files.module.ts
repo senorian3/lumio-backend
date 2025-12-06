@@ -1,13 +1,12 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { FilesController } from './files.controller';
-import { FilesService } from './files.service';
 import { MessagingModule } from '@libs/messaging/messaging.module';
-import { UserEventsConsumer } from './features/messaging/user-events.consumer';
-import { CoreConfig } from './core/core.config';
-import { CoreModule } from './core/core.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { TestingModule } from './features/tests/testing.module';
 import { configModule } from '@libs/core/config-dynamic.module';
+import { PrismaModule } from '@files/prisma/prisma.module';
+import { CoreConfig } from '@files/core/core.config';
+import { CoreModule } from '@files/core/core.module';
+import { UserEventsConsumer } from '@files/features/messaging/user-events.consumer';
+import { TestingModule } from '@nestjs/testing';
 
 @Module({
   imports: [
@@ -24,8 +23,7 @@ import { configModule } from '@libs/core/config-dynamic.module';
     MessagingModule,
   ],
   controllers: [FilesController],
-  providers: [FilesService, UserEventsConsumer],
-  exports: [FilesService],
+  providers: [UserEventsConsumer],
 })
 export class FilesModule {
   static async forRoot(coreConfig: CoreConfig): Promise<DynamicModule> {

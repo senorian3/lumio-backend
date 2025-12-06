@@ -6,8 +6,8 @@ import { globalPrefixSetup } from '@libs/settings/glolbal-prefix.setup';
 import { proxySetup } from '@libs/settings/proxy-setup';
 import { swaggerSetup } from '@libs/settings/swagger.setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
-import { CoreConfig } from './core/core.config';
-import { exceptionFilterSetup } from './core/exception-filter.setup';
+import { exceptionFilterSetup } from '@files/core/exception-filter.setup';
+import { CoreConfig } from '@files/core/core.config';
 
 export function appSetup(
   app: INestApplication,
