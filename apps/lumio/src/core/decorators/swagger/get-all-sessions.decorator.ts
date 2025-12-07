@@ -34,7 +34,7 @@ export function ApiGetAllSessions() {
       status: 400,
       description: 'Bad Request – unable to get user sessions',
       example: {
-        extensions: [
+        errorsMessages: [
           {
             message: 'Cant get all devices',
             field: 'userId',
@@ -50,7 +50,7 @@ export function ApiGetAllSessions() {
         no_refresh_token: {
           summary: 'No refresh token in request',
           value: {
-            extensions: [
+            errorsMessages: [
               {
                 message: 'There is no refresh token in request',
                 field: 'refreshToken',
@@ -61,7 +61,7 @@ export function ApiGetAllSessions() {
         session_not_found: {
           summary: 'Session not found for device',
           value: {
-            extensions: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'deviceId',
@@ -72,7 +72,7 @@ export function ApiGetAllSessions() {
         session_mismatch: {
           summary: 'Session mismatch',
           value: {
-            extensions: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'session',
