@@ -44,7 +44,6 @@ export class CoreConfig {
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
 
-  // --- OAuth2 GitHub ---
   @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_ID' })
   githubClientId: string = this.configService.get('GITHUB_CLIENT_ID');
 
@@ -54,7 +53,6 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable GITHUB_CALLBACK_URL' })
   githubCallbackUrl: string = this.configService.get('GITHUB_CALLBACK_URL');
 
-  // --- OAuth2 Google ---
   @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_ID' })
   googleClientId: string = this.configService.get('GOOGLE_CLIENT_ID');
 
@@ -63,6 +61,17 @@ export class CoreConfig {
 
   @IsNotEmpty({ message: 'Set Env variable GOOGLE_CALLBACK_URL' })
   googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
+
+  @IsNumber(
+    {},
+    {
+      message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',
+    },
+  )
+  throttlerTtl: number = Number(this.configService.get('THROTTLER_TTL'));
+
+  @IsNumber({}, { message: 'Set Env variable THROTTLER_LIMIT, example: 5' })
+  throttlerLimit: number = Number(this.configService.get('THROTTLER_LIMIT'));
 
   constructor(private configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);

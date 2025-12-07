@@ -20,6 +20,17 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
       console.error(exception);
     }
 
+    if (HttpStatus.TOO_MANY_REQUESTS === status) {
+      response.status(status).json({
+        errorsMessages: [
+          {
+            message: 'Too many requessts',
+          },
+        ],
+      });
+      return;
+    }
+
     if (isProduction && status === HttpStatus.INTERNAL_SERVER_ERROR) {
       response.status(status).json({
         ...this.getDefaultHttpBody(exception),

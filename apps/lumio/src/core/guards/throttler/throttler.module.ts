@@ -1,8 +1,13 @@
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CoreConfig } from '../../core.config';
 
-export const throttlerModule = ThrottlerModule.forRoot([
-  {
-    ttl: 10000,
-    limit: 5,
-  },
-]);
+export const throttlerModule = ThrottlerModule.forRootAsync({
+  imports: [],
+  inject: [CoreConfig],
+  useFactory: (coreConfig: CoreConfig) => [
+    {
+      ttl: coreConfig.throttlerTtl,
+      limit: coreConfig.throttlerLimit,
+    },
+  ],
+});
