@@ -4,7 +4,6 @@ import { cookieParserSetup } from '@libs/settings/cookie-parser.setup';
 import { enableCorsSetup } from '@libs/settings/enable-cors.setup';
 import { globalPrefixSetup } from '@libs/settings/glolbal-prefix.setup';
 import { proxySetup } from '@libs/settings/proxy-setup';
-import { swaggerSetup } from '@libs/settings/swagger.setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
 import { exceptionFilterSetup } from '@files/core/exception-filter.setup';
 import { CoreConfig } from '@files/core/core.config';
@@ -17,7 +16,6 @@ export function appSetup(
   pipesSetup(app);
   globalPrefixSetup(app);
   proxySetup(app);
-  swaggerSetup(app, coreConfig.isSwaggerEnabled);
   enableCorsSetup(app);
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);

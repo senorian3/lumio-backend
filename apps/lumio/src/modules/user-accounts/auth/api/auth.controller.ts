@@ -26,11 +26,14 @@ import { InputRegistrationDto } from '../../users/api/dto/input/registration.inp
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input-dto';
 import { LoginUserGoogleCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
+import { ApiRegistration } from '@lumio/core/decorators/swagger/registration.decorator';
+import { ApiLoginization } from '@lumio/core/decorators/swagger/login.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
+  @ApiRegistration()
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() dto: InputRegistrationDto): Promise<void> {
@@ -39,6 +42,7 @@ export class AuthController {
     );
   }
 
+  @ApiLoginization()
   @Post(AUTH_ROUTES.LOGIN)
   @HttpCode(HttpStatus.OK)
   async login(
