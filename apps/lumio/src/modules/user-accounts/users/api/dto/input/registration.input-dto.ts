@@ -16,6 +16,7 @@ export class InputRegistrationDto {
     nullable: false,
     maxLength: 30,
     minLength: 6,
+    pattern: `^[A-Za-z0-9_-]+$`,
   })
   @IsString({ message: 'Username must be a string' })
   @MinLength(6, { message: 'Minimum number of characters 6' })
@@ -29,26 +30,22 @@ export class InputRegistrationDto {
 
   @ApiProperty({
     description: 'Password of the user',
-    example: 'Password123!',
+    example: 'Password123',
     required: true,
     nullable: false,
     minLength: 6,
     maxLength: 20,
-    pattern:
-      '^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[A-Za-z0-9!"#$%&\'()*+,\\-./:;<=>?@[\\]^_{|}~]{6,20}$',
+    pattern: `^[A-Za-z0-9]+$`,
   })
   @IsString({
     message: 'Password must be a string',
   })
   @MinLength(6, { message: 'Minimum number of characters 6' })
   @MaxLength(20, { message: 'Maximum number of characters 20' })
-  @Matches(
-    /^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_{|}~]{6,20}$/,
-    {
-      message:
-        'Password must contain at least one digit, one uppercase letter, one lowercase letter, and may include special characters: ! " # $ % & \' ( ) * + , - . / : ; < = > ? @ [ \\ ] ^ _ { | } ~',
-    },
-  )
+  @Matches(/^[A-Za-z0-9]+$/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+  })
   @Trim()
   password: string;
 
@@ -66,6 +63,6 @@ export class InputRegistrationDto {
     { message: 'The email must match the format example@example.com' },
   )
   @MinLength(6, { message: 'Minimum number of characters 6' })
-  @MaxLength(100, { message: 'Maximum number of characters 20' })
+  @MaxLength(100, { message: 'Maximum number of characters 100' })
   email: string;
 }
