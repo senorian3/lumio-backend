@@ -18,11 +18,9 @@ export function ApiLoginization() {
       status: 403,
       description: 'Validation error',
       example: {
-        message: 'Forbidden',
-        code: 'FORBIDDEN',
         extensions: [
           {
-            message: 'The email must match the format example@example.com',
+            message: 'Minimum number of characters 6; Received value: ',
             field: 'email',
           },
         ],

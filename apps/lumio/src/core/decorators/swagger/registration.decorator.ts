@@ -18,8 +18,6 @@ export function ApiRegistration() {
       status: 400,
       description: 'Validation error',
       example: {
-        message: 'Bad Request',
-        code: 'BAD_REQUEST',
         extensions: [
           {
             message: 'User with this email is already registered',
