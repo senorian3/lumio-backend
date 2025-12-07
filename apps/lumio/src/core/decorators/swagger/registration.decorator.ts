@@ -17,11 +17,54 @@ export function ApiRegistration() {
     ApiResponse({
       status: 400,
       description: 'Validation error',
+      examples: {
+        user_already_registered: {
+          summary: 'User already registered',
+          value: {
+            extensions: [
+              {
+                message: 'User with this username is already registered',
+                field: 'username',
+              },
+            ],
+          },
+        },
+        email_already_registered: {
+          summary: 'Email already registered',
+          value: {
+            extensions: [
+              {
+                message: 'User with this email is already registered',
+                field: 'email',
+              },
+            ],
+          },
+        },
+        email_confirmation_not_found: {
+          summary: 'Email confirmation not found',
+          value: {
+            extensions: [
+              {
+                message: 'Email confirmation not found',
+                field: 'emailConfirmation',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 429,
+      description: 'Too many requests',
       example: {
         extensions: [
           {
-            message: 'User with this email is already registered',
-            field: 'email',
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+              },
+            ],
           },
         ],
       },

@@ -51,7 +51,7 @@ export class RegisterUserUseCase
     if (!emailConfirmation) {
       throw BadRequestDomainException.create(
         'Email confirmation not found',
-        'userId',
+        'emailConfirmation',
       );
     }
 

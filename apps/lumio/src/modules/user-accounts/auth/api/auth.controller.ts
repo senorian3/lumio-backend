@@ -27,7 +27,10 @@ import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-rec
 import { LoginUserGoogleCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
 import { ApiRegistration } from '@lumio/core/decorators/swagger/registration.decorator';
-import { ApiLoginization } from '@lumio/core/decorators/swagger/login.decorator';
+import { ApiLogin } from '@lumio/core/decorators/swagger/login.decorator';
+import { ApiLogout } from '@lumio/core/decorators/swagger/logout.decorator';
+import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/password-recovery.decorator';
+import { ApiGithubCallback } from '@lumio/core/decorators/swagger/github-callback.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -42,7 +45,7 @@ export class AuthController {
     );
   }
 
-  @ApiLoginization()
+  @ApiLogin()
   @Post(AUTH_ROUTES.LOGIN)
   @HttpCode(HttpStatus.OK)
   async login(
@@ -73,7 +76,8 @@ export class AuthController {
 
     return { accessToken };
   }
-  @SkipThrottle()
+
+  @ApiLogout()
   @UseGuards(RefreshTokenGuard)
   @Post(AUTH_ROUTES.LOGOUT)
   @HttpCode(204)
@@ -83,6 +87,7 @@ export class AuthController {
     );
   }
 
+  @ApiPasswordRecovery()
   @Post(AUTH_ROUTES.PASSWORD_RECOVERY)
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() dto: InputPasswordRecoveryDto): Promise<void> {
@@ -104,7 +109,9 @@ export class AuthController {
   @UseGuards(AuthGuard('github'))
   async githubLogin() {}
 
+  @ApiGithubCallback()
   @SkipThrottle()
+  @HttpCode(HttpStatus.OK)
   @Get(AUTH_ROUTES.GITHUB_CALLBACK)
   @UseGuards(AuthGuard('github'))
   async githubCallback(

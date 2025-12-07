@@ -21,7 +21,11 @@ export function swaggerSetup(
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
       .addServer(`localhost:${port}', 'Lumio (development)`)
-      .addServer('lumio.su', 'Lumio (production)');
+      .addServer('lumio.su', 'Lumio (production)')
+      .addGlobalResponse({
+        status: 500,
+        description: 'Internal server error',
+      });
 
     const config = builder.build();
 

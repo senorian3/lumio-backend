@@ -1,12 +1,12 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-export function ApiLogin() {
+export function ApiGithubCallback() {
   return applyDecorators(
     ApiOperation({
-      summary: 'User login',
-      description: 'Endpoint for user login',
-      operationId: 'loginUser',
+      summary: 'Github callback',
+      description: 'Endpoint for github callback',
+      operationId: 'githubCallback',
     }),
 
     ApiResponse({
@@ -30,38 +30,6 @@ export function ApiLogin() {
       status: 403,
       description: 'Validation error',
       examples: {
-        email_not_registered: {
-          summary: 'Email is not registered',
-          value: {
-            extensions: [
-              {
-                errorsMessages: [
-                  {
-                    message:
-                      'The email must match the format example@example.com',
-                    field: 'email',
-                  },
-                ],
-              },
-            ],
-          },
-        },
-        wrong_password: {
-          summary: 'Wrong password',
-          value: {
-            extensions: [
-              {
-                errorsMessages: [
-                  {
-                    message:
-                      'The email must match the format example@example.com',
-                    field: 'email',
-                  },
-                ],
-              },
-            ],
-          },
-        },
         iat_or_exp_not_verified: {
           summary: 'Refresh token is not verified',
           value: {
