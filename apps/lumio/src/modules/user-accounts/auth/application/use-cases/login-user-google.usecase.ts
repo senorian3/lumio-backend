@@ -117,7 +117,7 @@ export class LoginUserGoogleUseCase
     if (!iat || !exp) {
       throw ForbiddenDomainException.create(
         'Refresh token not verified',
-        'email',
+        'refreshToken',
       );
     }
     if (existSession) {

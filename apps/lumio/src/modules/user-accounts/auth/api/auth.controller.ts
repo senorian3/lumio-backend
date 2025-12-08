@@ -31,6 +31,8 @@ import { ApiLogin } from '@lumio/core/decorators/swagger/login.decorator';
 import { ApiLogout } from '@lumio/core/decorators/swagger/logout.decorator';
 import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/password-recovery.decorator';
 import { ApiGithubCallback } from '@lumio/core/decorators/swagger/github-callback.decorator';
+import { ApiNewPassword } from '@lumio/core/decorators/swagger/new-password.decorator';
+import { ApiGoogleCallback } from '@lumio/core/decorators/swagger/google-callback.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -96,6 +98,7 @@ export class AuthController {
     );
   }
 
+  @ApiNewPassword()
   @Post(AUTH_ROUTES.NEW_PASSWORD)
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
@@ -107,7 +110,9 @@ export class AuthController {
   @SkipThrottle()
   @Get(AUTH_ROUTES.GITHUB)
   @UseGuards(AuthGuard('github'))
-  async githubLogin() {}
+  async githubLogin(): Promise<void> {
+    // Guard сам инициирует редирект — ничего не нужно
+  }
 
   @ApiGithubCallback()
   @SkipThrottle()
@@ -145,10 +150,11 @@ export class AuthController {
 
   @UseGuards(AuthGuard('google'))
   @Get(AUTH_ROUTES.GOOGLE)
-  async googleLogin() {
+  async googleLogin(): Promise<void> {
     // Guard сам инициирует редирект — ничего не нужно
   }
 
+  @ApiGoogleCallback()
   @UseGuards(AuthGuard('google'))
   @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
   async googleCallback(
