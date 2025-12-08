@@ -19,6 +19,7 @@ export const initApp = async (): Promise<{
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [DynamicAppModule],
   })
+
     .overrideProvider(NodemailerService)
     .useValue({
       sendEmail: jest.fn().mockResolvedValue(undefined),

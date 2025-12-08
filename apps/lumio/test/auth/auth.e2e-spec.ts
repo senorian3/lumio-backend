@@ -85,8 +85,7 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
-    it('❌ should fail if username is too short', async () => {
+    it('❌ Should fail if username is too short', async () => {
       const userData = {
         username: 'abc', // меньше 6 символов
         password: 'ValidPass123',
@@ -98,8 +97,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if username is too long', async () => {
+    it('❌ Should fail if username is too long', async () => {
       const userData = {
         username: 'A'.repeat(35), // больше 30 символов
         password: 'ValidPass123',
@@ -111,8 +109,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if username contains invalid characters', async () => {
+    it('❌ Should fail if username contains invalid characters', async () => {
       const userData = {
         username: 'Invalid@User!', // недопустимые символы
         password: 'ValidPass123',
@@ -124,8 +121,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if password is too short', async () => {
+    it('❌ Should fail if password is too short', async () => {
       const userData = {
         username: 'ValidUser123',
         password: '123', // меньше 6 символов
@@ -137,8 +133,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if password is too long', async () => {
+    it('❌ Should fail if password is too long', async () => {
       const userData = {
         username: 'ValidUser123',
         password: 'A'.repeat(25), // больше 20 символов
@@ -150,8 +145,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if password contains invalid characters', async () => {
+    it('❌ Should fail if password contains invalid characters', async () => {
       const userData = {
         username: 'ValidUser123',
         password: 'Pass@@123', // недопустимые символы
@@ -163,8 +157,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if email is invalid', async () => {
+    it('❌ Should fail if email is invalid', async () => {
       const userData = {
         username: 'ValidUser123',
         password: 'ValidPass123',
@@ -176,8 +169,7 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ should fail if email is too long', async () => {
+    it('❌ Should fail if email is too long', async () => {
       const userData = {
         username: 'ValidUser123',
         password: 'ValidPass123',
@@ -192,7 +184,7 @@ describe('Auth (e2e)', () => {
   });
 
   describe('Auth login (e2e)', () => {
-    it('✅ should register and login, returning accessToken and refreshToken cookie', async () => {
+    it('✅ Should register and login, returning accessToken and refreshToken cookie', async () => {
       const userData = {
         username: 'RegUser11',
         password: 'StrongPass11',
@@ -220,20 +212,18 @@ describe('Auth (e2e)', () => {
       expect(cookies).toBeDefined();
       expect(cookies[0]).toMatch(/refreshToken=.*HttpOnly/);
     });
-    it('❌ should fail login with wrong password', async () => {
+    it('❌ Should fail login with wrong password', async () => {
       const userData = {
         username: 'RegUser12',
         password: 'StrongPass12',
         email: 'reguser12@example.com',
       };
 
-      // сначала регистрируем пользователя
       await request(app.getHttpServer())
         .post('/api/auth/registration')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
-      // пробуем залогиниться с неверным паролем
       const badLoginResponse = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
@@ -251,7 +241,7 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-    it('❌ should fail login with non-existing email', async () => {
+    it('❌ Should fail login with non-existing email', async () => {
       const badLoginResponse = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({
