@@ -266,6 +266,35 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+    it('❌ Should fail login with invalid email format', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          email: 'invalid-email',
+          password: 'SomePass123',
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+    it('❌ Should fail login with empty password', async () => {
+      const userData = {
+        username: 'RegUser13',
+        password: 'StrongPass13',
+        email: 'reguser13@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          email: userData.email,
+          password: '',
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
   });
 
   describe('Auth Logout (e2e)', () => {
@@ -356,6 +385,64 @@ describe('Auth (e2e)', () => {
         .post('/api/auth/logout')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
+    });
+  });
+
+  describe('Auth Password Recovery (e2e)', () => {
+    it('✅ Should return 204 and send recovery email if email exists', async () => {
+      const userData = {
+        username: 'RegUser13',
+        password: 'StrongPass13',
+        email: 'reguser13@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfiguration =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+      const recoveryCode = emailConfiguration.confirmationCode;
+
+      const newPassword = 'StrongPass123';
+
+      await request(app.getHttpServer())
+        .post('/api/auth/new-password')
+        .send({ recoveryCode, newPassword })
+        .expect(HttpStatus.NO_CONTENT);
+    });
+    it('❌ Should fail with 400 if recoveryCode is invalid', async () => {
+      const userData = {
+        username: 'RegUser14',
+        password: 'StrongPass14',
+        email: 'reguser14@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const invalidRecoveryCode = 'non-existent-code-123';
+      const newPassword = 'StrongPass123';
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/new-password')
+        .send({ recoveryCode: invalidRecoveryCode, newPassword })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'User does not exist',
+            field: 'code',
+          },
+        ],
+      });
     });
   });
 });
