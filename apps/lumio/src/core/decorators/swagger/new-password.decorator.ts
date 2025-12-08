@@ -16,18 +16,19 @@ export function ApiNewPassword() {
 
     ApiResponse({
       status: 400,
-      description: 'User does not exist',
-      example: {
-        extensions: [
-          {
-            errorsMessages: [
+      description: 'Validation error',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorMessages: [
               {
                 message: 'User does not exist',
-                field: 'code',
+                field: 'email',
               },
             ],
           },
-        ],
+        },
       },
     }),
 
@@ -35,13 +36,9 @@ export function ApiNewPassword() {
       status: 429,
       description: 'Too many requests',
       example: {
-        extensions: [
+        errorsMessages: [
           {
-            errorsMessages: [
-              {
-                message: 'Too many requests',
-              },
-            ],
+            message: 'Too many requests',
           },
         ],
       },

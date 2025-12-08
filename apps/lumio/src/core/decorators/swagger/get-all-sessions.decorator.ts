@@ -32,14 +32,19 @@ export function ApiGetAllSessions() {
 
     ApiResponse({
       status: 400,
-      description: 'Bad Request – unable to get user sessions',
-      example: {
-        errorsMessages: [
-          {
-            message: 'Cant get all devices',
-            field: 'userId',
+      description: 'Validation error',
+      examples: {
+        sessions_not_found: {
+          summary: 'Sessions not found',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have sessions",
+                field: 'userId',
+              },
+            ],
           },
-        ],
+        },
       },
     }),
 

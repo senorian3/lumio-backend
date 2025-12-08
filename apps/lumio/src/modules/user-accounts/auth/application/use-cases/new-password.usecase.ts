@@ -28,7 +28,7 @@ export class NewPasswordUseCase
     }
 
     const newPasswordHash = await this.cryptoService.createPasswordHash(
-      newPasswordDto.newPassword,
+      newPasswordDto.password,
     );
 
     await this.userRepository.updatePassword(

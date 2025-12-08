@@ -14,9 +14,8 @@ export function ApiDeleteSessionByDeviceId() {
       name: 'deviceId',
       required: true,
       description: 'Unique identifier of the device session to be terminated',
-      schema: {
-        type: 'string',
-        example: '123e4567-e89b-12d3-a456-426614174000',
+      example: {
+        deviceId: 'deviceId',
       },
     }),
 
@@ -67,7 +66,7 @@ export function ApiDeleteSessionByDeviceId() {
 
     ApiResponse({
       status: 403,
-      description: 'Forbidden',
+      description: 'Forbidden access',
       examples: {
         foreign_session: {
           summary: 'Attempt to terminate someone else’s session',

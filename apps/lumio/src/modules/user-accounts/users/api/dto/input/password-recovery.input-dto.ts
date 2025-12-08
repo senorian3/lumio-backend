@@ -11,6 +11,6 @@ export class InputPasswordRecoveryDto extends PickType(InputRegistrationDto, [
     required: true,
     nullable: false,
   })
-  @IsString()
+  @IsString({ message: 'Recaptcha token must be a string' })
   recaptchaToken: string;
 }

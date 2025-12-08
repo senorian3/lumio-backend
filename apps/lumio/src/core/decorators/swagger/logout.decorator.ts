@@ -27,7 +27,7 @@ export function ApiLogout() {
         no_refresh_token: {
           summary: 'No refresh token in request',
           value: {
-            extensions: [
+            errorMessages: [
               {
                 message: 'There is no refresh token in request',
                 field: 'refreshToken',
@@ -38,7 +38,7 @@ export function ApiLogout() {
         no_session: {
           summary: 'Session not found',
           value: {
-            extensions: [
+            errorMessages: [
               {
                 message: "User doesn't have session",
                 field: 'deviceId',
@@ -50,7 +50,7 @@ export function ApiLogout() {
         wrong_payload_validation: {
           summary: 'Wrong payload validation',
           value: {
-            extensions: [
+            errorMessages: [
               {
                 message: "User doesn't have session",
                 field: 'session',
@@ -65,13 +65,9 @@ export function ApiLogout() {
       status: 429,
       description: 'Too many requests',
       example: {
-        extensions: [
+        errorsMessages: [
           {
-            errorsMessages: [
-              {
-                message: 'Too many requests',
-              },
-            ],
+            message: 'Too many requests',
           },
         ],
       },

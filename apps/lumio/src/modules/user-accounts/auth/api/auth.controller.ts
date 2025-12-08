@@ -33,13 +33,16 @@ import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/password-rec
 import { ApiGithubCallback } from '@lumio/core/decorators/swagger/github-callback.decorator';
 import { ApiNewPassword } from '@lumio/core/decorators/swagger/new-password.decorator';
 import { ApiGoogleCallback } from '@lumio/core/decorators/swagger/google-callback.decorator';
+import { ApiGithub } from '@lumio/core/decorators/swagger/github.decorator';
+import { ApiGoogle } from '@lumio/core/decorators/swagger/google.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
-  @ApiRegistration()
+
   @Post('registration')
+  @ApiRegistration()
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() dto: InputRegistrationDto): Promise<void> {
     return await this.commandBus.execute<RegisterUserCommand, void>(
@@ -47,8 +50,8 @@ export class AuthController {
     );
   }
 
-  @ApiLogin()
   @Post(AUTH_ROUTES.LOGIN)
+  @ApiLogin()
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: InputLoginDto,
@@ -79,9 +82,9 @@ export class AuthController {
     return { accessToken };
   }
 
+  @Post(AUTH_ROUTES.LOGOUT)
   @ApiLogout()
   @UseGuards(RefreshTokenGuard)
-  @Post(AUTH_ROUTES.LOGOUT)
   @HttpCode(204)
   async logout(@Req() req: any): Promise<void> {
     return await this.commandBus.execute<LogoutUserCommand, void>(
@@ -89,8 +92,8 @@ export class AuthController {
     );
   }
 
-  @ApiPasswordRecovery()
   @Post(AUTH_ROUTES.PASSWORD_RECOVERY)
+  @ApiPasswordRecovery()
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() dto: InputPasswordRecoveryDto): Promise<void> {
     return await this.commandBus.execute<PasswordRecoveryCommand, void>(
@@ -98,8 +101,8 @@ export class AuthController {
     );
   }
 
-  @ApiNewPassword()
   @Post(AUTH_ROUTES.NEW_PASSWORD)
+  @ApiNewPassword()
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
     return await this.commandBus.execute<NewPasswordCommand, void>(
@@ -107,18 +110,19 @@ export class AuthController {
     );
   }
 
-  @SkipThrottle()
   @Get(AUTH_ROUTES.GITHUB)
+  @ApiGithub()
+  @SkipThrottle()
   @UseGuards(AuthGuard('github'))
   async githubLogin(): Promise<void> {
     // Guard сам инициирует редирект — ничего не нужно
   }
 
-  @ApiGithubCallback()
-  @SkipThrottle()
-  @HttpCode(HttpStatus.OK)
   @Get(AUTH_ROUTES.GITHUB_CALLBACK)
+  @ApiGithubCallback()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('github'))
+  @SkipThrottle()
   async githubCallback(
     @Req() req,
     @Res() res: Response,
@@ -148,15 +152,16 @@ export class AuthController {
     return { accessToken };
   }
 
-  @UseGuards(AuthGuard('google'))
   @Get(AUTH_ROUTES.GOOGLE)
+  @ApiGoogle()
+  @UseGuards(AuthGuard('google'))
   async googleLogin(): Promise<void> {
     // Guard сам инициирует редирект — ничего не нужно
   }
 
+  @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
   @ApiGoogleCallback()
   @UseGuards(AuthGuard('google'))
-  @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
   async googleCallback(
     @Req() req: any,
     @Res() res: Response,

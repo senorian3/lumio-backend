@@ -27,21 +27,101 @@ export function ApiLogin() {
     }),
 
     ApiResponse({
-      status: 403,
+      status: 400,
       description: 'Validation error',
+      examples: {
+        password_min_length: {
+          summary: 'Password too short',
+          value: {
+            errorMessages: [
+              {
+                message: 'Minimum number of characters 6',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_max_length: {
+          summary: 'Password too long',
+          value: {
+            errorMessages: [
+              {
+                message: 'Maximum number of characters 20',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_not_string: {
+          summary: 'Password is not a string',
+          value: {
+            errorMessages: [
+              {
+                message: 'Password must be a string',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_regexp: {
+          summary: 'Password is not valid',
+          value: {
+            errorMessages: [
+              {
+                message:
+                  'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        email_not_email: {
+          summary: 'Email is not valid',
+          value: {
+            errorMessages: [
+              {
+                message: 'The email must match the format example@example.com',
+                field: 'email',
+              },
+            ],
+          },
+        },
+        email_min_length: {
+          summary: 'Email too short',
+          value: {
+            errorMessages: [
+              {
+                message: 'Minimum number of characters 6',
+                field: 'email',
+              },
+            ],
+          },
+        },
+        email_max_length: {
+          summary: 'Email too long',
+          value: {
+            errorMessages: [
+              {
+                message: 'Maximum number of characters 100',
+                field: 'email',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 403,
+      description: 'Forbidden access',
       examples: {
         email_not_registered: {
           summary: 'Email is not registered',
           value: {
-            extensions: [
+            errorsMessages: [
               {
-                errorsMessages: [
-                  {
-                    message:
-                      'The email must match the format example@example.com',
-                    field: 'email',
-                  },
-                ],
+                message: 'The email must match the format example@example.com',
+                field: 'email',
               },
             ],
           },
@@ -49,15 +129,10 @@ export function ApiLogin() {
         wrong_password: {
           summary: 'Wrong password',
           value: {
-            extensions: [
+            errorsMessages: [
               {
-                errorsMessages: [
-                  {
-                    message:
-                      'The email must match the format example@example.com',
-                    field: 'email',
-                  },
-                ],
+                message: 'The email must match the format example@example.com',
+                field: 'email',
               },
             ],
           },
@@ -65,14 +140,10 @@ export function ApiLogin() {
         iat_or_exp_not_verified: {
           summary: 'Refresh token is not verified',
           value: {
-            extensions: [
+            errorsMessages: [
               {
-                errorsMessages: [
-                  {
-                    message: 'Refresh token is not verified',
-                    field: 'refreshToken',
-                  },
-                ],
+                message: 'Refresh token is not verified',
+                field: 'refreshToken',
               },
             ],
           },
@@ -84,13 +155,9 @@ export function ApiLogin() {
       status: 429,
       description: 'Too many requests',
       example: {
-        extensions: [
+        errorsMessages: [
           {
-            errorsMessages: [
-              {
-                message: 'Too many requests',
-              },
-            ],
+            message: 'Too many requests',
           },
         ],
       },

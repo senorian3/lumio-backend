@@ -12,8 +12,13 @@ export function ApiGoogleCallback() {
     ApiResponse({
       status: 200,
       description: 'User successfully login via google',
-      example: {
-        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+      examples: {
+        user_logined_via_google: {
+          summary: 'User successfully login via google',
+          value: {
+            accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+          },
+        },
       },
       headers: {
         'Set-Cookie': {
@@ -28,7 +33,7 @@ export function ApiGoogleCallback() {
 
     ApiResponse({
       status: 403,
-      description: 'Validation error',
+      description: 'Forbidden access',
       examples: {
         iat_or_exp_not_verified: {
           summary: 'Refresh token is not verified',

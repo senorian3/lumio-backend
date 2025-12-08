@@ -17,7 +17,7 @@ export function ApiDeleteAllSessionsExceptCurrent() {
 
     ApiResponse({
       status: 400,
-      description: 'Bad Request',
+      description: 'Validation error',
       examples: {
         no_current_session: {
           summary: 'Current session not found',

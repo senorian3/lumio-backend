@@ -1,19 +1,10 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
-import { Trim } from '@libs/core/decorators/transform/trim';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { InputRegistrationDto } from './registration.input-dto';
 
-export class InputNewPasswordDto {
-  @MinLength(6, { message: 'Minimum number of characters 6' })
-  @MaxLength(20, { message: 'Maximum number of characters 20' })
-  @Trim()
-  @ApiProperty({
-    description: 'New user password',
-    example: 'Password123',
-    required: true,
-    nullable: false,
-  })
-  newPassword: string;
-
+export class InputNewPasswordDto extends PickType(InputRegistrationDto, [
+  'password',
+] as const) {
   @IsString()
   @ApiProperty({
     description: 'Recovery code for password reset',
