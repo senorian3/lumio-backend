@@ -35,7 +35,7 @@ describe('Auth (e2e)', () => {
     await app.close();
   });
 
-  //тут нету тестов на тротлер
+  //тут нету тестов на тротлер (429)
   describe('Auth registration (e2e)', () => {
     it('✅ Should register user and send confirmation email', async () => {
       const userData = {
@@ -453,7 +453,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
-  //тут нету тестов на тротлер (429)  всех на 400
+  //тут нету тестов на тротлер (429)
   describe('Auth Password Recovery (e2e)', () => {
     it('✅ Should return 204 and send recovery email if reCAPTCHA valid', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
