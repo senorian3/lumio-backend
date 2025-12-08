@@ -35,6 +35,7 @@ describe('Auth (e2e)', () => {
     await app.close();
   });
 
+  //тут нету тестов на тротлер
   describe('Auth registration (e2e)', () => {
     it('✅ Should register user and send confirmation email', async () => {
       const userData = {
@@ -193,6 +194,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  //тут нету тестов на тротлер (429)
   describe('Auth login (e2e)', () => {
     it('✅ Should register and login, returning accessToken and refreshToken cookie', async () => {
       const userData = {
@@ -300,6 +302,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  //тут нету тестов на тротлер (429)
   describe('Auth Logout (e2e)', () => {
     it('✅ Should be able to logout', async () => {
       const userData = {
@@ -391,6 +394,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  //тут нету тестов на тротлер (429)
   describe('Auth new password (e2e)', () => {
     it('✅ Should return 204 and send recovery email if email exists', async () => {
       const userData = {
@@ -449,6 +453,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  //тут нету тестов на тротлер (429)  всех на 400
   describe('Auth Password Recovery (e2e)', () => {
     it('✅ Should return 204 and send recovery email if reCAPTCHA valid', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
@@ -504,6 +509,28 @@ describe('Auth (e2e)', () => {
           },
         ],
       });
+    });
+    it('❌ Should fail with 403 if user does not exist', async () => {
+      (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: 'nonexistent@example.com',
+          recaptchaToken: 'valid-token',
+        })
+        .expect(HttpStatus.FORBIDDEN);
+
+      expect(response.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'User does not exist',
+            field: 'email',
+          },
+        ],
+      });
+
+      expect(mailer.sendEmail).not.toHaveBeenCalled();
     });
   });
 });
