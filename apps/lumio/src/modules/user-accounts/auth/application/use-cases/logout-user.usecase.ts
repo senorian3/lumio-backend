@@ -26,8 +26,10 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
       return;
     }
 
+    console.log(foundSessionByDeviceIdAndUserId);
+
     await this.sessionRepository.deleteSession({
-      userId: foundSessionByDeviceIdAndUserId.user.id,
+      userId: foundSessionByDeviceIdAndUserId.userId,
       deviceId: foundSessionByDeviceIdAndUserId.deviceId,
       sessionId: foundSessionByDeviceIdAndUserId.id,
       deletedAt: new Date(),

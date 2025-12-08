@@ -3,17 +3,24 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { clearDB, initApp } from '../helpers/app.test-helper';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import request from 'supertest';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let mailer: NodemailerService;
+  let sessionRepository: SessionRepository;
+  let userRepository: UserRepository;
 
   beforeAll(async () => {
     const init = await initApp();
     app = init.app;
     prisma = init.prisma;
     mailer = app.get<NodemailerService>(NodemailerService);
+
+    userRepository = app.get<UserRepository>(UserRepository);
+    sessionRepository = app.get<SessionRepository>(SessionRepository);
   });
 
   beforeEach(async () => {
@@ -258,6 +265,97 @@ describe('Auth (e2e)', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('Auth Logout (e2e)', () => {
+    it('✅ Should be able to logout', async () => {
+      const userData = {
+        username: 'RegUser13',
+        password: 'StrongPass13',
+        email: 'reguser13@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send(userData)
+        .expect(HttpStatus.OK);
+
+      const cookies = loginRes.headers['set-cookie'];
+
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Cookie', cookies)
+        .expect(HttpStatus.NO_CONTENT);
+    });
+    it('❌ Should fail if no refresh token cookie', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+    it("❌ Should fail if user's session not found", async () => {
+      const userData = {
+        username: 'RegUser14',
+        password: 'StrongPass14',
+        email: 'reguser14@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send(userData)
+        .expect(HttpStatus.OK);
+
+      const cookies = loginRes.headers['set-cookie'];
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      await sessionRepository.deleteAllSessionsForUser(user.id);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Cookie', cookies)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+    it("❌ Should fail if session payload doesn't match", async () => {
+      const userData = {
+        username: 'RegUser15',
+        password: 'StrongPass15',
+        email: 'reguser15@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send(userData)
+        .expect(HttpStatus.OK);
+
+      const cookies = loginRes.headers['set-cookie'];
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const session = await sessionRepository.findSession({ userId: user.id });
+      await sessionRepository.updateSession({
+        sessionId: session.id,
+        iat: session.createdAt,
+        exp: new Date(Date.now() + 99999999),
+      });
+
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .set('Cookie', cookies)
+        .expect(HttpStatus.UNAUTHORIZED);
     });
   });
 });
