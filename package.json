@@ -23,6 +23,8 @@
     "start:debug": "nest start --debug --watch",
     "prisma:generate:lumio": "dotenv -e apps/lumio/.env.lumio.development -- prisma generate --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:generate:files": "dotenv -e apps/files/.env.files.development -- prisma generate --schema apps/files/src/prisma/schema.prisma",
+    "prisma:generate:lumio:test": "dotenv -e apps/lumio/.env.lumio.test -- prisma generate --schema apps/lumio/src/prisma/schema.prisma",
+    "prisma:generate:files:test": "dotenv -e apps/files/.env.files.test -- prisma generate --schema apps/files/src/prisma/schema.prisma",
     "prisma:test:lumio": "dotenv -e apps/lumio/.env.lumio.test -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:test:files": "dotenv -e apps/lumio/.env.files.test -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:dev:lumio": "dotenv -e apps/lumio/.env.lumio.development -- prisma migrate dev --schema apps/lumio/src/prisma/schema.prisma && yarn prisma:generate:lumio",
@@ -39,8 +41,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e:lumio": "jest --config ./apps/lumio/test/jest-e2e.json",
-    "test:e2e:files": "jest --config ./apps/files/test/jest-e2e.json",
+    "test:e2e:lumio": "dotenv -e apps/lumio/.env.lumio.test jest --config ./apps/lumio/test/jest-e2e.json",
+    "test:e2e:files": "dotenv -e apps/files/.env.files.test jest --config ./apps/files/test/jest-e2e.json",
     "prepare": "husky"
   },
   "dependencies": {
