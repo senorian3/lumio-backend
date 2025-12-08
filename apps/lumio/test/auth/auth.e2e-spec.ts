@@ -1,26 +1,23 @@
-import { PrismaService } from '@files/prisma/prisma.service';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { clearDB, initApp } from '../helper/app.test-helper';
+import { clearDB, initApp } from '../helpers/app.test-helper';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import request from 'supertest';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-
   let mailer: NodemailerService;
 
   beforeAll(async () => {
     const init = await initApp();
     app = init.app;
     prisma = init.prisma;
-
     mailer = app.get<NodemailerService>(NodemailerService);
   });
 
   beforeEach(async () => {
     await clearDB(prisma);
-
     jest.clearAllMocks();
   });
 

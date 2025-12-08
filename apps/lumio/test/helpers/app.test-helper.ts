@@ -4,15 +4,20 @@ import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AppModule } from '@lumio/app/app.module';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { appSetup } from '@lumio/app/settings';
-import { initAppModule } from '@lumio/app/init-app-module';
 import { CoreConfig } from '@lumio/core/core.config';
+import { NestFactory } from '@nestjs/core';
 
 export const initApp = async (): Promise<{
   app: INestApplication;
   prisma: PrismaService;
 }> => {
+  const tempApp = await NestFactory.createApplicationContext(AppModule);
+  const coreConfig = tempApp.get<CoreConfig>(CoreConfig);
+  const DynamicAppModule = await AppModule.forRoot(coreConfig);
+  await tempApp.close();
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [DynamicAppModule],
   })
     .overrideProvider(NodemailerService)
     .useValue({
@@ -20,11 +25,7 @@ export const initApp = async (): Promise<{
     })
     .compile();
 
-  const DynamicAppModule = await initAppModule();
-
   const app = moduleFixture.createNestApplication();
-
-  const coreConfig = app.get<CoreConfig>(CoreConfig);
 
   appSetup(app, coreConfig, DynamicAppModule);
 
@@ -38,12 +39,24 @@ export const initApp = async (): Promise<{
 };
 
 export const clearDB = async (prisma: PrismaService) => {
-  await prisma.$transaction([
-    prisma.session.deleteMany(),
-    prisma.emailConfirmation.deleteMany(),
-    prisma.gitHub.deleteMany(),
-    prisma.google.deleteMany(),
-    prisma.post.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  const safeDeleteMany = async (deleteManyOperation: Promise<any>) => {
+    try {
+      await deleteManyOperation;
+    } catch (error: any) {
+      if (error.code === 'P2021') {
+        console.warn(
+          `Table not found, skipping deleteMany: ${error.meta?.table}`,
+        );
+      } else {
+        throw error;
+      }
+    }
+  };
+
+  await safeDeleteMany(prisma.session.deleteMany());
+  await safeDeleteMany(prisma.emailConfirmation.deleteMany());
+  await safeDeleteMany(prisma.gitHub.deleteMany());
+  await safeDeleteMany(prisma.google.deleteMany());
+  await safeDeleteMany(prisma.post.deleteMany());
+  await safeDeleteMany(prisma.user.deleteMany());
 };
