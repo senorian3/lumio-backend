@@ -6,7 +6,9 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import { ApiExcludeController } from '@nestjs/swagger';
 
+@ApiExcludeController()
 @Controller('testing')
 export class TestingController {
   constructor(

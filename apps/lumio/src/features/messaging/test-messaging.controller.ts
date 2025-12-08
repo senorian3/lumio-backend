@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { UserEventsPublisher } from './user-events.publisher';
+import { ApiExcludeController } from '@nestjs/swagger';
 
+@ApiExcludeController()
 @Controller('test-messaging')
 export class TestMessagingController {
   constructor(private readonly userEventsPublisher: UserEventsPublisher) {}

@@ -148,7 +148,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken });
     return { accessToken };
   }
 
@@ -161,6 +160,7 @@ export class AuthController {
 
   @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
   @ApiGoogleCallback()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: any,
@@ -189,7 +189,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken });
     return { accessToken };
   }
 }
