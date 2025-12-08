@@ -31,7 +31,7 @@ describe('Auth (e2e)', () => {
   describe('Auth registration (e2e)', () => {
     it('✅ Should register user and send confirmation email', async () => {
       const userData = {
-        login: 'RegUser1',
+        username: 'RegUser1',
         password: 'StrongPass1',
         email: 'reguser1@example.com',
       };
