@@ -5,6 +5,7 @@ import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemai
 import request from 'supertest';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -12,6 +13,7 @@ describe('Auth (e2e)', () => {
   let mailer: NodemailerService;
   let sessionRepository: SessionRepository;
   let userRepository: UserRepository;
+  let recaptchaService: RecaptchaService;
 
   beforeAll(async () => {
     const init = await initApp();
@@ -21,6 +23,7 @@ describe('Auth (e2e)', () => {
 
     userRepository = app.get<UserRepository>(UserRepository);
     sessionRepository = app.get<SessionRepository>(SessionRepository);
+    recaptchaService = app.get(RecaptchaService);
   });
 
   beforeEach(async () => {
@@ -388,7 +391,7 @@ describe('Auth (e2e)', () => {
     });
   });
 
-  describe('Auth Password Recovery (e2e)', () => {
+  describe('Auth new password (e2e)', () => {
     it('✅ Should return 204 and send recovery email if email exists', async () => {
       const userData = {
         username: 'RegUser13',
@@ -440,6 +443,64 @@ describe('Auth (e2e)', () => {
           {
             message: 'User does not exist',
             field: 'code',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('Auth Password Recovery (e2e)', () => {
+    it('✅ Should return 204 and send recovery email if reCAPTCHA valid', async () => {
+      (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
+
+      const userData = {
+        username: 'RecaptchaUser1',
+        password: 'StrongPass123',
+        email: 'example@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: userData.email,
+          recaptchaToken: '6LfsdsdSSEsAAAAALfsdfDmlRycmKgdsfgAlcxKEp2w1Vm',
+        })
+        .expect(HttpStatus.NO_CONTENT);
+
+      expect(mailer.sendEmail).toHaveBeenCalled();
+    });
+    it('❌ Should fail with 403 if reCAPTCHA invalid', async () => {
+      (recaptchaService.verify as jest.Mock).mockResolvedValue(false);
+
+      const userData = {
+        username: 'RecaptchaUser2',
+        password: 'StrongPass123',
+        email: 'example@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: userData.email,
+          recaptchaToken: 'invalid-token',
+        })
+        .expect(HttpStatus.FORBIDDEN);
+
+      expect(response.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'reCAPTCHA verification failed',
+            field: 'recaptchaToken',
           },
         ],
       });

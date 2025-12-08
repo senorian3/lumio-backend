@@ -6,6 +6,7 @@ import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemai
 import { appSetup } from '@lumio/app/settings';
 import { CoreConfig } from '@lumio/core/core.config';
 import { NestFactory } from '@nestjs/core';
+import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 
 export const initApp = async (): Promise<{
   app: INestApplication;
@@ -23,6 +24,10 @@ export const initApp = async (): Promise<{
     .overrideProvider(NodemailerService)
     .useValue({
       sendEmail: jest.fn().mockResolvedValue(undefined),
+    })
+    .overrideProvider(RecaptchaService)
+    .useValue({
+      verify: jest.fn(),
     })
     .compile();
 
