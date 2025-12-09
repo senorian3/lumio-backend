@@ -1,12 +1,12 @@
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { HttpStatus, INestApplication } from '@nestjs/common';
-import { clearDB, initApp } from '../helpers/app.test-helper';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import request from 'supertest';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
+import { initApp, clearDB } from '../../helpers/app.test-helper';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;

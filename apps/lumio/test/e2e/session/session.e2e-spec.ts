@@ -1,11 +1,11 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { clearDB, initApp } from '../helpers/app.test-helper';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import request from 'supertest';
 import { AuthTestHelper } from '../auth/auth.test-helper';
+import { clearDB, initApp } from '../../helpers/app.test-helper';
 
 describe('Session (e2e)', () => {
   let app: INestApplication;
