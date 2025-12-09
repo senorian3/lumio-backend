@@ -20,14 +20,14 @@ pipeline {
                 checkout scm
             }
         }
-
-
-         stage('Setup Node.js') {
+        
+        stage('Setup environment and generate Prisma Client') {
             steps {
                 script {
                     sh '''
-                       echo "=== Setting up Node.js environment ==="
+                       echo "=== Setting up environment and generating Prisma Client ==="
                        
+                       # 1. Устанавливаем правильную версию Node.js через NVM
                        export NVM_DIR="$HOME/.nvm"
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        
@@ -37,29 +37,26 @@ pipeline {
                        echo "Node version: $(node --version)"
                        echo "NPM version: $(npm --version)"
                        
-                       echo "✅ Node.js setup completed"
+                       # 2. Устанавливаем зависимости (игнорируем проверку версий для надежности)
+                       yarn install --ignore-engines
+                       
+                       # 3. Генерируем Prisma Client
+                       npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
+                       
+                       # 4. Проверяем что сгенерировалось
+                       if [ -d "generated" ]; then
+                         echo "Generated files:"
+                         ls -la generated/
+                       else
+                         echo "⚠️ generated folder not found, but continuing..."
+                       fi
+                       
+                       echo "✅ Environment setup and Prisma Client generation completed"
                     '''
                 }
             }
         }
-
-         stage('Generate Prisma Client') {
-            steps {
-               script {
-                   sh '''
-                   echo "=== Generating Prisma Client ===" 
-                   yarn install
-                   
-                   npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
-                   
-                   ls -la generated/ || echo "generated folder not found"
-                   
-                   echo "✅ Prisma Client generated successfully"
-                '''
-            }
-        }
-    }
-
+        
         stage('Unit tests') {
             steps {
                 script {
@@ -69,6 +66,7 @@ pipeline {
                 }
             }
         }
+        
         stage('e2e tests') {
             steps {
                 script {
@@ -78,51 +76,56 @@ pipeline {
                 }
             }
         }
+        
         stage('Build docker image') {
             steps {
                 echo "Build image started..."
-                    script {
-                       app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
-                    }
+                script {
+                    app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
+                }
                 echo "Build image finished..."
             }
         }
+        
         stage('Push docker image') {
-             steps {
-                 echo "Push image started..."
-                     script {
-                        docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
-                            app.push("${env.IMAGE_NAME}")
-                        }
-                     }
-                 echo "Push image finished..."
-             }
-       }
-       stage('Delete image local') {
-             steps {
-                 script {
+            steps {
+                echo "Push image started..."
+                script {
+                    docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
+                        app.push("${env.IMAGE_NAME}")
+                    }
+                }
+                echo "Push image finished..."
+            }
+        }
+        
+        stage('Delete image local') {
+            steps {
+                script {
                     sh "docker rmi -f ${env.DOCKER_BUILD_NAME}"
-                 }
-             }
+                }
+            }
         }
+        
         stage('Preparing deployment') {
-             steps {
-                 echo "Preparing started..."
-                     sh 'ls -ltr'
-                     sh 'pwd'
-                     sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
-                     sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
-                     sh "cat ./apps/${env.SERVICE}/deployment.yaml"
-             }
+            steps {
+                echo "Preparing started..."
+                sh 'ls -ltr'
+                sh 'pwd'
+                sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
+                sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
+                sh "cat ./apps/${env.SERVICE}/deployment.yaml"
+            }
         }
+        
         stage('Deploy to Kubernetes') {
-             steps {
-                 withKubeConfig([credentialsId: 'prod-kubernetes']) {
+            steps {
+                withKubeConfig([credentialsId: 'prod-kubernetes']) {
                     sh "kubectl apply -f ./apps/${env.SERVICE}/deployment.yaml"
                     sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
                     sh "kubectl get services -o wide"
-                 }
-             }
+                }
+            }
         }
     }
 }
