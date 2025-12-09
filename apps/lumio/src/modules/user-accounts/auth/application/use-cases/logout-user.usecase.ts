@@ -16,17 +16,15 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
     accessToken: string;
     refreshToken: string;
   }> {
+    if (!userId || !deviceId) return;
+
     const foundSessionByDeviceIdAndUserId: SessionEntity | null =
       await this.sessionRepository.findSession({
         userId: +userId,
         deviceId: deviceId,
       });
 
-    if (!foundSessionByDeviceIdAndUserId) {
-      return;
-    }
-
-    console.log(foundSessionByDeviceIdAndUserId);
+    if (!foundSessionByDeviceIdAndUserId) return;
 
     await this.sessionRepository.deleteSession({
       userId: foundSessionByDeviceIdAndUserId.userId,

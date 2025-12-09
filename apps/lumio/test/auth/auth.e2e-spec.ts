@@ -35,7 +35,6 @@ describe('Auth (e2e)', () => {
     await app.close();
   });
 
-  //тут нету тестов на тротлер
   describe('Auth registration (e2e)', () => {
     it('✅ Should register user and send confirmation email', async () => {
       const userData = {
@@ -46,6 +45,7 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
@@ -56,6 +56,7 @@ describe('Auth (e2e)', () => {
         expect.any(Function),
       );
     });
+
     it('❌ Should return BAD_REQUEST when trying to register with duplicate username or email', async () => {
       const userData = {
         username: 'RegUser1',
@@ -65,11 +66,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '2')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const badResponseUserName = await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '3')
         .send({ ...userData, email: 'reguser_test@example.com' })
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -84,6 +87,7 @@ describe('Auth (e2e)', () => {
 
       const badResponseEmail = await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '4')
         .send({ ...userData, username: 'TestUserName' })
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -96,6 +100,7 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+
     it('❌ Should fail if username is too short', async () => {
       const userData = {
         username: 'abc', // меньше 6 символов
@@ -105,9 +110,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '5')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if username is too long', async () => {
       const userData = {
         username: 'A'.repeat(35), // больше 30 символов
@@ -117,9 +124,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '6')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if username contains invalid characters', async () => {
       const userData = {
         username: 'Invalid@User!', // недопустимые символы
@@ -129,9 +138,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '7')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if password is too short', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -141,9 +152,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '8')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if password is too long', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -153,9 +166,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '9')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if password contains invalid characters', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -165,9 +180,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '10')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if email is invalid', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -177,9 +194,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '11')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail if email is too long', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -189,12 +208,38 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '12')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
+
+    it('❌ Should fail if more 5 requests per 10 seconds', async () => {
+      const userData = {
+        username: 'gooduser123',
+        password: 'goodpass123',
+        email: 'toomanyrequests@example.com',
+      };
+
+      for (let i = 0; i < 5; i++) {
+        await request(app.getHttpServer())
+          .post('/api/auth/registration')
+          .set('X-Forwarded-For', '13')
+          .send({
+            ...userData,
+            username: `${i + 1}_${userData.username}`,
+            email: `${i + 1}_${userData.email}`,
+          })
+          .expect(HttpStatus.NO_CONTENT);
+      }
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .set('X-Forwarded-For', '13')
+        .send(userData)
+        .expect(HttpStatus.TOO_MANY_REQUESTS);
+    });
   });
 
-  //тут нету тестов на тротлер (429)
   describe('Auth login (e2e)', () => {
     it('✅ Should register and login, returning accessToken and refreshToken cookie', async () => {
       const userData = {
@@ -205,11 +250,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginResponse = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '2')
         .send({
           email: userData.email,
           password: userData.password,
@@ -224,6 +271,7 @@ describe('Auth (e2e)', () => {
       expect(cookies).toBeDefined();
       expect(cookies[0]).toMatch(/refreshToken=.*HttpOnly/);
     });
+
     it('❌ Should fail login with wrong password', async () => {
       const userData = {
         username: 'RegUser12',
@@ -233,11 +281,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const badLoginResponse = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '4')
         .send({
           email: userData.email,
           password: 'WrongPass12',
@@ -253,13 +303,16 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+
     it('❌ Should fail login with non-existing email', async () => {
       const badLoginResponse = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '5')
         .send({
           email: 'notfound@example.com',
           password: 'SomePass123',
         })
+
         .expect(HttpStatus.FORBIDDEN);
 
       expect(badLoginResponse.body).toEqual({
@@ -271,15 +324,18 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+
     it('❌ Should fail login with invalid email format', async () => {
       await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '6')
         .send({
           email: 'invalid-email',
           password: 'SomePass123',
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
+
     it('❌ Should fail login with empty password', async () => {
       const userData = {
         username: 'RegUser13',
@@ -289,20 +345,55 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '7')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '8')
         .send({
           email: userData.email,
           password: '',
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
+
+    it('❌ Should fail if more 5 requests per 10 seconds', async () => {
+      const userData = {
+        username: 'RegUser11',
+        password: 'StrongPass11',
+        email: 'reguser11@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .set('X-Forwarded-For', '9')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      for (let i = 0; i < 5; i++) {
+        await request(app.getHttpServer())
+          .post('/api/auth/login')
+          .set('X-Forwarded-For', '10')
+          .send({
+            email: userData.email,
+            password: userData.password,
+          })
+          .expect(HttpStatus.OK);
+      }
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .set('X-Forwarded-For', '10')
+        .send({
+          email: userData.email,
+          password: userData.password,
+        })
+        .expect(HttpStatus.TOO_MANY_REQUESTS);
+    });
   });
 
-  //тут нету тестов на тротлер (429)
   describe('Auth Logout (e2e)', () => {
     it('✅ Should be able to logout', async () => {
       const userData = {
@@ -313,11 +404,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '2')
         .send(userData)
         .expect(HttpStatus.OK);
 
@@ -325,14 +418,18 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/logout')
+        .set('X-Forwarded-For', '3')
         .set('Cookie', cookies)
         .expect(HttpStatus.NO_CONTENT);
     });
+
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
         .post('/api/auth/logout')
+        .set('X-Forwarded-For', '4')
         .expect(HttpStatus.UNAUTHORIZED);
     });
+
     it("❌ Should fail if user's session not found", async () => {
       const userData = {
         username: 'RegUser14',
@@ -342,11 +439,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '5')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '6')
         .send(userData)
         .expect(HttpStatus.OK);
 
@@ -357,9 +456,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/logout')
+        .set('X-Forwarded-For', '7')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
     });
+
     it("❌ Should fail if session payload doesn't match", async () => {
       const userData = {
         username: 'RegUser15',
@@ -369,11 +470,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '8')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
         .post('/api/auth/login')
+        .set('X-Forwarded-For', '9')
         .send(userData)
         .expect(HttpStatus.OK);
 
@@ -389,12 +492,12 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/logout')
+        .set('X-Forwarded-For', '10')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
     });
   });
 
-  //тут нету тестов на тротлер (429)
   describe('Auth new password (e2e)', () => {
     it('✅ Should return 204 and send recovery email if email exists', async () => {
       const userData = {
@@ -405,6 +508,7 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
@@ -419,9 +523,11 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/new-password')
+        .set('X-Forwarded-For', '2')
         .send({ recoveryCode, newPassword })
         .expect(HttpStatus.NO_CONTENT);
     });
+
     it('❌ Should fail with 400 if recoveryCode is invalid', async () => {
       const userData = {
         username: 'RegUser14',
@@ -431,6 +537,7 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
@@ -439,6 +546,7 @@ describe('Auth (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/api/auth/new-password')
+        .set('X-Forwarded-For', '4')
         .send({ recoveryCode: invalidRecoveryCode, newPassword })
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -451,9 +559,41 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+
+    it('❌ Should fail if more 5 requests per 10 seconds', async () => {
+      const userData = {
+        username: 'RegUser11',
+        password: 'StrongPass11',
+        email: 'reguser11@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .set('X-Forwarded-For', '5')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      for (let i = 0; i < 5; i++) {
+        await request(app.getHttpServer())
+          .post('/api/auth/new-password')
+          .set('X-Forwarded-For', '6')
+          .send({
+            recoveryCode: 'non-existent-code-123',
+            newPassword: '123123123',
+          })
+          .expect(HttpStatus.BAD_REQUEST);
+      }
+      await request(app.getHttpServer())
+        .post('/api/auth/new-password')
+        .set('X-Forwarded-For', '6')
+        .send({
+          recoveryCode: 'non-existent-code-123',
+          newPassword: '123123123',
+        })
+        .expect(HttpStatus.TOO_MANY_REQUESTS);
+    });
   });
 
-  //тут нету тестов на тротлер (429)  всех на 400
   describe('Auth Password Recovery (e2e)', () => {
     it('✅ Should return 204 and send recovery email if reCAPTCHA valid', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
@@ -466,11 +606,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       await request(app.getHttpServer())
         .post('/api/auth/password-recovery')
+        .set('X-Forwarded-For', '2')
         .send({
           email: userData.email,
           recaptchaToken: '6LfsdsdSSEsAAAAALfsdfDmlRycmKgdsfgAlcxKEp2w1Vm',
@@ -479,6 +621,7 @@ describe('Auth (e2e)', () => {
 
       expect(mailer.sendEmail).toHaveBeenCalled();
     });
+
     it('❌ Should fail with 403 if reCAPTCHA invalid', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(false);
 
@@ -490,11 +633,13 @@ describe('Auth (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/api/auth/registration')
+        .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const response = await request(app.getHttpServer())
         .post('/api/auth/password-recovery')
+        .set('X-Forwarded-For', '4')
         .send({
           email: userData.email,
           recaptchaToken: 'invalid-token',
@@ -510,11 +655,13 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
+
     it('❌ Should fail with 403 if user does not exist', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
 
       const response = await request(app.getHttpServer())
         .post('/api/auth/password-recovery')
+        .set('X-Forwarded-For', '5')
         .send({
           email: 'nonexistent@example.com',
           recaptchaToken: 'valid-token',
@@ -531,6 +678,30 @@ describe('Auth (e2e)', () => {
       });
 
       expect(mailer.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('❌ Should fail if more 5 requests per 10 seconds', async () => {
+      for (let i = 0; i < 5; i++) {
+        (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
+
+        await request(app.getHttpServer())
+          .post('/api/auth/password-recovery')
+          .set('X-Forwarded-For', '6')
+          .send({
+            email: 'nonexistent@example.com',
+            recaptchaToken: 'valid-token',
+          })
+          .expect(HttpStatus.FORBIDDEN);
+      }
+
+      await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .set('X-Forwarded-For', '6')
+        .send({
+          email: 'nonexistent@example.com',
+          recaptchaToken: 'valid-token',
+        })
+        .expect(HttpStatus.TOO_MANY_REQUESTS);
     });
   });
 });
