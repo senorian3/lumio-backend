@@ -84,6 +84,7 @@ export class AuthController {
 
   @Post(AUTH_ROUTES.LOGOUT)
   @ApiLogout()
+  @SkipThrottle()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
   async logout(@Req() req: any): Promise<void> {
