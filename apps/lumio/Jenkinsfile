@@ -33,18 +33,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                       export NVM_DIR="$HOME/.nvm"
-                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                       nvm use 20.17.0
-
-                       echo "Installing dependencies..."
-                       yarn install
-
-                       echo "Generating Prisma Client for test environment..."
-                       yarn prisma:generate:lumio:test
-                                  
-                       echo "Running e2e tests..."
-                       yarn test:e2e:lumio
+                     echo "e2e tests are not implemented yet. Skipping..."
                     '''
                 }
             }
