@@ -36,7 +36,11 @@ pipeline {
                        export NVM_DIR="$HOME/.nvm"
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        nvm use 20.17.0
-                       yarn test:e2e:lumio
+                       
+                       cp apps/lumio/.env.lumio.testing .env.test
+               
+                       NODE_ENV=testing jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts
+                       NODE_ENV=testing jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts
                     '''
                 }
             }
