@@ -21,10 +21,32 @@ pipeline {
             }
         }
 
-    stage('Generate Prisma Client') {
-        steps {
-            script {
-                sh '''
+
+         stage('Setup Node.js') {
+            steps {
+                script {
+                    sh '''
+                       echo "=== Setting up Node.js environment ==="
+                       
+                       export NVM_DIR="$HOME/.nvm"
+                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                       
+                       nvm install 20.17.0
+                       nvm use 20.17.0
+                       
+                       echo "Node version: $(node --version)"
+                       echo "NPM version: $(npm --version)"
+                       
+                       echo "✅ Node.js setup completed"
+                    '''
+                }
+            }
+        }
+
+         stage('Generate Prisma Client') {
+            steps {
+               script {
+                   sh '''
                    echo "=== Generating Prisma Client ===" 
                    yarn install
                    
