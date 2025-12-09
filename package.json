@@ -37,9 +37,10 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "format": "prettier --write \"{apps,libs}/**/*.{ts,js,json,md}\" \"*.{js,json,md}\"",
     "prepare": "husky",
-    "test:e2e:lumio": "dotenv -e apps/lumio/.env.lumio.testing jest --config apps/lumio/test/jest-e2e.json",
+    "test:e2e:lumio": "yarn run test:auth-e2e && yarn run test:session-e2e",
     "test:e2e:files": "dotenv -e apps/files/.env.files.testing jest --config apps/files/test/jest-e2e.json",
-    "test:auth-e2e": "dotenv -e apps/lumio/.env.lumio.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/auth/auth.e2e-spec.ts"
+    "test:auth-e2e": "dotenv -e apps/lumio/.env.lumio.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts",
+    "test:session-e2e": "dotenv -e apps/lumio/.env.lumio.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

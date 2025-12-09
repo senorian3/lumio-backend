@@ -25,6 +25,7 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { UserRepository } from './users/domain/infrastructure/user.repository';
 import { GoogleStrategy } from '@lumio/core/guards/oauth2-google/oauth2-google.guard';
 import { LoginUserGoogleUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
+import { LogoutUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -64,6 +65,7 @@ const useCases = [
   NewPasswordUseCase,
   LoginUserGitHubUseCase,
   LoginUserGoogleUseCase,
+  LogoutUserUseCase,
 ];
 
 const services = [

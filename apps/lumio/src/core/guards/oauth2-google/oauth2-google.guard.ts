@@ -1,4 +1,3 @@
-// google.strategy.ts
 import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';

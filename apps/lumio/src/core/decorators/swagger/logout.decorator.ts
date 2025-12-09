@@ -60,17 +60,5 @@ export function ApiLogout() {
         },
       },
     }),
-
-    ApiResponse({
-      status: 429,
-      description: 'Too many requests',
-      example: {
-        errorsMessages: [
-          {
-            message: 'Too many requests',
-          },
-        ],
-      },
-    }),
   );
 }

@@ -43,6 +43,7 @@ export class SessionRepository {
       },
     });
   }
+
   async createSession(dto: CreateSessionDomainDto): Promise<SessionEntity> {
     return this.prisma.session.create({
       data: {
@@ -80,6 +81,16 @@ export class SessionRepository {
         id: { not: dto.sessionId },
       },
       data: { deletedAt: dto.deletedAt },
+    });
+
+    return;
+  }
+
+  async deleteAllSessionsForUser(userId: number): Promise<void> {
+    await this.prisma.session.deleteMany({
+      where: {
+        userId: userId,
+      },
     });
 
     return;
