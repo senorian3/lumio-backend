@@ -37,10 +37,16 @@ pipeline {
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        nvm use 20.17.0
 
+                       echo "Installing dependencies..."
                        yarn install
+
+                       echo "Generating Prisma Client for test environment..."
+                       yarn prisma:generate:lumio:test
                        
+                       echo "Installing dotenv globally..."
                        yarn global add dotenv-cli
                
+                       echo "Running e2e tests..."
                        yarn test:e2e:lumio
                     '''
                 }
