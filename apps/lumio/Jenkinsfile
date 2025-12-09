@@ -42,9 +42,7 @@ pipeline {
 
                        echo "Generating Prisma Client for test environment..."
                        yarn prisma:generate:lumio:test
-                       
-                       export DATABASE_URL="postgresql://postgres:IiiGrorwKAArgkXhKTrthYuNJtxWFeox@ballast.proxy.rlwy.net:44665/railway"
-               
+                                  
                        echo "Running e2e tests..."
                        yarn test:e2e:lumio
                     '''
