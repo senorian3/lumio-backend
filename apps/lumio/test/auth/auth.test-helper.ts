@@ -1,5 +1,6 @@
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 export interface LoginResult {
   accessToken: string;
@@ -20,7 +21,7 @@ export class AuthTestHelper {
     ip: string = '1', // по умолчанию '1', если не передали
   ): Promise<request.Response> {
     return request(this.app.getHttpServer())
-      .post('/api/auth/registration')
+      .post(`/${GLOBAL_PREFIX}/auth/registration`)
       .set('X-Forwarded-For', ip)
       .send(userData)
       .expect(HttpStatus.NO_CONTENT);
@@ -35,7 +36,7 @@ export class AuthTestHelper {
     const payload = { email, password };
 
     let req = request(this.app.getHttpServer())
-      .post('/api/auth/login')
+      .post(`/${GLOBAL_PREFIX}/auth/login`)
       .send(payload);
 
     if (deviceName) {

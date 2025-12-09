@@ -6,6 +6,7 @@ import request from 'supertest';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -44,7 +45,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
@@ -65,13 +66,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '2')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const badResponseUserName = await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '3')
         .send({ ...userData, email: 'reguser_test@example.com' })
         .expect(HttpStatus.BAD_REQUEST);
@@ -86,7 +87,7 @@ describe('Auth (e2e)', () => {
       });
 
       const badResponseEmail = await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '4')
         .send({ ...userData, username: 'TestUserName' })
         .expect(HttpStatus.BAD_REQUEST);
@@ -109,7 +110,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '5')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -123,7 +124,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '6')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -137,7 +138,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '7')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -151,7 +152,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '8')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -165,7 +166,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '9')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -179,7 +180,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '10')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -193,7 +194,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '11')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -207,7 +208,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '12')
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
@@ -222,7 +223,7 @@ describe('Auth (e2e)', () => {
 
       for (let i = 0; i < 5; i++) {
         await request(app.getHttpServer())
-          .post('/api/auth/registration')
+          .post(`/${GLOBAL_PREFIX}/auth/registration`)
           .set('X-Forwarded-For', '13')
           .send({
             ...userData,
@@ -233,7 +234,7 @@ describe('Auth (e2e)', () => {
       }
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '13')
         .send(userData)
         .expect(HttpStatus.TOO_MANY_REQUESTS);
@@ -249,13 +250,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '2')
         .send({
           email: userData.email,
@@ -280,13 +281,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const badLoginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '4')
         .send({
           email: userData.email,
@@ -306,7 +307,7 @@ describe('Auth (e2e)', () => {
 
     it('❌ Should fail login with non-existing email', async () => {
       const badLoginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '5')
         .send({
           email: 'notfound@example.com',
@@ -327,7 +328,7 @@ describe('Auth (e2e)', () => {
 
     it('❌ Should fail login with invalid email format', async () => {
       await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '6')
         .send({
           email: 'invalid-email',
@@ -344,13 +345,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '7')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '8')
         .send({
           email: userData.email,
@@ -367,14 +368,14 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '9')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       for (let i = 0; i < 5; i++) {
         await request(app.getHttpServer())
-          .post('/api/auth/login')
+          .post(`/${GLOBAL_PREFIX}/auth/login`)
           .set('X-Forwarded-For', '10')
           .send({
             email: userData.email,
@@ -384,7 +385,7 @@ describe('Auth (e2e)', () => {
       }
 
       await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '10')
         .send({
           email: userData.email,
@@ -403,13 +404,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '2')
         .send(userData)
         .expect(HttpStatus.OK);
@@ -417,7 +418,7 @@ describe('Auth (e2e)', () => {
       const cookies = loginRes.headers['set-cookie'];
 
       await request(app.getHttpServer())
-        .post('/api/auth/logout')
+        .post(`/${GLOBAL_PREFIX}/auth/logout`)
         .set('X-Forwarded-For', '3')
         .set('Cookie', cookies)
         .expect(HttpStatus.NO_CONTENT);
@@ -425,7 +426,7 @@ describe('Auth (e2e)', () => {
 
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
-        .post('/api/auth/logout')
+        .post(`/${GLOBAL_PREFIX}/auth/logout`)
         .set('X-Forwarded-For', '4')
         .expect(HttpStatus.UNAUTHORIZED);
     });
@@ -438,13 +439,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '5')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '6')
         .send(userData)
         .expect(HttpStatus.OK);
@@ -455,7 +456,7 @@ describe('Auth (e2e)', () => {
       await sessionRepository.deleteAllSessionsForUser(user.id);
 
       await request(app.getHttpServer())
-        .post('/api/auth/logout')
+        .post(`/${GLOBAL_PREFIX}/auth/logout`)
         .set('X-Forwarded-For', '7')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -469,13 +470,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '8')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
-        .post('/api/auth/login')
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '9')
         .send(userData)
         .expect(HttpStatus.OK);
@@ -491,7 +492,7 @@ describe('Auth (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .post('/api/auth/logout')
+        .post(`/${GLOBAL_PREFIX}/auth/logout`)
         .set('X-Forwarded-For', '10')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -507,7 +508,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
@@ -522,7 +523,7 @@ describe('Auth (e2e)', () => {
       const newPassword = 'StrongPass123';
 
       await request(app.getHttpServer())
-        .post('/api/auth/new-password')
+        .post(`/${GLOBAL_PREFIX}/auth/new-password`)
         .set('X-Forwarded-For', '2')
         .send({ recoveryCode, newPassword })
         .expect(HttpStatus.NO_CONTENT);
@@ -536,7 +537,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
@@ -545,7 +546,7 @@ describe('Auth (e2e)', () => {
       const newPassword = 'StrongPass123';
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/new-password')
+        .post(`/${GLOBAL_PREFIX}/auth/new-password`)
         .set('X-Forwarded-For', '4')
         .send({ recoveryCode: invalidRecoveryCode, newPassword })
         .expect(HttpStatus.BAD_REQUEST);
@@ -568,14 +569,14 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '5')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       for (let i = 0; i < 5; i++) {
         await request(app.getHttpServer())
-          .post('/api/auth/new-password')
+          .post(`/${GLOBAL_PREFIX}/auth/new-password`)
           .set('X-Forwarded-For', '6')
           .send({
             recoveryCode: 'non-existent-code-123',
@@ -584,7 +585,7 @@ describe('Auth (e2e)', () => {
           .expect(HttpStatus.BAD_REQUEST);
       }
       await request(app.getHttpServer())
-        .post('/api/auth/new-password')
+        .post(`/${GLOBAL_PREFIX}/auth/new-password`)
         .set('X-Forwarded-For', '6')
         .send({
           recoveryCode: 'non-existent-code-123',
@@ -605,13 +606,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '1')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .set('X-Forwarded-For', '2')
         .send({
           email: userData.email,
@@ -632,13 +633,13 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '3')
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .set('X-Forwarded-For', '4')
         .send({
           email: userData.email,
@@ -660,7 +661,7 @@ describe('Auth (e2e)', () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .set('X-Forwarded-For', '5')
         .send({
           email: 'nonexistent@example.com',
@@ -687,12 +688,12 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .send({
           email: userData.email,
           // recaptchaToken intentionally omitted
@@ -717,12 +718,12 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/registration')
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .send({
           email: userData.email,
           recaptchaToken: 12345,
@@ -740,7 +741,7 @@ describe('Auth (e2e)', () => {
     });
     it('❌ Should fail with 400 if email is too short (< 6 chars)', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .send({
           email: 'a@b.c',
           recaptchaToken: 'valid-token',
@@ -760,7 +761,7 @@ describe('Auth (e2e)', () => {
       const longEmail = 'a'.repeat(95) + '@example.com'; // длина > 100 символов
 
       await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .send({
           email: longEmail,
           recaptchaToken: 'valid-token',
@@ -773,7 +774,7 @@ describe('Auth (e2e)', () => {
         (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
 
         await request(app.getHttpServer())
-          .post('/api/auth/password-recovery')
+          .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
           .set('X-Forwarded-For', '6')
           .send({
             email: 'nonexistent@example.com',
@@ -783,7 +784,7 @@ describe('Auth (e2e)', () => {
       }
 
       await request(app.getHttpServer())
-        .post('/api/auth/password-recovery')
+        .post(`/${GLOBAL_PREFIX}/auth/password-recovery`)
         .set('X-Forwarded-For', '6')
         .send({
           email: 'nonexistent@example.com',

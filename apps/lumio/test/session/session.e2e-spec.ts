@@ -3,9 +3,9 @@ import { PrismaService } from '@lumio/prisma/prisma.service';
 import { clearDB, initApp } from '../helpers/app.test-helper';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import request from 'supertest';
-import { AuthTestHelper } from '../auth/aith.test-helper';
+import { AuthTestHelper } from '../auth/auth.test-helper';
 
 describe('Session (e2e)', () => {
   let app: INestApplication;
@@ -60,7 +60,7 @@ describe('Session (e2e)', () => {
       );
 
       const res = await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.OK);
 
@@ -75,7 +75,7 @@ describe('Session (e2e)', () => {
     });
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '11')
         .expect(HttpStatus.UNAUTHORIZED);
     });
@@ -101,7 +101,7 @@ describe('Session (e2e)', () => {
       await sessionRepository.deleteAllSessionsForUser(user.id);
 
       await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '12')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -133,7 +133,7 @@ describe('Session (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '13')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -172,7 +172,7 @@ describe('Session (e2e)', () => {
 
       // Проверяем что три сессии активны
       let res = await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.OK);
 
@@ -189,12 +189,12 @@ describe('Session (e2e)', () => {
       );
 
       await request(app.getHttpServer())
-        .delete('/api/security/devices')
+        .delete(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.NO_CONTENT);
 
       res = await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.OK);
 
@@ -208,7 +208,7 @@ describe('Session (e2e)', () => {
     });
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
-        .delete('/api/security/devices')
+        .delete(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '21')
         .expect(HttpStatus.UNAUTHORIZED);
     });
@@ -234,7 +234,7 @@ describe('Session (e2e)', () => {
       await sessionRepository.deleteAllSessionsForUser(user.id);
 
       await request(app.getHttpServer())
-        .delete('/api/security/devices')
+        .delete(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '22')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -266,7 +266,7 @@ describe('Session (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .delete('/api/security/devices')
+        .delete(`/${GLOBAL_PREFIX}/security/devices`)
         .set('X-Forwarded-For', '24')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -304,7 +304,7 @@ describe('Session (e2e)', () => {
       );
 
       let res = await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.OK);
 
@@ -331,12 +331,14 @@ describe('Session (e2e)', () => {
 
       // Удаляем конкретное устройство по id
       await request(app.getHttpServer())
-        .delete(`/api/security/devices/${sessionToDelete.deviceId}`)
+        .delete(
+          `/${GLOBAL_PREFIX}/security/devices/${sessionToDelete.deviceId}`,
+        )
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.NO_CONTENT);
 
       res = await request(app.getHttpServer())
-        .get('/api/security/devices')
+        .get(`/${GLOBAL_PREFIX}/security/devices`)
         .set('Cookie', login1.cookies)
         .expect(HttpStatus.OK);
 
@@ -351,7 +353,7 @@ describe('Session (e2e)', () => {
 
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
-        .delete('/api/security/devices/123')
+        .delete(`/${GLOBAL_PREFIX}/security/devices/123`)
         .set('X-Forwarded-For', '31')
         .expect(HttpStatus.UNAUTHORIZED);
     });
@@ -378,7 +380,7 @@ describe('Session (e2e)', () => {
       await sessionRepository.deleteAllSessionsForUser(user.id);
 
       await request(app.getHttpServer())
-        .delete('/api/security/devices/999')
+        .delete(`/${GLOBAL_PREFIX}/security/devices/999`)
         .set('X-Forwarded-For', '33')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -414,7 +416,7 @@ describe('Session (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .delete(`/api/security/devices/${session.deviceId}`)
+        .delete(`/${GLOBAL_PREFIX}/security/devices/${session.deviceId}`)
         .set('X-Forwarded-For', '35')
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
@@ -447,7 +449,7 @@ describe('Session (e2e)', () => {
       expect(currentSession).not.toBeNull();
 
       await request(app.getHttpServer())
-        .delete(`/api/security/devices/${currentSession.deviceId}`)
+        .delete(`/${GLOBAL_PREFIX}/security/devices/${currentSession.deviceId}`)
         .set('X-Forwarded-For', '37')
         .set('Cookie', cookies)
         .expect(HttpStatus.FORBIDDEN);
@@ -472,7 +474,7 @@ describe('Session (e2e)', () => {
       const cookies = loginRes.cookies;
 
       await request(app.getHttpServer())
-        .delete('/api/security/devices/non-existent-id')
+        .delete(`/${GLOBAL_PREFIX}/security/devices/non-existent-id`)
         .set('X-Forwarded-For', '39')
         .set('Cookie', cookies)
         .expect(HttpStatus.NOT_FOUND);
