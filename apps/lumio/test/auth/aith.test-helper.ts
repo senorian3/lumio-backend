@@ -11,14 +11,17 @@ export interface LoginResult {
 export class AuthTestHelper {
   constructor(private readonly app: INestApplication) {}
 
-  async registerUser(userData: {
-    username: string;
-    password: string;
-    email: string;
-  }): Promise<request.Response> {
+  async registerUser(
+    userData: {
+      username: string;
+      password: string;
+      email: string;
+    },
+    ip: string = '1', // по умолчанию '1', если не передали
+  ): Promise<request.Response> {
     return request(this.app.getHttpServer())
       .post('/api/auth/registration')
-      .set('X-Forwarded-For', '1')
+      .set('X-Forwarded-For', ip)
       .send(userData)
       .expect(HttpStatus.NO_CONTENT);
   }
