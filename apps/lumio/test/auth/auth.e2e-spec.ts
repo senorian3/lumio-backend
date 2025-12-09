@@ -679,6 +679,94 @@ describe('Auth (e2e)', () => {
 
       expect(mailer.sendEmail).not.toHaveBeenCalled();
     });
+    it('❌ Should fail with 400 if recaptchaToken is missing', async () => {
+      const userData = {
+        username: 'RecaptchaUser3',
+        password: 'StrongPass123',
+        email: 'dto-missing@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: userData.email,
+          // recaptchaToken intentionally omitted
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body).toEqual({
+        errorsMessages: [
+          {
+            message:
+              'recaptchaToken must be a string; Received value: undefined',
+            field: 'recaptchaToken',
+          },
+        ],
+      });
+    });
+    it('❌ Should fail with 400 if recaptchaToken is not a string', async () => {
+      const userData = {
+        username: 'RecaptchaUser4',
+        password: 'StrongPass123',
+        email: 'dto-invalid@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post('/api/auth/registration')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: userData.email,
+          recaptchaToken: 12345,
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'recaptchaToken must be a string; Received value: 12345',
+            field: 'recaptchaToken',
+          },
+        ],
+      });
+    });
+    it('❌ Should fail with 400 if email is too short (< 6 chars)', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: 'a@b.c',
+          recaptchaToken: 'valid-token',
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(response.body).toMatchObject({
+        errorsMessages: [
+          {
+            field: 'email',
+            message: expect.stringContaining('Minimum number of characters 6'),
+          },
+        ],
+      });
+    });
+    it('❌ Should fail with 400 if email is too long (> 100 chars)', async () => {
+      const longEmail = 'a'.repeat(95) + '@example.com'; // длина > 100 символов
+
+      await request(app.getHttpServer())
+        .post('/api/auth/password-recovery')
+        .send({
+          email: longEmail,
+          recaptchaToken: 'valid-token',
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
 
     it('❌ Should fail if more 5 requests per 10 seconds', async () => {
       for (let i = 0; i < 5; i++) {
