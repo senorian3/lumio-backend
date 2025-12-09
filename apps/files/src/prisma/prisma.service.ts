@@ -17,10 +17,10 @@ export class PrismaService
   }
 
   async onModuleInit() {
-    await this.$connect(); // подключение к БД
+    await this.$connect();
   }
 
   async onModuleDestroy() {
-    await this.$disconnect(); // отключение при завершении
+    await this.$disconnect();
   }
 }
