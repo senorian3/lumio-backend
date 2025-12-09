@@ -520,12 +520,12 @@ describe('Auth (e2e)', () => {
         });
       const recoveryCode = emailConfiguration.confirmationCode;
 
-      const newPassword = 'StrongPass123';
+      const password = 'StrongPass123';
 
       await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/new-password`)
         .set('X-Forwarded-For', '2')
-        .send({ recoveryCode, newPassword })
+        .send({ recoveryCode, password })
         .expect(HttpStatus.NO_CONTENT);
     });
 
@@ -543,12 +543,12 @@ describe('Auth (e2e)', () => {
         .expect(HttpStatus.NO_CONTENT);
 
       const invalidRecoveryCode = 'non-existent-code-123';
-      const newPassword = 'StrongPass123';
+      const password = 'StrongPass123';
 
       const response = await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/new-password`)
         .set('X-Forwarded-For', '4')
-        .send({ recoveryCode: invalidRecoveryCode, newPassword })
+        .send({ recoveryCode: invalidRecoveryCode, password })
         .expect(HttpStatus.BAD_REQUEST);
 
       expect(response.body).toEqual({
@@ -704,7 +704,7 @@ describe('Auth (e2e)', () => {
         errorsMessages: [
           {
             message:
-              'recaptchaToken must be a string; Received value: undefined',
+              'Recaptcha token must be a string; Received value: undefined',
             field: 'recaptchaToken',
           },
         ],
@@ -733,7 +733,7 @@ describe('Auth (e2e)', () => {
       expect(response.body).toEqual({
         errorsMessages: [
           {
-            message: 'recaptchaToken must be a string; Received value: 12345',
+            message: 'Recaptcha token must be a string; Received value: 12345',
             field: 'recaptchaToken',
           },
         ],
