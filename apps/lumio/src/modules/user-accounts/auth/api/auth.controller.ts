@@ -41,7 +41,7 @@ import { ApiGoogle } from '@lumio/core/decorators/swagger/google.decorator';
 export class AuthController {
   constructor(private readonly commandBus: CommandBus) {}
 
-  @Post('registration')
+  @Post(AUTH_ROUTES.REGISTRATION)
   @ApiRegistration()
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() dto: InputRegistrationDto): Promise<void> {
