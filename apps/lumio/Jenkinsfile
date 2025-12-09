@@ -37,10 +37,9 @@ pipeline {
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        nvm use 20.17.0
                        
-                       cp apps/lumio/.env.lumio.testing .env.test
+                       yarn global add dotenv-cli
                
-                       NODE_ENV=testing jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts
-                       NODE_ENV=testing jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts
+                       yarn test:e2e:lumio
                     '''
                 }
             }
