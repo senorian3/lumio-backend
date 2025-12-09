@@ -20,6 +20,24 @@ pipeline {
                 checkout scm
             }
         }
+
+    stage('Generate Prisma Client') {
+        steps {
+            script {
+                sh '''
+                   echo "=== Generating Prisma Client ===" 
+                   yarn install
+                   
+                   npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
+                   
+                   ls -la generated/ || echo "generated folder not found"
+                   
+                   echo "✅ Prisma Client generated successfully"
+                '''
+            }
+        }
+    }
+
         stage('Unit tests') {
             steps {
                 script {
