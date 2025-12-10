@@ -6,10 +6,10 @@ ACCESS_TOKEN_SECRET="example"
 REFRESH_TOKEN_SECRET="example"
 RECAPTCHA_SECRET_KEY="example"
 #MESSAGING
-RABBITMQ_URL="amqp://guest:guest@localhost:5672"
+RABBITMQ_URL="amqps://uxwpqbfp:42SE5f2doxsz8a_kpHOsSLBTtf8KnRDK@cow.rmq2.cloudamqp.com/uxwpqbfp"
 
 #DATABASE
-DATABASE_URL="postgresql://postgres:password@localhost:5432/lumio"
+DATABASE_URL="postgresql://postgres:IiiGrorwKAArgkXhKTrthYuNJtxWFeox@ballast.proxy.rlwy.net:44665/railway"
 
 #DOCUMENTATION
 IS_SWAGGER_ENABLED=false
