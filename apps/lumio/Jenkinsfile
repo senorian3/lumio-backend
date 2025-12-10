@@ -83,6 +83,9 @@ pipeline {
                     echo "❌ ERROR: No test env file found!"
                     exit 1
                 fi
+
+                echo "Running database migrations..."
+                npx dotenv -e .env.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma
                 
                 echo "Running e2e tests..."
                 
