@@ -12,9 +12,8 @@ WORKDIR /home/node/app
 
 # Копируем зависимости
 COPY --chown=node package*.json yarn.lock ./
-COPY --chown=node apps/${SERVICE}/package.json ./apps/${SERVICE}/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Копируем весь код
 COPY --chown=node . .
