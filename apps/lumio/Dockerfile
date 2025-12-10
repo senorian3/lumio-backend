@@ -5,7 +5,7 @@ ARG service
 ENV SERVICE=$service
 ENV PORT=$port
 
-WORKDIR /app
+WORKDIR /lumio
 
 COPY package.json yarn.lock ./
 
@@ -21,4 +21,4 @@ USER node
 
 EXPOSE ${PORT}
 
-CMD ["node", "/app/dist/apps/lumio/main"]
+CMD ["node", "/dist/apps/lumio/main"]
