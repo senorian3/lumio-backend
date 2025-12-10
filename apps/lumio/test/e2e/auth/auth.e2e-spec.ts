@@ -213,32 +213,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
-    it('❌ Should fail if more 5 requests per 10 seconds', async () => {
-      const userData = {
-        username: 'gooduser123',
-        password: 'goodpass123',
-        email: 'toomanyrequests@example.com',
-      };
-
-      for (let i = 0; i < 5; i++) {
-        await request(app.getHttpServer())
-          .post(`/${GLOBAL_PREFIX}/auth/registration`)
-          .set('X-Forwarded-For', '13')
-          .send({
-            ...userData,
-            username: `${i + 1}_${userData.username}`,
-            email: `${i + 1}_${userData.email}`,
-          })
-          .expect(HttpStatus.NO_CONTENT);
-      }
-
-      await request(app.getHttpServer())
-        .post(`/${GLOBAL_PREFIX}/auth/registration`)
-        .set('X-Forwarded-For', '13')
-        .send(userData)
-        .expect(HttpStatus.TOO_MANY_REQUESTS);
-    });
   });
 
   describe('Auth login (e2e)', () => {

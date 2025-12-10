@@ -170,7 +170,6 @@ pipeline {
     post {
         always {
             script {
-                // Очищаем временные файлы
                 sh '''
                     echo "Cleaning up temporary files..."
                     if [ -f ".env.testing" ]; then
@@ -181,3 +180,4 @@ pipeline {
         }
     }
 }
+
