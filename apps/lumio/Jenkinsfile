@@ -57,49 +57,68 @@ pipeline {
         }
         
         stage('e2e tests') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Starting e2e tests ==="
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                        nvm use 20.17.0
+    steps {
+        script {
+            sh '''
+                echo "=== Starting e2e tests ==="
+                export NVM_DIR="$HOME/.nvm"
+                [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                nvm use 20.17.0
 
-                        echo "Installing dependencies..."
-                        yarn install
+                echo "Installing dependencies..."
+                yarn install
 
-                        echo "Generating Prisma Client for test environment..."
-                        yarn prisma:generate:lumio:test
-                        
-                        echo "Checking for Jenkins test environment file..."
-                        
-                        # Проверяем наличие файла с тестовыми переменными
-                        if [ -f "jenkins-test-env" ]; then
-                            echo "✓ Found jenkins-test-env file"
-                            echo "Using jenkins-test-env for tests..."
-                            
-                            # Создаем .env.test на основе jenkins-test-env
-                            cp jenkins-test-env .env.testing
-                            
-                            # Добавляем обязательные переменные если их нет
-                            if ! grep -q "NODE_ENV" .env.testing; then
-                                echo "NODE_ENV=testing" >> .env.testing
-                            fi
-                            if ! grep -q "PORT" .env.testing; then
-                                echo "PORT=3000" >> .env.testing
-                            fi
-                            
-                        else
-                            echo "❌ ERROR: jenkins-test-env file not found!"
-                            echo ""
-                            echo "To fix this:"
-                            echo "1. Create a file named 'jenkins-test-env' in the repository root"
-                            echo "2. Use 'jenkins-test-env.example' as a template"
-                            echo "3. Fill in actual test values"
-                            echo ""
-                            echo "Or contact Jenkins administrator"
-                            exit 1
-                        fi
+                echo "Generating Prisma Client for test environment..."
+                yarn prisma:generate:lumio:test
+                
+                echo "Checking for Jenkins test environment file..."
+                echo "Current directory: $(pwd)"
+                echo "Files in current directory:"
+                ls -la
+                echo "Files in apps/lumio/:"
+                ls -la apps/lumio/
+                
+                # Проверяем наличие файла в нескольких местах
+                if [ -f "apps/lumio/jenkins-test-env" ]; then
+                    echo "✓ Found jenkins-test-env in apps/lumio/"
+                    echo "Using jenkins-test-env for tests..."
+                    
+                    # Создаем .env.test на основе jenkins-test-env
+                    cp apps/lumio/jenkins-test-env .env.testing
+                    
+                    # Добавляем обязательные переменные если их нет
+                    if ! grep -q "NODE_ENV" .env.testing; then
+                        echo "NODE_ENV=testing" >> .env.testing
+                    fi
+                    if ! grep -q "PORT" .env.testing; then
+                        echo "PORT=3000" >> .env.testing
+                    fi
+                    
+                elif [ -f "jenkins-test-env" ]; then
+                    echo "✓ Found jenkins-test-env in root"
+                    echo "Using jenkins-test-env for tests..."
+                    
+                    cp jenkins-test-env .env.testing
+                    
+                    if ! grep -q "NODE_ENV" .env.testing; then
+                        echo "NODE_ENV=testing" >> .env.testing
+                    fi
+                    if ! grep -q "PORT" .env.testing; then
+                        echo "PORT=3000" >> .env.testing
+                    fi
+                    
+                else
+                    echo "❌ ERROR: jenkins-test-env file not found!"
+                    echo "Searched in:"
+                    echo "  - ./jenkins-test-env"
+                    echo "  - ./apps/lumio/jenkins-test-env"
+                    echo ""
+                    echo "To fix this:"
+                    echo "1. Make sure jenkins-test-env exists in the repository"
+                    echo "2. Check the file path"
+                    echo "3. Or use fallback .env.lumio.testing if available"
+                    exit 1
+                fi
                         
                         echo "Running e2e tests..."
                         
