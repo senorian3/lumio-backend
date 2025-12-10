@@ -126,3 +126,18 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: NODE_ENV
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: SMTP_PORT
+            - name: SMTP_SECURE
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: SMTP_SECURE
