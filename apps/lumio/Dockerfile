@@ -21,4 +21,4 @@ USER node
 
 EXPOSE ${PORT}
 
-CMD yarn 'start:prod:lumio'
+CMD ["node", "/app/dist/apps/lumio/main"]
