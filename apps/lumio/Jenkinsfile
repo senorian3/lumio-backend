@@ -27,7 +27,6 @@ pipeline {
                     sh '''
                        echo "=== Setting up environment and generating Prisma Client ==="
                        
-                       # 1. Устанавливаем правильную версию Node.js через NVM
                        export NVM_DIR="$HOME/.nvm"
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        
@@ -37,19 +36,9 @@ pipeline {
                        echo "Node version: $(node --version)"
                        echo "NPM version: $(npm --version)"
                        
-                       # 2. Устанавливаем зависимости (игнорируем проверку версий для надежности)
-                       yarn install --ignore-engines
+                       yarn install
                        
-                       # 3. Генерируем Prisma Client
                        npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
-                       
-                       # 4. Проверяем что сгенерировалось
-                       if [ -d "generated" ]; then
-                         echo "Generated files:"
-                         ls -la generated/
-                       else
-                         echo "⚠️ generated folder not found, but continuing..."
-                       fi
                        
                        echo "✅ Environment setup and Prisma Client generation completed"
                     '''
@@ -71,7 +60,73 @@ pipeline {
             steps {
                 script {
                     sh '''
-                     echo "e2e tests are not implemented yet. Skipping..."
+                        echo "=== Starting e2e tests ==="
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                        nvm use 20.17.0
+
+                        echo "Installing dependencies..."
+                        yarn install
+
+                        echo "Generating Prisma Client for test environment..."
+                        yarn prisma:generate:lumio:test
+                        
+                        echo "Checking for Jenkins test environment file..."
+                        
+                        # Проверяем наличие файла с тестовыми переменными
+                        if [ -f "jenkins-test-env" ]; then
+                            echo "✓ Found jenkins-test-env file"
+                            echo "Using jenkins-test-env for tests..."
+                            
+                            # Создаем .env.test на основе jenkins-test-env
+                            cp jenkins-test-env .env.testing
+                            
+                            # Добавляем обязательные переменные если их нет
+                            if ! grep -q "NODE_ENV" .env.testing; then
+                                echo "NODE_ENV=testing" >> .env.testing
+                            fi
+                            if ! grep -q "PORT" .env.testing; then
+                                echo "PORT=3000" >> .env.testing
+                            fi
+                            
+                        else
+                            echo "❌ ERROR: jenkins-test-env file not found!"
+                            echo ""
+                            echo "To fix this:"
+                            echo "1. Create a file named 'jenkins-test-env' in the repository root"
+                            echo "2. Use 'jenkins-test-env.example' as a template"
+                            echo "3. Fill in actual test values"
+                            echo ""
+                            echo "Or contact Jenkins administrator"
+                            exit 1
+                        fi
+                        
+                        echo "Running e2e tests..."
+                        
+                        echo "1. Running auth e2e tests..."
+                        if dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts; then
+                            echo "✅ Auth e2e tests passed"
+                        else
+                            echo "❌ Auth e2e tests failed"
+                            echo "Test environment used:"
+                            cat .env.testing | sed 's/.*SECRET.*/*** MASKED ***/' | sed 's/.*PASSWORD.*/*** MASKED ***/'
+                            rm -f .env.testing
+                            exit 1
+                        fi
+                        
+                        echo "2. Running session e2e tests..."
+                        if dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts; then
+                            echo "✅ Session e2e tests passed"
+                        else
+                            echo "❌ Session e2e tests failed"
+                            rm -f .env.testing
+                            exit 1
+                        fi
+                        
+                        # Очищаем временные файлы
+                        rm -f .env.testing
+                        
+                        echo "✅ All e2e tests completed successfully"
                     '''
                 }
             }
@@ -125,6 +180,20 @@ pipeline {
                     sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
                     sh "kubectl get services -o wide"
                 }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                // Очищаем временные файлы
+                sh '''
+                    echo "Cleaning up temporary files..."
+                    if [ -f ".env.testing" ]; then
+                        rm -f .env.testing
+                    fi
+                '''
             }
         }
     }
