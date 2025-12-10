@@ -5,13 +5,13 @@ ARG service
 ENV SERVICE=$service
 ENV PORT=$port
 
-WORKDIR /lumio
+WORKDIR /home/node/app
 
-COPY package.json yarn.lock ./
+COPY --chown=node package.json yarn.lock ./
 
 RUN yarn install
 
-COPY . .
+COPY --chown=node . .
 
 RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
 
@@ -21,4 +21,4 @@ USER node
 
 EXPOSE ${PORT}
 
-CMD ["node", "/dist/apps/lumio/main"]
+CMD ["node", "dist/apps/lumio/app/main"]
