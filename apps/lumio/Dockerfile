@@ -1,34 +1,29 @@
-# Check out https://hub.docker.com/_/node to select a new base image
 FROM node:20.17-alpine
+
 ARG port
 ARG service
 ENV SERVICE=$service
 ENV PORT=$port
-# Set to a non-root built-in user `node`
 
 USER node
 
-# Create app directory (with user `node`)
-RUN mkdir -p /home/node/dist/${SERVICE}
+# Правильная рабочая директория - корень проекта
+WORKDIR /home/node/app
 
-WORKDIR /home/node/dist/${SERVICE}
+# Копируем зависимости
+COPY --chown=node package*.json yarn.lock ./
+COPY --chown=node apps/${SERVICE}/package.json ./apps/${SERVICE}/
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
+RUN yarn install --frozen-lockfile
 
-
-
-COPY --chown=node package*.json ./
-
-RUN yarn install
-
-# Bundle app source code
+# Копируем весь код
 COPY --chown=node . .
 
-RUN yarn build:${SERVICE}
+# Генерируем Prisma Client
+RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
 
-# Bind to all network interfaces so that it can be mapped to the host OS
+# Собираем приложение
+RUN yarn build:${SERVICE}
 
 EXPOSE ${PORT}
 
