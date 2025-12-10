@@ -71,85 +71,46 @@ pipeline {
                 echo "Generating Prisma Client for test environment..."
                 yarn prisma:generate:lumio:test
                 
-                echo "Checking for Jenkins test environment file..."
-                echo "Current directory: $(pwd)"
-                echo "Files in current directory:"
-                ls -la
-                echo "Files in apps/lumio/:"
-                ls -la apps/lumio/
+                echo "Setting up test environment..."
                 
-                # Проверяем наличие файла в нескольких местах
                 if [ -f "apps/lumio/jenkins-test-env" ]; then
-                    echo "✓ Found jenkins-test-env in apps/lumio/"
-                    echo "Using jenkins-test-env for tests..."
-                    
-                    # Создаем .env.test на основе jenkins-test-env
+                    echo "✓ Using jenkins-test-env from apps/lumio/"
                     cp apps/lumio/jenkins-test-env .env.testing
-                    
-                    # Добавляем обязательные переменные если их нет
-                    if ! grep -q "NODE_ENV" .env.testing; then
-                        echo "NODE_ENV=testing" >> .env.testing
-                    fi
-                    if ! grep -q "PORT" .env.testing; then
-                        echo "PORT=3000" >> .env.testing
-                    fi
-                    
-                elif [ -f "jenkins-test-env" ]; then
-                    echo "✓ Found jenkins-test-env in root"
-                    echo "Using jenkins-test-env for tests..."
-                    
-                    cp jenkins-test-env .env.testing
-                    
-                    if ! grep -q "NODE_ENV" .env.testing; then
-                        echo "NODE_ENV=testing" >> .env.testing
-                    fi
-                    if ! grep -q "PORT" .env.testing; then
-                        echo "PORT=3000" >> .env.testing
-                    fi
-                    
+                elif [ -f "apps/lumio/.env.lumio.testing" ]; then
+                    echo "⚠️ Using .env.lumio.testing as fallback"
+                    cp apps/lumio/.env.lumio.testing .env.testing
                 else
-                    echo "❌ ERROR: jenkins-test-env file not found!"
-                    echo "Searched in:"
-                    echo "  - ./jenkins-test-env"
-                    echo "  - ./apps/lumio/jenkins-test-env"
-                    echo ""
-                    echo "To fix this:"
-                    echo "1. Make sure jenkins-test-env exists in the repository"
-                    echo "2. Check the file path"
-                    echo "3. Or use fallback .env.lumio.testing if available"
+                    echo "❌ ERROR: No test env file found!"
                     exit 1
                 fi
-                        
-                        echo "Running e2e tests..."
-                        
-                        echo "1. Running auth e2e tests..."
-                        if dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts; then
-                            echo "✅ Auth e2e tests passed"
-                        else
-                            echo "❌ Auth e2e tests failed"
-                            echo "Test environment used:"
-                            cat .env.testing | sed 's/.*SECRET.*/*** MASKED ***/' | sed 's/.*PASSWORD.*/*** MASKED ***/'
-                            rm -f .env.testing
-                            exit 1
-                        fi
-                        
-                        echo "2. Running session e2e tests..."
-                        if dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts; then
-                            echo "✅ Session e2e tests passed"
-                        else
-                            echo "❌ Session e2e tests failed"
-                            rm -f .env.testing
-                            exit 1
-                        fi
-                        
-                        # Очищаем временные файлы
-                        rm -f .env.testing
-                        
-                        echo "✅ All e2e tests completed successfully"
-                    '''
-                }
-            }
+                
+                echo "Running e2e tests..."
+                
+                echo "1. Running auth e2e tests..."
+                # Используем npx для запуска dotenv-cli
+                if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts; then
+                    echo "✅ Auth e2e tests passed"
+                else
+                    echo "❌ Auth e2e tests failed"
+                    rm -f .env.testing
+                    exit 1
+                fi
+                
+                echo "2. Running session e2e tests..."
+                if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts; then
+                    echo "✅ Session e2e tests passed"
+                else
+                    echo "❌ Session e2e tests failed"
+                    rm -f .env.testing
+                    exit 1
+                fi
+                
+                rm -f .env.testing
+                echo "✅ All e2e tests completed successfully"
+            '''
         }
+    }
+}
         
         stage('Build docker image') {
             steps {
