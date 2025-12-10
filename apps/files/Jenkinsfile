@@ -3,7 +3,7 @@ pipeline {
     agent any
     environment {
         ENV_TYPE = "production"
-        PORT = 4101
+        PORT = 4122
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
         PROJECT = "lumio-backend-files"

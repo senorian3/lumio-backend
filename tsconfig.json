@@ -17,6 +17,11 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {}
+    "esModuleInterop": true,
+    "paths": {
+      "@libs/*": ["libs/*"],
+      "@lumio/*": ["apps/lumio/src/*"],
+      "@files/*": ["apps/files/src/*"]
+    }
   }
 }

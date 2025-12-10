@@ -1,0 +1,44 @@
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-github';
+import axios from 'axios';
+import { CoreConfig } from '@lumio/core/core.config';
+
+@Injectable()
+export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
+  constructor(private readonly coreConfig: CoreConfig) {
+    super({
+      clientID: coreConfig.githubClientId,
+      clientSecret: coreConfig.githubClientSecret,
+      callbackURL: coreConfig.githubCallbackUrl,
+      scope: ['user:email'],
+    });
+  }
+
+  async validate(accessToken: string, refreshToken: string, profile: any) {
+    let email: string | null = null;
+
+    if (!profile.emails || profile.emails.length === 0) {
+      try {
+        const { data } = await axios.get('https://api.github.com/user/emails', {
+          headers: {
+            Authorization: `token ${accessToken}`,
+            Accept: 'application/vnd.github.v3+json',
+          },
+        });
+        const primaryEmail = data.find((e: any) => e.primary && e.verified);
+        email = primaryEmail ? primaryEmail.email : null;
+      } catch (err) {
+        console.error('Ошибка при запросе email из GitHub API:', err);
+      }
+    } else {
+      email = profile.emails[0].value;
+    }
+
+    return {
+      gitId: profile.id,
+      username: profile.username || profile.displayName || profile.login,
+      email,
+    };
+  }
+}

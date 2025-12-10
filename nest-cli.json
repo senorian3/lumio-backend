@@ -13,7 +13,7 @@
     "lumio": {
       "type": "application",
       "root": "apps/lumio",
-      "entryFile": "main",
+      "entryFile": "app/main",
       "sourceRoot": "apps/lumio/src",
       "compilerOptions": {
         "tsConfigPath": "apps/lumio/tsconfig.app.json"
@@ -22,7 +22,7 @@
     "files": {
       "type": "application",
       "root": "apps/files",
-      "entryFile": "main",
+      "entryFile": "app/main",
       "sourceRoot": "apps/files/src",
       "compilerOptions": {
         "tsConfigPath": "apps/files/tsconfig.app.json"
