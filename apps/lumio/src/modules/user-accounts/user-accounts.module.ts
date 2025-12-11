@@ -27,6 +27,8 @@ import { GoogleStrategy } from '@lumio/core/guards/oauth2-google/oauth2-google.g
 import { LoginUserGoogleUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { LogoutUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
 import { RegistrationConfirmationUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
+import { ScheduleModule } from '@nestjs/schedule';
+import { UserSchedulerService } from './scheduler/users-scheduler';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -81,11 +83,17 @@ const services = [
 const strategies = [GithubStrategy, JwtStrategy, GoogleStrategy];
 
 @Module({
-  imports: [PassportModule, SessionsModule, JwtModule],
+  imports: [
+    PassportModule,
+    SessionsModule,
+    JwtModule,
+    ScheduleModule.forRoot(),
+  ],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
     UserRepository,
+    UserSchedulerService,
     ...useCases,
     ...services,
     ...strategies,

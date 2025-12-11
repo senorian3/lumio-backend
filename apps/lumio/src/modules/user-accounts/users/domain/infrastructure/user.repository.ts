@@ -202,4 +202,25 @@ export class UserRepository {
       },
     });
   }
+
+  async deleteExpiredUserRegistration(date: Date): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: {
+          emailConfirmation: {
+            isConfirmed: false,
+            expirationDate: { lte: date },
+          },
+        },
+        select: { id: true },
+      });
+      const userIds = users.map((u) => u.id);
+      await tx.emailConfirmation.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+      await tx.user.deleteMany({
+        where: { id: { in: userIds } },
+      });
+    });
+  }
 }
