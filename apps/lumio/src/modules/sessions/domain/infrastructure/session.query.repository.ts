@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { OutputSessionType } from '../../api/dto/output/output';
-import { outputSessionsMapper } from '../../application/mappers/session.mapper';
 import { SessionEntity } from '../session.entity';
 @Injectable()
 export class QuerySessionsRepository {
@@ -12,6 +11,13 @@ export class QuerySessionsRepository {
       where: { user: { id: userId }, deletedAt: null },
     });
 
-    return allSessions.map((sessionData) => outputSessionsMapper(sessionData));
+    return allSessions.map(
+      (session) =>
+        new OutputSessionType(
+          session.deviceName,
+          session.ip,
+          session.createdAt.toISOString(),
+        ),
+    );
   }
 }
