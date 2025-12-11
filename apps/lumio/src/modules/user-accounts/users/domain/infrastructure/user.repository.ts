@@ -28,7 +28,7 @@ export class UserRepository {
   async createUser(
     dto: CreateUserDomainDto,
     passwordHash: string,
-    isConfirmed?: boolean, // необязательный флаг
+    isConfirmed?: boolean,
   ): Promise<UserEntity> {
     return this.prisma.user.create({
       data: {
@@ -39,7 +39,7 @@ export class UserRepository {
           create: {
             isConfirmed: isConfirmed ?? false,
             confirmationCode: randomUUID(),
-            expirationDate: add(new Date(), { days: 7 }),
+            expirationDate: add(new Date(), { hours: 1 }),
           },
         },
       },
@@ -72,6 +72,9 @@ export class UserRepository {
     return this.prisma.user.findFirst({
       where: {
         email: email,
+      },
+      include: {
+        emailConfirmation: true,
       },
     });
   }
@@ -188,6 +191,36 @@ export class UserRepository {
       data: {
         ...data,
       },
+    });
+  }
+
+  async confirmEmail(userId: number): Promise<void> {
+    await this.prisma.emailConfirmation.update({
+      where: { userId },
+      data: {
+        isConfirmed: true,
+      },
+    });
+  }
+
+  async deleteExpiredUserRegistration(date: Date): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const users = await tx.user.findMany({
+        where: {
+          emailConfirmation: {
+            isConfirmed: false,
+            expirationDate: { lte: date },
+          },
+        },
+        select: { id: true },
+      });
+      const userIds = users.map((u) => u.id);
+      await tx.emailConfirmation.deleteMany({
+        where: { userId: { in: userIds } },
+      });
+      await tx.user.deleteMany({
+        where: { id: { in: userIds } },
+      });
     });
   }
 }

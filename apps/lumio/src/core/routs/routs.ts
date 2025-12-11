@@ -10,6 +10,7 @@ export const AUTH_ROUTES = {
   GITHUB_CALLBACK: 'github/callback/',
   GOOGLE: 'google/',
   GOOGLE_CALLBACK: 'google/callback/',
+  REGISTRATION_CONFIRMATION: 'registration-confirmation/',
 } as const;
 
 export const SECURITY_BASE = 'security/devices/';

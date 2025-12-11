@@ -46,7 +46,7 @@ export class PasswordRecoveryUseCase
     }
 
     const newConfirmationCode = randomUUID();
-    const newExpirationDate = add(new Date(), { days: 7 });
+    const newExpirationDate = add(new Date(), { hours: 1 });
 
     await this.userRepository.updateCodeAndExpirationDate(
       user.id,

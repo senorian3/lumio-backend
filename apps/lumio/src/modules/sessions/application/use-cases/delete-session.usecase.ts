@@ -1,5 +1,4 @@
 import {
-  UnauthorizedDomainException,
   NotFoundDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -19,19 +18,6 @@ export class DeleteSessionUseCase
   constructor(private readonly sessionRepository: SessionRepository) {}
 
   async execute({ deleteSessionDto }: DeleteSessionCommand): Promise<void> {
-    const currentUserSession: SessionEntity | null =
-      await this.sessionRepository.findSession({
-        userId: deleteSessionDto.userId,
-        deviceId: deleteSessionDto.userDeviceId,
-      });
-
-    if (!currentUserSession) {
-      throw UnauthorizedDomainException.create(
-        "User doesn't have session",
-        'session',
-      );
-    }
-
     const foundSessionByParamDeviceId: SessionEntity | null =
       await this.sessionRepository.findSession({
         deviceId: deleteSessionDto.paramDeviceId,

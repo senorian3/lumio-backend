@@ -24,7 +24,7 @@ describe('Session (e2e)', () => {
     userRepository = app.get<UserRepository>(UserRepository);
     sessionRepository = app.get<SessionRepository>(SessionRepository);
 
-    authHelper = new AuthTestHelper(app);
+    authHelper = new AuthTestHelper(app, userRepository);
   });
 
   beforeEach(async () => {
@@ -350,14 +350,12 @@ describe('Session (e2e)', () => {
         expect.arrayContaining(['MyCustomAgent/1.98765', 'ThirdDevice/3.0']),
       );
     });
-
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
         .delete(`/${GLOBAL_PREFIX}/security/devices/123`)
         .set('X-Forwarded-For', '31')
         .expect(HttpStatus.UNAUTHORIZED);
     });
-
     it("❌ Should fail if user's session not found", async () => {
       const userData = {
         username: 'RegUser20',
@@ -385,7 +383,6 @@ describe('Session (e2e)', () => {
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
     });
-
     it("❌ Should fail if session payload doesn't match", async () => {
       const userData = {
         username: 'RegUser21',
@@ -421,7 +418,6 @@ describe('Session (e2e)', () => {
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
     });
-
     it('❌ Should fail if trying to delete current session', async () => {
       const userData = {
         username: 'RegUser22',
@@ -454,7 +450,6 @@ describe('Session (e2e)', () => {
         .set('Cookie', cookies)
         .expect(HttpStatus.FORBIDDEN);
     });
-
     it('❌ Should fail if deviceId not found', async () => {
       const userData = {
         username: 'RegUser23',

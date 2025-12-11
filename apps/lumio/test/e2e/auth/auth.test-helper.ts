@@ -1,5 +1,8 @@
-import { INestApplication, HttpStatus } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { HttpStatus } from '@nestjs/common';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 export interface LoginResult {
@@ -10,7 +13,10 @@ export interface LoginResult {
 }
 
 export class AuthTestHelper {
-  constructor(private readonly app: INestApplication) {}
+  constructor(
+    private readonly app: INestApplication,
+    private readonly userRepository: UserRepository,
+  ) {}
 
   async registerUser(
     userData: {
@@ -18,13 +24,28 @@ export class AuthTestHelper {
       password: string;
       email: string;
     },
-    ip: string = '1', // по умолчанию '1', если не передали
-  ): Promise<request.Response> {
-    return request(this.app.getHttpServer())
+    ip: string = '1',
+  ): Promise<{ user: UserEntity; confirmCode: string }> {
+    await request(this.app.getHttpServer())
       .post(`/${GLOBAL_PREFIX}/auth/registration`)
       .set('X-Forwarded-For', ip)
       .send(userData)
       .expect(HttpStatus.NO_CONTENT);
+
+    const user = await this.userRepository.findUserByEmail(userData.email);
+    const emailConfirmation =
+      await this.userRepository.findByCodeOrIdEmailConfirmation({
+        userId: user.id,
+      });
+
+    const confirmCode = emailConfirmation.confirmationCode;
+
+    await request(this.app.getHttpServer())
+      .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+      .send({ confirmCode })
+      .expect(HttpStatus.NO_CONTENT);
+
+    return { user, confirmCode };
   }
 
   async login(
