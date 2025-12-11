@@ -62,5 +62,7 @@ export class RegisterUserUseCase
         this.emailService.registrationEmail.bind(this.emailService),
       )
       .catch((er) => console.error('error in send email:', er));
+
+    return;
   }
 }

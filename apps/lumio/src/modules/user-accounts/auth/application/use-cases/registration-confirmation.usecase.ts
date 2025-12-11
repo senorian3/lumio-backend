@@ -39,5 +39,7 @@ export class RegistrationConfirmationUserUseCase
     }
 
     await this.userRepository.confirmEmail(userEmailConfirmation.userId);
+
+    return;
   }
 }
