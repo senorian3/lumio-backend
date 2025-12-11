@@ -28,7 +28,7 @@ export class UserRepository {
   async createUser(
     dto: CreateUserDomainDto,
     passwordHash: string,
-    isConfirmed?: boolean, // необязательный флаг
+    isConfirmed?: boolean,
   ): Promise<UserEntity> {
     return this.prisma.user.create({
       data: {
@@ -39,7 +39,7 @@ export class UserRepository {
           create: {
             isConfirmed: isConfirmed ?? false,
             confirmationCode: randomUUID(),
-            expirationDate: add(new Date(), { days: 7 }),
+            expirationDate: add(new Date(), { hours: 1 }),
           },
         },
       },
