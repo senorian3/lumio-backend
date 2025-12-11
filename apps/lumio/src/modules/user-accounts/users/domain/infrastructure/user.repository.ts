@@ -73,6 +73,9 @@ export class UserRepository {
       where: {
         email: email,
       },
+      include: {
+        emailConfirmation: true,
+      },
     });
   }
 
@@ -187,6 +190,15 @@ export class UserRepository {
       where: { googleId },
       data: {
         ...data,
+      },
+    });
+  }
+
+  async confirmEmail(userId: number): Promise<void> {
+    await this.prisma.emailConfirmation.update({
+      where: { userId },
+      data: {
+        isConfirmed: true,
       },
     });
   }

@@ -35,6 +35,9 @@ import { ApiNewPassword } from '@lumio/core/decorators/swagger/new-password.deco
 import { ApiGoogleCallback } from '@lumio/core/decorators/swagger/google-callback.decorator';
 import { ApiGithub } from '@lumio/core/decorators/swagger/github.decorator';
 import { ApiGoogle } from '@lumio/core/decorators/swagger/google.decorator';
+import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
+import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
+import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/registration-confirmation.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -191,5 +194,17 @@ export class AuthController {
     });
 
     return { accessToken };
+  }
+
+  @ApiRegistrationConfirmation()
+  @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @SkipThrottle()
+  async registrationConfirmation(
+    @Body() dto: RegistrationConfirmationInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute<RegistrationConfirmationUserCommand, void>(
+      new RegistrationConfirmationUserCommand(dto.confirmCode),
+    );
   }
 }

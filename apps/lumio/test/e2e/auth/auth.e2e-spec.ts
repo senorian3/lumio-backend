@@ -57,7 +57,6 @@ describe('Auth (e2e)', () => {
         expect.any(Function),
       );
     });
-
     it('❌ Should return BAD_REQUEST when trying to register with duplicate username or email', async () => {
       const userData = {
         username: 'RegUser1',
@@ -101,7 +100,6 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
     it('❌ Should fail if username is too short', async () => {
       const userData = {
         username: 'abc', // меньше 6 символов
@@ -115,10 +113,9 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if username is too long', async () => {
       const userData = {
-        username: 'A'.repeat(35), // больше 30 символов
+        username: 'A'.repeat(35),
         password: 'ValidPass123',
         email: 'longuser@example.com',
       };
@@ -129,10 +126,9 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if username contains invalid characters', async () => {
       const userData = {
-        username: 'Invalid@User!', // недопустимые символы
+        username: 'Invalid@User!',
         password: 'ValidPass123',
         email: 'invaliduser@example.com',
       };
@@ -143,7 +139,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if password is too short', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -157,7 +152,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if password is too long', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -171,7 +165,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if password contains invalid characters', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -185,7 +178,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if email is invalid', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -199,7 +191,6 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if email is too long', async () => {
       const userData = {
         username: 'ValidUser123',
@@ -229,6 +220,19 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
+        .expect(HttpStatus.NO_CONTENT);
+
       const loginResponse = await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '2')
@@ -246,7 +250,6 @@ describe('Auth (e2e)', () => {
       expect(cookies).toBeDefined();
       expect(cookies[0]).toMatch(/refreshToken=.*HttpOnly/);
     });
-
     it('❌ Should fail login with wrong password', async () => {
       const userData = {
         username: 'RegUser12',
@@ -258,6 +261,19 @@ describe('Auth (e2e)', () => {
         .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '3')
         .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
         .expect(HttpStatus.NO_CONTENT);
 
       const badLoginResponse = await request(app.getHttpServer())
@@ -278,7 +294,6 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
     it('❌ Should fail login with non-existing email', async () => {
       const badLoginResponse = await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/login`)
@@ -299,7 +314,6 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
     it('❌ Should fail login with invalid email format', async () => {
       await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/login`)
@@ -310,7 +324,6 @@ describe('Auth (e2e)', () => {
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail login with empty password', async () => {
       const userData = {
         username: 'RegUser13',
@@ -333,7 +346,6 @@ describe('Auth (e2e)', () => {
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if more 5 requests per 10 seconds', async () => {
       const userData = {
         username: 'RegUser11',
@@ -345,6 +357,19 @@ describe('Auth (e2e)', () => {
         .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '9')
         .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
         .expect(HttpStatus.NO_CONTENT);
 
       for (let i = 0; i < 5; i++) {
@@ -367,6 +392,37 @@ describe('Auth (e2e)', () => {
         })
         .expect(HttpStatus.TOO_MANY_REQUESTS);
     });
+    it('❌ Should fail login for unconfirmed user', async () => {
+      const userData = {
+        username: 'RegUser14',
+        password: 'StrongPass14',
+        email: 'reguser14@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
+        .set('X-Forwarded-For', '11')
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const badLoginResponse = await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/login`)
+        .set('X-Forwarded-For', '12')
+        .send({
+          email: userData.email,
+          password: userData.password,
+        })
+        .expect(HttpStatus.FORBIDDEN);
+
+      expect(badLoginResponse.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'User account is not confirmed',
+            field: 'confirmCode',
+          },
+        ],
+      });
+    });
   });
 
   describe('Auth Logout (e2e)', () => {
@@ -383,6 +439,19 @@ describe('Auth (e2e)', () => {
         .send(userData)
         .expect(HttpStatus.NO_CONTENT);
 
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
+        .expect(HttpStatus.NO_CONTENT);
+
       const loginRes = await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/login`)
         .set('X-Forwarded-For', '2')
@@ -397,14 +466,12 @@ describe('Auth (e2e)', () => {
         .set('Cookie', cookies)
         .expect(HttpStatus.NO_CONTENT);
     });
-
     it('❌ Should fail if no refresh token cookie', async () => {
       await request(app.getHttpServer())
         .post(`/${GLOBAL_PREFIX}/auth/logout`)
         .set('X-Forwarded-For', '4')
         .expect(HttpStatus.UNAUTHORIZED);
     });
-
     it("❌ Should fail if user's session not found", async () => {
       const userData = {
         username: 'RegUser14',
@@ -416,6 +483,19 @@ describe('Auth (e2e)', () => {
         .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '5')
         .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const userConf = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: userConf.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
@@ -435,7 +515,6 @@ describe('Auth (e2e)', () => {
         .set('Cookie', cookies)
         .expect(HttpStatus.UNAUTHORIZED);
     });
-
     it("❌ Should fail if session payload doesn't match", async () => {
       const userData = {
         username: 'RegUser15',
@@ -447,6 +526,19 @@ describe('Auth (e2e)', () => {
         .post(`/${GLOBAL_PREFIX}/auth/registration`)
         .set('X-Forwarded-For', '8')
         .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const userConf = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: userConf.id,
+        });
+
+      const confirmCode = emailConfirmation.confirmationCode;
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: confirmCode })
         .expect(HttpStatus.NO_CONTENT);
 
       const loginRes = await request(app.getHttpServer())
@@ -502,7 +594,6 @@ describe('Auth (e2e)', () => {
         .send({ recoveryCode, password })
         .expect(HttpStatus.NO_CONTENT);
     });
-
     it('❌ Should fail with 400 if recoveryCode is invalid', async () => {
       const userData = {
         username: 'RegUser14',
@@ -534,7 +625,6 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
     it('❌ Should fail if more 5 requests per 10 seconds', async () => {
       const userData = {
         username: 'RegUser11',
@@ -596,7 +686,6 @@ describe('Auth (e2e)', () => {
 
       expect(mailer.sendEmail).toHaveBeenCalled();
     });
-
     it('❌ Should fail with 403 if reCAPTCHA invalid', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(false);
 
@@ -630,7 +719,6 @@ describe('Auth (e2e)', () => {
         ],
       });
     });
-
     it('❌ Should fail with 403 if user does not exist', async () => {
       (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
 
@@ -742,7 +830,6 @@ describe('Auth (e2e)', () => {
         })
         .expect(HttpStatus.BAD_REQUEST);
     });
-
     it('❌ Should fail if more 5 requests per 10 seconds', async () => {
       for (let i = 0; i < 5; i++) {
         (recaptchaService.verify as jest.Mock).mockResolvedValue(true);
@@ -765,6 +852,133 @@ describe('Auth (e2e)', () => {
           recaptchaToken: 'valid-token',
         })
         .expect(HttpStatus.TOO_MANY_REQUESTS);
+    });
+  });
+
+  describe('Auth registration-confirmation (e2e)', () => {
+    it('✅ Should confirm user email successfully', async () => {
+      const userData = {
+        username: 'ConfirmUser1',
+        password: 'StrongPass1',
+        email: 'confirmuser1@example.com',
+      };
+
+      // Регистрация
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      // Получаем код подтверждения
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      // Подтверждаем
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: emailConfirmation.confirmationCode })
+        .expect(HttpStatus.NO_CONTENT);
+
+      // Проверяем, что юзер подтверждён
+      const confirmedUser = await userRepository.findUserByEmail(
+        userData.email,
+      );
+      expect(confirmedUser.emailConfirmation.isConfirmed).toBe(true);
+    });
+    it('❌ Should fail if confirmation code not found', async () => {
+      const badResponse = await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: 'non-existing-code' })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(badResponse.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'Confirmation code not found',
+            field: 'confirmationCode',
+          },
+        ],
+      });
+    });
+    it('❌ Should fail if confirmation code already used', async () => {
+      const userData = {
+        username: 'ConfirmUser2',
+        password: 'StrongPass2',
+        email: 'confirmuser2@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      // Первый вызов — успешный
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: emailConfirmation.confirmationCode })
+        .expect(HttpStatus.NO_CONTENT);
+
+      // Второй вызов — ошибка
+      const badResponse = await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: emailConfirmation.confirmationCode })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(badResponse.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'Confirmation code already used',
+            field: 'confirmationCode',
+          },
+        ],
+      });
+    });
+    it('❌ Should fail if confirmation code expired', async () => {
+      const userData = {
+        username: 'ConfirmUser3',
+        password: 'StrongPass3',
+        email: 'confirmuser3@example.com',
+      };
+
+      await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration`)
+        .send(userData)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const user = await userRepository.findUserByEmail(userData.email);
+      const emailConfirmation =
+        await userRepository.findByCodeOrIdEmailConfirmation({
+          userId: user.id,
+        });
+
+      // Принудительно делаем код просроченным
+      await prisma.emailConfirmation.update({
+        where: { id: emailConfirmation.id },
+        data: { expirationDate: new Date(Date.now() - 1000) },
+      });
+
+      const badResponse = await request(app.getHttpServer())
+        .post(`/${GLOBAL_PREFIX}/auth/registration-confirmation`)
+        .send({ confirmCode: emailConfirmation.confirmationCode })
+        .expect(HttpStatus.BAD_REQUEST);
+
+      expect(badResponse.body).toEqual({
+        errorsMessages: [
+          {
+            message: 'Confirmation code expired',
+            field: 'confirmationCode',
+          },
+        ],
+      });
     });
   });
 });

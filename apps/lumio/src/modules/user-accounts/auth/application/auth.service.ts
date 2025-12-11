@@ -22,6 +22,13 @@ export class AuthService {
       );
     }
 
+    if (!user.emailConfirmation?.isConfirmed) {
+      throw ForbiddenDomainException.create(
+        'User account is not confirmed',
+        'confirmCode',
+      );
+    }
+
     const hash = user.password;
 
     const isPassCorrect = await this.cryptoService.comparePasswords(

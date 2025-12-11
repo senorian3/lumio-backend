@@ -21,7 +21,7 @@
     "prisma:studio:lumio": "dotenv -e apps/lumio/.env.lumio.development -- prisma studio --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:generate:files": "dotenv -e apps/files/.env.files.development -- prisma generate --schema apps/files/src/prisma/schema.prisma",
     "prisma:generate:files:test": "dotenv -e apps/files/.env.files.testing -- prisma generate --schema apps/files/src/prisma/schema.prisma",
-    "prisma:test:files": "dotenv -e apps/lumio/.env.files.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
+    "prisma:test:files": "dotenv -e apps/lumio/.env.lumio.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:dev:files": "dotenv -e apps/files/.env.files.development -- prisma migrate dev --schema apps/files/src/prisma/schema.prisma && yarn prisma:generate:files",
     "prisma:prod:files": "dotenv -e apps/files/.env.files.production -- prisma migrate deploy --schema apps/files/src/prisma/schema.prisma",
     "prisma:reset:files": "dotenv -e apps/files/.env.files.development -- prisma migrate reset --schema apps/files/src/prisma/schema.prisma",

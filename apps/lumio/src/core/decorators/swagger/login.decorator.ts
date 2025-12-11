@@ -148,6 +148,17 @@ export function ApiLogin() {
             ],
           },
         },
+        user_not_confirmed: {
+          summary: 'User account is not confirmed',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User account is not confirmed',
+                field: 'confirmCode',
+              },
+            ],
+          },
+        },
       },
     }),
 
