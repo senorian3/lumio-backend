@@ -3,6 +3,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { NewPasswordDto } from '../../../users/api/dto/transfer/new-password.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 export class NewPasswordCommand {
   constructor(public newPasswordDto: NewPasswordDto) {}
@@ -15,6 +16,7 @@ export class NewPasswordUseCase
   constructor(
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,
+    private readonly sessionRepository: SessionRepository,
   ) {}
 
   async execute({ newPasswordDto }: NewPasswordCommand): Promise<void> {
@@ -34,6 +36,10 @@ export class NewPasswordUseCase
     await this.userRepository.updatePassword(
       emailConfirmation.userId,
       newPasswordHash,
+    );
+
+    await this.sessionRepository.deleteAllSessionsForUser(
+      emailConfirmation.userId,
     );
 
     return;
