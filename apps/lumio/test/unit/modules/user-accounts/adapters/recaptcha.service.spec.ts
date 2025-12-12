@@ -1,0 +1,177 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
+import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+
+// Mock fetch globally
+global.fetch = jest.fn();
+
+describe('RecaptchaService', () => {
+  let service: RecaptchaService;
+  let mockConfigService: ConfigService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        RecaptchaService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<RecaptchaService>(RecaptchaService);
+    mockConfigService = module.get<ConfigService>(ConfigService);
+    jest.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('verify', () => {
+    it('should return true when secret key is not set (disabled)', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue(undefined);
+      const token = 'any-token';
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('should return false when token is empty', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = '';
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('should return false when token is only whitespace', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = '   ';
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('should return false when fetch response is not ok', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+      });
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(fetch).toHaveBeenCalledWith(
+        'https://www.google.com/recaptcha/api/siteverify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'secret=secret-key&response=valid-token',
+        },
+      );
+      expect(result).toBe(false);
+    });
+
+    it('should return false when recaptcha response success is false', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          success: false,
+          score: 0.8,
+        }),
+      });
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return false when score is below threshold', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          success: true,
+          score: 0.3,
+        }),
+      });
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return true when token is valid and score is above threshold', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          success: true,
+          score: 0.8,
+        }),
+      });
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(fetch).toHaveBeenCalledWith(
+        'https://www.google.com/recaptcha/api/siteverify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'secret=secret-key&response=valid-token',
+        },
+      );
+      expect(result).toBe(true);
+    });
+
+    it('should handle fetch errors gracefully', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      const result = await service.verify(token);
+      expect(result).toBe(false);
+    });
+  });
+});
