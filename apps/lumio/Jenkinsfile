@@ -99,73 +99,73 @@ pipeline {
         }
         
         stage('Install dependencies with smart cache') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Installing dependencies ==="
+    steps {
+        script {
+            sh '''
+                echo "=== Installing dependencies ==="
+                
+                # Проверяем package.json
+                if [ ! -f "package.json" ]; then
+                    echo "❌ package.json not found!"
+                    exit 1
+                fi
+                
+                # Проверяем, можем ли использовать кэш
+                CACHE_VALID=false
+                if [ -f "${YARN_CACHE_DIR}/package.json" ]; then
+                    echo "Found cached package.json, comparing..."
+                    
+                    # Простая проверка хэша зависимостей
+                    CURRENT_DEPS_HASH=$(cat package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
+                    CACHED_DEPS_HASH=$(cat ${YARN_CACHE_DIR}/package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
+                    
+                    if [ "${CURRENT_DEPS_HASH}" = "${CACHED_DEPS_HASH}" ]; then
+                        echo "✅ Dependencies unchanged, using cache"
                         
-                        # Проверяем package.json
-                        if [ ! -f "package.json" ]; then
-                            echo "❌ package.json not found!"
-                            exit 1
+                        # Копируем кэшированные модули
+                        if [ -d "${YARN_CACHE_DIR}/node_modules" ]; then
+                            echo "Copying cached node_modules..."
+                            cp -r ${YARN_CACHE_DIR}/node_modules . || true
                         fi
                         
-                        # Проверяем, можем ли использовать кэш
-                        CACHE_VALID=false
-                        if [ -f "${YARN_CACHE_DIR}/package.json" ]; then
-                            echo "Found cached package.json, comparing..."
-                            
-                            # Простая проверка хэша зависимостей
-                            CURRENT_DEPS_HASH=$(cat package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
-                            CACHED_DEPS_HASH=$(cat ${YARN_CACHE_DIR}/package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
-                            
-                            if [ "${CURRENT_DEPS_HASH}" = "${CACHED_DEPS_HASH}" ]; then
-                                echo "✅ Dependencies unchanged, using cache"
-                                
-                                # Копируем кэшированные модули
-                                if [ -d "${YARN_CACHE_DIR}/node_modules" ]; then
-                                    echo "Copying cached node_modules..."
-                                    cp -r ${YARN_CACHE_DIR}/node_modules . || true
-                                fi
-                                
-                                CACHE_VALID=true
-                            else
-                                echo "⚠️ Dependencies changed, need fresh install"
-                            fi
+                        CACHE_VALID=true
+                    else
+                        echo "⚠️ Dependencies changed, need fresh install"
+                    fi
+                fi
+                
+                if [ "${CACHE_VALID}" = "false" ]; then
+                    echo "Installing fresh dependencies..."
+                    
+                    # Устанавливаем с ИГНОРИРОВАНИЕМ проверки версий Node.js
+                    yarn install --frozen-lockfile --cache-folder ${YARN_CACHE_DIR} --prefer-offline --network-timeout 600000 --ignore-engines || {
+                        echo "❌ Failed to install dependencies"
+                        exit 1
+                    }
+                    
+                    # Сохраняем в кэш
+                    echo "Caching dependencies..."
+                    cp package.json ${YARN_CACHE_DIR}/ 2>/dev/null || true
+                    cp yarn.lock ${YARN_CACHE_DIR}/ 2>/dev/null || true
+                    
+                    # Копируем node_modules в кэш (без symlinks)
+                    echo "Caching node_modules..."
+                    rm -rf ${YARN_CACHE_DIR}/node_modules 2>/dev/null || true
+                    mkdir -p ${YARN_CACHE_DIR}/node_modules
+                    
+                    # Копируем только основные директории для экономии места
+                    for dir in @nestjs @prisma @types date-fns; do
+                        if [ -d "node_modules/${dir}" ]; then
+                            cp -r "node_modules/${dir}" "${YARN_CACHE_DIR}/node_modules/" 2>/dev/null || true
                         fi
-                        
-                        if [ "${CACHE_VALID}" = "false" ]; then
-                            echo "Installing fresh dependencies..."
-                            
-                            # Устанавливаем с кэшированием
-                            yarn install --frozen-lockfile --cache-folder ${YARN_CACHE_DIR} --prefer-offline --network-timeout 600000 || {
-                                echo "❌ Failed to install dependencies"
-                                exit 1
-                            }
-                            
-                            # Сохраняем в кэш
-                            echo "Caching dependencies..."
-                            cp package.json ${YARN_CACHE_DIR}/ 2>/dev/null || true
-                            cp yarn.lock ${YARN_CACHE_DIR}/ 2>/dev/null || true
-                            
-                            # Копируем node_modules в кэш (без symlinks)
-                            echo "Caching node_modules..."
-                            rm -rf ${YARN_CACHE_DIR}/node_modules 2>/dev/null || true
-                            mkdir -p ${YARN_CACHE_DIR}/node_modules
-                            
-                            # Копируем только основные директории для экономии места
-                            for dir in @nestjs @prisma @types date-fns; do
-                                if [ -d "node_modules/${dir}" ]; then
-                                    cp -r "node_modules/${dir}" "${YARN_CACHE_DIR}/node_modules/" 2>/dev/null || true
-                                fi
-                            done
-                        fi
-                        
-                        echo "✅ Dependencies installed"
-                    '''
-                }
-            }
+                    done
+                fi
+                
+                echo "✅ Dependencies installed"
+            '''
         }
+    }
+}
         
         stage('Code quality checks') {
             steps {
