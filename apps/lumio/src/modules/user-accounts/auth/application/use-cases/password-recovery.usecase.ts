@@ -61,5 +61,7 @@ export class PasswordRecoveryUseCase
         this.emailService.passwordRecovery.bind(this.emailService),
       )
       .catch((er) => console.error('Error in send email:', er));
+
+    return;
   }
 }
