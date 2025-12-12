@@ -37,50 +37,95 @@ pipeline {
         }
         
         stage('Check prerequisites') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Checking prerequisites ==="
-                        
-                        # Проверяем Node.js
-                        if ! command -v node &> /dev/null; then
-                            echo "❌ Node.js is not installed"
-                            echo "Installing Node.js via apt..."
-                            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 2>/dev/null || true
-                            sudo apt-get install -y nodejs 2>/dev/null || {
-                                echo "Failed to install Node.js"
-                                exit 1
-                            }
-                        fi
-                        
-                        echo "Node.js: $(node --version)"
-                        
-                        # Проверяем yarn
-                        if ! command -v yarn &> /dev/null; then
-                            echo "Installing yarn..."
-                            npm install -g yarn
-                        fi
-                        
-                        echo "Yarn: $(yarn --version)"
-                        
-                        # Проверяем docker
-                        if ! command -v docker &> /dev/null; then
-                            echo "❌ Docker is not installed"
-                            exit 1
-                        fi
-                        
-                        echo "Docker: $(docker --version)"
-                        
-                        # Проверяем kubectl если нужно
-                        if ! command -v kubectl &> /dev/null; then
-                            echo "⚠️ kubectl not found, but will use withKubeConfig"
-                        fi
-                        
-                        echo "✅ Prerequisites check passed"
-                    '''
-                }
-            }
+    steps {
+        script {
+            sh '''
+                echo "=== Checking prerequisites ==="
+                
+                # Проверяем Node.js
+                echo "Checking Node.js..."
+                if command -v node &> /dev/null; then
+                    echo "✅ Node.js found: $(node --version)"
+                else
+                    echo "❌ Node.js is not installed"
+                    echo "Trying alternative installation methods..."
+                    
+                    # Пытаемся использовать NVM если есть
+                    export NVM_DIR="$HOME/.nvm"
+                    if [ -s "$NVM_DIR/nvm.sh" ]; then
+                        echo "Using NVM..."
+                        . "$NVM_DIR/nvm.sh"
+                        nvm use default 2>/dev/null || nvm install 20 2>/dev/null || true
+                    fi
+                    
+                    # Проверяем снова
+                    if ! command -v node &> /dev/null; then
+                        echo "Attempting to install Node.js via apt..."
+                        # Без sudo, так как в Jenkins обычно нет прав
+                        apt-get update 2>/dev/null || true
+                        apt-get install -y nodejs npm 2>/dev/null || {
+                            echo "⚠️ Could not install Node.js, trying to continue..."
+                        }
+                    fi
+                fi
+                
+                # Проверяем версию Node.js
+                NODE_VERSION=$(node --version 2>/dev/null || echo "NOT FOUND")
+                echo "Node.js version: ${NODE_VERSION}"
+                
+                # Проверяем yarn
+                echo "Checking yarn..."
+                if command -v yarn &> /dev/null; then
+                    echo "✅ Yarn found: $(yarn --version)"
+                else
+                    echo "Installing yarn..."
+                    npm install -g yarn 2>/dev/null || {
+                        echo "⚠️ Could not install yarn"
+                    }
+                fi
+                
+                YARN_VERSION=$(yarn --version 2>/dev/null || echo "NOT FOUND")
+                echo "Yarn version: ${YARN_VERSION}"
+                
+                # Проверяем docker
+                echo "Checking Docker..."
+                if command -v docker &> /dev/null; then
+                    echo "✅ Docker found: $(docker --version)"
+                else
+                    echo "❌ Docker is not installed"
+                    exit 1
+                fi
+                
+                # Проверяем kubectl если нужно
+                echo "Checking kubectl..."
+                if command -v kubectl &> /dev/null; then
+                    echo "✅ kubectl found: $(kubectl version --client --short 2>/dev/null || echo 'installed')"
+                else
+                    echo "⚠️ kubectl not found, but will use withKubeConfig"
+                fi
+                
+                # Проверяем необходимые версии
+                echo ""
+                echo "=== Version Summary ==="
+                echo "Node.js: ${NODE_VERSION}"
+                echo "Yarn: ${YARN_VERSION}"
+                echo "Docker: $(docker --version 2>/dev/null || echo 'NOT FOUND')"
+                
+                # Минимальная проверка Node.js версии
+                if [[ "${NODE_VERSION}" =~ ^v([0-9]+) ]]; then
+                    MAJOR_VERSION="${BASH_REMATCH[1]}"
+                    if [ "${MAJOR_VERSION}" -lt 18 ]; then
+                        echo "⚠️ Warning: Node.js version ${NODE_VERSION} is older than recommended (v18+)"
+                    else
+                        echo "✅ Node.js version ${NODE_VERSION} is acceptable"
+                    fi
+                fi
+                
+                echo "✅ Prerequisites check passed"
+            '''
         }
+    }
+}
         
         stage('Clean and setup workspace') {
             steps {
