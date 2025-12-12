@@ -192,77 +192,78 @@ pipeline {
         }
         
         stage('Build application') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Building application ==="
-                        
-                        # Собираем конкретный сервис
-                        echo "Building ${SERVICE} service..."
-                        
-                        # Проверяем окружение
-                        ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.${ENV_TYPE}"
-                        if [ ! -f "${ENV_FILE}" ]; then
-                            echo "⚠️ Environment file not found: ${ENV_FILE}"
-                            echo "Using development environment file..."
-                            ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.development"
-                        fi
-                        
-                        # Генерируем Prisma клиент с правильным окружением
-                        echo "Generating Prisma client..."
-                        
-                        # Используем кэш для Prisma если есть
-                        if [ -d "${PRISMA_CACHE_DIR}/prisma" ]; then
-                            echo "Using cached Prisma client..."
-                            mkdir -p ./node_modules/.prisma
-                            cp -r ${PRISMA_CACHE_DIR}/prisma/* ./node_modules/.prisma/ 2>/dev/null || true
-                        fi
-                        
-                        # Генерируем Prisma клиент
-                        if [ "${SERVICE}" = "lumio" ]; then
-                            yarn prisma:generate:lumio 2>/dev/null || {
-                                echo "❌ Failed to generate Prisma client"
-                                exit 1
-                            }
-                        elif [ "${SERVICE}" = "files" ]; then
-                            yarn prisma:generate:files 2>/dev/null || {
-                                echo "❌ Failed to generate Prisma client"
-                                exit 1
-                            }
-                        fi
-                        
-                        # Сохраняем в кэш
-                        if [ -d "./node_modules/.prisma" ]; then
-                            echo "Caching Prisma client..."
-                            mkdir -p ${PRISMA_CACHE_DIR}/prisma
-                            cp -r ./node_modules/.prisma/* ${PRISMA_CACHE_DIR}/prisma/ 2>/dev/null || true
-                        fi
-                        
-                        # Собираем приложение
-                        echo "Building NestJS application..."
-                        if [ "${SERVICE}" = "lumio" ]; then
-                            yarn build:lumio || {
-                                echo "❌ Failed to build lumio"
-                                exit 1
-                            }
-                        elif [ "${SERVICE}" = "files" ]; then
-                            yarn build:files || {
-                                echo "❌ Failed to build files"
-                                exit 1
-                            }
-                        fi
-                        
-                        # Проверяем наличие билда
-                        if [ ! -d "dist/apps/${SERVICE}" ]; then
-                            echo "❌ Build output not found at dist/apps/${SERVICE}"
-                            exit 1
-                        fi
-                        
-                        echo "✅ Application built successfully"
-                    '''
-                }
-            }
+    steps {
+        script {
+            sh '''
+                echo "=== Building application ==="
+                
+                # Собираем конкретный сервис
+                echo "Building ${SERVICE} service..."
+                
+                # Проверяем окружение
+                ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.${ENV_TYPE}"
+                if [ ! -f "${ENV_FILE}" ]; then
+                    echo "⚠️ Environment file not found: ${ENV_FILE}"
+                    echo "Using development environment file..."
+                    ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.development"
+                fi
+                
+                # Генерируем Prisma клиент с правильным окружением
+                echo "Generating Prisma client..."
+                
+                # Используем кэш для Prisma если есть
+                if [ -d "${PRISMA_CACHE_DIR}/prisma" ]; then
+                    echo "Using cached Prisma client..."
+                    mkdir -p ./node_modules/.prisma
+                    cp -r ${PRISMA_CACHE_DIR}/prisma/* ./node_modules/.prisma/ 2>/dev/null || true
+                fi
+                
+                # Генерируем Prisma клиент
+                if [ "${SERVICE}" = "lumio" ]; then
+                    yarn prisma:generate:lumio 2>/dev/null || {
+                        echo "❌ Failed to generate Prisma client"
+                        exit 1
+                    }
+                elif [ "${SERVICE}" = "files" ]; then
+                    yarn prisma:generate:files 2>/dev/null || {
+                        echo "❌ Failed to generate Prisma client"
+                        exit 1
+                    }
+                fi
+                
+                # Сохраняем в кэш
+                if [ -d "./node_modules/.prisma" ]; then
+                    echo "Caching Prisma client..."
+                    mkdir -p ${PRISMA_CACHE_DIR}/prisma
+                    cp -r ./node_modules/.prisma/* ${PRISMA_CACHE_DIR}/prisma/ 2>/dev/null || true
+                fi
+                
+                # Собираем приложение
+                echo "Building NestJS application..."
+                if [ "${SERVICE}" = "lumio" ]; then
+                    # Используем npx чтобы найти nest в node_modules/.bin
+                    npx nest build lumio || {
+                        echo "❌ Failed to build lumio"
+                        exit 1
+                    }
+                elif [ "${SERVICE}" = "files" ]; then
+                    npx nest build files || {
+                        echo "❌ Failed to build files"
+                        exit 1
+                    }
+                fi
+                
+                # Проверяем наличие билда
+                if [ ! -d "dist/apps/${SERVICE}" ]; then
+                    echo "❌ Build output not found at dist/apps/${SERVICE}"
+                    exit 1
+                fi
+                
+                echo "✅ Application built successfully"
+            '''
         }
+    }
+}
         
         stage('Run tests') {
             steps {
