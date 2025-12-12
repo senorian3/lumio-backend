@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@libs/*": ["../../libs/*"],
+      "@lumio/*": ["src/*"],
+      "@files/*": ["../../apps/files/src/*"],
+      "generated/*": ["../../generated/*"]
+    },
+    "types": ["jest", "node"]
+  },
+  "include": ["test/**/*.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
