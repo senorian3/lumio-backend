@@ -155,6 +155,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -196,6 +197,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -237,6 +239,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`); узнать ссылку у фронтов
     return { accessToken };
   }
 
