@@ -143,6 +143,13 @@ pipeline {
                         exit 1
                     }
                     
+                    # Убеждаемся что @nestjs/cli установлен
+                    echo "Ensuring @nestjs/cli is available..."
+                    if [ ! -f "./node_modules/.bin/nest" ]; then
+                        echo "Installing @nestjs/cli..."
+                        yarn add @nestjs/cli 2>/dev/null || npm install @nestjs/cli 2>/dev/null || echo "⚠️ Could not install @nestjs/cli"
+                    fi
+                    
                     # Сохраняем в кэш
                     echo "Caching dependencies..."
                     cp package.json ${YARN_CACHE_DIR}/ 2>/dev/null || true
@@ -239,19 +246,19 @@ pipeline {
                 fi
                 
                 # Собираем приложение
-                echo "Building NestJS application..."
-                if [ "${SERVICE}" = "lumio" ]; then
-                    # Используем npx чтобы найти nest в node_modules/.bin
-                    npx nest build lumio || {
-                        echo "❌ Failed to build lumio"
-                        exit 1
-                    }
-                elif [ "${SERVICE}" = "files" ]; then
-                    npx nest build files || {
-                        echo "❌ Failed to build files"
-                        exit 1
-                    }
-                fi
+echo "Building NestJS application..."
+if [ "${SERVICE}" = "lumio" ]; then
+    # Используем локальный nest
+    ./node_modules/.bin/nest build lumio || {
+        echo "❌ Failed to build lumio"
+        exit 1
+    }
+elif [ "${SERVICE}" = "files" ]; then
+    ./node_modules/.bin/nest build files || {
+        echo "❌ Failed to build files"
+        exit 1
+    }
+fi
                 
                 # Проверяем наличие билда
                 if [ ! -d "dist/apps/${SERVICE}" ]; then
