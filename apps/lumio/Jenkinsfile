@@ -1,561 +1,107 @@
+def app
 pipeline {
     agent any
-    
     environment {
         ENV_TYPE = "production"
         PORT = 4121
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
         PROJECT = "lumio-back-end"
-        SERVICE = "lumio"
+        SERVICE="lumio"
         REGISTRY = "registry.hub.docker.com"
         DEPLOYMENT_NAME = "lumio-back-end-deployment"
         IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
         DOCKER_BUILD_NAME = "${env.REGISTRY_HOSTNAME}/${env.PROJECT}:${env.IMAGE_NAME}"
-        
-        // Для кэширования
-        YARN_CACHE_DIR = "${WORKSPACE}/.yarn-cache"
-        PRISMA_CACHE_DIR = "${WORKSPACE}/.prisma-cache"
-        
-        // Определяем окружение для команд
-        NODE_ENV = "production"
     }
-    
+
     stages {
         stage('Clone repository') {
             steps {
                 checkout scm
-                
-                sh '''
-                    echo "=== Repository Info ==="
-                    echo "Commit: ${GIT_COMMIT}"
-                    echo "Branch: ${GIT_BRANCH}"
-                    echo "Build: ${BUILD_NUMBER}"
-                    echo "Workspace: ${WORKSPACE}"
-                '''
             }
         }
-        
-        stage('Check prerequisites') {
+        stage('Setup and Run Unit Tests') {
             steps {
                 script {
                     sh '''
-                        echo "=== Quick prerequisites check ==="
-                        
-                        # Проверяем Docker
-                        if ! docker --version > /dev/null 2>&1; then
-                            echo "❌ FATAL: Docker not found or not working"
-                            exit 1
-                        fi
-                        echo "✅ Docker: $(docker --version | head -1)"
-                        
-                        # Проверяем Node.js
-                        if ! node --version > /dev/null 2>&1; then
-                            echo "❌ FATAL: Node.js not found"
-                            exit 1
-                        fi
-                        echo "✅ Node.js: $(node --version)"
-                        
-                        # Проверяем и устанавливаем Yarn если нужно
-                        if ! yarn --version > /dev/null 2>&1; then
-                            echo "Installing yarn globally..."
-                            npm install -g yarn
-                        fi
-                        echo "✅ Yarn: $(yarn --version)"
-                        
-                        # Устанавливаем ts-loader глобально чтобы избежать проблем
-                        echo "Installing ts-loader globally..."
-                        npm install -g ts-loader webpack webpack-cli
-                        
-                        echo "✅ Prerequisites OK"
+                       export NVM_DIR="$HOME/.nvm"
+                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                       nvm use --lts
+                       
+                       # Install dependencies
+                       yarn install
+                       
+                       # Generate Prisma client for test environment
+                       if [ "$SERVICE" = "lumio" ]; then
+                         yarn prisma:generate:lumio:test
+                       elif [ "$SERVICE" = "files" ]; then
+                         yarn prisma:generate:files:test
+                       fi
+                       
+                       # Apply Prisma migrations for test environment
+                       if [ "$SERVICE" = "lumio" ]; then
+                         yarn prisma:test:lumio
+                       elif [ "$SERVICE" = "files" ]; then
+                         yarn prisma:test:files
+                       fi
+                       
+                       # Run unit tests for the specific service
+                       if [ "$SERVICE" = "lumio" ]; then
+                         yarn test:unit:lumio
+                       elif [ "$SERVICE" = "files" ]; then
+                         # Для files нужно использовать общий test:unit или аналогичный скрипт
+                         yarn test --testPathPattern="apps/files/.*\\\\.spec\\\\.ts$"
+                       fi
                     '''
                 }
             }
         }
         
-        stage('Clean and setup workspace') {
+        stage('Build docker image') {
             steps {
-                sh '''
-                    echo "=== Cleaning workspace ==="
-                    
-                    # Очищаем старые билды
-                    find . -name "dist" -type d -prune -exec rm -rf {} + 2>/dev/null || true
-                    find . -name ".next" -type d -prune -exec rm -rf {} + 2>/dev/null || true
-                    find . -name "coverage" -type d -prune -exec rm -rf {} + 2>/dev/null || true
-                    
-                    # Сохраняем node_modules если они уже есть
-                    if [ -d "node_modules" ]; then
-                        echo "Preserving existing node_modules..."
-                    fi
-                    
-                    # Создаем директории для кэша
-                    mkdir -p ${YARN_CACHE_DIR}
-                    mkdir -p ${PRISMA_CACHE_DIR}
-                    
-                    echo "✅ Workspace cleaned and cache directories created"
-                '''
-            }
-        }
-        
-        stage('Install dependencies with smart cache') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Installing dependencies ==="
-                        
-                        # Проверяем package.json
-                        if [ ! -f "package.json" ]; then
-                            echo "❌ package.json not found!"
-                            exit 1
-                        fi
-                        
-                        # Устанавливаем @nestjs/cli первым делом
-                        echo "Installing @nestjs/cli..."
-                        npm install @nestjs/cli --no-save || yarn add @nestjs/cli --dev
-                        
-                        # Устанавливаем ts-loader как dev dependency
-                        echo "Installing ts-loader..."
-                        yarn add ts-loader -D --ignore-engines || npm install ts-loader --save-dev
-                        
-                        # Устанавливаем остальные зависимости
-                        echo "Installing project dependencies..."
-                        yarn install --frozen-lockfile --prefer-offline --network-timeout 600000 --ignore-engines || {
-                            echo "❌ Failed to install dependencies"
-                            exit 1
-                        }
-                        
-                        echo "✅ Dependencies installed"
-                    '''
-                }
-            }
-        }
-        
-        stage('Code quality checks') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Running code quality checks ==="
-                        
-                        # Запускаем линтинг
-                        echo "Running ESLint..."
-                        yarn lint 2>/dev/null || {
-                            echo "⚠️ ESLint found issues or not configured"
-                        }
-                        
-                        echo "✅ Code quality checks completed"
-                    '''
-                }
-            }
-        }
-        
-        stage('Build application') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Building application ==="
-                        
-                        # Собираем конкретный сервис
-                        echo "Building ${SERVICE} service..."
-                        
-                        # Проверяем окружение
-                        ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.${ENV_TYPE}"
-                        if [ ! -f "${ENV_FILE}" ]; then
-                            echo "⚠️ Environment file not found: ${ENV_FILE}"
-                            echo "Using development environment file..."
-                            ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.development"
-                        fi
-                        
-                        # Генерируем Prisma клиент
-                        echo "Generating Prisma client..."
-                        if [ "${SERVICE}" = "lumio" ]; then
-                            yarn prisma:generate:lumio 2>/dev/null || {
-                                echo "❌ Failed to generate Prisma client"
-                                exit 1
-                            }
-                        elif [ "${SERVICE}" = "files" ]; then
-                            yarn prisma:generate:files 2>/dev/null || {
-                                echo "❌ Failed to generate Prisma client"
-                                exit 1
-                            }
-                        fi
-                        
-                        # Альтернативный способ сборки - используем npx с явным указанием
-                        echo "Building NestJS application using direct webpack..."
-                        
-                        # Создаем директорию для билда если её нет
-                        mkdir -p dist
-                        
-                        # Используем nest команду через npx
-                        echo "Running: npx nest build ${SERVICE}"
-                        npx nest build ${SERVICE} --verbose || {
-                            echo "❌ Failed to build with nest command"
-                            
-                            # Пробуем альтернативный способ через webpack
-                            echo "Trying alternative build method..."
-                            if [ -f "node_modules/.bin/nest" ]; then
-                                ./node_modules/.bin/nest build ${SERVICE} --webpack --webpackPath webpack.config.js || {
-                                    echo "❌ Alternative build also failed"
-                                    exit 1
-                                }
-                            else
-                                echo "❌ Nest CLI not found in node_modules"
-                                exit 1
-                            fi
-                        }
-                        
-                        # Проверяем наличие билда
-                        if [ ! -d "dist/apps/${SERVICE}" ]; then
-                            echo "❌ Build output not found at dist/apps/${SERVICE}"
-                            echo "Contents of dist directory:"
-                            ls -la dist/ 2>/dev/null || true
-                            exit 1
-                        fi
-                        
-                        echo "✅ Application built successfully"
-                        echo "Build output size:"
-                        du -sh dist/apps/${SERVICE}
-                    '''
-                }
-            }
-        }
-        
-        stage('Run tests') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Running tests ==="
-                        
-                        # Проверяем тестовое окружение
-                        TEST_ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.testing"
-                        if [ ! -f "${TEST_ENV_FILE}" ]; then
-                            echo "⚠️ Test environment file not found: ${TEST_ENV_FILE}"
-                            echo "Skipping tests..."
-                        else
-                            # Запускаем unit тесты
-                            echo "Running unit tests for ${SERVICE}..."
-                            
-                            if [ "${SERVICE}" = "lumio" ]; then
-                                yarn test:unit:lumio --passWithNoTests || {
-                                    echo "⚠️ Unit tests failed or no tests found"
-                                }
-                            else
-                                yarn test:unit --passWithNoTests || {
-                                    echo "⚠️ Unit tests failed or no tests found"
-                                }
-                            fi
-                        fi
-                        
-                        echo "✅ Tests completed"
-                    '''
-                }
-            }
-        }
-        
-        stage('Build Docker image') {
-            steps {
-                script {
-                    echo "=== Building Docker image ==="
-                    
-                    // Проверяем Dockerfile
-                    def dockerfile = "./apps/${SERVICE}/Dockerfile"
-                    if (!fileExists(dockerfile)) {
-                        error "❌ Dockerfile not found: ${dockerfile}"
+                echo "Build image started..."
+                    script {
+                       app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
                     }
-                    
-                    // Получаем версию из package.json
-                    def packageJson = readJSON file: 'package.json'
-                    def version = packageJson.version ?: '1.0.0'
-                    
-                    // Готовим билд-аргументы
-                    def buildArgs = [
-                        "--build-arg SERVICE=${SERVICE}",
-                        "--build-arg PORT=${PORT}",
-                        "--build-arg VERSION=${version}",
-                        "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER}",
-                        "--build-arg GIT_COMMIT=${env.GIT_COMMIT}",
-                        "--build-arg NODE_ENV=${NODE_ENV}",
-                        "--label version=${version}",
-                        "--label build.number=${env.BUILD_NUMBER}",
-                        "--label commit=${env.GIT_COMMIT}",
-                        "--label service=${SERVICE}",
-                        "--label environment=${ENV_TYPE}"
-                    ].join(' ')
-                    
-                    // Собираем образ
-                    echo "Building image: ${DOCKER_BUILD_NAME}"
-                    echo "Build args: ${buildArgs}"
-                    
-                    app = docker.build(
-                        "${DOCKER_BUILD_NAME}",
-                        "${buildArgs} -f ${dockerfile} ./"
-                    )
-                    
-                    echo "✅ Docker image built successfully"
-                }
+                echo "Build image finished..."
             }
         }
-        
-        // Остальные stages остаются без изменений
-        stage('Push Docker image') {
-            steps {
-                script {
-                    echo "=== Pushing Docker image ==="
-                    
-                    // Проверяем доступность registry
-                    sh '''
-                        echo "Testing Docker registry connection..."
-                        docker login ${REGISTRY} -u lumio-su --password-stdin <<< "${DOCKER_PASSWORD}" 2>/dev/null || {
-                            echo "⚠️ Could not login to registry, but trying to push anyway"
+        stage('Push docker image') {
+             steps {
+                 echo "Push image started..."
+                     script {
+                        docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
+                            app.push("${env.IMAGE_NAME}")
                         }
-                    '''
-                    
-                    docker.withRegistry("https://${REGISTRY}", 'lumio-su') {
-                        // Основной push
-                        app.push("${IMAGE_NAME}")
-                        
-                        // Дополнительные теги
-                        def packageJson = readJSON file: 'package.json'
-                        def version = packageJson.version ?: '1.0.0'
-                        
-                        // Для production пушим дополнительные теги
-                        if (ENV_TYPE == "production") {
-                            app.push("latest")
-                            app.push("v${version}")
-                            app.push("production-${version}")
-                            echo "✅ Pushed additional tags: latest, v${version}, production-${version}"
-                        }
-                        
-                        // Для staging
-                        if (ENV_TYPE == "staging") {
-                            app.push("staging")
-                            app.push("staging-${version}")
-                        }
-                    }
-                    
-                    echo "✅ Docker image pushed successfully"
-                }
-            }
+                     }
+                 echo "Push image finished..."
+             }
+       }
+       stage('Delete image local') {
+             steps {
+                 script {
+                    sh "docker rmi -f ${env.DOCKER_BUILD_NAME}"
+                 }
+             }
         }
-        
-        stage('Clean local Docker images') {
-            steps {
-                sh '''
-                    echo "=== Cleaning local Docker images ==="
-                    
-                    # Удаляем собранный образ
-                    docker rmi -f ${DOCKER_BUILD_NAME} 2>/dev/null || true
-                    
-                    # Удаляем dangling images
-                    docker image prune -f 2>/dev/null || true
-                    
-                    echo "✅ Local Docker cleanup completed"
-                '''
-            }
+        stage('Preparing deployment') {
+             steps {
+                 echo "Preparing started..."
+                     sh 'ls -ltr'
+                     sh 'pwd'
+                     sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
+                     sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
+                     sh "cat ./apps/${env.SERVICE}/deployment.yaml"
+             }
         }
-        
-        stage('Prepare Kubernetes deployment') {
-            steps {
-                script {
-                    echo "=== Preparing Kubernetes deployment ==="
-                    
-                    // Проверяем скрипт деплоя
-                    def deployScript = "./apps/${SERVICE}/preparingDeploy.sh"
-                    if (!fileExists(deployScript)) {
-                        error "❌ Deploy script not found: ${deployScript}"
-                    }
-                    
-                    // Проверяем, что он executable
-                    sh """
-                        echo "Checking deploy script..."
-                        if [ ! -x "${deployScript}" ]; then
-                            echo "Making deploy script executable..."
-                            chmod +x ${deployScript}
-                        fi
-                    """
-                    
-                    // Запускаем скрипт
-                    sh """
-                        echo "Running deploy script..."
-                        ./apps/${SERVICE}/preparingDeploy.sh \\
-                            "${REGISTRY_HOSTNAME}" \\
-                            "${PROJECT}" \\
-                            "${IMAGE_NAME}" \\
-                            "${DEPLOYMENT_NAME}" \\
-                            "${PORT}" \\
-                            "${NAMESPACE}"
-                        
-                        echo "=== Generated deployment.yaml ==="
-                        DEPLOYMENT_FILE="./apps/${SERVICE}/deployment.yaml"
-                        
-                        if [ -f "\${DEPLOYMENT_FILE}" ]; then
-                            # Проверяем содержимое
-                            cat "\${DEPLOYMENT_FILE}"
-                        else
-                            echo "❌ deployment.yaml not generated!"
-                            exit 1
-                        fi
-                    """
-                }
-            }
-        }
-
         stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    echo "=== Deploying to Kubernetes ==="
-                    
-                    withKubeConfig([credentialsId: 'prod-kubernetes']) {
-                        // Проверяем подключение к кластеру
-                        sh '''
-                            echo "Checking Kubernetes connection..."
-                            
-                            if ! kubectl cluster-info; then
-                                echo "❌ Cannot connect to Kubernetes cluster"
-                                exit 1
-                            fi
-                            
-                            echo "Kubernetes nodes:"
-                            kubectl get nodes --no-headers | wc -l || echo "0"
-                        '''
-                        
-                        // Применяем деплоймент
-                        sh """
-                            echo "Applying deployment to namespace ${NAMESPACE}..."
-                            
-                            DEPLOYMENT_FILE="./apps/${SERVICE}/deployment.yaml"
-                            
-                            # Dry-run сначала
-                            kubectl apply -f "\${DEPLOYMENT_FILE}" --namespace=${NAMESPACE} --dry-run=client
-                            
-                            # Применяем
-                            kubectl apply -f "\${DEPLOYMENT_FILE}" --namespace=${NAMESPACE}
-                            
-                            echo "Watching rollout status..."
-                            
-                            # Ждем rollout с таймаутом
-                            timeout=300
-                            interval=5
-                            elapsed=0
-                            
-                            while [ \$elapsed -lt \$timeout ]; do
-                                status=\$(kubectl rollout status deployment/${DEPLOYMENT_NAME} \\
-                                    --namespace=${NAMESPACE} \\
-                                    --timeout=60s 2>&1 || true)
-                                
-                                if echo "\$status" | grep -q "successfully rolled out"; then
-                                    echo "✅ Deployment rolled out successfully"
-                                    break
-                                fi
-                                
-                                echo "Waiting for rollout... (\$elapsed/\$timeout seconds)"
-                                sleep \$interval
-                                elapsed=\$((elapsed + interval))
-                            done
-                            
-                            if [ \$elapsed -ge \$timeout ]; then
-                                echo "⚠️ Rollout timeout reached"
-                            fi
-                            
-                            # Проверяем статус
-                            echo "=== Deployment details ==="
-                            kubectl get deployment/${DEPLOYMENT_NAME} \\
-                                --namespace=${NAMESPACE} \\
-                                -o wide
-                            
-                            echo "=== Pods status ==="
-                            kubectl get pods \\
-                                --namespace=${NAMESPACE} \\
-                                -l app=${DEPLOYMENT_NAME} \\
-                                -o wide
-                        """
-                    }
-                    
-                    echo "✅ Kubernetes deployment completed"
-                }
-            }
-        }
-        
-        stage('Post-deployment verification') {
-            steps {
-                script {
-                    echo "=== Post-deployment verification ==="
-                    
-                    // Даем время на запуск
-                    sleep 30
-                    
-                    withKubeConfig([credentialsId: 'prod-kubernetes']) {
-                        sh """
-                            echo "Checking deployment health..."
-                            
-                            # Проверяем готовность подов
-                            READY=\$(kubectl get deployment ${DEPLOYMENT_NAME} \\
-                                --namespace=${NAMESPACE} \\
-                                -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
-                            
-                            DESIRED=\$(kubectl get deployment ${DEPLOYMENT_NAME} \\
-                                --namespace=${NAMESPACE} \\
-                                -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
-                            
-                            echo "Ready replicas: \${READY}/\${DESIRED}"
-                            
-                            if [ "\${READY}" -eq "\${DESIRED}" ] && [ "\${READY}" -gt "0" ]; then
-                                echo "✅ All pods are ready"
-                            else
-                                echo "⚠️ Not all pods are ready"
-                                
-                                # Проверяем события
-                                echo "Recent events:"
-                                kubectl get events \\
-                                    --namespace=${NAMESPACE} \\
-                                    --field-selector involvedObject.name=${DEPLOYMENT_NAME} \\
-                                    --sort-by='.lastTimestamp' \\
-                                    --tail=10 2>/dev/null || true
-                            fi
-                        """
-                    }
-                    
-                    echo "✅ Post-deployment verification completed"
-                }
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo "=== Pipeline execution completed ==="
-            echo "Job: ${JOB_NAME}"
-            echo "Build: ${BUILD_NUMBER}"
-            echo "Result: ${currentBuild.result}"
-            echo "Duration: ${currentBuild.durationString}"
-            echo "Commit: ${GIT_COMMIT}"
-            echo "Branch: ${GIT_BRANCH}"
-            echo "Image: ${DOCKER_BUILD_NAME}"
-            
-            // Сохраняем артефакты
-            archiveArtifacts artifacts: '**/coverage/**/*', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/deployment.yaml', allowEmptyArchive: true
-        }
-        
-        success {
-            echo "🎉 Pipeline SUCCESS!"
-        }
-        
-        failure {
-            echo "💥 Pipeline FAILED!"
-        }
-        
-        cleanup {
-            // Сохраняем кэш для следующего билда
-            sh '''
-                echo "=== Final cleanup ==="
-                echo "Preserving cache directories..."
-                
-                # Очищаем workspace но оставляем кэш
-                find . -maxdepth 1 ! -name ".yarn-cache" ! -name ".prisma-cache" ! -name "." -exec rm -rf {} + 2>/dev/null || true
-                
-                echo "Cleanup completed"
-            '''
+             steps {
+                 withKubeConfig([credentialsId: 'prod-kubernetes']) {
+                    sh "kubectl apply -f ./apps/${env.SERVICE}/deployment.yaml"
+                    sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
+                    sh "kubectl get services -o wide"
+                 }
+             }
         }
     }
 }
