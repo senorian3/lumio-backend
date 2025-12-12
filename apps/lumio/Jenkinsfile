@@ -40,37 +40,39 @@ pipeline {
     steps {
         script {
             sh '''
-                echo "=== Checking prerequisites ==="
+                echo "=== Quick prerequisites check ==="
                 
-                # Просто выводим версии без сложных проверок
-                echo "Node.js: $(node --version 2>/dev/null || echo 'NOT FOUND')"
-                echo "Yarn: $(yarn --version 2>/dev/null || echo 'NOT FOUND')"
-                echo "Docker: $(docker --version 2>/dev/null || echo 'NOT FOUND')"
-                echo "kubectl: $(kubectl version --client --short 2>/dev/null || echo 'NOT FOUND')"
-                
-                # Проверяем только критические зависимости
-                if ! command -v docker &> /dev/null; then
-                    echo "❌ ERROR: Docker is required but not found"
+                # Проверяем Docker (самое важное)
+                if ! docker --version > /dev/null 2>&1; then
+                    echo "❌ FATAL: Docker not found or not working"
                     exit 1
                 fi
+                echo "✅ Docker: $(docker --version | head -1)"
                 
-                if ! command -v node &> /dev/null; then
-                    echo "❌ ERROR: Node.js is required but not found"
-                    
-                    # Пробуем загрузить NVM
-                    export NVM_DIR="$HOME/.nvm"
-                    if [ -s "$NVM_DIR/nvm.sh" ]; then
-                        echo "Loading NVM..."
-                        . "$NVM_DIR/nvm.sh"
+                # Проверяем Node.js
+                if ! node --version > /dev/null 2>&1; then
+                    echo "⚠️ Node.js not in PATH, checking NVM..."
+                    if [ -s "$HOME/.nvm/nvm.sh" ]; then
+                        . "$HOME/.nvm/nvm.sh"
                         nvm use default 2>/dev/null || true
                     fi
                     
-                    if ! command -v node &> /dev/null; then
+                    if ! node --version > /dev/null 2>&1; then
+                        echo "❌ FATAL: Node.js not found"
                         exit 1
                     fi
                 fi
+                echo "✅ Node.js: $(node --version)"
                 
-                echo "✅ Prerequisites check passed"
+                # Проверяем Yarn
+                if ! yarn --version > /dev/null 2>&1; then
+                    echo "⚠️ Yarn not found, installing..."
+                    npm install -g yarn 2>/dev/null || echo "⚠️ Could not install yarn"
+                else
+                    echo "✅ Yarn: $(yarn --version)"
+                fi
+                
+                echo "✅ Prerequisites OK"
             '''
         }
     }
