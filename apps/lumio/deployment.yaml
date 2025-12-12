@@ -141,3 +141,18 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: SMTP_SECURE
+            - name: YANDEX_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: YANDEX_CLIENT_ID
+            - name: YANDEX_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: YANDEX_CLIENT_SECRET
+            - name: YANDEX_CALLBACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: YANDEX_CALLBACK_URL
