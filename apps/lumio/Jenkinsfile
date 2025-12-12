@@ -7,7 +7,7 @@ pipeline {
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
         PROJECT = "lumio-back-end"
-        SERVICE = "lumio"  // Явно указано, что этот Jenkinsfile только для lumio
+        SERVICE = "lumio"
         REGISTRY = "registry.hub.docker.com"
         DEPLOYMENT_NAME = "lumio-back-end-deployment"
         IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
@@ -35,15 +35,36 @@ pipeline {
             }
         }
         
+        stage('Setup Node.js environment') {
+            steps {
+                script {
+                    sh '''
+                       # Используем NVM для установки совместимой версии Node.js
+                       export NVM_DIR="$HOME/.nvm"
+                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                       
+                       # Устанавливаем совместимую версию Node.js (>=20.9.0)
+                       echo "Installing compatible Node.js version..."
+                       nvm install 20.9.0 || nvm install 20 || nvm install --lts
+                       nvm use 20.9.0 || nvm use 20 || nvm use --lts
+                       
+                       echo "New Node.js version: $(node --version)"
+                       echo "New NPM version: $(npm --version)"
+                    '''
+                }
+            }
+        }
+        
         stage('Setup and Run Unit Tests') {
             steps {
                 script {
                     sh '''
-                       # Убедимся, что Node.js доступен
+                       # Проверяем версию Node.js после установки
                        echo "Using Node.js: $(node --version)"
                        
-                       # Install dependencies for lumio service
-                       yarn install
+                       # Install dependencies for lumio service (игнорируем engine проверки если нужно)
+                       echo "Installing dependencies..."
+                       yarn install --ignore-engines
                        
                        # Generate Prisma client for test environment for lumio only
                        echo "Generating Prisma client for lumio test environment..."
