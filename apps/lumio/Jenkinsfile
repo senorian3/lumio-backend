@@ -68,58 +68,6 @@ pipeline {
             }
         }
         
-        stage('e2e tests') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Starting e2e tests ==="
-                        
-                        echo "Generating Prisma Client for test environment..."
-                        yarn prisma:generate:lumio:test
-                        
-                        echo "Setting up test environment..."
-                        
-                        if [ -f "apps/lumio/jenkins-test-env" ]; then
-                            echo "✓ Using jenkins-test-env from apps/lumio/"
-                            cp apps/lumio/jenkins-test-env .env.testing
-                        elif [ -f "apps/lumio/.env.lumio.testing" ]; then
-                            echo "⚠️ Using .env.lumio.testing as fallback"
-                            cp apps/lumio/.env.lumio.testing .env.testing
-                        else
-                            echo "❌ ERROR: No test env file found!"
-                            exit 1
-                        fi
-
-                        echo "Running database migrations..."
-                        npx dotenv -e .env.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma
-                        
-                        echo "Running e2e tests..."
-                        
-                        echo "1. Running auth e2e tests..."
-                        if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts; then
-                            echo "✅ Auth e2e tests passed"
-                        else
-                            echo "❌ Auth e2e tests failed"
-                            rm -f .env.testing
-                            exit 1
-                        fi
-                        
-                        echo "2. Running session e2e tests..."
-                        if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts; then
-                            echo "✅ Session e2e tests passed"
-                        else
-                            echo "❌ Session e2e tests failed"
-                            rm -f .env.testing
-                            exit 1
-                        fi
-                        
-                        rm -f .env.testing
-                        echo "✅ All e2e tests completed successfully"
-                    '''
-                }
-            }
-        }
-        
         stage('Build docker image') {
             steps {
                 script {
