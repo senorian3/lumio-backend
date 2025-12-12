@@ -39,6 +39,8 @@ import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-account
 import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
 import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/registration-confirmation.decorator';
 import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
+import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
+import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -198,12 +200,14 @@ export class AuthController {
   }
 
   @Get(AUTH_ROUTES.YANDEX)
+  @ApiYandex()
   @UseGuards(AuthGuard('yandex'))
   async yandexLogin(): Promise<void> {
     // Guard сам инициирует редирект — ничего не нужно
   }
 
   @Get(AUTH_ROUTES.YANDEX_CALLBACK)
+  @ApiYandexCallback()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('yandex'))
   async yandexCallback(

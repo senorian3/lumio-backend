@@ -1,20 +1,20 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-export function ApiGithubCallback() {
+export function ApiYandexCallback() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Github callback',
-      description: 'Endpoint for github callback',
-      operationId: 'githubCallback',
+      summary: 'Yandex callback',
+      description: 'Endpoint for yandex callback',
+      operationId: 'yandexCallback',
     }),
 
     ApiResponse({
       status: 200,
-      description: 'User successfully login via github',
+      description: 'User successfully login via yandex',
       examples: {
-        user_logined: {
-          summary: 'User successfully login via github',
+        user_logined_via_yandex: {
+          summary: 'User successfully login via yandex',
           value: {
             accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
           },
