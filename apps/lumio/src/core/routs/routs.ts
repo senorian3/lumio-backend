@@ -11,6 +11,8 @@ export const AUTH_ROUTES = {
   GOOGLE: 'google/',
   GOOGLE_CALLBACK: 'google/callback/',
   REGISTRATION_CONFIRMATION: 'registration-confirmation/',
+  YANDEX: 'yandex/',
+  YANDEX_CALLBACK: 'yandex/callback/',
 } as const;
 
 export const SECURITY_BASE = 'security/devices/';

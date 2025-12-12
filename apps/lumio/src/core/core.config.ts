@@ -62,6 +62,15 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable GOOGLE_CALLBACK_URL' })
   googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_ID' })
+  yandexClientId: string = this.configService.get('YANDEX_CLIENT_ID');
+
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_SECRET' })
+  yandexClientSecret: string = this.configService.get('YANDEX_CLIENT_SECRET');
+
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CALLBACK_URL' })
+  yandexCallbackUrl: string = this.configService.get('YANDEX_CALLBACK_URL');
+
   @IsNumber(
     {},
     {
