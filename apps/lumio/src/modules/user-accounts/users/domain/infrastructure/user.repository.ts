@@ -7,6 +7,7 @@ import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { GoogleEntity } from '@lumio/modules/user-accounts/users/domain/entities/google.entity';
 import { GoogleDomainDto } from '@lumio/modules/user-accounts/users/domain/dto/google.domain.dto';
+import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -221,6 +222,45 @@ export class UserRepository {
       await tx.user.deleteMany({
         where: { id: { in: userIds } },
       });
+    });
+  }
+
+  async findYandexByYandexId(yandexId: string): Promise<YandexEntity | null> {
+    return this.prisma.yandex.findUnique({
+      where: { yandexId },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async createYandex(data: {
+    yandexId: string;
+    email: string;
+    username: string;
+    userId: number;
+  }) {
+    return this.prisma.yandex.create({
+      data: {
+        yandexId: data.yandexId,
+        email: data.email,
+        username: data.username,
+        userId: data.userId,
+      },
+    });
+  }
+
+  async updateYandex(
+    id: number,
+    data: {
+      userId?: number;
+      email?: string;
+      username?: string;
+    },
+  ): Promise<void> {
+    await this.prisma.yandex.update({
+      where: { id },
+      data,
     });
   }
 }

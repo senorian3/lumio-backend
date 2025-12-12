@@ -38,6 +38,9 @@ import { ApiGoogle } from '@lumio/core/decorators/swagger/google.decorator';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
 import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/registration-confirmation.decorator';
+import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
+import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
+import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -152,6 +155,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -193,6 +197,49 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
+    return { accessToken };
+  }
+
+  @Get(AUTH_ROUTES.YANDEX)
+  @ApiYandex()
+  @UseGuards(AuthGuard('yandex'))
+  async yandexLogin(): Promise<void> {
+    // Guard сам инициирует редирект — ничего не нужно
+  }
+
+  @Get(AUTH_ROUTES.YANDEX_CALLBACK)
+  @ApiYandexCallback()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('yandex'))
+  async yandexCallback(
+    @Req() req: any,
+    @Res() res: Response,
+  ): Promise<{ accessToken: string }> {
+    const ip: string =
+      req.socket.remoteAddress ||
+      (Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : req.headers['x-forwarded-for']) ||
+      'unknown';
+
+    const deviceName = req.headers['user-agent'] || 'unknown';
+
+    const user = req.user;
+
+    const { accessToken, refreshToken } = await this.commandBus.execute<
+      LoginUserYandexCommand,
+      { accessToken: string; refreshToken: string }
+    >(new LoginUserYandexCommand(user, deviceName, ip));
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`); узнать ссылку у фронтов
     return { accessToken };
   }
 

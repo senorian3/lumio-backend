@@ -29,6 +29,8 @@ import { LogoutUserUseCase } from '@lumio/modules/user-accounts/auth/application
 import { RegistrationConfirmationUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserSchedulerService } from './scheduler/users-scheduler';
+import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
+import { LoginUserYandexUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -70,6 +72,7 @@ const useCases = [
   LoginUserGoogleUseCase,
   LogoutUserUseCase,
   RegistrationConfirmationUserUseCase,
+  LoginUserYandexUseCase,
 ];
 
 const services = [
@@ -80,7 +83,12 @@ const services = [
   AuthService,
 ];
 
-const strategies = [GithubStrategy, JwtStrategy, GoogleStrategy];
+const strategies = [
+  GithubStrategy,
+  JwtStrategy,
+  GoogleStrategy,
+  YandexStrategy,
+];
 
 @Module({
   imports: [

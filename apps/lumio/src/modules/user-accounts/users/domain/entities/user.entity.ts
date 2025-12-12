@@ -3,6 +3,7 @@ import { EmailConfirmationEntity } from './email-confirmation.entity';
 import { GitHubEntity } from './github.entity';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { GoogleEntity } from './google.entity';
+import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
 
 export const usernameConstraints = {
   minLength: 6,
@@ -28,5 +29,7 @@ export class UserEntity implements User {
 
   github?: GitHubEntity | null;
 
-  google?: GoogleEntity | null; // новая связь
+  google?: GoogleEntity | null;
+
+  yandex?: YandexEntity | null;
 }

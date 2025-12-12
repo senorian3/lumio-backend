@@ -35,17 +35,13 @@ export function ApiGoogleCallback() {
       status: 403,
       description: 'Forbidden access',
       examples: {
-        iat_or_exp_not_verified: {
+        refresh_token_not_verified: {
           summary: 'Refresh token is not verified',
           value: {
-            extensions: [
+            errorMessages: [
               {
-                errorsMessages: [
-                  {
-                    message: 'Refresh token is not verified',
-                    field: 'refreshToken',
-                  },
-                ],
+                message: 'Refresh token is not verified',
+                field: 'refreshToken',
               },
             ],
           },
@@ -56,16 +52,18 @@ export function ApiGoogleCallback() {
     ApiResponse({
       status: 429,
       description: 'Too many requests',
-      example: {
-        extensions: [
-          {
-            errorsMessages: [
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorMessages: [
               {
                 message: 'Too many requests',
+                field: null,
               },
             ],
           },
-        ],
+        },
       },
     }),
   );
