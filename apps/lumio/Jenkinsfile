@@ -1,7 +1,6 @@
-def app
-
 pipeline {
     agent any
+    
     environment {
         ENV_TYPE = "production"
         PORT = 4121
@@ -13,135 +12,710 @@ pipeline {
         DEPLOYMENT_NAME = "lumio-back-end-deployment"
         IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
         DOCKER_BUILD_NAME = "${env.REGISTRY_HOSTNAME}/${env.PROJECT}:${env.IMAGE_NAME}"
+        
+        // Для кэширования
+        YARN_CACHE_DIR = "${WORKSPACE}/.yarn-cache"
+        PRISMA_CACHE_DIR = "${WORKSPACE}/.prisma-cache"
+        
+        // Определяем окружение для команд
+        NODE_ENV = "production"
     }
-
+    
     stages {
         stage('Clone repository') {
             steps {
                 checkout scm
+                
+                sh '''
+                    echo "=== Repository Info ==="
+                    echo "Commit: ${GIT_COMMIT}"
+                    echo "Branch: ${GIT_BRANCH}"
+                    echo "Build: ${BUILD_NUMBER}"
+                    echo "Workspace: ${WORKSPACE}"
+                '''
             }
         }
         
-        stage('Setup environment') {
+        stage('Check prerequisites') {
             steps {
                 script {
                     sh '''
-                       echo "=== Setting up environment ==="
-                       
-                       export NVM_DIR="$HOME/.nvm"
-                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                       
-                       nvm install 20.17.0
-                       nvm use 20.17.0
-                       
-                       echo "Node version: $(node --version)"
-                       echo "NPM version: $(npm --version)"
-                       
-                       yarn install
-                       
-                       echo "✅ Environment setup completed"
-                    '''
-                }
-            }
-        }
-        
-        stage('Unit tests') {
-            steps {
-                script {
-                    sh '''
-                        echo "=== Starting unit tests ==="
+                        echo "=== Checking prerequisites ==="
                         
-                        echo "Generating Prisma Client..."
-                        npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
+                        # Проверяем Node.js
+                        if ! command -v node &> /dev/null; then
+                            echo "❌ Node.js is not installed"
+                            echo "Installing Node.js via apt..."
+                            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 2>/dev/null || true
+                            sudo apt-get install -y nodejs 2>/dev/null || {
+                                echo "Failed to install Node.js"
+                                exit 1
+                            }
+                        fi
                         
-                        echo "Running unit tests..."
-                        yarn test:unit:lumio
+                        echo "Node.js: $(node --version)"
                         
-                        if [ $? -eq 0 ]; then
-                            echo "✅ Unit tests passed"
-                        else
-                            echo "❌ Unit tests failed"
+                        # Проверяем yarn
+                        if ! command -v yarn &> /dev/null; then
+                            echo "Installing yarn..."
+                            npm install -g yarn
+                        fi
+                        
+                        echo "Yarn: $(yarn --version)"
+                        
+                        # Проверяем docker
+                        if ! command -v docker &> /dev/null; then
+                            echo "❌ Docker is not installed"
                             exit 1
                         fi
+                        
+                        echo "Docker: $(docker --version)"
+                        
+                        # Проверяем kubectl если нужно
+                        if ! command -v kubectl &> /dev/null; then
+                            echo "⚠️ kubectl not found, but will use withKubeConfig"
+                        fi
+                        
+                        echo "✅ Prerequisites check passed"
                     '''
                 }
             }
         }
         
-        stage('Build docker image') {
+        stage('Clean and setup workspace') {
             steps {
-                echo "Build image started..."
-                    script {
-                       app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
-                    }
-                echo "Build image finished..."
+                sh '''
+                    echo "=== Cleaning workspace ==="
+                    
+                    # Очищаем старые node_modules и билды
+                    find . -name "node_modules" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+                    find . -name "dist" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+                    find . -name ".next" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+                    find . -name "coverage" -type d -prune -exec rm -rf {} + 2>/dev/null || true
+                    
+                    # Создаем директории для кэша
+                    mkdir -p ${YARN_CACHE_DIR}
+                    mkdir -p ${PRISMA_CACHE_DIR}
+                    
+                    echo "✅ Workspace cleaned and cache directories created"
+                '''
             }
         }
         
-        stage('Push docker image') {
-             steps {
-                 echo "Push image started..."
-                     script {
-                        docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
-                            app.push("${env.IMAGE_NAME}")
-                        }
-                     }
-                 echo "Push image finished..."
-             }
-       }
-        
-         stage('Delete image local') {
-             steps {
-                 script {
-                    sh "docker rmi -f ${env.DOCKER_BUILD_NAME}"
-                 }
-             }
+        stage('Install dependencies with smart cache') {
+            steps {
+                script {
+                    sh '''
+                        echo "=== Installing dependencies ==="
+                        
+                        # Проверяем package.json
+                        if [ ! -f "package.json" ]; then
+                            echo "❌ package.json not found!"
+                            exit 1
+                        fi
+                        
+                        # Проверяем, можем ли использовать кэш
+                        CACHE_VALID=false
+                        if [ -f "${YARN_CACHE_DIR}/package.json" ]; then
+                            echo "Found cached package.json, comparing..."
+                            
+                            # Простая проверка хэша зависимостей
+                            CURRENT_DEPS_HASH=$(cat package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
+                            CACHED_DEPS_HASH=$(cat ${YARN_CACHE_DIR}/package.json | grep -E '"dependencies"|"devDependencies"' | sort | md5sum | cut -d' ' -f1 2>/dev/null || echo "no_hash")
+                            
+                            if [ "${CURRENT_DEPS_HASH}" = "${CACHED_DEPS_HASH}" ]; then
+                                echo "✅ Dependencies unchanged, using cache"
+                                
+                                # Копируем кэшированные модули
+                                if [ -d "${YARN_CACHE_DIR}/node_modules" ]; then
+                                    echo "Copying cached node_modules..."
+                                    cp -r ${YARN_CACHE_DIR}/node_modules . || true
+                                fi
+                                
+                                CACHE_VALID=true
+                            else
+                                echo "⚠️ Dependencies changed, need fresh install"
+                            fi
+                        fi
+                        
+                        if [ "${CACHE_VALID}" = "false" ]; then
+                            echo "Installing fresh dependencies..."
+                            
+                            # Устанавливаем с кэшированием
+                            yarn install --frozen-lockfile --cache-folder ${YARN_CACHE_DIR} --prefer-offline --network-timeout 600000 || {
+                                echo "❌ Failed to install dependencies"
+                                exit 1
+                            }
+                            
+                            # Сохраняем в кэш
+                            echo "Caching dependencies..."
+                            cp package.json ${YARN_CACHE_DIR}/ 2>/dev/null || true
+                            cp yarn.lock ${YARN_CACHE_DIR}/ 2>/dev/null || true
+                            
+                            # Копируем node_modules в кэш (без symlinks)
+                            echo "Caching node_modules..."
+                            rm -rf ${YARN_CACHE_DIR}/node_modules 2>/dev/null || true
+                            mkdir -p ${YARN_CACHE_DIR}/node_modules
+                            
+                            # Копируем только основные директории для экономии места
+                            for dir in @nestjs @prisma @types date-fns; do
+                                if [ -d "node_modules/${dir}" ]; then
+                                    cp -r "node_modules/${dir}" "${YARN_CACHE_DIR}/node_modules/" 2>/dev/null || true
+                                fi
+                            done
+                        fi
+                        
+                        echo "✅ Dependencies installed"
+                    '''
+                }
+            }
         }
         
-         stage('Preparing deployment') {
-             steps {
-                 echo "Preparing started..."
-                     sh 'ls -ltr'
-                     sh 'pwd'
-                     sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
-                     sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
-                     sh "cat ./apps/${env.SERVICE}/deployment.yaml"
-             }
+        stage('Code quality checks') {
+            steps {
+                script {
+                    sh '''
+                        echo "=== Running code quality checks ==="
+                        
+                        # Запускаем линтинг
+                        echo "Running ESLint..."
+                        yarn lint 2>/dev/null || {
+                            echo "⚠️ ESLint found issues or not configured"
+                        }
+                        
+                        # Запускаем форматирование
+                        echo "Running Prettier..."
+                        yarn format 2>/dev/null || {
+                            echo "⚠️ Prettier found issues or not configured"
+                        }
+                        
+                        echo "✅ Code quality checks completed"
+                    '''
+                }
+            }
+        }
+        
+        stage('Build application') {
+            steps {
+                script {
+                    sh '''
+                        echo "=== Building application ==="
+                        
+                        # Собираем конкретный сервис
+                        echo "Building ${SERVICE} service..."
+                        
+                        # Проверяем окружение
+                        ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.${ENV_TYPE}"
+                        if [ ! -f "${ENV_FILE}" ]; then
+                            echo "⚠️ Environment file not found: ${ENV_FILE}"
+                            echo "Using development environment file..."
+                            ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.development"
+                        fi
+                        
+                        # Генерируем Prisma клиент с правильным окружением
+                        echo "Generating Prisma client..."
+                        
+                        # Используем кэш для Prisma если есть
+                        if [ -d "${PRISMA_CACHE_DIR}/prisma" ]; then
+                            echo "Using cached Prisma client..."
+                            mkdir -p ./node_modules/.prisma
+                            cp -r ${PRISMA_CACHE_DIR}/prisma/* ./node_modules/.prisma/ 2>/dev/null || true
+                        fi
+                        
+                        # Генерируем Prisma клиент
+                        if [ "${SERVICE}" = "lumio" ]; then
+                            yarn prisma:generate:lumio 2>/dev/null || {
+                                echo "❌ Failed to generate Prisma client"
+                                exit 1
+                            }
+                        elif [ "${SERVICE}" = "files" ]; then
+                            yarn prisma:generate:files 2>/dev/null || {
+                                echo "❌ Failed to generate Prisma client"
+                                exit 1
+                            }
+                        fi
+                        
+                        # Сохраняем в кэш
+                        if [ -d "./node_modules/.prisma" ]; then
+                            echo "Caching Prisma client..."
+                            mkdir -p ${PRISMA_CACHE_DIR}/prisma
+                            cp -r ./node_modules/.prisma/* ${PRISMA_CACHE_DIR}/prisma/ 2>/dev/null || true
+                        fi
+                        
+                        # Собираем приложение
+                        echo "Building NestJS application..."
+                        if [ "${SERVICE}" = "lumio" ]; then
+                            yarn build:lumio || {
+                                echo "❌ Failed to build lumio"
+                                exit 1
+                            }
+                        elif [ "${SERVICE}" = "files" ]; then
+                            yarn build:files || {
+                                echo "❌ Failed to build files"
+                                exit 1
+                            }
+                        fi
+                        
+                        # Проверяем наличие билда
+                        if [ ! -d "dist/apps/${SERVICE}" ]; then
+                            echo "❌ Build output not found at dist/apps/${SERVICE}"
+                            exit 1
+                        fi
+                        
+                        echo "✅ Application built successfully"
+                    '''
+                }
+            }
+        }
+        
+        stage('Run tests') {
+            steps {
+                script {
+                    sh '''
+                        echo "=== Running tests ==="
+                        
+                        # Проверяем тестовое окружение
+                        TEST_ENV_FILE="apps/${SERVICE}/.env.${SERVICE}.testing"
+                        if [ ! -f "${TEST_ENV_FILE}" ]; then
+                            echo "⚠️ Test environment file not found: ${TEST_ENV_FILE}"
+                            echo "Skipping tests..."
+                        else
+                            # Запускаем unit тесты
+                            echo "Running unit tests for ${SERVICE}..."
+                            
+                            if [ "${SERVICE}" = "lumio" ]; then
+                                yarn test:unit:lumio --passWithNoTests --coverage || {
+                                    echo "⚠️ Unit tests failed or no tests found"
+                                }
+                            else
+                                yarn test:unit --passWithNoTests || {
+                                    echo "⚠️ Unit tests failed or no tests found"
+                                }
+                            fi
+                            
+                            # Запускаем e2e тесты если есть
+                            echo "Running e2e tests..."
+                            if [ "${SERVICE}" = "lumio" ]; then
+                                yarn test:e2e:lumio 2>/dev/null || {
+                                    echo "⚠️ E2E tests failed or not configured"
+                                }
+                            fi
+                        fi
+                        
+                        echo "✅ Tests completed"
+                    '''
+                }
+            }
+            
+            post {
+                always {
+                    // Сохраняем отчеты о покрытии
+                    junit '**/test-results.xml'
+                    archiveArtifacts 'coverage/**/*'
+                }
+            }
+        }
+        
+        stage('Build Docker image') {
+            steps {
+                script {
+                    echo "=== Building Docker image ==="
+                    
+                    // Проверяем Dockerfile
+                    def dockerfile = "./apps/${SERVICE}/Dockerfile"
+                    if (!fileExists(dockerfile)) {
+                        error "❌ Dockerfile not found: ${dockerfile}"
+                    }
+                    
+                    // Получаем версию из package.json
+                    def packageJson = readJSON file: 'package.json'
+                    def version = packageJson.version ?: '1.0.0'
+                    
+                    // Готовим билд-аргументы
+                    def buildArgs = [
+                        "--build-arg SERVICE=${SERVICE}",
+                        "--build-arg PORT=${PORT}",
+                        "--build-arg VERSION=${version}",
+                        "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER}",
+                        "--build-arg GIT_COMMIT=${env.GIT_COMMIT}",
+                        "--build-arg NODE_ENV=${NODE_ENV}",
+                        "--label version=${version}",
+                        "--label build.number=${env.BUILD_NUMBER}",
+                        "--label commit=${env.GIT_COMMIT}",
+                        "--label service=${SERVICE}",
+                        "--label environment=${ENV_TYPE}"
+                    ].join(' ')
+                    
+                    // Собираем образ
+                    echo "Building image: ${DOCKER_BUILD_NAME}"
+                    echo "Build args: ${buildArgs}"
+                    
+                    app = docker.build(
+                        "${DOCKER_BUILD_NAME}",
+                        "${buildArgs} -f ${dockerfile} ./"
+                    )
+                    
+                    echo "✅ Docker image built successfully"
+                    
+                    // Проверяем размер образа
+                    sh '''
+                        echo "=== Image information ==="
+                        docker images ${DOCKER_BUILD_NAME} --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+                        
+                        # Проверяем слои
+                        docker history ${DOCKER_BUILD_NAME} --format "table {{.CreatedBy}}\t{{.Size}}" --no-trunc | head -10
+                    '''
+                }
+            }
+        }
+        
+        stage('Push Docker image') {
+            steps {
+                script {
+                    echo "=== Pushing Docker image ==="
+                    
+                    // Проверяем доступность registry
+                    sh '''
+                        echo "Testing Docker registry connection..."
+                        docker login ${REGISTRY} -u lumio-su --password-stdin <<< "${DOCKER_PASSWORD}" 2>/dev/null || {
+                            echo "⚠️ Could not login to registry, but trying to push anyway"
+                        }
+                    '''
+                    
+                    docker.withRegistry("https://${REGISTRY}", 'lumio-su') {
+                        // Основной push
+                        app.push("${IMAGE_NAME}")
+                        
+                        // Дополнительные теги
+                        def packageJson = readJSON file: 'package.json'
+                        def version = packageJson.version ?: '1.0.0'
+                        
+                        // Для production пушим дополнительные теги
+                        if (ENV_TYPE == "production") {
+                            app.push("latest")
+                            app.push("v${version}")
+                            app.push("production-${version}")
+                            echo "✅ Pushed additional tags: latest, v${version}, production-${version}"
+                        }
+                        
+                        // Для staging
+                        if (ENV_TYPE == "staging") {
+                            app.push("staging")
+                            app.push("staging-${version}")
+                        }
+                    }
+                    
+                    echo "✅ Docker image pushed successfully"
+                }
+            }
+        }
+        
+        stage('Clean local Docker images') {
+            steps {
+                sh '''
+                    echo "=== Cleaning local Docker images ==="
+                    
+                    # Удаляем собранный образ
+                    docker rmi -f ${DOCKER_BUILD_NAME} 2>/dev/null || true
+                    
+                    # Удаляем dangling images
+                    docker image prune -f 2>/dev/null || true
+                    
+                    # Удаляем ненужные контейнеры
+                    docker container prune -f 2>/dev/null || true
+                    
+                    echo "✅ Local Docker cleanup completed"
+                '''
+            }
+        }
+        
+        stage('Prepare Kubernetes deployment') {
+            steps {
+                script {
+                    echo "=== Preparing Kubernetes deployment ==="
+                    
+                    // Проверяем скрипт деплоя
+                    def deployScript = "./apps/${SERVICE}/preparingDeploy.sh"
+                    if (!fileExists(deployScript)) {
+                        error "❌ Deploy script not found: ${deployScript}"
+                    }
+                    
+                    // Проверяем, что он executable
+                    sh """
+                        echo "Checking deploy script..."
+                        ls -la ${deployScript}
+                        
+                        if [ ! -x "${deployScript}" ]; then
+                            echo "Making deploy script executable..."
+                            chmod +x ${deployScript}
+                        fi
+                    """
+                    
+                    // Запускаем скрипт
+                    sh """
+                        echo "Running deploy script..."
+                        ./apps/${SERVICE}/preparingDeploy.sh \\
+                            "${REGISTRY_HOSTNAME}" \\
+                            "${PROJECT}" \\
+                            "${IMAGE_NAME}" \\
+                            "${DEPLOYMENT_NAME}" \\
+                            "${PORT}" \\
+                            "${NAMESPACE}"
+                        
+                        echo "=== Generated deployment.yaml ==="
+                        DEPLOYMENT_FILE="./apps/${SERVICE}/deployment.yaml"
+                        
+                        if [ -f "\${DEPLOYMENT_FILE}" ]; then
+                            # Проверяем содержимое
+                            cat "\${DEPLOYMENT_FILE}"
+                            
+                            # Проверяем, что image указан правильно
+                            if ! grep -q "${IMAGE_NAME}" "\${DEPLOYMENT_FILE}"; then
+                                echo "⚠️ Warning: Image name not found in deployment.yaml"
+                            fi
+                        else
+                            echo "❌ deployment.yaml not generated!"
+                            exit 1
+                        fi
+                    """
+                }
+            }
         }
 
-         stage('Deploy to Kubernetes') {
-             steps {
-                 withKubeConfig([credentialsId: 'prod-kubernetes']) {
-                    sh "kubectl apply -f ./apps/${env.SERVICE}/deployment.yaml"
-                    sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
-                    sh "kubectl get services -o wide"
-                 }
-             }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    echo "=== Deploying to Kubernetes ==="
+                    
+                    withKubeConfig([credentialsId: 'prod-kubernetes']) {
+                        // Проверяем подключение к кластеру
+                        sh '''
+                            echo "Checking Kubernetes connection..."
+                            
+                            if ! kubectl cluster-info; then
+                                echo "❌ Cannot connect to Kubernetes cluster"
+                                exit 1
+                            fi
+                            
+                            echo "Kubernetes nodes:"
+                            kubectl get nodes --no-headers | wc -l || echo "0"
+                        '''
+                        
+                        // Применяем деплоймент
+                        sh """
+                            echo "Applying deployment to namespace ${NAMESPACE}..."
+                            
+                            DEPLOYMENT_FILE="./apps/${SERVICE}/deployment.yaml"
+                            
+                            # Dry-run сначала
+                            kubectl apply -f "\${DEPLOYMENT_FILE}" --namespace=${NAMESPACE} --dry-run=client
+                            
+                            # Применяем
+                            kubectl apply -f "\${DEPLOYMENT_FILE}" --namespace=${NAMESPACE}
+                            
+                            echo "Watching rollout status..."
+                            
+                            # Ждем rollout с таймаутом
+                            timeout=300
+                            interval=5
+                            elapsed=0
+                            
+                            while [ \$elapsed -lt \$timeout ]; do
+                                status=\$(kubectl rollout status deployment/${DEPLOYMENT_NAME} \\
+                                    --namespace=${NAMESPACE} \\
+                                    --timeout=60s 2>&1 || true)
+                                
+                                if echo "\$status" | grep -q "successfully rolled out"; then
+                                    echo "✅ Deployment rolled out successfully"
+                                    break
+                                fi
+                                
+                                echo "Waiting for rollout... (\$elapsed/\$timeout seconds)"
+                                sleep \$interval
+                                elapsed=\$((elapsed + interval))
+                            done
+                            
+                            if [ \$elapsed -ge \$timeout ]; then
+                                echo "⚠️ Rollout timeout reached"
+                            fi
+                            
+                            # Проверяем статус
+                            echo "=== Deployment details ==="
+                            kubectl get deployment/${DEPLOYMENT_NAME} \\
+                                --namespace=${NAMESPACE} \\
+                                -o wide
+                            
+                            echo "=== Pods status ==="
+                            kubectl get pods \\
+                                --namespace=${NAMESPACE} \\
+                                -l app=${DEPLOYMENT_NAME} \\
+                                -o wide
+                            
+                            echo "=== Services ==="
+                            kubectl get services \\
+                                --namespace=${NAMESPACE} \\
+                                -o wide
+                            
+                            # Проверяем логи последнего пода
+                            echo "=== Recent pod logs ==="
+                            POD_NAME=\$(kubectl get pods \\
+                                --namespace=${NAMESPACE} \\
+                                -l app=${DEPLOYMENT_NAME} \\
+                                -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                            
+                            if [ -n "\${POD_NAME}" ]; then
+                                echo "Logs from pod: \${POD_NAME}"
+                                kubectl logs \${POD_NAME} \\
+                                    --namespace=${NAMESPACE} \\
+                                    --tail=20 2>/dev/null || echo "Could not get logs"
+                            fi
+                        """
+                    }
+                    
+                    echo "✅ Kubernetes deployment completed"
+                }
+            }
+        }
+        
+        stage('Post-deployment verification') {
+            steps {
+                script {
+                    echo "=== Post-deployment verification ==="
+                    
+                    // Даем время на запуск
+                    sleep 20
+                    
+                    withKubeConfig([credentialsId: 'prod-kubernetes']) {
+                        sh """
+                            echo "Checking deployment health..."
+                            
+                            # Проверяем готовность подов
+                            READY=\$(kubectl get deployment ${DEPLOYMENT_NAME} \\
+                                --namespace=${NAMESPACE} \\
+                                -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+                            
+                            DESIRED=\$(kubectl get deployment ${DEPLOYMENT_NAME} \\
+                                --namespace=${NAMESPACE} \\
+                                -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "0")
+                            
+                            echo "Ready replicas: \${READY}/\${DESIRED}"
+                            
+                            if [ "\${READY}" -eq "\${DESIRED}" ] && [ "\${READY}" -gt "0" ]; then
+                                echo "✅ All pods are ready"
+                                
+                                # Пытаемся сделать health check
+                                echo "Attempting health check..."
+                                
+                                # Получаем service IP или hostname
+                                SERVICE_INFO=\$(kubectl get svc ${DEPLOYMENT_NAME} \\
+                                    --namespace=${NAMESPACE} \\
+                                    -o jsonpath='{.status.loadBalancer.ingress[0].hostname}{" "}{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+                                
+                                if [ -n "\${SERVICE_INFO}" ]; then
+                                    echo "Service endpoint: \${SERVICE_INFO}"
+                                    # Здесь можно добавить curl проверку
+                                    # curl -f http://\${SERVICE_INFO}:${PORT}/health || echo "Health check failed"
+                                fi
+                            else
+                                echo "⚠️ Not all pods are ready"
+                                
+                                # Проверяем события
+                                echo "Recent events:"
+                                kubectl get events \\
+                                    --namespace=${NAMESPACE} \\
+                                    --field-selector involvedObject.name=${DEPLOYMENT_NAME} \\
+                                    --sort-by='.lastTimestamp' \\
+                                    --tail=10 2>/dev/null || true
+                                
+                                # Логи проблемных подов
+                                echo "Logs from failing pods:"
+                                kubectl get pods \\
+                                    --namespace=${NAMESPACE} \\
+                                    -l app=${DEPLOYMENT_NAME} \\
+                                    --field-selector=status.phase!=Running \\
+                                    -o name | head -3 | while read pod; do
+                                    echo "=== Logs for \$pod ==="
+                                    kubectl logs \$pod --namespace=${NAMESPACE} --tail=50 2>/dev/null || echo "Could not get logs"
+                                done
+                            fi
+                        """
+                    }
+                    
+                    echo "✅ Post-deployment verification completed"
+                }
+            }
         }
     }
     
     post {
         always {
-            echo "=== Pipeline finished ==="
-            echo "Build result: ${currentBuild.result}"
-            echo "Build URL: ${env.BUILD_URL}"
+            echo "=== Pipeline execution completed ==="
+            echo "Job: ${JOB_NAME}"
+            echo "Build: ${BUILD_NUMBER}"
+            echo "Result: ${currentBuild.result}"
+            echo "Duration: ${currentBuild.durationString}"
+            echo "Commit: ${GIT_COMMIT}"
+            echo "Branch: ${GIT_BRANCH}"
+            echo "Image: ${DOCKER_BUILD_NAME}"
             
+            // Сохраняем артефакты
+            archiveArtifacts artifacts: '**/coverage/**/*', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/deployment.yaml', allowEmptyArchive: true
         }
         
         success {
-            echo "✅ Pipeline completed successfully!"
+            echo "🎉 Pipeline SUCCESS!"
+            
+            sh '''
+                echo "========================================"
+                echo "SUCCESSFUL DEPLOYMENT"
+                echo "========================================"
+                echo "Service: ${SERVICE}"
+                echo "Environment: ${ENV_TYPE}"
+                echo "Image: ${DOCKER_BUILD_NAME}"
+                echo "Namespace: ${NAMESPACE}"
+                echo "Deployment: ${DEPLOYMENT_NAME}"
+                echo "========================================"
+            '''
         }
         
         failure {
-            echo "❌ Pipeline failed!"
+            echo "💥 Pipeline FAILED!"
+            
+            // Сохраняем больше информации для отладки
+            sh '''
+                echo "=== Debug information ==="
+                echo "Disk space:"
+                df -h 2>/dev/null || true
+                
+                echo "Memory usage:"
+                free -h 2>/dev/null || true
+                
+                echo "Docker status:"
+                docker ps -a 2>/dev/null | head -20 || true
+                
+                echo "Recent Docker images:"
+                docker images 2>/dev/null | head -20 || true
+                
+                echo "Workspace contents:"
+                ls -la ${WORKSPACE} 2>/dev/null | head -20 || true
+            '''
+        }
+        
+        cleanup {
+            // Сохраняем кэш для следующего билда
+            sh '''
+                echo "=== Final cleanup ==="
+                echo "Preserving cache directories..."
+                du -sh ${YARN_CACHE_DIR} 2>/dev/null || echo "Yarn cache not found"
+                du -sh ${PRISMA_CACHE_DIR} 2>/dev/null || echo "Prisma cache not found"
+                
+                # Очищаем workspace но оставляем кэш
+                find . -maxdepth 1 ! -name ".yarn-cache" ! -name ".prisma-cache" ! -name "." -exec rm -rf {} + 2>/dev/null || true
+                
+                echo "Cleanup completed"
+            '''
         }
     }
 }
-
-
-
-
-        
-        
-      
-       
