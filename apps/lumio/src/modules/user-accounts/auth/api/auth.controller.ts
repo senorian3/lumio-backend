@@ -132,7 +132,7 @@ export class AuthController {
   @SkipThrottle()
   async githubCallback(
     @Req() req,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -155,7 +155,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -172,7 +171,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: any,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -197,7 +196,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -214,7 +212,7 @@ export class AuthController {
   @UseGuards(AuthGuard('yandex'))
   async yandexCallback(
     @Req() req: any,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -239,7 +237,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`); узнать ссылку у фронтов
     return { accessToken };
   }
 
