@@ -41,11 +41,19 @@ import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/regi
 import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
 import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
+import {
+  getClearCookieOptions,
+  getRefreshTokenCookieOptions,
+} from '../../config/cookie.helper';
+import { CoreConfig } from '@lumio/core/core.config';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly coreConfig: CoreConfig,
+  ) {}
 
   @Post(AUTH_ROUTES.REGISTRATION)
   @ApiRegistration()
@@ -78,12 +86,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
 
     return { accessToken };
   }
@@ -93,10 +96,12 @@ export class AuthController {
   @SkipThrottle()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(204)
-  async logout(@Req() req: any): Promise<void> {
-    return await this.commandBus.execute<LogoutUserCommand, void>(
+  async logout(@Req() req: any, @Res() res: Response): Promise<void> {
+    await this.commandBus.execute<LogoutUserCommand, void>(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
     );
+
+    res.clearCookie('refreshToken', getClearCookieOptions(req));
   }
 
   @Post(AUTH_ROUTES.PASSWORD_RECOVERY)
@@ -130,10 +135,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('github'))
   @SkipThrottle()
-  async githubCallback(
-    @Req() req,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
+  async githubCallback(@Req() req, @Res() res: Response): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -148,15 +150,11 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGitHubCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
-    return { accessToken };
+    res.redirect(
+      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+    );
   }
 
   @Get(AUTH_ROUTES.GOOGLE)
@@ -170,10 +168,7 @@ export class AuthController {
   @ApiGoogleCallback()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('google'))
-  async googleCallback(
-    @Req() req: any,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
+  async googleCallback(@Req() req: any, @Res() res: Response): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -190,15 +185,11 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGoogleCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
-    return { accessToken };
+    res.redirect(
+      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+    );
   }
 
   @Get(AUTH_ROUTES.YANDEX)
@@ -212,10 +203,7 @@ export class AuthController {
   @ApiYandexCallback()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('yandex'))
-  async yandexCallback(
-    @Req() req: any,
-    @Res() res: Response,
-  ): Promise<{ accessToken: string }> {
+  async yandexCallback(@Req() req: any, @Res() res: Response): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -232,15 +220,11 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserYandexCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`); узнать ссылку у фронтов
-    return { accessToken };
+    res.redirect(
+      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+    );
   }
 
   @ApiRegistrationConfirmation()
@@ -250,8 +234,9 @@ export class AuthController {
   async registrationConfirmation(
     @Body() dto: RegistrationConfirmationInputDto,
   ): Promise<void> {
-    await this.commandBus.execute<RegistrationConfirmationUserCommand, void>(
-      new RegistrationConfirmationUserCommand(dto.confirmCode),
-    );
+    return await this.commandBus.execute<
+      RegistrationConfirmationUserCommand,
+      void
+    >(new RegistrationConfirmationUserCommand(dto.confirmCode));
   }
 }
