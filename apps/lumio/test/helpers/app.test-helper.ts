@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AppModule } from '@lumio/app/app.module';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
-import { appSetup } from '@lumio/app/settings';
+import { appSetup } from '@lumio/app/app-setup';
 import { CoreConfig } from '@lumio/core/core.config';
 import { NestFactory } from '@nestjs/core';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';

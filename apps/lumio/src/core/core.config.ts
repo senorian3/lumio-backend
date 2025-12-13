@@ -16,6 +16,11 @@ export class CoreConfig {
   port: number = Number(this.configService.get('PORT'));
 
   @IsNotEmpty({
+    message: 'Set Env variable FRONTEND_URL',
+  })
+  frontendUrl: string = this.configService.get('FRONTEND_URL');
+
+  @IsNotEmpty({
     message:
       'Set Env variable DATABASE_URL, example: postgresql://localhost:27017/my-app-local-db',
   })
