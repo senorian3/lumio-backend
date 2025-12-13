@@ -141,3 +141,8 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: SMTP_SECURE
+            - name: FRONTEND_URL
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: FRONTEND_URL
