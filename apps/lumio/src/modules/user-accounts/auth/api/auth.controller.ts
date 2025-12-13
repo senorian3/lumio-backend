@@ -41,6 +41,8 @@ import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/regi
 import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
 import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
+import { RefreshTokenCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
+import { ApiRefreshToken } from '@lumio/core/decorators/swagger/refresh-token.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -132,7 +134,7 @@ export class AuthController {
   @SkipThrottle()
   async githubCallback(
     @Req() req,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -155,7 +157,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -172,7 +173,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: any,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -197,7 +198,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`);
     return { accessToken };
   }
 
@@ -214,7 +214,7 @@ export class AuthController {
   @UseGuards(AuthGuard('yandex'))
   async yandexCallback(
     @Req() req: any,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
     const ip: string =
       req.socket.remoteAddress ||
@@ -239,7 +239,6 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    //return res.redirect(`${FRONTEND_URL}/oauth-success?accessToken=${accessToken}`); узнать ссылку у фронтов
     return { accessToken };
   }
 
@@ -253,5 +252,30 @@ export class AuthController {
     await this.commandBus.execute<RegistrationConfirmationUserCommand, void>(
       new RegistrationConfirmationUserCommand(dto.confirmCode),
     );
+  }
+
+  @Post('refresh-token')
+  @ApiRefreshToken()
+  @UseGuards(RefreshTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ accessToken: string }> {
+    const { deviceName, ip, userId, deviceId } = req.user;
+
+    const { accessToken, refreshToken } = await this.commandBus.execute<
+      RefreshTokenCommand,
+      { accessToken; refreshToken }
+    >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { accessToken: accessToken };
   }
 }
