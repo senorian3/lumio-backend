@@ -1,5 +1,6 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 class RecaptchaResponse {
   success: boolean;
@@ -18,7 +19,7 @@ export class RecaptchaService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly loggerService: LoggerService,
+    private readonly loggerService: AppLoggerService,
   ) {}
 
   private getSecretKey(): string {
