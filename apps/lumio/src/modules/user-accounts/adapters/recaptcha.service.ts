@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 class RecaptchaResponse {
@@ -16,7 +16,10 @@ export class RecaptchaService {
     'https://www.google.com/recaptcha/api/siteverify';
   private readonly scoreThreshold = 0.5;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly loggerService: LoggerService,
+  ) {}
 
   private getSecretKey(): string {
     return this.configService.get<string>('RECAPTCHA_SECRET_KEY') || '';
@@ -58,7 +61,11 @@ export class RecaptchaService {
 
       return true;
     } catch (error) {
-      console.error('Error verifying reCAPTCHA:', error);
+      this.loggerService.error(
+        `Ошибка проверки reCAPTCHA: ${error.message}`,
+        error.stack,
+        RecaptchaService.name,
+      );
       // In case of network errors or JSON parsing errors, return false
       return false;
     }
