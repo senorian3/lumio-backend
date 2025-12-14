@@ -136,7 +136,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('github'))
   @SkipThrottle()
-  async githubCallback(@Req() req, @Res() res: Response): Promise<void> {
+  async githubCallback(
+    @Req() req,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -169,7 +172,10 @@ export class AuthController {
   @ApiGoogleCallback()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Req() req: any, @Res() res: Response): Promise<void> {
+  async googleCallback(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
@@ -204,7 +210,10 @@ export class AuthController {
   @ApiYandexCallback()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard('yandex'))
-  async yandexCallback(@Req() req: any, @Res() res: Response): Promise<void> {
+  async yandexCallback(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     const ip: string =
       req.socket.remoteAddress ||
       (Array.isArray(req.headers['x-forwarded-for'])
