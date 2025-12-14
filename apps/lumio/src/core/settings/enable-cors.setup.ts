@@ -12,12 +12,10 @@ export function enableCorsSetup(app: INestApplication) {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     exposedHeaders: [
-      'Content-Disposition',
       'Content-Length',
       'X-Total-Count',
-      'X-RateLimit-Limit',
-      'X-RateLimit-Remaining',
-      'X-RateLimit-Reset',
+      'X-Page-Count',
+      'X-Per-Page',
     ],
   });
 }

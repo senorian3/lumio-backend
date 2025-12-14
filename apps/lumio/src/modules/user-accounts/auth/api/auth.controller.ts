@@ -43,7 +43,8 @@ import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
 import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
 import {
   getClearCookieOptions,
-  getRefreshTokenCookieOptions,
+  getLoginCookieOptions,
+  getOAuthCookieOptions,
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
 
@@ -86,7 +87,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getLoginCookieOptions(req));
 
     return { accessToken };
   }
@@ -150,7 +151,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGitHubCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
@@ -185,7 +186,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGoogleCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
@@ -220,7 +221,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserYandexCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getRefreshTokenCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
