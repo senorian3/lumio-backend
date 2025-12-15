@@ -32,6 +32,7 @@ import { UserSchedulerService } from './scheduler/users-scheduler';
 import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
 import { LoginUserYandexUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { LoggerModule } from '@libs/logger/logger.module';
+import { RefreshTokenUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -74,6 +75,7 @@ const useCases = [
   LogoutUserUseCase,
   RegistrationConfirmationUserUseCase,
   LoginUserYandexUseCase,
+  RefreshTokenUseCase,
 ];
 
 const services = [
