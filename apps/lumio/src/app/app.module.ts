@@ -6,6 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { CoreModule } from '../core/core.module';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';
 import { throttlerModule } from '../core/guards/throttler/throttler.module';
+import { PostsModule } from '@lumio/modules/posts/posts.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { throttlerModule } from '../core/guards/throttler/throttler.module';
     }),
     CoreModule,
     UserAccountsModule,
+    PostsModule,
   ],
 })
 export class AppModule {

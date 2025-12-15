@@ -1,22 +1,27 @@
 import { NestFactory } from '@nestjs/core';
-import { initAppModule } from './init-app-module';
-import { appSetup } from './settings';
-import { CoreConfig } from '@files/core/core.config';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { FilesModule } from './files.module';
+import { Logger } from '@nestjs/common';
+import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
 
 async function bootstrap() {
-  const DynamicAppModule = await initAppModule();
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    FilesModule,
+    {
+      transport: Transport.RMQ,
+      options: {
+        urls: [RABBITMQ_CONFIG.url],
+        queue: RABBITMQ_CONFIG.queues.files,
+        queueOptions: {
+          durable: true,
+        },
+        noAck: false,
+        prefetchCount: 1,
+      },
+    },
+  );
 
-  const app = await NestFactory.create(DynamicAppModule);
-
-  const coreConfig = app.get<CoreConfig>(CoreConfig);
-
-  appSetup(app, coreConfig, DynamicAppModule);
-
-  const port = coreConfig.port;
-
-  await app.listen(port, () => {
-    console.log('App starting listen port: ', port);
-    console.log('NODE_ENV: ', coreConfig.env);
-  });
+  await app.listen();
+  Logger.log('Microservice files is listening');
 }
 bootstrap();

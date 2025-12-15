@@ -34,18 +34,6 @@ pipeline {
                 }
             }
         }
-        stage('e2e tests') {
-            steps {
-                script {
-                    sh '''
-                       export NVM_DIR="$HOME/.nvm"
-                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                       nvm use 20.17.0
-                       yarn test:e2e:files
-                    '''
-                }
-            }
-        }
         stage('Build docker image') {
             steps {
                 echo "Build image started..."

@@ -1,31 +1,16 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { FilesController } from './files.controller';
-import { configModule } from '@libs/core/config-dynamic.module';
-import { PrismaModule } from '@files/prisma/prisma.module';
-import { CoreConfig } from '@files/core/core.config';
-import { CoreModule } from '@files/core/core.module';
-import { TestingModule } from '@nestjs/testing';
+// import { FilesService } from './files.service';
+// import { S3Service } from './s3.service';
 
 @Module({
   imports: [
-    configModule,
-    PrismaModule.forRootAsync({
-      useFactory: (coreConfig: CoreConfig) => {
-        const uri = coreConfig.dbUrl;
-        console.log('DB_URL', uri);
-        return { url: uri };
-      },
-      inject: [CoreConfig],
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
-    CoreModule,
   ],
   controllers: [FilesController],
+  // providers: [FilesService, S3Service],
 })
-export class FilesModule {
-  static async forRoot(coreConfig: CoreConfig): Promise<DynamicModule> {
-    return {
-      module: FilesModule,
-      imports: [...(coreConfig.includeTestingModule ? [TestingModule] : [])],
-    };
-  }
-}
+export class FilesModule {}
