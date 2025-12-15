@@ -42,7 +42,7 @@ export function getLoginCookieOptions(req?: Request): CookieOptions {
 export function getOAuthCookieOptions(req?: Request): CookieOptions {
   return {
     ...getBaseCookieOptions(req),
-    sameSite: 'lax',
+    sameSite: 'strict',
   };
 }
 
