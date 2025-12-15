@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -8,6 +9,7 @@ global.fetch = jest.fn();
 describe('RecaptchaService', () => {
   let service: RecaptchaService;
   let mockConfigService: ConfigService;
+  let mockLoggerService: AppLoggerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,11 +21,18 @@ describe('RecaptchaService', () => {
             get: jest.fn(),
           },
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<RecaptchaService>(RecaptchaService);
     mockConfigService = module.get<ConfigService>(ConfigService);
+    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
     jest.clearAllMocks();
   });
 
@@ -172,6 +181,42 @@ describe('RecaptchaService', () => {
       // Act & Assert
       const result = await service.verify(token);
       expect(result).toBe(false);
+    });
+
+    it('should log error when fetch fails', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      const error = new Error('Network error');
+      (fetch as jest.Mock).mockRejectedValue(error);
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        `Ошибка проверки reCAPTCHA: ${error.message}`,
+        error.stack,
+        RecaptchaService.name,
+      );
+    });
+
+    it('should log error when JSON parsing fails', async () => {
+      // Arrange
+      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      const token = 'valid-token';
+      (fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+      });
+
+      // Act
+      const result = await service.verify(token);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockLoggerService.error).toHaveBeenCalled();
     });
   });
 });

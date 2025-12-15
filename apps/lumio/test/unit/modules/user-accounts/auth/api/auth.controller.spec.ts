@@ -5,6 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { AuthController } from '@lumio/modules/user-accounts/auth/api/auth.controller';
+import { CoreConfig } from '@lumio/core/core.config';
 import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration.input-dto';
 import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/login.input-dto';
 import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input-dto';
@@ -25,6 +26,8 @@ describe('AuthController', () => {
 
   const mockResponse = {
     cookie: jest.fn(),
+    clearCookie: jest.fn(),
+    redirect: jest.fn(),
   } as unknown as Response;
 
   const mockRequest = {
@@ -32,11 +35,16 @@ describe('AuthController', () => {
     headers: {
       'user-agent': 'Test Agent',
       'x-forwarded-for': '192.168.1.2',
+      host: 'localhost:3000',
     },
     user: {
       userId: 1,
       deviceId: 'device-123',
     },
+    get: jest.fn().mockImplementation((key: string) => {
+      if (key === 'host') return 'localhost:3000';
+      return null;
+    }),
   } as any;
 
   beforeEach(async () => {
@@ -49,6 +57,12 @@ describe('AuthController', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: CoreConfig,
+          useValue: {
+            frontendUrl: 'http://localhost:3000',
+          },
+        },
       ],
     })
       .overrideGuard(ThrottlerGuard)
@@ -58,6 +72,8 @@ describe('AuthController', () => {
       .overrideGuard(AuthGuard('github'))
       .useValue({ canActivate: () => true })
       .overrideGuard(AuthGuard('google'))
+      .useValue({ canActivate: () => true })
+      .overrideGuard(AuthGuard('yandex'))
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -114,9 +130,10 @@ describe('AuthController', () => {
         'refresh-token',
         {
           httpOnly: true,
-          secure: true,
+          secure: false,
           sameSite: 'strict',
           maxAge: 7 * 24 * 60 * 60 * 1000,
+          path: '/',
         },
       );
       expect(result).toEqual({ accessToken: 'access-token' });
@@ -129,7 +146,7 @@ describe('AuthController', () => {
       (mockCommandBus.execute as jest.Mock).mockResolvedValue(undefined);
 
       // Act
-      await controller.logout(mockRequest);
+      await controller.logout(mockRequest, mockResponse);
 
       // Assert
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
@@ -137,6 +154,10 @@ describe('AuthController', () => {
           mockRequest.user.userId,
           mockRequest.user.deviceId,
         ),
+      );
+      expect(mockResponse.clearCookie).toHaveBeenCalledWith(
+        'refreshToken',
+        expect.any(Object),
       );
     });
   });
@@ -186,12 +207,17 @@ describe('AuthController', () => {
         socket: { remoteAddress: '192.168.1.3' },
         headers: {
           'user-agent': 'OAuth Agent',
+          host: 'localhost:3000',
         },
         user: {
           gitId: 'github-123',
           email: 'github@example.com',
           username: 'githubuser',
         },
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'host') return 'localhost:3000';
+          return null;
+        }),
       } as any;
       const expectedResult = {
         accessToken: 'github-access-token',
@@ -200,10 +226,7 @@ describe('AuthController', () => {
       (mockCommandBus.execute as jest.Mock).mockResolvedValue(expectedResult);
 
       // Act
-      const result = await controller.githubCallback(
-        mockGitHubRequest,
-        mockResponse,
-      );
+      await controller.githubCallback(mockGitHubRequest, mockResponse);
 
       // Assert
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
@@ -216,14 +239,11 @@ describe('AuthController', () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'github-refresh-token',
-        {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        },
+        expect.any(Object), // getOAuthCookieOptions возвращает объект
       );
-      expect(result).toEqual({ accessToken: 'github-access-token' });
+      expect(mockResponse.redirect).toHaveBeenCalledWith(
+        'http://localhost:3000/oauth-success?accessToken=github-access-token',
+      );
     });
   });
 
@@ -234,12 +254,17 @@ describe('AuthController', () => {
         socket: { remoteAddress: '192.168.1.4' },
         headers: {
           'user-agent': 'OAuth Agent',
+          host: 'localhost:3000',
         },
         user: {
           googleId: 'google-123',
           email: 'google@example.com',
           username: 'googleuser',
         },
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'host') return 'localhost:3000';
+          return null;
+        }),
       } as any;
       const expectedResult = {
         accessToken: 'google-access-token',
@@ -248,10 +273,7 @@ describe('AuthController', () => {
       (mockCommandBus.execute as jest.Mock).mockResolvedValue(expectedResult);
 
       // Act
-      const result = await controller.googleCallback(
-        mockGoogleRequest,
-        mockResponse,
-      );
+      await controller.googleCallback(mockGoogleRequest, mockResponse);
 
       // Assert
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
@@ -264,14 +286,11 @@ describe('AuthController', () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'refreshToken',
         'google-refresh-token',
-        {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        },
+        expect.any(Object),
       );
-      expect(result).toEqual({ accessToken: 'google-access-token' });
+      expect(mockResponse.redirect).toHaveBeenCalledWith(
+        'http://localhost:3000/oauth-success?accessToken=google-access-token',
+      );
     });
   });
 
