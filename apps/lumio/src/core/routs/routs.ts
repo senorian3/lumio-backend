@@ -4,6 +4,7 @@ export const AUTH_ROUTES = {
   REGISTRATION: 'registration/',
   LOGIN: 'login/',
   LOGOUT: 'logout/',
+  REFRESH_TOKEN: 'refresh-token',
   PASSWORD_RECOVERY: 'password-recovery/',
   NEW_PASSWORD: 'new-password/',
   GITHUB: 'github/',

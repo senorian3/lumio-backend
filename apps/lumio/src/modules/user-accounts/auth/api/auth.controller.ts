@@ -253,9 +253,8 @@ export class AuthController {
       new RegistrationConfirmationUserCommand(dto.confirmCode),
     );
   }
-
-  @Post('refresh-token')
   @ApiRefreshToken()
+  @Post(AUTH_ROUTES.REFRESH_TOKEN)
   @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
   async refreshToken(
@@ -266,7 +265,7 @@ export class AuthController {
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
       RefreshTokenCommand,
-      { accessToken; refreshToken }
+      { accessToken: string; refreshToken: string }
     >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
 
     res.cookie('refreshToken', refreshToken, {
