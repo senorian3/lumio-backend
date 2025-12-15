@@ -21,7 +21,7 @@ export function swaggerSetup(
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
       .addServer(`localhost:${port}', 'Lumio (development)`)
-      .addServer('lumio.su', 'Lumio (production)')
+      .addServer('https://lumio.su/api/v1', 'Lumio (production)')
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',
@@ -40,11 +40,18 @@ export function swaggerSetup(
       raw: ['json'],
       customSiteTitle: 'Lumio swagger',
       customCss: theme,
-      jsonDocumentUrl: '/swagger/json',
+      jsonDocumentUrl: 'api/v1/swagger/json',
       swaggerOptions: {
         filter: true,
         showCommonExtensions: true,
         showExtensions: true,
+        displayRequestDuration: true,
+        urls: [
+          {
+            url: '/api/v1/swagger/json',
+            name: 'API v1',
+          },
+        ],
       },
     };
 

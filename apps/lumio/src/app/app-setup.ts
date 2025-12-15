@@ -14,12 +14,12 @@ export function appSetup(
   coreConfig: CoreConfig,
   DynamicAppModule: DynamicModule,
 ) {
-  pipesSetup(app);
-  globalPrefixSetup(app);
-  proxySetup(app);
-  swaggerSetup(app, coreConfig.isSwaggerEnabled, coreConfig.port);
   enableCorsSetup(app);
+  proxySetup(app);
+  globalPrefixSetup(app);
+  pipesSetup(app);
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);
   cookieParserSetup(app);
+  swaggerSetup(app, coreConfig.isSwaggerEnabled, coreConfig.port);
 }

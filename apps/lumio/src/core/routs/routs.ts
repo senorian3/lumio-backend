@@ -13,6 +13,7 @@ export const AUTH_ROUTES = {
   REGISTRATION_CONFIRMATION: 'registration-confirmation',
   YANDEX: 'yandex',
   YANDEX_CALLBACK: 'yandex/callback',
+  REFRESH_TOKEN: 'refresh-token',
 } as const;
 
 export const SECURITY_BASE = 'security/devices';
