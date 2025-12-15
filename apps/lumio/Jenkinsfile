@@ -44,8 +44,8 @@ pipeline {
                        
                        # Устанавливаем совместимую версию Node.js (>=20.9.0)
                        echo "Installing compatible Node.js version..."
-                       nvm install 20.9.0 || nvm install 20 || nvm install --lts
-                       nvm use 20.9.0 || nvm use 20 || nvm use --lts
+                        nvm install 20.17.0
+                        nvm use 20.17.0
                        
                        echo "New Node.js version: $(node --version)"
                        echo "New NPM version: $(npm --version)"
@@ -149,7 +149,6 @@ pipeline {
     post {
         always {
             junit '**/test-results/**/*.xml'
-            archiveArtifacts '**/coverage/**/*'
         }
         success {
             echo "Lumio service pipeline completed successfully!"
