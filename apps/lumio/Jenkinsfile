@@ -69,30 +69,30 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Run Unit Tests') {
-    steps {
-        script {
-            sh '''
-               # Запускаем unit тесты напрямую через Jest
-               # Только spec файлы для сервиса lumio
-               echo "Running unit tests for lumio service..."
-               
-               # Запускаем Jest напрямую с правильной конфигурацией
-               # Используем тестовый .env файл через dotenv-cli как в package.json
-               npx dotenv -e apps/lumio/.env.lumio.testing -- \
-                 npx jest apps/lumio \
-                   --testPathPattern=".*\\\\.spec\\\\.ts$" \
-                   --passWithNoTests \
-                   --verbose \
-                   --coverage \
-                   --coverageDirectory=./coverage/lumio
-               
-               echo "Unit tests completed!"
-            '''
+            steps {
+                script {
+                    sh '''
+                       # Запускаем unit тесты напрямую через Jest
+                       # Только spec файлы для сервиса lumio
+                       echo "Running unit tests for lumio service..."
+                       
+                       # Запускаем Jest напрямую с правильной конфигурацией
+                       # Используем тестовый .env файл через dotenv-cli как в package.json
+                       npx dotenv -e apps/lumio/.env.lumio.testing -- \
+                         npx jest apps/lumio \
+                           --testPathPattern=".*\\\\.spec\\\\.ts$" \
+                           --passWithNoTests \
+                           --verbose \
+                           --coverage \
+                           --coverageDirectory=./coverage/lumio
+                       
+                       echo "Unit tests completed!"
+                    '''
+                }
+            }
         }
-    }
-}
         
         stage('Build docker image') {
             steps {
