@@ -12,7 +12,9 @@ RUN yarn install
 
 COPY --chown=node . .
 
-RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+RUN npx prisma migrate deploy --schema apps/${SERVICE}/src/prisma/schema.prisma && \
+    npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+
 RUN yarn build:${SERVICE}
 
 USER node
