@@ -3,24 +3,24 @@ import { ConfigModule } from '@nestjs/config';
 import { FilesController } from './files.controller';
 import { FilesService } from '@files/application/s3.service';
 import { UploadFilesCreatedPostUseCase } from '@files/application/use-cases/upload-post-file.usecase';
-import { CqrsModule } from '@nestjs/cqrs';
 import { FileRepository } from '@files/domain/infrastructure/file.repository';
-import { PrismaService } from '@files/prisma/prisma.service';
+import { PrismaModule } from '@files/prisma/prisma.module';
+import { CoreModule } from '@files/core/core.module';
+import { CoreConfig } from '@files/core/core.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CqrsModule,
+    CoreModule,
+    PrismaModule.forRootAsync({
+      useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),
+      inject: [CoreConfig],
+    }),
   ],
 
   controllers: [FilesController],
-  providers: [
-    FilesService,
-    UploadFilesCreatedPostUseCase,
-    FileRepository,
-    PrismaService,
-  ],
+  providers: [FilesService, UploadFilesCreatedPostUseCase, FileRepository],
 })
 export class FilesModule {}

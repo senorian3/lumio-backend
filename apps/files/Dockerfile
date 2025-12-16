@@ -13,10 +13,12 @@ RUN yarn install
 
 COPY --chown=node . .
 
-RUN yarn build:{{SERVICE}}
+RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+
+RUN yarn build:${SERVICE}
 
 USER node
 
 EXPOSE ${PORT}
 
-CMD ["node", "dist/apps/files/main"]
+CMD ["node", "dist/apps/files/app/main"]
