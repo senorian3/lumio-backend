@@ -70,39 +70,6 @@ pipeline {
             }
         }
 
-        stage('Check migrations') {
-            steps {
-                script {
-                    sh '''
-                       echo "Checking for database migrations..."
-                       cd apps/lumio
-                       
-                       # Проверяем есть ли миграции
-                       if [ -d "src/prisma/migrations" ] && [ "$(ls -A src/prisma/migrations)" ]; then
-                           echo "✅ Migrations found:"
-                           ls -la src/prisma/migrations/
-                       else
-                           echo "❌ WARNING: No migrations found!"
-                           echo "Creating initial migration locally..."
-                           npx prisma migrate dev --name init --skip-generate
-                           
-                           # Проверяем создались ли миграции
-                           if [ -d "src/prisma/migrations" ] && [ "$(ls -A src/prisma/migrations)" ]; then
-                               echo "✅ Migration created successfully"
-                               echo "Migration files:"
-                               find src/prisma/migrations -name "*.sql" | head -5
-                           else
-                               echo "⚠️ Failed to create migrations"
-                               echo "Creating empty migrations directory for Docker build..."
-                               mkdir -p src/prisma/migrations
-                               echo "-- Placeholder migration" > src/prisma/migrations/$(date +%Y%m%d%H%M%S)_placeholder.sql
-                           fi
-                       fi
-                    '''
-                }
-            }
-        }
-        
         stage('Run Unit Tests') {
             steps {
                 script {
