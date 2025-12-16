@@ -7,7 +7,7 @@ export class UserSchedulerService {
   constructor(private readonly userRepository: UserRepository) {}
 
   @Cron('0 * * * *')
-  async deleteExpiredUserRegistration() {
+  async deleteExpiredUserRegistration(): Promise<void> {
     const date = new Date();
     await this.userRepository.deleteExpiredUserRegistration(date);
   }
