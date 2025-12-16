@@ -13,7 +13,7 @@ export function swaggerSetup(
   port: number,
 ) {
   if (isSwaggerEnabled) {
-    const swaggerPath = 'swagger';
+    const swaggerPath = '/api/v1/swagger';
 
     const builder = new DocumentBuilder()
       .setTitle('LUMIO API')
