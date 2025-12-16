@@ -16,8 +16,8 @@ export class YandexStrategy extends PassportStrategy(Strategy, 'yandex') {
   async validate(accessToken: string, refreshToken: string, profile: any) {
     return {
       yandexId: profile.id,
-      email: profile.emails?.[0]?.value,
-      username: profile.username,
+      email: profile.emails?.[0]?.value ?? null,
+      username: profile.username ?? null,
     };
   }
 }
