@@ -15,11 +15,8 @@ COPY --chown=node . .
 RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
 RUN yarn build:${SERVICE}
 
-COPY --chown=node entrypoint.sh /home/node/app/entrypoint.sh
-RUN chmod +x /home/node/app/entrypoint.sh
-
 USER node
 
 EXPOSE ${PORT}
 
-ENTRYPOINT ["/home/node/app/entrypoint.sh"]
+CMD ["sh", "-c", "echo 'Applying database migrations...' && npx prisma migrate deploy && echo 'Starting application...' && node dist/apps/lumio/app/main"]
