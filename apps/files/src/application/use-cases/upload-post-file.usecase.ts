@@ -1,11 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { FilesService } from '@files/application/s3.service';
 import { FileRepository } from '@files/domain/infrastructure/file.repository';
-import { PostFileEntity } from '@files/domain/entities/post-file.entity';
 
 export class UploadFilesCreatedPostCommand {
   constructor(
-    public readonly userId: number,
     public readonly postId: number,
     public readonly files: Array<{ buffer: Buffer; originalname: string }>,
   ) {}
@@ -14,7 +12,7 @@ export class UploadFilesCreatedPostCommand {
 @CommandHandler(UploadFilesCreatedPostCommand)
 export class UploadFilesCreatedPostUseCase implements ICommandHandler<
   UploadFilesCreatedPostCommand,
-  number[]
+  void
 > {
   constructor(
     private filesService: FilesService,
@@ -22,27 +20,21 @@ export class UploadFilesCreatedPostUseCase implements ICommandHandler<
   ) {}
 
   async execute({
-    userId,
     postId,
     files,
-  }: UploadFilesCreatedPostCommand): Promise<number[]> {
-    const uploadedFiles = await this.filesService.uploadFiles(
-      userId,
-      postId,
-      files,
-    );
+  }: UploadFilesCreatedPostCommand): Promise<void> {
+    const uploadedFiles = await this.filesService.uploadFiles(postId, files);
 
     for (const file of uploadedFiles) {
-      const created: PostFileEntity = await this.fileRepository.createFile({
+      await this.fileRepository.createFile({
         key: file.key,
         url: file.url,
         mimetype: file.mimeType,
         size: file.size,
-        userId,
         postId,
       });
     }
 
-    return uploadedFiles;
+    return;
   }
 }

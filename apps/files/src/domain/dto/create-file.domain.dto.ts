@@ -3,6 +3,5 @@ export class CreateFileDomainDto {
   url: string;
   mimetype: string;
   size: number;
-  userId: number;
   postId: number;
 }

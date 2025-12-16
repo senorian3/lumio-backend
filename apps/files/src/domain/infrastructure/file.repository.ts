@@ -14,8 +14,7 @@ export class FileRepository {
         url: dto.url,
         mimetype: dto.mimetype,
         size: dto.size,
-        userId: dto.userId,
-        postId: dto.postId,
+        postId: +dto.postId,
       },
     });
   }

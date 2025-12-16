@@ -29,7 +29,6 @@ export class FilesService {
   }
 
   async uploadFiles(
-    userId: number | string,
     postId: number | string,
     files: Array<{ buffer: Buffer; originalname: string }>,
   ) {
@@ -43,7 +42,7 @@ export class FilesService {
 
       const uniqueId = randomUUID().split('-')[0];
       const fileName = `${postId}_image_${i + 1}_${uniqueId}.${fileExtension}`;
-      const fileKey = `content/users/${userId}/posts/${postId}/${fileName}`;
+      const fileKey = `content/posts/${postId}/${fileName}`;
 
       try {
         const command = new PutObjectCommand({

@@ -6,32 +6,38 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UploadFilesCreatedPostCommand } from '@files/application/use-cases/upload-post-file.usecase';
+import { GetAllFilesByPostUserQuery } from '@files/application/queries/get-all-file-by-post.query-handler';
+import { OutputFileByPostType } from '@files/api/dto/output/files-by-post.output-dto';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
-  @Post(':userId/:postId/upload')
+  @Post('/:postId/upload')
   @UseInterceptors(FilesInterceptor('files'))
   async uploadFiles(
-    @Param('userId') userId: number,
     @Param('postId') postId: number,
     @UploadedFiles()
     files: Array<Express.Multer.File>,
-  ) {
+  ): Promise<OutputFileByPostType[] | null> {
     const formattedFiles = files.map((file) => ({
       buffer: file.buffer,
       originalname: file.originalname,
     }));
 
-    const idFilesArray = await this.commandBus.execute<
-      UploadFilesCreatedPostCommand,
-      number[]
-    >(new UploadFilesCreatedPostCommand(userId, postId, formattedFiles));
+    await this.commandBus.execute<UploadFilesCreatedPostCommand, void>(
+      new UploadFilesCreatedPostCommand(postId, formattedFiles),
+    );
 
-    return idFilesArray;
+    return await this.queryBus.execute<
+      GetAllFilesByPostUserQuery,
+      OutputFileByPostType[] | null
+    >(new GetAllFilesByPostUserQuery(postId));
   }
 
   //@MessagePattern(RABBITMQ_CONFIG.messagePatterns.UPLOAD_FILES)
