@@ -19,7 +19,7 @@ export class RabbitMQModule {
               queueOptions: {
                 durable: true,
               },
-              noAck: false,
+              noAck: true,
               prefetchCount: 1,
             },
           },

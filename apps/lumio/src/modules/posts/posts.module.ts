@@ -8,7 +8,8 @@ import { PostsController } from './api/posts.controller';
   imports: [
     RabbitMQModule.register('posts'), // Клиент для RabbitMQ
   ],
+
   controllers: [PostsController],
-  providers: [PrismaService, RabbitMQService],
+  providers: [RabbitMQService],
 })
 export class PostsModule {}

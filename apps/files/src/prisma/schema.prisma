@@ -20,3 +20,14 @@ datasource db {
 //   size      Int
 //   createdAt DateTime @default(now())
 // }
+
+model PostFile {
+    id         Int   @id @default(autoincrement())
+    key         String   @unique
+    url         String
+    mimetype    String
+    size        Int
+    createdAt   DateTime @default(now())
+    userId      Int
+    postId      Int
+}

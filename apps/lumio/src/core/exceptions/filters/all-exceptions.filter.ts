@@ -8,6 +8,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
   constructor(private readonly coreConfig: CoreConfig) {
     super();
   }
+
   onCatch(exception: unknown, response: Response): void {
     const status =
       exception instanceof HttpException
