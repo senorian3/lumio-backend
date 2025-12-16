@@ -1,6 +1,5 @@
 import { RabbitMQModule } from '@libs/rabbitmq/rabbitmq.module';
 import { RabbitMQService } from '@libs/rabbitmq/rabbitmq.service';
-import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Module } from '@nestjs/common';
 import { PostsController } from './api/posts.controller';
 
@@ -9,6 +8,6 @@ import { PostsController } from './api/posts.controller';
     RabbitMQModule.register('posts'), // Клиент для RabbitMQ
   ],
   controllers: [PostsController],
-  providers: [PrismaService, RabbitMQService],
+  providers: [RabbitMQService],
 })
 export class PostsModule {}

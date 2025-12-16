@@ -19,7 +19,7 @@ export class RabbitMQModule {
               queueOptions: {
                 durable: true,
               },
-              noAck: false,
+              noAck: true, // Временное решение: включаем auto-acknowledge
               prefetchCount: 1,
             },
           },
