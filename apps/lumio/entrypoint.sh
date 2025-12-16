@@ -24,4 +24,4 @@ echo "🚀 Starting application..."
 echo "========================================"
 
 # Запускаем приложение
-exec node dist/apps/lumio/app/main
+CMD ["sh", "-c", "echo '=== Applying database migrations ===' && npx prisma migrate deploy && echo '=== Starting application ===' && node dist/apps/lumio/app/main"]
