@@ -5,18 +5,30 @@ ARG service
 ENV SERVICE=$service
 ENV PORT=$port
 
-WORKDIR /home/node/app
+WORKDIR /app
 
-COPY --chown=node package.json yarn.lock ./
-RUN yarn install
+# Копируем package.json и yarn.lock
+COPY package.json yarn.lock ./
 
-COPY --chown=node . .
+# Устанавливаем зависимости
+RUN yarn install --frozen-lockfile
 
-RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+# Копируем весь проект
+COPY . .
+
+# Переходим в директорию сервиса lumio
+WORKDIR /app/apps/lumio
+
+# Генерируем Prisma клиент
+RUN npx prisma generate --schema src/prisma/schema.prisma
+
+# Собираем проект из корня
+WORKDIR /app
 RUN yarn build:${SERVICE}
 
 USER node
 
 EXPOSE ${PORT}
 
-CMD ["sh", "-c", "echo 'Applying database migrations...' && npx prisma migrate deploy && echo 'Starting application...' && node dist/apps/lumio/app/main"]
+# Запускаем миграции и приложение из директории lumio
+CMD ["sh", "-c", "cd /app/apps/lumio && echo 'Applying database migrations...' && npx prisma migrate deploy && echo 'Starting application...' && cd /app && node dist/apps/lumio/app/main"]
