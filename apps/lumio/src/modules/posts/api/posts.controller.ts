@@ -38,10 +38,6 @@ export class PostsController {
     @Body() dto: CreatePostDto,
     @Req() req: any,
   ) {
-    console.log('=== POSTS CONTROLLER ===');
-    console.log('userId:', req.user?.userId);
-    console.log('files count:', files?.length);
-    console.log('dto:', dto);
     const userId = req.user.userId;
 
     const result = await this.commandBus.execute<
@@ -49,7 +45,6 @@ export class PostsController {
       { files: OutputFilesDto[]; postId: number }
     >(new CreatePostCommand(userId, files, dto));
 
-    console.log('CommandBus result:', result);
     return result;
   }
 

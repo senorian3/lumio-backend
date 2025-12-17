@@ -38,8 +38,6 @@ export class CreatePostUseCase implements ICommandHandler<
       description: command.body.description,
     });
 
-    console.log(newPostId, 'newPostId');
-
     const uploadedFiles = await this.rabbitMQService.sendPostCreatedRpc(
       newPostId,
       command.files,

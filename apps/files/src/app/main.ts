@@ -15,7 +15,12 @@ async function bootstrap() {
         queueOptions: {
           durable: true,
         },
-        // Убираем exchange и routingKey, слушаем очередь напрямую
+        exchange: RABBITMQ_CONFIG.exchanges.files,
+        exchangeOptions: {
+          durable: true,
+          type: 'direct',
+        },
+        routingKey: RABBITMQ_CONFIG.routingKeys.POST_CREATED,
         noAck: false,
         prefetchCount: 1,
       },

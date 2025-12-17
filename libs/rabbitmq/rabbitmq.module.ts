@@ -5,7 +5,7 @@ import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
 @Global()
 @Module({})
 export class RabbitMQModule {
-  static register(serviceName: 'files' | 'posts'): DynamicModule {
+  static register(serviceName: string): DynamicModule {
     return {
       module: RabbitMQModule,
       imports: [
@@ -19,7 +19,12 @@ export class RabbitMQModule {
               queueOptions: {
                 durable: true,
               },
-              // Для posts отправляем прямо в очередь files_queue (без exchange)
+              exchange: RABBITMQ_CONFIG.exchanges.files,
+              exchangeOptions: {
+                durable: true,
+                type: 'direct',
+              },
+              routingKey: RABBITMQ_CONFIG.routingKeys.POST_CREATED,
               noAck: true,
               prefetchCount: 1,
             },

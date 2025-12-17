@@ -2,9 +2,10 @@ import { Controller } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UploadFilesCreatedPostCommand } from '@files/application/use-cases/upload-post-file.usecase';
 import { GetAllFilesByPostUserQuery } from '@files/application/queries/get-all-file-by-post.query-handler';
-import { MessagePattern, Payload } from '@nestjs/microservices/decorators';
+import { Ctx, MessagePattern, Payload } from '@nestjs/microservices/decorators';
 import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
+import { RmqContext } from '@nestjs/microservices';
 
 @Controller('files')
 export class FilesController {
@@ -47,27 +48,24 @@ export class FilesController {
   @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_CREATED)
   async handlePostCreated(
     @Payload() data: { postId: number; files: Array<Express.Multer.File> },
+    @Ctx() context: RmqContext,
   ): Promise<OutputFilesDto[]> {
-    console.log('=== FILES CONTROLLER ===');
-    console.log('Received POST_CREATED message:', data);
-    console.log('postId:', data.postId, 'files count:', data.files?.length);
-
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
     try {
-      console.log('Executing UploadFilesCreatedPostCommand...');
       await this.commandBus.execute<UploadFilesCreatedPostCommand, void>(
         new UploadFilesCreatedPostCommand(data.postId, data.files),
       );
 
-      console.log('Executing GetAllFilesByPostUserQuery...');
       const result = await this.queryBus.execute<
         GetAllFilesByPostUserQuery,
         OutputFilesDto[] | null
       >(new GetAllFilesByPostUserQuery(data.postId));
 
-      console.log('Query result:', result);
+      channel.ack(originalMsg);
       return result || [];
     } catch (error) {
-      console.error('Error in handlePostCreated:', error);
+      channel.nack(originalMsg);
       throw error;
     }
   }
