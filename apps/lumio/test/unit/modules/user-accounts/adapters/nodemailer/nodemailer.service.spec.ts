@@ -96,17 +96,22 @@ describe('NodemailerService', () => {
       });
     });
 
-    it('should handle email sending error', async () => {
+    it('should handle email sending error gracefully (no throw)', async () => {
       // Arrange
       const email = 'recipient@example.com';
       const code = '123456';
       const error = new Error('SMTP connection failed');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert
+      // Act & Assert - should NOT throw because error is caught and logged
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow('Не удалось отправить email');
+      ).resolves.not.toThrow();
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        `Ошибка отправки email на ${email}`,
+        error.stack,
+        NodemailerService.name,
+      );
     });
 
     it('should use template to generate html and subject', async () => {
@@ -138,10 +143,10 @@ describe('NodemailerService', () => {
       const error = new Error('Network error');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert
+      // Act & Assert - should NOT throw
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow('Не удалось отправить email');
+      ).resolves.not.toThrow();
       expect(mockLoggerService.error).toHaveBeenCalledWith(
         `Ошибка отправки email на ${email}`,
         error.stack,

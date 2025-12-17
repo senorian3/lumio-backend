@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GithubStrategy } from '@lumio/core/guards/oauth2-github/oauth2-github.guard';
 import { CoreConfig } from '@lumio/core/core.config';
 import axios from 'axios';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -9,6 +10,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 describe('GithubStrategy', () => {
   let strategy: GithubStrategy;
   let mockCoreConfig: CoreConfig;
+  let mockLoggerService: AppLoggerService;
 
   const mockCoreConfigValues = {
     githubClientId: 'test-client-id',
@@ -30,10 +32,17 @@ describe('GithubStrategy', () => {
           provide: CoreConfig,
           useValue: mockCoreConfig,
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     strategy = module.get<GithubStrategy>(GithubStrategy);
+    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
   });
 
   afterEach(() => {
@@ -217,9 +226,6 @@ describe('GithubStrategy', () => {
         emails: [],
       };
 
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
       mockedAxios.get.mockRejectedValue(new Error('API Error'));
 
       // Act
@@ -231,17 +237,16 @@ describe('GithubStrategy', () => {
 
       // Assert
       expect(mockedAxios.get).toHaveBeenCalled();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Ошибка при запросе email из GitHub API:',
-        expect.any(Error),
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        'Ошибка при получении email: Error: API Error',
+        expect.any(String),
+        'GithubStrategy',
       );
       expect(result).toEqual({
         gitId: 'github-123',
         username: 'githubuser',
         email: null,
       });
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should return null email when GitHub API returns empty array', async () => {

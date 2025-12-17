@@ -8,12 +8,14 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 describe('PasswordRecoveryUseCase', () => {
   let useCase: PasswordRecoveryUseCase;
   let mockUserRepository: UserRepository;
   let mockNodemailerService: NodemailerService;
   let mockRecaptchaService: RecaptchaService;
+  let mockLoggerService: AppLoggerService;
 
   const mockPasswordRecoveryDto = {
     email: 'test@example.com',
@@ -54,6 +56,12 @@ describe('PasswordRecoveryUseCase', () => {
             verify: jest.fn(),
           },
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -61,6 +69,7 @@ describe('PasswordRecoveryUseCase', () => {
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockNodemailerService = module.get<NodemailerService>(NodemailerService);
     mockRecaptchaService = module.get<RecaptchaService>(RecaptchaService);
+    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -192,23 +201,16 @@ describe('PasswordRecoveryUseCase', () => {
         new Error('SMTP error'),
       );
 
-      // Чтобы подавить console.error в тестах
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
       // Act & Assert - should not throw because error is caught inside useCase
       await expect(useCase.execute(command)).resolves.not.toThrow();
       expect(mockNodemailerService.sendEmail).toHaveBeenCalled();
 
-      // Проверяем, что console.error был вызван
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error in send email:',
-        expect.any(Error),
+      // Проверяем, что loggerService.error был вызван
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        expect.stringContaining('Ошибка отправки email:Error: SMTP error'),
+        expect.any(String),
+        'NodemailerService',
       );
-
-      // Восстанавливаем console.error
-      consoleErrorSpy.mockRestore();
     });
   });
 });
