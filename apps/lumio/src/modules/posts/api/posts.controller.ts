@@ -1,7 +1,12 @@
 import {
   Body,
   Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
   Post,
+  Put,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -15,6 +20,8 @@ import { FileValidationPipe } from '@lumio/core/pipe/validation/validation-file.
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
+import { UpdatePostDto } from '@lumio/modules/posts/api/dto/input/update-post.input.dto';
+import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -37,5 +44,20 @@ export class PostsController {
     );
 
     return postId;
+  }
+
+  @Put('/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  async updatePost(
+    @Param('postId') postId: number,
+    @Body() dto: UpdatePostDto,
+    @Req() req: any,
+  ): Promise<void> {
+    const userId = +req.user.userId;
+
+    await this.commandBus.execute<UpdatePostCommand, void>(
+      new UpdatePostCommand(userId, +postId, dto.description),
+    );
   }
 }
