@@ -22,6 +22,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
 import { UpdatePostDto } from '@lumio/modules/posts/api/dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
+import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 
 @Controller('posts')
 export class PostsController {
@@ -37,13 +38,19 @@ export class PostsController {
     @Body() dto: CreatePostDto,
     @Req() req: any,
   ) {
+    console.log('=== POSTS CONTROLLER ===');
+    console.log('userId:', req.user?.userId);
+    console.log('files count:', files?.length);
+    console.log('dto:', dto);
     const userId = req.user.userId;
 
-    const postId = await this.commandBus.execute<CreatePostCommand, number>(
-      new CreatePostCommand(userId, files, dto),
-    );
+    const result = await this.commandBus.execute<
+      CreatePostCommand,
+      { files: OutputFilesDto[]; postId: number }
+    >(new CreatePostCommand(userId, files, dto));
 
-    return postId;
+    console.log('CommandBus result:', result);
+    return result;
   }
 
   @Put('/:postId')

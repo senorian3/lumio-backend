@@ -30,12 +30,33 @@ export class FilesService {
 
   async uploadFiles(
     postId: number | string,
-    files: Array<{ buffer: Buffer; originalname: string }>,
+    files: Array<{ buffer: any; originalname: string }>,
   ) {
     const uploadedFiles = [];
 
     for (let i = 0; i < files.length; i++) {
       const { buffer, originalname } = files[i];
+
+      // Преобразуем buffer в Buffer, если нужно
+      let fileBuffer: Buffer;
+      if (Buffer.isBuffer(buffer)) {
+        fileBuffer = buffer;
+      } else if (
+        buffer &&
+        buffer.type === 'Buffer' &&
+        Array.isArray(buffer.data)
+      ) {
+        // Это сериализованный Buffer (например, из JSON)
+        fileBuffer = Buffer.from(buffer.data);
+      } else if (buffer instanceof Uint8Array) {
+        fileBuffer = Buffer.from(buffer);
+      } else if (Array.isArray(buffer)) {
+        fileBuffer = Buffer.from(buffer);
+      } else {
+        throw new Error(
+          `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
+        );
+      }
 
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
@@ -48,7 +69,7 @@ export class FilesService {
         const command = new PutObjectCommand({
           Bucket: this.bucketName,
           Key: fileKey,
-          Body: buffer,
+          Body: fileBuffer,
           ContentType: mimeType,
           ACL: 'public-read',
         });
@@ -62,7 +83,7 @@ export class FilesService {
           url: fileUrl,
           fileName: originalname,
           mimeType,
-          size: buffer.length,
+          size: fileBuffer.length,
           index: i,
         });
       } catch (exception) {

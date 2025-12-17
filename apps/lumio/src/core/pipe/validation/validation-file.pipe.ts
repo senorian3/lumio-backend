@@ -1,14 +1,9 @@
 import { PipeTransform, Injectable } from '@nestjs/common';
-import { Express } from 'express';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class FileValidationPipe implements PipeTransform {
-  private readonly ALLOWED_MIME_TYPES = [
-    'image/jpeg',
-    'image/png',
-    'image/jpg',
-  ];
+  private readonly ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private readonly MAX_FILES = 10;
   private readonly MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
@@ -44,7 +39,7 @@ export class FileValidationPipe implements PipeTransform {
 
       // Дополнительная проверка по расширению файла
       const fileExtension = file.originalname.split('.').pop()?.toLowerCase();
-      const validExtensions = ['jpg', 'jpeg', 'png'];
+      const validExtensions = ['jpeg', 'png'];
 
       if (fileExtension && !validExtensions.includes(fileExtension)) {
         throw BadRequestDomainException.create(

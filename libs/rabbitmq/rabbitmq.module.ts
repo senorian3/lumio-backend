@@ -15,10 +15,11 @@ export class RabbitMQModule {
             transport: Transport.RMQ,
             options: {
               urls: [RABBITMQ_CONFIG.url],
-              queue: RABBITMQ_CONFIG.queues[serviceName],
+              queue: RABBITMQ_CONFIG.queues.files,
               queueOptions: {
                 durable: true,
               },
+              // Для posts отправляем прямо в очередь files_queue (без exchange)
               noAck: true,
               prefetchCount: 1,
             },

@@ -15,6 +15,7 @@ async function bootstrap() {
         queueOptions: {
           durable: true,
         },
+        // Убираем exchange и routingKey, слушаем очередь напрямую
         noAck: false,
         prefetchCount: 1,
       },

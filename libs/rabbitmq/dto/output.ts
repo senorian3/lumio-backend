@@ -1,4 +1,4 @@
-export class OutputFileByPostType {
+export class OutputFilesDto {
   constructor(
     public id: number,
     public url: string,
