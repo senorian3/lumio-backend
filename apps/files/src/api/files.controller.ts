@@ -69,6 +69,7 @@ export class FilesController {
       throw error;
     }
   }
+
   //
   // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
   // async handlePostDeleted() // @Payload() data: any
