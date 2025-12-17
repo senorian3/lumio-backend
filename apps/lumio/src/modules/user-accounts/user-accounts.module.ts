@@ -111,5 +111,6 @@ const strategies = [
     ...strategies,
     ...jwtProviders,
   ],
+  exports: [UserRepository],
 })
 export class UserAccountsModule {}
