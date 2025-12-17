@@ -3,10 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github';
 import axios from 'axios';
 import { CoreConfig } from '@lumio/core/core.config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
-  constructor(private readonly coreConfig: CoreConfig) {
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly appLoggerService: AppLoggerService,
+  ) {
     super({
       clientID: coreConfig.githubClientId,
       clientSecret: coreConfig.githubClientSecret,
@@ -28,8 +32,12 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
         });
         const primaryEmail = data.find((e: any) => e.primary && e.verified);
         email = primaryEmail ? primaryEmail.email : null;
-      } catch (err) {
-        console.error('Ошибка при запросе email из GitHub API:', err);
+      } catch (error) {
+        this.appLoggerService.error(
+          `Ошибка при получении email: ${error}`,
+          error.stack,
+          GithubStrategy.name,
+        );
       }
     } else {
       email = profile.emails[0].value;

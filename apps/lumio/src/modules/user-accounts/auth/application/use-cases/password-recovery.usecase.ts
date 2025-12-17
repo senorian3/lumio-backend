@@ -7,6 +7,7 @@ import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/t
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 import { passwordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/password-recovery.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class PasswordRecoveryCommand {
   constructor(public passwordRecoveryDto: passwordRecoveryDto) {}
@@ -21,6 +22,7 @@ export class PasswordRecoveryUseCase
     private readonly nodemailerService: NodemailerService,
     private readonly emailService: EmailService,
     private readonly recaptchaService: RecaptchaService,
+    private readonly loggerService: AppLoggerService,
   ) {}
 
   async execute({
@@ -60,7 +62,13 @@ export class PasswordRecoveryUseCase
         newConfirmationCode,
         this.emailService.passwordRecovery.bind(this.emailService),
       )
-      .catch((er) => console.error('Error in send email:', er));
+      .catch((error) =>
+        this.loggerService.error(
+          `Ошибка отправки email:${error}`,
+          error.stack,
+          NodemailerService.name,
+        ),
+      );
 
     return;
   }

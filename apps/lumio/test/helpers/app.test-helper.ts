@@ -7,6 +7,7 @@ import { appSetup } from '@lumio/app/app-setup';
 import { CoreConfig } from '@lumio/core/core.config';
 import { NestFactory } from '@nestjs/core';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export const initApp = async (): Promise<{
   app: INestApplication;
@@ -45,13 +46,15 @@ export const initApp = async (): Promise<{
 };
 
 export const clearDB = async (prisma: PrismaService) => {
+  const appLoggerService = new AppLoggerService();
   const safeDeleteMany = async (deleteManyOperation: Promise<any>) => {
     try {
       await deleteManyOperation;
     } catch (error: any) {
       if (error.code === 'P2021') {
-        console.warn(
+        appLoggerService.warn(
           `Table not found, skipping deleteMany: ${error.meta?.table}`,
+          error.stack,
         );
       } else {
         throw error;

@@ -1,26 +1,55 @@
-import { Injectable, LoggerService, Logger } from '@nestjs/common';
+import { LoggerService, Injectable } from '@nestjs/common';
+import chalk from 'chalk';
 
 @Injectable()
 export class AppLoggerService implements LoggerService {
-  private readonly logger = new Logger('AppLogger');
+  private getTimestamp(): string {
+    const now = new Date();
+    return `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}, ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+  }
+
+  private formatMessage(
+    level: string,
+    message: string,
+    context?: string,
+  ): string {
+    const timestamp = this.getTimestamp();
+    const pid = process.pid;
+    const contextStr = context ? chalk.yellow(` [${context}]`) : '';
+
+    const levelColors = {
+      LOG: chalk.green,
+      ERROR: chalk.red,
+      WARN: chalk.yellow,
+      DEBUG: chalk.blue,
+      VERBOSE: chalk.magenta,
+    } as const;
+
+    const levelColor =
+      levelColors[level as keyof typeof levelColors] || chalk.white;
+    const levelText = levelColor('[LOGGER]');
+
+    return `${levelText} ${chalk.green(pid)}  - ${chalk.white(timestamp)}     ${levelColor(level)}${contextStr} ${levelColor(message)}`;
+  }
 
   log(message: string, context?: string) {
-    this.logger.log(message, context);
+    console.log(this.formatMessage('LOG', message, context));
   }
 
   error(message: string, trace?: string, context?: string) {
-    this.logger.error(message, trace, context);
+    console.error(this.formatMessage('ERROR', message, context));
+    if (trace) console.error(chalk.red(trace));
   }
 
   warn(message: string, context?: string) {
-    this.logger.warn(message, context);
+    console.warn(this.formatMessage('WARN', message, context));
   }
 
   debug(message: string, context?: string) {
-    this.logger.debug(message, context);
+    console.debug(this.formatMessage('DEBUG', message, context));
   }
 
   verbose(message: string, context?: string) {
-    this.logger.verbose(message, context);
+    console.log(this.formatMessage('VERBOSE', message, context));
   }
 }
