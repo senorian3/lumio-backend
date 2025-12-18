@@ -60,7 +60,7 @@ pipeline {
                     sh '''
                        # Install dependencies for files service
                        echo "Installing dependencies..."
-                       yarn install --ignore-engines
+                       yarn install --frozen-lockfile --ignore-engines
                        
                        # Генерируем Prisma клиент для сборки (без env переменных)
                        echo "Generating Prisma client for build..."
@@ -123,9 +123,6 @@ pipeline {
     }
     
     post {
-        always {
-            junit '**/test-results/**/*.xml'
-        }
         success {
             echo "Files service pipeline completed successfully!"
         }
