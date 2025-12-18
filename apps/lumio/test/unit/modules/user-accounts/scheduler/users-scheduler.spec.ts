@@ -28,16 +28,14 @@ describe('UserSchedulerService', () => {
 
   describe('deleteExpiredUserRegistration', () => {
     it('should call deleteExpiredUserRegistration with current date', async () => {
-      const date = new Date();
       await service.deleteExpiredUserRegistration();
 
       expect(userRepository.deleteExpiredUserRegistration).toHaveBeenCalledWith(
-        date,
+        expect.any(Date),
       );
     });
 
     it('should handle repository errors', async () => {
-      const date = new Date();
       const error = new Error('Database error');
       userRepository.deleteExpiredUserRegistration.mockRejectedValue(error);
 
@@ -45,7 +43,7 @@ describe('UserSchedulerService', () => {
         error,
       );
       expect(userRepository.deleteExpiredUserRegistration).toHaveBeenCalledWith(
-        date,
+        expect.any(Date),
       );
     });
   });
