@@ -20,7 +20,7 @@ export function swaggerSetup(
       .addBearerAuth()
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
-      .addServer(`localhost:${port}', 'Lumio (development)`)
+      .addServer(`http://localhost:${port}`, 'Lumio (development)')
       .addServer('https://lumio.su/api/v1', 'Lumio (production)')
       .addGlobalResponse({
         status: 500,

@@ -16,7 +16,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
       useFactory: (coreConfig: CoreConfig) => {
         const logger = new AppLoggerService();
         const url = coreConfig.dbUrl;
-        logger.log('Connected to DB:', url);
+        logger.log(`Connected to DB:${url}`, AppModule.name);
         return { url };
       },
       inject: [CoreConfig],
