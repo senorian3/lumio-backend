@@ -1,10 +1,3 @@
-export class InputUpdatePostDto {
-  constructor(
-    public userId: string,
-    public postId: string,
-    public title?: string,
-    public content?: string,
-    public addFileIds?: string[],
-    public removeFileIds?: string[],
-  ) {}
-}
+import { CreatePostDto } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
+
+export class UpdatePostDto extends CreatePostDto {}

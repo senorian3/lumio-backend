@@ -5,7 +5,7 @@ import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
 @Global()
 @Module({})
 export class RabbitMQModule {
-  static register(serviceName: 'files' | 'posts'): DynamicModule {
+  static register(serviceName: string): DynamicModule {
     return {
       module: RabbitMQModule,
       imports: [
@@ -15,11 +15,17 @@ export class RabbitMQModule {
             transport: Transport.RMQ,
             options: {
               urls: [RABBITMQ_CONFIG.url],
-              queue: RABBITMQ_CONFIG.queues[serviceName],
+              queue: RABBITMQ_CONFIG.queues.files,
               queueOptions: {
                 durable: true,
               },
-              noAck: true, // Временное решение: включаем auto-acknowledge
+              exchange: RABBITMQ_CONFIG.exchanges.files,
+              exchangeOptions: {
+                durable: true,
+                type: 'direct',
+              },
+              routingKey: RABBITMQ_CONFIG.routingKeys.POST_CREATED,
+              noAck: true,
               prefetchCount: 1,
             },
           },

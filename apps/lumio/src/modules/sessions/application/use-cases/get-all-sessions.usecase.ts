@@ -9,9 +9,7 @@ export class GetAllSessionsCommand {
 }
 
 @QueryHandler(GetAllSessionsCommand)
-export class GetAllSessionsUseCase
-  implements IQueryHandler<GetAllSessionsCommand>
-{
+export class GetAllSessionsUseCase implements IQueryHandler<GetAllSessionsCommand> {
   constructor(
     private readonly querySessionsRepository: QuerySessionsRepository,
   ) {}

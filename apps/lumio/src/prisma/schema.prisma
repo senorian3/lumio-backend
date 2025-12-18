@@ -23,6 +23,7 @@ model User {
   github             GitHub?
   google             Google?
   yandex             Yandex?
+   posts              Post[]
 }
 
 
@@ -79,7 +80,12 @@ model Yandex {
 }
 
 model Post {
-  id       Int    @id @default(autoincrement())
-  title    String
-  content  String?
+  id          Int      @id @default(autoincrement())
+  description String?
+
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }

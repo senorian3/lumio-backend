@@ -2,6 +2,7 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
+import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 
 @Injectable()
 export class RabbitMQService implements OnModuleInit {
@@ -10,58 +11,38 @@ export class RabbitMQService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.client.connect();
+    try {
+      await this.client.connect();
+    } catch (error) {
+      console.error('RabbitMQService: Connection error:', error);
+      throw error;
+    }
   }
 
   async sendRpc<T>(pattern: string, data: any): Promise<T> {
-    return await firstValueFrom(this.client.send(pattern, data));
+    try {
+      const result = await firstValueFrom(this.client.send(pattern, data));
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async emitEvent(pattern: string, data: any): Promise<void> {
     this.client.emit(pattern, data);
   }
 
-  // Специфичные методы для работы с файлами
-  //   async uploadFiles(
-  //     files: Express.Multer.File[],
-  //     userId: string,
-  //     postId?: string,
-  //   ): Promise<IUploadedFile[]> {
-  //     const request: uploadilesRequestType = {
-  //       files: files.map((file) => ({
-  //         buffer: file.buffer,
-  //         originalname: file.originalname,
-  //         mimetype: file.mimetype,
-  //         size: file.size,
-  //       })),
-  //       userId,
-  //       postId,
-  //     };
-
-  //     return this.sendRpc<uploadilesRequestType[]>(
-  //       RABBITMQ_CONFIG.routingKeys.FILES_UPLOAD,
-  //       request,
-  //     );
-  //   }
-
-  //   async deleteFiles(fileKeys: string[], userId: string): Promise<void> {
-  //     const request: deleteFilesRequestType = { fileKeys, userId };
-  //     return this.sendRpc(RABBITMQ_CONFIG.routingKeys.FILES_DELETE, request);
-  //   }
-
   // Методы для отправки событий о постах
-  async emitPostCreated(
-    postId: string,
-    userId: string,
-    fileKeys: string[],
-  ): Promise<void> {
-    await this.emitEvent(RABBITMQ_CONFIG.routingKeys.POST_CREATED, {
-      postId,
-      userId,
-      fileKeys,
-      timestamp: new Date(),
-    });
-  }
+  // async emitPostCreated(
+  //   postId: number,
+  //   files: Array<Express.Multer.File>,
+  // ): Promise<void> {
+  //   await this.emitEvent(RABBITMQ_CONFIG.routingKeys.POST_CREATED, {
+  //     postId,
+  //     files,
+  //   });
+  // }
 
   async emitPostDeleted(
     postId: string,
@@ -74,5 +55,20 @@ export class RabbitMQService implements OnModuleInit {
       fileKeys,
       timestamp: new Date(),
     });
+  }
+
+  async sendPostCreatedRpc(
+    postId: number,
+    files: Array<Express.Multer.File>,
+  ): Promise<OutputFilesDto[]> {
+    try {
+      const result = await this.sendRpc<OutputFilesDto[]>(
+        RABBITMQ_CONFIG.messagePatterns.POST_CREATED,
+        { postId, files },
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 }

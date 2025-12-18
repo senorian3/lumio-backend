@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: lumio_files_postgres
+    environment:
+      POSTGRES_DB: files
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data_files:/var/lib/postgresql/data
+    networks:
+      - lumio_network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: lumio_files_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - '5673:5672'
+      - '15673:15672'
+    volumes:
+      - rabbitmq_data_files:/var/lib/rabbitmq
+    networks:
+      - lumio_network
+
+  files:
+    build:
+      context: ../../
+      dockerfile: apps/files/Dockerfile
+      args:
+        - service=files
+        - port=3001
+    container_name: lumio_files_service
+    ports:
+      - '3001:3001'
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/files
+      - NODE_ENV=development
+      - IS_SWAGGER_ENABLED=true
+      - INCLUDE_TESTING_MODULE=true
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - lumio_network
+
+volumes:
+  postgres_data_files:
+  rabbitmq_data_files:
+
+networks:
+  lumio_network:
+    external: true
+    name: lumio_network
