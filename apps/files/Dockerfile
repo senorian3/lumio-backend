@@ -1,7 +1,7 @@
 FROM node:20.17-alpine
 
-ARG port=3001
-ARG service=files
+ARG port
+ARG service
 ENV SERVICE=$service
 ENV PORT=$port
 
