@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation } from '@nestjs/swagger';
 
 export function ApiGithub() {
   return applyDecorators(
+    ApiExcludeEndpoint(),
     ApiOperation({
       summary: 'Github redirect',
       description: 'Endpoint for github',

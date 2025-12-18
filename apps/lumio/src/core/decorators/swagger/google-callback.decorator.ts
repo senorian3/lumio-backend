@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function ApiGoogleCallback() {
   return applyDecorators(
+    ApiExcludeEndpoint(),
     ApiOperation({
       summary: 'Google callback',
       description: 'Endpoint for google callback',

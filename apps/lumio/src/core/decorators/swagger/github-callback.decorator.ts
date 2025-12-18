@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function ApiGithubCallback() {
   return applyDecorators(
+    ApiExcludeEndpoint(),
     ApiOperation({
       summary: 'Github callback',
       description: 'Endpoint for github callback',

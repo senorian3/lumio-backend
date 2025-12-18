@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation } from '@nestjs/swagger';
 
 export function ApiGoogle() {
   return applyDecorators(
+    ApiExcludeEndpoint(),
     ApiOperation({
       summary: 'Google redirect',
       description: 'Endpoint for google',
