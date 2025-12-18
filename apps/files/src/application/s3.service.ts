@@ -96,6 +96,7 @@ export class FilesService {
 
     return uploadedFiles;
   }
+
   async deleteFile(s3key: string): Promise<void> {
     try {
       const command = new DeleteObjectCommand({
