@@ -5,7 +5,6 @@ export class PostView {
   id: number;
   description: string;
   createdAt: Date;
-  deletedAt: Date | null;
 
   userId: number;
 
@@ -17,7 +16,6 @@ export class PostView {
     view.id = post.id;
     view.description = post.description;
     view.createdAt = post.createdAt;
-    view.deletedAt = post.deletedAt;
     view.userId = post.userId;
 
     view.postFiles = files.map((f) => new OutputFilesDto(f.id, f.url));
