@@ -6,6 +6,7 @@ import { Ctx, MessagePattern, Payload } from '@nestjs/microservices/decorators';
 import { RABBITMQ_CONFIG } from '@libs/rabbitmq/rabbitmq.constants';
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 import { RmqContext } from '@nestjs/microservices';
+import { DeletedPostFileCommand } from '@files/application/use-cases/deleted-post-file.usecase';
 
 @Controller('files')
 export class FilesController {
@@ -70,10 +71,21 @@ export class FilesController {
     }
   }
 
-  //
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
-  // async handlePostDeleted() // @Payload() data: any
-  // : Promise<void> {
-  //   // this.filesService.logEvent('POST_DELETED', data);
-  // }
+  @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
+  async handlePostDeleted(
+    @Payload() data: { postId: number },
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      await this.commandBus.execute<DeletedPostFileCommand, void>(
+        new DeletedPostFileCommand(data.postId),
+      );
+      channel.ack(originalMsg);
+    } catch (error) {
+      channel.nack(originalMsg);
+      throw error;
+    }
+  }
 }
