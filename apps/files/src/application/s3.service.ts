@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 
@@ -95,5 +95,19 @@ export class FilesService {
     }
 
     return uploadedFiles;
+  }
+  async deleteFile(s3key: string): Promise<void> {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: s3key,
+      });
+
+      await this.s3.send(command);
+      console.log(`File deleted: ${s3key}`);
+    } catch (error) {
+      console.error(`Error deleting file ${s3key}:`, error);
+      throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
+    }
   }
 }
