@@ -7,5 +7,6 @@ export class PostFileEntity implements PostFile {
   mimetype: string;
   size: number;
   createdAt: Date;
+  deletedAt: Date | null;
   postId: number;
 }

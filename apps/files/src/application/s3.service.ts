@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
+import { CoreConfig } from '@files/core/core.config';
 
 @Injectable()
 export class FilesService {
   private s3: S3;
   private bucketName: string;
   private region: string;
-  private publicEndpoint: string;
   private endpoint: string;
 
-  constructor() {
-    this.bucketName = process.env.S3_BUCKET_NAME;
-    this.region = process.env.S3_REGION;
-    this.publicEndpoint = process.env.S3_PUBLIC_ENDPOINT;
-    this.endpoint = process.env.S3_ENDPOINT;
+  constructor(private readonly coreConfig: CoreConfig) {
+    this.bucketName = this.coreConfig.s3BucketName;
+    this.region = this.coreConfig.s3Region;
+    this.endpoint = this.coreConfig.s3Endpoint;
 
     this.s3 = new S3({
       endpoint: this.endpoint,
@@ -95,5 +94,20 @@ export class FilesService {
     }
 
     return uploadedFiles;
+  }
+
+  async deleteFile(s3key: string): Promise<void> {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: s3key,
+      });
+
+      await this.s3.send(command);
+      console.log(`File deleted: ${s3key}`);
+    } catch (error) {
+      console.error(`Error deleting file ${s3key}:`, error);
+      throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
+    }
   }
 }

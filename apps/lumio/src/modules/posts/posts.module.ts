@@ -8,6 +8,15 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { UpdatePostUseCase } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { GetCreatePostQueryHandler } from '@lumio/modules/posts/application/query/get-by-id-create-post.query-handler';
 import { PostQueryRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
+import { DeletePostUseCase } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
+
+const useCases = [CreatePostUseCase, UpdatePostUseCase, DeletePostUseCase];
+
+const services = [RabbitMQService];
+
+const repository = [PostRepository];
+
+const queryRepository = [PostQueryRepository];
 
 @Module({
   imports: [
@@ -17,12 +26,11 @@ import { PostQueryRepository } from '@lumio/modules/posts/domain/infrastructure/
 
   controllers: [PostsController],
   providers: [
-    RabbitMQService,
-    CreatePostUseCase,
-    UpdatePostUseCase,
-    PostRepository,
+    ...services,
+    ...useCases,
+    ...repository,
+    ...queryRepository,
     GetCreatePostQueryHandler,
-    PostQueryRepository,
   ],
 })
 export class PostsModule {}

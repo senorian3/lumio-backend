@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   Param,
@@ -24,6 +25,7 @@ import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/upd
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/query/get-by-id-create-post.query-handler';
 import { PostView } from '@lumio/modules/posts/api/dto/output/createPost.output';
+import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -69,6 +71,19 @@ export class PostsController {
 
     await this.commandBus.execute<UpdatePostCommand, void>(
       new UpdatePostCommand(userId, +postId, dto.description),
+    );
+  }
+
+  @Delete('/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  async deletePost(
+    @Param('postId') postId: number,
+    @Req() req: any,
+  ): Promise<void> {
+    const userId = +req.user.userId;
+    await this.commandBus.execute<DeletePostCommand, void>(
+      new DeletePostCommand(userId, postId),
     );
   }
 }
