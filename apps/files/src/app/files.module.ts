@@ -9,10 +9,11 @@ import { CoreModule } from '@files/core/core.module';
 import { CoreConfig } from '@files/core/core.config';
 import { GetAllFilesByPostUserQueryHandler } from '@files/application/queries/get-all-file-by-post.query-handler';
 import { QueryFileRepository } from '@files/domain/infrastructure/file.query.repository';
+import { DeletedPostFilePostUseCase } from '@files/application/use-cases/deleted-post-file.usecase';
 
 const services = [FilesService];
 
-const useCases = [UploadFilesCreatedPostUseCase];
+const useCases = [UploadFilesCreatedPostUseCase, DeletedPostFilePostUseCase];
 
 const queryHandler = [GetAllFilesByPostUserQueryHandler];
 

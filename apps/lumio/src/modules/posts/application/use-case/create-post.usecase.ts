@@ -3,8 +3,8 @@ import { CreatePostDto } from '@lumio/modules/posts/api/dto/input/create-post.in
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { RabbitMQService } from './../../../../../../../libs/rabbitmq/rabbitmq.service';
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
+import { RabbitMQService } from '@libs/rabbitmq/rabbitmq.service';
 
 export class CreatePostCommand {
   constructor(

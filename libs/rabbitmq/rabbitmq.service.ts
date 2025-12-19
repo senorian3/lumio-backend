@@ -44,16 +44,9 @@ export class RabbitMQService implements OnModuleInit {
   //   });
   // }
 
-  async emitPostDeleted(
-    postId: string,
-    userId: string,
-    fileKeys: string[],
-  ): Promise<void> {
+  async emitPostDeleted(postId: number): Promise<void> {
     await this.emitEvent(RABBITMQ_CONFIG.routingKeys.POST_DELETED, {
       postId,
-      userId,
-      fileKeys,
-      timestamp: new Date(),
     });
   }
 
