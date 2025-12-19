@@ -43,6 +43,8 @@ export class DeletePostUseCase implements ICommandHandler<
       );
     }
 
+    await this.postRepository.softDeletePostById(command.postId);
+
     await this.rabbitMQService.emitPostDeleted(command.postId);
   }
 }
