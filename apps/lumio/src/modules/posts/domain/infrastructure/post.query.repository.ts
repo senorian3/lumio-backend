@@ -14,4 +14,13 @@ export class PostQueryRepository {
       },
     });
   }
+
+  async findUserPosts(userId: number): Promise<PostEntity[]> {
+    return this.prisma.post.findMany({
+      where: { userId },
+      include: {
+        user: true,
+      },
+    });
+  }
 }

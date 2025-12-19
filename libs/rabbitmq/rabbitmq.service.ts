@@ -64,4 +64,16 @@ export class RabbitMQService implements OnModuleInit {
       throw error;
     }
   }
+
+  async getUsersPostsRpc(postIds: number[]): Promise<OutputFilesDto[]> {
+    try {
+      const result = await this.sendRpc<OutputFilesDto[]>(
+        RABBITMQ_CONFIG.messagePatterns.GET_USER_POSTS,
+        { postIds },
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

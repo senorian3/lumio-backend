@@ -21,7 +21,7 @@ export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
     );
 
     const mappedFiles = files.map(
-      (file) => new OutputFilesDto(file.id, file.url),
+      (file) => new OutputFilesDto(file.id, file.url, file.postId),
     );
 
     return mappedFiles;
