@@ -26,6 +26,7 @@ export const RABBITMQ_CONFIG = {
     UPLOAD_FILES: 'files.upload',
     DELETE_FILES: 'files.delete',
     GET_FILE_URLS: 'files.get.urls',
+    GET_USER_POSTS: 'posts.get.user.posts',
     POST_CREATED: 'post.created',
     POST_DELETED: 'post.deleted',
   },

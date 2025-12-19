@@ -7,7 +7,6 @@ import { DeleteSessionUseCase } from './application/use-cases/delete-session.use
 import { SessionRepository } from './domain/infrastructure/session.repository';
 import { SessionsController } from './api/sessions.controller';
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
-import { PrismaModule } from '@lumio/prisma/prisma.module';
 
 const useCases = [
   DeleteAllSessionssUseCase,

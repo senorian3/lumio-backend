@@ -70,6 +70,36 @@ export class FilesController {
     }
   }
 
+  @MessagePattern(RABBITMQ_CONFIG.messagePatterns.GET_USER_POSTS)
+  async handleGetUserPosts(
+    @Payload() data: { postIds: number[] },
+    @Ctx() context: RmqContext,
+  ): Promise<OutputFilesDto[]> {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+    try {
+      const allFiles: OutputFilesDto[] = [];
+
+      // Process each post ID to get all files
+      for (const postId of data.postIds) {
+        const files = await this.queryBus.execute<
+          GetAllFilesByPostUserQuery,
+          OutputFilesDto[] | null
+        >(new GetAllFilesByPostUserQuery(postId));
+
+        if (files && files.length > 0) {
+          allFiles.push(...files);
+        }
+      }
+
+      channel.ack(originalMsg);
+      return allFiles;
+    } catch (error) {
+      channel.nack(originalMsg);
+      throw error;
+    }
+  }
+
   //
   // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
   // async handlePostDeleted() // @Payload() data: any

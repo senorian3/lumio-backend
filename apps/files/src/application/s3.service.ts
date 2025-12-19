@@ -8,13 +8,11 @@ export class FilesService {
   private s3: S3;
   private bucketName: string;
   private region: string;
-  private publicEndpoint: string;
   private endpoint: string;
 
   constructor() {
     this.bucketName = process.env.S3_BUCKET_NAME;
     this.region = process.env.S3_REGION;
-    this.publicEndpoint = process.env.S3_PUBLIC_ENDPOINT;
     this.endpoint = process.env.S3_ENDPOINT;
 
     this.s3 = new S3({

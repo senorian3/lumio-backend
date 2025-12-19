@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -22,8 +23,9 @@ import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/cre
 import { UpdatePostDto } from '@lumio/modules/posts/api/dto/input/update-post.input.dto';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
-import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/query/get-by-id-create-post.query-handler';
 import { PostView } from '@lumio/modules/posts/api/dto/output/createPost.output';
+import { GetAllUserPostsQuery } from '../application/query/get-all-user-posts.query-handler';
+import { GetCreatePostUserQuery } from '../application/query/get-by-id-create-post.query-handler copy';
 
 @Controller('posts')
 export class PostsController {
@@ -31,6 +33,14 @@ export class PostsController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getAllUserPosts(@Req() req: any): Promise<any> {
+    return await this.queryBus.execute<GetAllUserPostsQuery, any>(
+      new GetAllUserPostsQuery(req.user.userId),
+    );
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
