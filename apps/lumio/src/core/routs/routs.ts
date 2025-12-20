@@ -3,7 +3,7 @@ export const AUTH_BASE = 'auth';
 export const AUTH_ROUTES = {
   REGISTRATION: 'registration',
   LOGIN: 'login',
-  LOGOUT: 'logout ',
+  LOGOUT: 'logout',
   PASSWORD_RECOVERY: 'password-recovery',
   NEW_PASSWORD: 'new-password',
   GITHUB: 'github',

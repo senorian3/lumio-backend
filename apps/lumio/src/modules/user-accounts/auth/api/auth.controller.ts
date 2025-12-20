@@ -98,13 +98,21 @@ export class AuthController {
   @ApiLogout()
   @SkipThrottle()
   @UseGuards(RefreshTokenGuard)
-  @HttpCode(204)
-  async logout(@Req() req: any, @Res() res: Response): Promise<void> {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async logout(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
     await this.commandBus.execute<LogoutUserCommand, void>(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
     );
 
-    res.clearCookie('refreshToken', getClearCookieOptions(req));
+    res
+      .clearCookie(
+        'refreshToken',
+        getClearCookieOptions(getLoginCookieOptions(req)),
+      )
+      .end();
   }
 
   @Post(AUTH_ROUTES.PASSWORD_RECOVERY)

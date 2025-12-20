@@ -26,8 +26,9 @@ describe('AuthController', () => {
 
   const mockResponse = {
     cookie: jest.fn(),
-    clearCookie: jest.fn(),
+    clearCookie: jest.fn().mockReturnThis(),
     redirect: jest.fn(),
+    end: jest.fn().mockReturnThis(),
   } as unknown as Response;
 
   const mockRequest = {
