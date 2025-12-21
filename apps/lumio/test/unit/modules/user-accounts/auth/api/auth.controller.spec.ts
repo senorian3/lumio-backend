@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
+import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { AuthController } from '@lumio/modules/user-accounts/auth/api/auth.controller';
 import { CoreConfig } from '@lumio/core/core.config';
 import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration.input-dto';
@@ -19,6 +20,8 @@ import { NewPasswordCommand } from '@lumio/modules/user-accounts/auth/applicatio
 import { LoginUserGitHubCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-github.usecase';
 import { LoginUserGoogleCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
+import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -48,6 +51,8 @@ describe('AuthController', () => {
     }),
   } as any;
 
+  let mockQueryBus: QueryBus;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -64,6 +69,12 @@ describe('AuthController', () => {
             frontendUrl: 'http://localhost:3000',
           },
         },
+        {
+          provide: QueryBus,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(ThrottlerGuard)
@@ -76,10 +87,13 @@ describe('AuthController', () => {
       .useValue({ canActivate: () => true })
       .overrideGuard(AuthGuard('yandex'))
       .useValue({ canActivate: () => true })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     controller = module.get<AuthController>(AuthController);
     mockCommandBus = module.get<CommandBus>(CommandBus);
+    mockQueryBus = module.get<QueryBus>(QueryBus);
   });
 
   it('should be defined', () => {
@@ -310,6 +324,34 @@ describe('AuthController', () => {
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
         new RegistrationConfirmationUserCommand(dto.confirmCode),
       );
+    });
+  });
+
+  describe('me', () => {
+    it('should return current user information', async () => {
+      // Arrange
+      const mockUserRequest = {
+        user: {
+          userId: 1,
+        },
+      } as any;
+
+      const expectedUserInfo: AboutUserOutputDto = new AboutUserOutputDto(
+        1,
+        'testuser',
+        'test@example.com',
+      );
+
+      (mockQueryBus.execute as jest.Mock).mockResolvedValue(expectedUserInfo);
+
+      // Act
+      const result = await controller.me(mockUserRequest);
+
+      // Assert
+      expect(mockQueryBus.execute).toHaveBeenCalledWith(
+        new AboutUserUserQuery(mockUserRequest.user.userId),
+      );
+      expect(result).toEqual(expectedUserInfo);
     });
   });
 });
