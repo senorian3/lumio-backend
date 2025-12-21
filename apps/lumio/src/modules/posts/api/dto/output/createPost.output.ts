@@ -18,8 +18,6 @@ export class PostView {
     view.createdAt = post.createdAt;
     view.userId = post.userId;
 
-    // Filter files to only include those that belong to this specific post
-    // Handle both old and new OutputFilesDto structures
     view.postFiles = allFiles
       .filter(
         (file) =>
