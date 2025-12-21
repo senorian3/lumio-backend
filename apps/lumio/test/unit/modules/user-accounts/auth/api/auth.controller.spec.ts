@@ -158,6 +158,12 @@ describe('AuthController', () => {
   describe('logout', () => {
     it('should logout user', async () => {
       // Arrange
+      const mockResponse = {
+        clearCookie: jest.fn().mockReturnThis(),
+        status: jest.fn().mockReturnThis(),
+        end: jest.fn(),
+      } as unknown as Response;
+
       (mockCommandBus.execute as jest.Mock).mockResolvedValue(undefined);
 
       // Act
@@ -174,6 +180,7 @@ describe('AuthController', () => {
         'refreshToken',
         expect.any(Object),
       );
+      expect(mockResponse.end).toHaveBeenCalled();
     });
   });
 

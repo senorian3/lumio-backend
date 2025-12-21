@@ -29,7 +29,7 @@ export function ApiGetCurrentUser() {
           errorsMessages: [
             {
               message: 'Unauthorized',
-              field: 'accessToken',
+              field: 'refreshToken',
             },
           ],
         },

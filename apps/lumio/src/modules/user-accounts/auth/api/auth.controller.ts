@@ -49,7 +49,6 @@ import {
   getOAuthCookieOptions,
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
-import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
@@ -104,10 +103,7 @@ export class AuthController {
   @SkipThrottle()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(
-    @Req() req: any,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
+  async logout(@Req() req: any, @Res() res: Response): Promise<void> {
     await this.commandBus.execute<LogoutUserCommand, void>(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
     );
@@ -291,14 +287,13 @@ export class AuthController {
 
   @ApiGetCurrentUser()
   @Get(AUTH_ROUTES.ME)
-  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RefreshTokenGuard)
   async me(@Req() req: any): Promise<AboutUserOutputDto> {
-    const userId = req.user.userId;
-
     const user = await this.queryBus.execute<
       AboutUserUserQuery,
       AboutUserOutputDto
-    >(new AboutUserUserQuery(userId));
+    >(new AboutUserUserQuery(req.user.userId));
 
     return user;
   }
