@@ -14,6 +14,7 @@ export const AUTH_ROUTES = {
   YANDEX: 'yandex',
   YANDEX_CALLBACK: 'yandex/callback',
   REFRESH_TOKEN: 'refresh-token',
+  ME: 'me',
 } as const;
 
 export const SECURITY_BASE = 'security/devices';

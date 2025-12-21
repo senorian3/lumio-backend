@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Response, Request } from 'express';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -49,6 +49,10 @@ import {
   getOAuthCookieOptions,
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
+import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
+import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -56,6 +60,7 @@ export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly coreConfig: CoreConfig,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Post(AUTH_ROUTES.REGISTRATION)
@@ -282,5 +287,19 @@ export class AuthController {
     });
 
     return { accessToken: accessToken };
+  }
+
+  @ApiGetCurrentUser()
+  @Get(AUTH_ROUTES.ME)
+  @UseGuards(JwtAuthGuard)
+  async me(@Req() req: any): Promise<AboutUserOutputDto> {
+    const userId = req.user.userId;
+
+    const user = await this.queryBus.execute<
+      AboutUserUserQuery,
+      AboutUserOutputDto
+    >(new AboutUserUserQuery(userId));
+
+    return user;
   }
 }

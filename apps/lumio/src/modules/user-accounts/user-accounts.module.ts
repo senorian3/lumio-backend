@@ -33,6 +33,8 @@ import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.g
 import { LoginUserYandexUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { RefreshTokenUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
+import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -106,6 +108,8 @@ const strategies = [
     UserAccountsConfig,
     UserRepository,
     UserSchedulerService,
+    AboutUserQueryHandler,
+    UserQueryRepository,
     ...useCases,
     ...services,
     ...strategies,
