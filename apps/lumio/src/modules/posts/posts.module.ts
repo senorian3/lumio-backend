@@ -18,11 +18,15 @@ const repository = [PostRepository];
 const queryRepository = [PostQueryRepository];
 import { GetCreatePostQueryHandler } from './application/query/get-by-id-create-post.query-handler copy';
 import { GetAllUserPostsQueryHandler } from './application/query/get-all-user-posts.query-handler';
+import { JwtModule } from '@nestjs/jwt';
+import { SessionsModule } from '../sessions/sessions.module';
 
 @Module({
   imports: [
     RabbitMQModule.register('posts'), // Клиент для RabbitMQ
     UserAccountsModule,
+    JwtModule,
+    SessionsModule,
   ],
 
   controllers: [PostsController],

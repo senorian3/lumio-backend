@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -26,8 +27,11 @@ import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/upd
 import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 import { PostView } from '@lumio/modules/posts/api/dto/output/createPost.output';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { GetAllUserPostsQuery } from '../application/query/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '../application/query/get-by-id-create-post.query-handler copy';
+import { GetPostsQueryParams } from './dto/input/get-all-user-posts.query.dto';
+import { RefreshTokenGuard } from './../../../core/guards/refresh/refresh-token.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -36,11 +40,15 @@ export class PostsController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async getAllUserPosts(@Req() req: any): Promise<any> {
+  @Get('my')
+  @UseGuards(RefreshTokenGuard)
+  async getAllUserPosts(
+    @Query()
+    query: GetPostsQueryParams,
+    @Req() req: any,
+  ): Promise<PaginatedViewDto<PostView[]>> {
     return await this.queryBus.execute<GetAllUserPostsQuery, any>(
-      new GetAllUserPostsQuery(req.user.userId),
+      new GetAllUserPostsQuery(req.user.userId, query),
     );
   }
 
