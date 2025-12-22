@@ -290,7 +290,7 @@ export class AuthController {
     const user = await this.queryBus.execute<
       AboutUserUserQuery,
       AboutUserOutputDto
-    >(new AboutUserUserQuery(req.user.userId));
+    >(new AboutUserUserQuery(+req.user.userId));
 
     return user;
   }
