@@ -22,13 +22,10 @@ export class LoginUserGitHubCommand {
 }
 
 @CommandHandler(LoginUserGitHubCommand)
-export class LoginUserGitHubUseCase
-  implements
-    ICommandHandler<
-      LoginUserGitHubCommand,
-      { accessToken: string; refreshToken: string }
-    >
-{
+export class LoginUserGitHubUseCase implements ICommandHandler<
+  LoginUserGitHubCommand,
+  { accessToken: string; refreshToken: string }
+> {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private readonly accessTokenContext: JwtService,
@@ -145,7 +142,7 @@ export class LoginUserGitHubUseCase
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({ userId });
+    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
 
     return { accessToken, refreshToken };
   }

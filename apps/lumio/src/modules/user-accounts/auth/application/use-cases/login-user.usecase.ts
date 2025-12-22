@@ -20,13 +20,10 @@ export class LoginUserCommand {
 }
 
 @CommandHandler(LoginUserCommand)
-export class LoginUserUseCase
-  implements
-    ICommandHandler<
-      LoginUserCommand,
-      { accessToken: string; refreshToken: string }
-    >
-{
+export class LoginUserUseCase implements ICommandHandler<
+  LoginUserCommand,
+  { accessToken: string; refreshToken: string }
+> {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private readonly accessTokenContext: JwtService,
@@ -90,7 +87,7 @@ export class LoginUserUseCase
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({ userId });
+    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
 
     return { accessToken, refreshToken };
   }

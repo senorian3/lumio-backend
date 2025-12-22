@@ -135,7 +135,7 @@ export class LoginUserGoogleUseCase implements ICommandHandler<
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({ userId });
+    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
 
     return { accessToken, refreshToken };
   }

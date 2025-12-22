@@ -45,8 +45,7 @@ import { RefreshTokenCommand } from '@lumio/modules/user-accounts/auth/applicati
 import { ApiRefreshToken } from '@lumio/core/decorators/swagger/refresh-token.decorator';
 import {
   getClearCookieOptions,
-  getLoginCookieOptions,
-  getOAuthCookieOptions,
+  getStrictCookieOptions,
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
@@ -94,7 +93,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    res.cookie('refreshToken', refreshToken, getLoginCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     return { accessToken };
   }
@@ -112,7 +111,7 @@ export class AuthController {
     res
       .clearCookie(
         'refreshToken',
-        getClearCookieOptions(getLoginCookieOptions(req)),
+        getClearCookieOptions(getStrictCookieOptions(req)),
       )
       .end();
   }
@@ -166,7 +165,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGitHubCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
@@ -204,7 +203,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserGoogleCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
@@ -242,7 +241,7 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
       `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
@@ -261,6 +260,7 @@ export class AuthController {
       void
     >(new RegistrationConfirmationUserCommand(dto.confirmCode));
   }
+
   @ApiRefreshToken()
   @Post(AUTH_ROUTES.REFRESH_TOKEN)
   @UseGuards(RefreshTokenGuard)
@@ -276,12 +276,7 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
 
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     return { accessToken: accessToken };
   }

@@ -66,10 +66,7 @@ export class RefreshTokenUseCase implements ICommandHandler<
       exp: new Date(refreshTokenVerify.exp * 1000),
     });
 
-    const accessToken = this.accessTokenContext.sign({
-      userId: userId,
-    });
-
+    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
     return { accessToken, refreshToken };
   }
 }
