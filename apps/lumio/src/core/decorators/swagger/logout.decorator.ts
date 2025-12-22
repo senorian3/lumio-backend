@@ -19,7 +19,7 @@ export function ApiLogout() {
       description: 'Unauthorized',
       examples: {
         no_refresh_token: {
-          summary: 'No acessToken token in request',
+          summary: 'No accessToken token in request',
           value: {
             errorMessages: [
               {
