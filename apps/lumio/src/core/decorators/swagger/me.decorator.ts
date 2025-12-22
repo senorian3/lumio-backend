@@ -23,13 +23,13 @@ export function ApiGetCurrentUser() {
     }),
     ApiResponse({
       status: 401,
-      description: 'Unauthorized request',
+      description: 'Unauthorized',
       schema: {
         example: {
           errorsMessages: [
             {
-              message: 'Unauthorized',
-              field: 'refreshToken',
+              message: 'There is no access token in request',
+              field: 'accessToken',
             },
           ],
         },

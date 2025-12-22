@@ -21,13 +21,10 @@ export class LoginUserYandexCommand {
 }
 
 @CommandHandler(LoginUserYandexCommand)
-export class LoginUserYandexUseCase
-  implements
-    ICommandHandler<
-      LoginUserYandexCommand,
-      { accessToken: string; refreshToken: string }
-    >
-{
+export class LoginUserYandexUseCase implements ICommandHandler<
+  LoginUserYandexCommand,
+  { accessToken: string; refreshToken: string }
+> {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private readonly accessTokenContext: JwtService,

@@ -52,6 +52,7 @@ import { CoreConfig } from '@lumio/core/core.config';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
+import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -101,7 +102,7 @@ export class AuthController {
   @Post(AUTH_ROUTES.LOGOUT)
   @ApiLogout()
   @SkipThrottle()
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Req() req: any, @Res() res: Response): Promise<void> {
     await this.commandBus.execute<LogoutUserCommand, void>(
@@ -236,9 +237,9 @@ export class AuthController {
 
     const user = req.user;
 
-    const { accessToken, refreshToken } = await this.commandBus.execute<
+    const { refreshToken, accessToken } = await this.commandBus.execute<
       LoginUserYandexCommand,
-      { accessToken: string; refreshToken: string }
+      { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(user, deviceName, ip));
 
     res.cookie('refreshToken', refreshToken, getOAuthCookieOptions(req));
@@ -288,7 +289,7 @@ export class AuthController {
   @ApiGetCurrentUser()
   @Get(AUTH_ROUTES.ME)
   @HttpCode(HttpStatus.OK)
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async me(@Req() req: any): Promise<AboutUserOutputDto> {
     const user = await this.queryBus.execute<
       AboutUserUserQuery,

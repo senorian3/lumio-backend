@@ -21,13 +21,10 @@ export class LoginUserGoogleCommand {
 }
 
 @CommandHandler(LoginUserGoogleCommand)
-export class LoginUserGoogleUseCase
-  implements
-    ICommandHandler<
-      LoginUserGoogleCommand,
-      { accessToken: string; refreshToken: string }
-    >
-{
+export class LoginUserGoogleUseCase implements ICommandHandler<
+  LoginUserGoogleCommand,
+  { accessToken: string; refreshToken: string }
+> {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
     private accessTokenContext: JwtService,
