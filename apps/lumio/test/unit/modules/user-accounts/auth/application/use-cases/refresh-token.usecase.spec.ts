@@ -116,6 +116,7 @@ describe('RefreshTokenUseCase', () => {
       });
       expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({
         userId,
+        deviceId,
       });
       expect(result).toEqual({
         accessToken: mockAccessToken,

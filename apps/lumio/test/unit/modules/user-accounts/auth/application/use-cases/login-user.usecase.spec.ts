@@ -139,7 +139,10 @@ describe('LoginUserUseCase', () => {
         ip,
         deviceName,
       });
-      expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({ userId });
+      expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({
+        userId,
+        deviceId: expect.any(String),
+      });
       expect(result).toEqual({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,

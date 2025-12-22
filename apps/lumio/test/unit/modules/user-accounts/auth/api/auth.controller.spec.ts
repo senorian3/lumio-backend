@@ -42,7 +42,7 @@ describe('AuthController', () => {
       host: 'localhost:3000',
     },
     user: {
-      userId: 1,
+      userId: '1',
       deviceId: 'device-123',
     },
     get: jest.fn().mockImplementation((key: string) => {
@@ -340,6 +340,7 @@ describe('AuthController', () => {
       const mockUserRequest = {
         user: {
           userId: 1,
+          deviceId: 'device-123',
         },
       } as any;
 
@@ -356,7 +357,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        new AboutUserUserQuery(mockUserRequest.user.userId),
+        new AboutUserUserQuery(1),
       );
       expect(result).toEqual(expectedUserInfo);
     });
