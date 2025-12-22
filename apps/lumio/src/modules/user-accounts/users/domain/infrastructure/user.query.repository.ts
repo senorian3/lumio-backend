@@ -7,9 +7,12 @@ export class UserQueryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(userId: number): Promise<UserEntity | null> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: {
         id: userId,
+      },
+      include: {
+        emailConfirmation: true,
       },
     });
     return user;
