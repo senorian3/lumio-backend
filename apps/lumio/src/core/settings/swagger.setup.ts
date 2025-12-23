@@ -7,11 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
-export function swaggerSetup(
-  app: INestApplication,
-  isSwaggerEnabled: boolean,
-  port: number,
-) {
+export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
   if (isSwaggerEnabled) {
     const swaggerPath = '/api/v1/swagger';
 
@@ -20,8 +16,7 @@ export function swaggerSetup(
       .addBearerAuth()
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
-      .addServer(`http://localhost:${port}`, 'Lumio (development)')
-      .addServer('https://lumio.su', 'Lumio (production)')
+      .addServer('https://lumio.su', 'Lumio (Staging)')
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',
