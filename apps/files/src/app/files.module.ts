@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { FilesController } from '../api/files.controller';
 import { FilesService } from '@files/application/s3.service';
@@ -42,4 +42,16 @@ const queryFileRepository = [QueryFileRepository];
     ...queryFileRepository,
   ],
 })
-export class FilesModule {}
+export class FilesModule {
+  static forRoot(coreConfig: CoreConfig): DynamicModule {
+    return {
+      module: FilesModule,
+      providers: [
+        {
+          provide: CoreConfig,
+          useValue: coreConfig,
+        },
+      ],
+    };
+  }
+}

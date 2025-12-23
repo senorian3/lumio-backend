@@ -61,8 +61,6 @@
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "^6.19.0",
-    "amqp-connection-manager": "^4.1.14",
-    "amqplib": "^0.10.4",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

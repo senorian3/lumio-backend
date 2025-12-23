@@ -146,3 +146,8 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: FRONTEND_URL
+            - name: INTERNAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: INTERNAL_API_KEY

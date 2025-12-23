@@ -1,12 +1,12 @@
-import { OutputFilesDto } from '@libs/rabbitmq/dto/output';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { PostQueryRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
-import { PostView } from '@lumio/modules/posts/api/dto/output/createPost.output';
+import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 export class GetCreatePostUserQuery {
   constructor(
     public readonly postId: number,
-    public readonly files: OutputFilesDto[],
+    public readonly files: OutputFileType[],
   ) {}
 }
 

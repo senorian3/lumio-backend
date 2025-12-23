@@ -1,0 +1,61 @@
+import { INestApplication } from '@nestjs/common';
+import {
+  DocumentBuilder,
+  SwaggerCustomOptions,
+  SwaggerDocumentOptions,
+  SwaggerModule,
+} from '@nestjs/swagger';
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
+
+export function swaggerSetup(
+  app: INestApplication,
+  isSwaggerEnabled: boolean,
+  port: number,
+) {
+  if (isSwaggerEnabled) {
+    const swaggerPath = 'swagger';
+
+    const builder = new DocumentBuilder()
+      .setTitle('LUMIO FILES API')
+      .addBearerAuth()
+      .setVersion('1.0')
+      .setDescription('Lumio files backend API documentation')
+      .addServer(`localhost:${port}', 'Lumio files (development)`)
+      .addServer('https://files.lumio.su/api/v1', 'Lumio files (production)')
+      .addGlobalResponse({
+        status: 500,
+        description: 'Internal server error',
+      });
+
+    const config = builder.build();
+
+    const swaggerOptions: SwaggerDocumentOptions = {
+      ignoreGlobalPrefix: false,
+      autoTagControllers: true,
+    };
+
+    const theme = new SwaggerTheme().getBuffer(SwaggerThemeNameEnum.NEWSPAPER);
+
+    const SwaggerCustomOptions: SwaggerCustomOptions = {
+      raw: ['json'],
+      customSiteTitle: 'Lumio swagger',
+      customCss: theme,
+      jsonDocumentUrl: 'api/v1/swagger/json',
+      swaggerOptions: {
+        filter: true,
+        showCommonExtensions: true,
+        showExtensions: true,
+        displayRequestDuration: true,
+        urls: [
+          {
+            url: '/api/v1/swagger/json',
+            name: 'API v1',
+          },
+        ],
+      },
+    };
+
+    const document = SwaggerModule.createDocument(app, config, swaggerOptions);
+    SwaggerModule.setup(swaggerPath, app, document, SwaggerCustomOptions);
+  }
+}

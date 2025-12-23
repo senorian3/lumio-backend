@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { QueryFileRepository } from '@files/domain/infrastructure/file.query.repository';
-import { OutputFilesDto } from './../../../../../libs/rabbitmq/dto/output';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 export class GetAllFilesByPostUserQuery {
   constructor(public readonly postId: number) {}
@@ -9,19 +9,19 @@ export class GetAllFilesByPostUserQuery {
 @QueryHandler(GetAllFilesByPostUserQuery)
 export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
   GetAllFilesByPostUserQuery,
-  OutputFilesDto[] | null
+  OutputFileType[] | null
 > {
   constructor(private readonly queryFileRepository: QueryFileRepository) {}
 
   async execute(
     query: GetAllFilesByPostUserQuery,
-  ): Promise<OutputFilesDto[] | null> {
+  ): Promise<OutputFileType[] | null> {
     const files = await this.queryFileRepository.getAllFileByPostId(
       query.postId,
     );
 
     const mappedFiles = files.map(
-      (file) => new OutputFilesDto(file.id, file.url, file.postId),
+      (file) => new OutputFileType(file.id, file.url, file.postId),
     );
 
     return mappedFiles;

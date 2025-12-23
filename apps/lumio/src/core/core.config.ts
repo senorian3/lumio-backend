@@ -76,6 +76,9 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable YANDEX_CALLBACK_URL' })
   yandexCallbackUrl: string = this.configService.get('YANDEX_CALLBACK_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
+  internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
+
   @IsNumber(
     {},
     {

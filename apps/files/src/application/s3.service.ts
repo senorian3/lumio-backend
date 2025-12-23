@@ -3,6 +3,7 @@ import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
+import { PostFileEntity } from '@files/domain/entities/post-file.entity';
 
 @Injectable()
 export class FilesService {
@@ -28,9 +29,9 @@ export class FilesService {
   }
 
   async uploadFiles(
-    postId: number | string,
+    postId: number,
     files: Array<{ buffer: any; originalname: string }>,
-  ) {
+  ): Promise<PostFileEntity[]> {
     const uploadedFiles = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -59,7 +60,6 @@ export class FilesService {
 
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
-
       const uniqueId = randomUUID().split('-')[0];
       const fileName = `${postId}_image_${i + 1}_${uniqueId}.${fileExtension}`;
       const fileKey = `content/posts/${postId}/${fileName}`;

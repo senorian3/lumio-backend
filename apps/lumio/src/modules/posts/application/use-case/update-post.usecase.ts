@@ -5,32 +5,36 @@ import {
   BadRequestDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
+import { UpdatePostDto } from '../../api/dto/transfer/update-post..dto';
+import { PostView } from '../../api/dto/output/create-post.output';
 
 export class UpdatePostCommand {
   constructor(
-    public readonly userId: number,
     public readonly postId: number,
-    public newDescription: string,
+    public readonly userId: number,
+    public dto: UpdatePostDto,
   ) {}
 }
 
 @CommandHandler(UpdatePostCommand)
 export class UpdatePostUseCase implements ICommandHandler<
   UpdatePostCommand,
-  void
+  PostView
 > {
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
   ) {}
 
-  async execute(command: UpdatePostCommand): Promise<void> {
+  async execute(command: UpdatePostCommand): Promise<PostView> {
     const user = await this.userRepository.findUserById(command.userId);
+
     if (!user) {
       throw BadRequestDomainException.create('User does not exist', 'user');
     }
 
     const post = await this.postRepository.findById(command.postId);
+
     if (!post) {
       throw BadRequestDomainException.create('Post does not exist', 'post');
     }
@@ -42,9 +46,11 @@ export class UpdatePostUseCase implements ICommandHandler<
       );
     }
 
-    await this.postRepository.updateDescription(
+    const updatedPost = await this.postRepository.updateDescription(
       command.postId,
-      command.newDescription,
+      command.dto.description,
     );
+
+    return PostView.fromEntity(updatedPost, command.dto.files);
   }
 }

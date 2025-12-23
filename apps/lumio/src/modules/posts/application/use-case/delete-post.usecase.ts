@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { RabbitMQService } from '@libs/rabbitmq/rabbitmq.service';
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
@@ -22,7 +21,6 @@ export class DeletePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
-    private rabbitMQService: RabbitMQService,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
@@ -45,6 +43,6 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    await this.rabbitMQService.emitPostDeleted(command.postId);
+    // await this.rabbitMQService.emitPostDeleted(command.postId);
   }
 }

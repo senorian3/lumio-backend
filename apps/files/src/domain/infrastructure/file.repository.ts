@@ -8,19 +8,19 @@ export class FileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createFile(dto: CreateFileDomainDto): Promise<PostFileEntity> {
-    return this.prisma.postFile.create({
+    return await this.prisma.postFile.create({
       data: {
         key: dto.key,
         url: dto.url,
         mimetype: dto.mimetype,
         size: dto.size,
-        postId: +dto.postId,
+        postId: dto.postId,
       },
     });
   }
 
   async softDeleteFilesByPostId(postId: number): Promise<void> {
-    const result = await this.prisma.postFile.updateMany({
+    await this.prisma.postFile.updateMany({
       where: { postId },
       data: { deletedAt: new Date() },
     });
