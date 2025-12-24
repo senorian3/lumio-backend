@@ -104,7 +104,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Req() req: any, @Res() res: Response): Promise<void> {
-    console.log(req.user);
     await this.commandBus.execute<LogoutUserCommand, void>(
       new LogoutUserCommand(req.user.userId, req.user.deviceId),
     );

@@ -76,6 +76,7 @@ export class LoginUserUseCase implements ICommandHandler<
         sessionId: existSession.id,
         iat: new Date(iat * 1000),
         exp: new Date(exp * 1000),
+        tokenVersion: existSession.tokenVersion,
       });
     } else {
       await this.sessionRepository.createSession({
@@ -87,7 +88,11 @@ export class LoginUserUseCase implements ICommandHandler<
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
+    const accessToken = this.accessTokenContext.sign({
+      userId,
+      deviceId,
+      tokenVersion: existSession ? existSession.tokenVersion : 1,
+    });
 
     return { accessToken, refreshToken };
   }

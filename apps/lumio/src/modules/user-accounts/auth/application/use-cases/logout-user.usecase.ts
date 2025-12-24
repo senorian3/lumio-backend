@@ -23,11 +23,11 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
 
     if (!foundSessionByDeviceIdAndUserId) return;
 
-    await this.sessionRepository.deleteSession({
-      userId: foundSessionByDeviceIdAndUserId.userId,
-      deviceId: foundSessionByDeviceIdAndUserId.deviceId,
+    await this.sessionRepository.updateSession({
       sessionId: foundSessionByDeviceIdAndUserId.id,
-      deletedAt: new Date(),
+      iat: foundSessionByDeviceIdAndUserId.createdAt,
+      exp: foundSessionByDeviceIdAndUserId.expiresAt,
+      tokenVersion: foundSessionByDeviceIdAndUserId.tokenVersion + 1,
     });
 
     return;

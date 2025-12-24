@@ -35,12 +35,18 @@ export class SessionRepository {
   }
 
   async updateSession(dto: UpdateSessionDomainDto): Promise<SessionEntity> {
+    const updateData: any = {
+      createdAt: dto.iat,
+      expiresAt: dto.exp,
+    };
+
+    if (dto.tokenVersion !== undefined) {
+      updateData.tokenVersion = dto.tokenVersion;
+    }
+
     return this.prisma.session.update({
       where: { id: dto.sessionId },
-      data: {
-        createdAt: dto.iat,
-        expiresAt: dto.exp,
-      },
+      data: updateData,
     });
   }
 
@@ -53,6 +59,7 @@ export class SessionRepository {
         deviceName: dto.deviceName,
         createdAt: dto.iat,
         expiresAt: dto.exp,
+        tokenVersion: 1,
       },
     });
   }

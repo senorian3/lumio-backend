@@ -34,6 +34,7 @@ model Session {
   deviceId   String    @db.VarChar(255)
   deviceName String    @db.VarChar(255)
   ip         String    @db.VarChar(50)
+  tokenVersion Int     @default(1)
   userId     Int
   user       User      @relation(fields: [userId], references: [id])
 }

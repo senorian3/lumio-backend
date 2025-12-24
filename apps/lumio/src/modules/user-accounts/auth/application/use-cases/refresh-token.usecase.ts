@@ -64,6 +64,7 @@ export class RefreshTokenUseCase implements ICommandHandler<
       sessionId: sessionExists.id,
       iat: new Date(refreshTokenVerify.iat * 1000),
       exp: new Date(refreshTokenVerify.exp * 1000),
+      tokenVersion: sessionExists.tokenVersion + 1,
     });
 
     const accessToken = this.accessTokenContext.sign({ userId, deviceId });

@@ -124,6 +124,7 @@ export class LoginUserGoogleUseCase implements ICommandHandler<
         sessionId: existSession.id,
         iat: newIat,
         exp: newExp,
+        tokenVersion: existSession.tokenVersion + 1,
       });
     } else {
       await this.sessionRepository.createSession({
