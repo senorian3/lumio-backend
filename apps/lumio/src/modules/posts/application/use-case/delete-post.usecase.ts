@@ -5,6 +5,7 @@ import {
   BadRequestDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
+import axios from 'axios';
 
 export class DeletePostCommand {
   constructor(
@@ -43,6 +44,12 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    // await this.rabbitMQService.emitPostDeleted(command.postId);
+    const fileIsDeleted = await axios.delete(
+      `http://localhost:3003/api/v1/files/delete-post-files/${command.postId}`,
+    );
+
+    if (!fileIsDeleted) {
+      throw BadRequestDomainException.create('Files were not deleted', 'files');
+    }
   }
 }

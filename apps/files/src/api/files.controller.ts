@@ -1,5 +1,7 @@
 import {
   Controller,
+  Delete,
+  Param,
   Post,
   Req,
   UploadedFiles,
@@ -13,6 +15,7 @@ import { UploadFilesCreatedPostCommand } from '@files/application/use-cases/uplo
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { DeletedPostFileCommand } from '@files/application/use-cases/deleted-post-file.usecase';
 
 @Controller('files')
 export class FilesController {
@@ -56,23 +59,18 @@ export class FilesController {
   //   }
   // }
 
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
-  // async handlePostDeleted(
-  //   @Payload() data: { postId: number },
-  //   @Ctx() context: RmqContext,
-  // ): Promise<void> {
-  //   const channel = context.getChannelRef();
-  //   const originalMsg = context.getMessage();
-  //   try {
-  //     await this.commandBus.execute<DeletedPostFileCommand, void>(
-  //       new DeletedPostFileCommand(data.postId),
-  //     );
-  //     channel.ack(originalMsg);
-  //   } catch (error) {
-  //     channel.nack(originalMsg);
-  //     throw error;
-  //   }
-  // }
+  @Delete('delete-post-files/:postId')
+  async handlePostDeleted(@Param('postId') postId: number): Promise<boolean> {
+    try {
+      await this.commandBus.execute<DeletedPostFileCommand, void>(
+        new DeletedPostFileCommand(postId),
+      );
+      return true;
+    } catch (error) {
+      console.error('Failed to delete post files:', error);
+      return false;
+    }
+  }
 
   // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.GET_USER_POSTS)
   // async handleGetUserPosts(
