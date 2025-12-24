@@ -31,13 +31,6 @@ export class UploadFilesCreatedPostUseCase implements ICommandHandler<
       files,
     );
 
-    console.log(
-      'uploadedFiles',
-      uploadedFiles,
-      'uploadedFiles[0]',
-      uploadedFiles[0],
-    );
-
     for (const file of uploadedFiles) {
       await this.fileRepository.createFile({
         key: file.key,

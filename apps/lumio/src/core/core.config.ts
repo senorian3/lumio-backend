@@ -79,6 +79,9 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
+  @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
+  filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
+
   @IsNumber(
     {},
     {

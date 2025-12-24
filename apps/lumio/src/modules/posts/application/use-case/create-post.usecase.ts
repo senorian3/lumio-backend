@@ -54,8 +54,10 @@ export class CreatePostUseCase implements ICommandHandler<
         });
       });
 
+      const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+
       const mappedFile = await axios.post(
-        'http://localhost:3003/api/v1/files/upload-post-files',
+        `${filesFrontendUrl}/api/v1/files/upload-post-files`,
         formData,
         {
           headers: {
