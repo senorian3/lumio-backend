@@ -44,7 +44,7 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    const fileIsDeleted = await axios.delete(
+    const fileIsDeleted = await axios.get(
       `http://localhost:3003/api/v1/files/delete-post-files/${command.postId}`,
     );
 

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Param,
@@ -10,16 +11,22 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UploadFilesCreatedPostCommand } from '@files/application/use-cases/upload-post-file.usecase';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 import { DeletedPostFileCommand } from '@files/application/use-cases/deleted-post-file.usecase';
+import { GetAllFilesByPostUserQuery } from '@files/application/queries/get-all-file-by-post.query-handler';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { GetUserPostsDto } from '@files/api/dto/input/get-user-post.input-dto';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Post('upload-post-files')
   @UseGuards(JwtAuthGuard)
@@ -72,33 +79,20 @@ export class FilesController {
     }
   }
 
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.GET_USER_POSTS)
-  // async handleGetUserPosts(
-  //   @Payload() data: { postIds: number[] },
-  //   @Ctx() context: RmqContext,
-  // ): Promise<OutputFilesDto[]> {
-  //   const channel = context.getChannelRef();
-  //   const originalMsg = context.getMessage();
-  //   try {
-  //     const allFiles: OutputFilesDto[] = [];
-
-  //     // Process each post ID to get all files
-  //     for (const postId of data.postIds) {
-  //       const files = await this.queryBus.execute<
-  //         GetAllFilesByPostUserQuery,
-  //         OutputFilesDto[] | null
-  //       >(new GetAllFilesByPostUserQuery(postId));
-
-  //       if (files && files.length > 0) {
-  //         allFiles.push(...files);
-  //       }
-  //     }
-
-  //     channel.ack(originalMsg);
-  //     return allFiles;
-  //   } catch (error) {
-  //     channel.nack(originalMsg);
-  //     throw error;
-  //   }
-  // }
+  @Post()
+  async handleGetUserPosts(
+    @Body() data: GetUserPostsDto,
+  ): Promise<OutputFileType[]> {
+    const allFiles: OutputFileType[] = [];
+    for (const postId of data.postIds) {
+      const files = await this.queryBus.execute<
+        GetAllFilesByPostUserQuery,
+        OutputFileType[] | null
+      >(new GetAllFilesByPostUserQuery(postId));
+      if (files && files.length > 0) {
+        allFiles.push(...files);
+      }
+    }
+    return allFiles;
+  }
 }

@@ -2,43 +2,48 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { InputCreatePostDto } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { InternalApiGuard } from '@lumio/core/guards/internal/internal-api.guard';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateEmptyPostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
 import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
 import { AttachFilesPostCommand } from '../application/use-case/attach-files-post.usecase';
+import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
+import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
+import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
-    // private readonly queryBus: QueryBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
-  // @Get('my')
-  // @UseGuards(RefreshTokenGuard)
-  // async getAllUserPosts(
-  //   @Query()
-  //   query: GetPostsQueryParams,
-  //   @Req() req: any,
-  // ): Promise<number> {
-  //   return await this.queryBus.execute<GetAllUserPostsQuery, any>(
-  //     new GetAllUserPostsQuery(req.user.userId, query),
-  //   );
-  // }
+  @Get('my')
+  @UseGuards(RefreshTokenGuard)
+  async getAllUserPosts(
+    @Query()
+    query: GetPostsQueryParams,
+    @Req() req: any,
+  ): Promise<number> {
+    return await this.queryBus.execute<GetAllUserPostsQuery, any>(
+      new GetAllUserPostsQuery(req.user.userId, query),
+    );
+  }
 
   @Post()
   @UseGuards(InternalApiGuard)

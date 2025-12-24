@@ -10,6 +10,7 @@ import { GetCreatePostQueryHandler } from './application/query/get-by-id-create-
 // import { GetAllUserPostsQueryHandler } from './application/query/get-all-user-posts.query-handler';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsModule } from '../sessions/sessions.module';
+import { GetAllUserPostsQueryHandler } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
 
 const useCases = [CreateEmptyPostUseCase, UpdatePostUseCase, DeletePostUseCase];
 
@@ -30,7 +31,7 @@ const queryRepository = [PostQueryRepository];
     ...queryRepository,
     GetCreatePostQueryHandler,
     PostQueryRepository,
-    // GetAllUserPostsQueryHandler,
+    GetAllUserPostsQueryHandler,
   ],
 })
 export class PostsModule {}
