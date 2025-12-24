@@ -21,6 +21,7 @@ describe('LogoutUserUseCase', () => {
     deletedAt: null,
     expiresAt: new Date('2025-07-01T10:00:00Z'),
     deviceId: 'device-123',
+    tokenVersion: 1,
     user: {} as any,
   };
 
@@ -32,7 +33,7 @@ describe('LogoutUserUseCase', () => {
           provide: SessionRepository,
           useValue: {
             findSession: jest.fn(),
-            deleteSession: jest.fn(),
+            updateSession: jest.fn(),
           },
         },
       ],
@@ -51,7 +52,9 @@ describe('LogoutUserUseCase', () => {
       // Arrange
       const command = new LogoutUserCommand(userId.toString(), deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(mockSession);
-      (mockRepository.deleteSession as jest.Mock).mockResolvedValue(undefined);
+      (mockRepository.updateSession as jest.Mock).mockResolvedValue(
+        mockSession,
+      );
 
       // Act
       await useCase.execute(command);
@@ -61,47 +64,43 @@ describe('LogoutUserUseCase', () => {
         userId: userId,
         deviceId: deviceId,
       });
-      expect(mockRepository.deleteSession).toHaveBeenCalledWith({
-        userId: mockSession.userId,
-        deviceId: mockSession.deviceId,
+      expect(mockRepository.updateSession).toHaveBeenCalledWith({
         sessionId: mockSession.id,
-        deletedAt: expect.any(Date),
+        iat: mockSession.createdAt,
+        exp: mockSession.expiresAt,
+        tokenVersion: mockSession.tokenVersion + 1,
       });
     });
 
     it('should return early when userId is missing', async () => {
       // Arrange
       const command = new LogoutUserCommand('', deviceId);
-      (mockRepository.findSession as jest.Mock).mockResolvedValue(null);
-      (mockRepository.deleteSession as jest.Mock).mockResolvedValue(undefined);
 
       // Act
       await useCase.execute(command);
 
       // Assert
       expect(mockRepository.findSession).not.toHaveBeenCalled();
-      expect(mockRepository.deleteSession).not.toHaveBeenCalled();
+      expect(mockRepository.updateSession).not.toHaveBeenCalled();
     });
 
     it('should return early when deviceId is missing', async () => {
       // Arrange
       const command = new LogoutUserCommand(userId.toString(), '');
-      (mockRepository.findSession as jest.Mock).mockResolvedValue(null);
-      (mockRepository.deleteSession as jest.Mock).mockResolvedValue(undefined);
 
       // Act
       await useCase.execute(command);
 
       // Assert
       expect(mockRepository.findSession).not.toHaveBeenCalled();
-      expect(mockRepository.deleteSession).not.toHaveBeenCalled();
+      expect(mockRepository.updateSession).not.toHaveBeenCalled();
     });
 
     it('should return early when session not found', async () => {
       // Arrange
       const command = new LogoutUserCommand(userId.toString(), deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(null);
-      (mockRepository.deleteSession as jest.Mock).mockResolvedValue(undefined);
+      (mockRepository.updateSession as jest.Mock).mockResolvedValue(undefined);
 
       // Act
       await useCase.execute(command);
@@ -111,25 +110,23 @@ describe('LogoutUserUseCase', () => {
         userId: userId,
         deviceId: deviceId,
       });
-      expect(mockRepository.deleteSession).not.toHaveBeenCalled();
+      expect(mockRepository.updateSession).not.toHaveBeenCalled();
     });
 
-    it('should use current date for deletedAt', async () => {
+    it('should increase token version when logging out', async () => {
       // Arrange
       const command = new LogoutUserCommand(userId.toString(), deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(mockSession);
-      (mockRepository.deleteSession as jest.Mock).mockResolvedValue(undefined);
-      const before = new Date();
+      (mockRepository.updateSession as jest.Mock).mockResolvedValue(
+        mockSession,
+      );
 
       // Act
       await useCase.execute(command);
 
       // Assert
-      const call = (mockRepository.deleteSession as jest.Mock).mock.calls[0][0];
-      expect(call.deletedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(call.deletedAt.getTime()).toBeLessThanOrEqual(
-        new Date().getTime(),
-      );
+      const call = (mockRepository.updateSession as jest.Mock).mock.calls[0][0];
+      expect(call.tokenVersion).toBe(mockSession.tokenVersion + 1);
     });
   });
 });

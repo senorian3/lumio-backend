@@ -27,6 +27,10 @@ describe('RefreshTokenUseCase', () => {
     deviceId,
     deviceName,
     ip: '192.168.1.1',
+    deletedAt: null,
+    createdAt: new Date(),
+    expiresAt: new Date(),
+    tokenVersion: 1,
   };
   const mockRefreshToken = 'new-refresh-token';
   const mockAccessToken = 'new-access-token';
@@ -113,6 +117,7 @@ describe('RefreshTokenUseCase', () => {
         sessionId: mockSession.id,
         iat: new Date(iat * 1000),
         exp: new Date(exp * 1000),
+        tokenVersion: expect.any(Number),
       });
       expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({
         userId,
@@ -204,9 +209,91 @@ describe('RefreshTokenUseCase', () => {
         sessionId: mockSession.id,
         iat: new Date(iatNum * 1000),
         exp: new Date(expNum * 1000),
+        tokenVersion: expect.any(Number),
       });
       expect(result.accessToken).toBe(mockAccessToken);
       expect(result.refreshToken).toBe(mockRefreshToken);
+    });
+
+    it('should handle database error when finding session', async () => {
+      // Arrange
+      const command = new RefreshTokenCommand(deviceName, ip, userId, deviceId);
+      const dbError = new Error('Session table not found');
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockRefreshTokenJwtService.sign).not.toHaveBeenCalled();
+      expect(mockSessionRepository.updateSession).not.toHaveBeenCalled();
+      expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when updating session', async () => {
+      // Arrange
+      const command = new RefreshTokenCommand(deviceName, ip, userId, deviceId);
+      const dbError = new Error('Cannot update session');
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockResolvedValue(mockSession);
+      jest
+        .spyOn(mockRefreshTokenJwtService, 'sign')
+        .mockReturnValue(mockRefreshToken);
+      jest.spyOn(mockRefreshTokenJwtService, 'verify').mockReturnValue({
+        iat,
+        exp,
+      });
+      jest
+        .spyOn(mockSessionRepository, 'updateSession')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle JWT signing error for refresh token', async () => {
+      // Arrange
+      const command = new RefreshTokenCommand(deviceName, ip, userId, deviceId);
+      const jwtError = new Error('JWT signing failed');
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockResolvedValue(mockSession);
+      jest.spyOn(mockRefreshTokenJwtService, 'sign').mockImplementation(() => {
+        throw jwtError;
+      });
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(jwtError);
+      expect(mockRefreshTokenJwtService.verify).not.toHaveBeenCalled();
+      expect(mockSessionRepository.updateSession).not.toHaveBeenCalled();
+      expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle JWT signing error for access token', async () => {
+      // Arrange
+      const command = new RefreshTokenCommand(deviceName, ip, userId, deviceId);
+      const jwtError = new Error('Access token signing failed');
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockResolvedValue(mockSession);
+      jest
+        .spyOn(mockRefreshTokenJwtService, 'sign')
+        .mockReturnValue(mockRefreshToken);
+      jest.spyOn(mockRefreshTokenJwtService, 'verify').mockReturnValue({
+        iat,
+        exp,
+      });
+      jest
+        .spyOn(mockSessionRepository, 'updateSession')
+        .mockResolvedValue(undefined);
+      jest.spyOn(mockAccessTokenJwtService, 'sign').mockImplementation(() => {
+        throw jwtError;
+      });
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(jwtError);
     });
   });
 });

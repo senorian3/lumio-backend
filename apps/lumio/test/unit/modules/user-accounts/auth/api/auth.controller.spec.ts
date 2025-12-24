@@ -264,7 +264,7 @@ describe('AuthController', () => {
         expect.any(Object), // getOAuthCookieOptions возвращает объект
       );
       expect(mockResponse.redirect).toHaveBeenCalledWith(
-        'http://localhost:3000/oauth-success?accessToken=github-access-token',
+        'http://localhost:3000/auth/oauth-success?accessToken=github-access-token',
       );
     });
   });
@@ -311,7 +311,7 @@ describe('AuthController', () => {
         expect.any(Object),
       );
       expect(mockResponse.redirect).toHaveBeenCalledWith(
-        'http://localhost:3000/oauth-success?accessToken=google-access-token',
+        'http://localhost:3000/auth/oauth-success?accessToken=google-access-token',
       );
     });
   });
