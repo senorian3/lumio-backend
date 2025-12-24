@@ -6,7 +6,7 @@ export function ApiRefreshToken() {
     ApiOperation({
       summary: 'Refresh Token',
       description:
-        'Endpoint for updating refresh token and returning new access token',
+        'Endpoint for updating refresh token and returning new access token.',
       operationId: 'refreshToken',
     }),
 
@@ -16,6 +16,15 @@ export function ApiRefreshToken() {
       schema: {
         example: {
           accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+      },
+      headers: {
+        'Set-Cookie': {
+          description: 'HTTP-only refresh token cookie',
+          schema: {
+            type: 'string',
+            example: 'refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+          },
         },
       },
     }),
@@ -64,6 +73,17 @@ export function ApiRefreshToken() {
               {
                 message: 'There is no such session',
                 field: 'InvalidRefreshToken',
+              },
+            ],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version mismatch',
+          value: {
+            errorMessages: [
+              {
+                message: 'Token version mismatch',
+                field: 'tokenVersion',
               },
             ],
           },

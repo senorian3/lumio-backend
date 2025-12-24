@@ -5,7 +5,8 @@ export function ApiLogin() {
   return applyDecorators(
     ApiOperation({
       summary: 'User login',
-      description: 'Endpoint for user login',
+      description:
+        'Endpoint for user login. Returns access token with tokenVersion for session management and refresh token as HTTP-only cookie.',
       operationId: 'loginUser',
     }),
 
@@ -155,6 +156,17 @@ export function ApiLogin() {
               {
                 message: 'User account is not confirmed',
                 field: 'confirmCode',
+              },
+            ],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version mismatch',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Token version mismatch',
+                field: 'tokenVersion',
               },
             ],
           },
