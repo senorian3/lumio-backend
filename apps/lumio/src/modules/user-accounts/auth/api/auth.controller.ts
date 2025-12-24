@@ -169,7 +169,7 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
-      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
@@ -207,7 +207,7 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
-      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
@@ -245,7 +245,7 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
-      `${this.coreConfig.frontendUrl}/oauth-success?accessToken=${accessToken}`,
+      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
