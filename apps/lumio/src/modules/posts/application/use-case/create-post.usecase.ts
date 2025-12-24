@@ -5,8 +5,8 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import FormData from 'form-data';
-import { PostView } from '../../api/dto/output/create-post.output';
 import { PostEntity } from '../../domain/entities/post.entity';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 export class CreatePostCommand {
   constructor(
@@ -19,7 +19,7 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<
   CreatePostCommand,
-  PostView
+  { file: OutputFileType[]; postId: number }
 > {
   constructor(
     private userRepository: UserRepository,
@@ -27,7 +27,9 @@ export class CreatePostUseCase implements ICommandHandler<
     private configService: ConfigService,
   ) {}
 
-  async execute(command: CreatePostCommand): Promise<PostView> {
+  async execute(
+    command: CreatePostCommand,
+  ): Promise<{ file: OutputFileType[]; postId: number }> {
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
@@ -52,8 +54,8 @@ export class CreatePostUseCase implements ICommandHandler<
         });
       });
 
-      const response = await axios.post(
-        'http://localhost:3001/api/v1/files/upload-post-files',
+      const mappedFile = await axios.post(
+        'http://localhost:3003/api/v1/files/upload-post-files',
         formData,
         {
           headers: {
@@ -63,9 +65,7 @@ export class CreatePostUseCase implements ICommandHandler<
         },
       );
 
-      console.log('SUCESS IN AXIOS POSTS', response.data);
-
-      return PostView.fromEntity(newPost);
+      return { file: mappedFile.data, postId: newPost.id };
     } catch (error) {
       console.log('ERROR IN AXIOS POSTS', error);
       throw error;

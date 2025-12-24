@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { InputCreatePostType } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
@@ -24,12 +24,14 @@ import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/del
 import { InputUpdatePostType } from './dto/input/update-post.input.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/query/get-by-id-create-post.query-handler copy';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
-    // private readonly queryBus: QueryBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   // @Get('my')
@@ -53,9 +55,13 @@ export class PostsController {
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
     @Body() dto: InputCreatePostType,
   ): Promise<PostView> {
-    console.log('USERID IN CREATE POST ENDPOINT', req.user.userId);
-    const post = await this.commandBus.execute<CreatePostCommand, PostView>(
-      new CreatePostCommand(req.user.userId, dto.description, files),
+    const postFile = await this.commandBus.execute<
+      CreatePostCommand,
+      { file: OutputFileType[]; postId: number }
+    >(new CreatePostCommand(req.user.userId, dto.description, files));
+
+    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
+      new GetCreatePostUserQuery(postFile.postId, postFile.file),
     );
 
     return post;

@@ -14,6 +14,8 @@ import { UploadFilesCreatedPostCommand } from '../application/use-cases/upload-p
 import { InputUploadFilesType } from './dto/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { GetAllFilesByPostUserQuery } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
+import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 @Controller('files')
 export class FilesController {
@@ -21,6 +23,7 @@ export class FilesController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
+
   @Post('upload-post-files')
   @UseInterceptors(FilesInterceptor('files'))
   @UseGuards(InternalApiGuard)
@@ -28,13 +31,18 @@ export class FilesController {
   async uploadPostFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() dto: InputUploadFilesType,
-  ): Promise<PostFileEntity[]> {
-    const postFiles = await this.commandBus.execute<
+  ): Promise<OutputFileType[]> {
+    await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
     >(new UploadFilesCreatedPostCommand(+dto.postId, files));
-    console.log('POSTID', dto.postId);
-    return postFiles;
+
+    const filesMap = await this.queryBus.execute<
+      GetAllFilesByPostUserQuery,
+      OutputFileType[]
+    >(new GetAllFilesByPostUserQuery(+dto.postId));
+
+    return filesMap;
   }
 
   // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_CREATED)
