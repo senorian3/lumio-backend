@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { CoreConfig } from '../../core.config';
+import { CoreConfig } from '@files/core/core.config';
 
 @Injectable()
 export class InternalApiGuard implements CanActivate {

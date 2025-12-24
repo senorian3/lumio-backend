@@ -3,7 +3,7 @@ import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
-import { PostFileEntity } from '@files/domain/entities/post-file.entity';
+import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
 
 @Injectable()
 export class FilesService {

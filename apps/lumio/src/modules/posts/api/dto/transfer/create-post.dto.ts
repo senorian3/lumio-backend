@@ -1,6 +1,7 @@
 export class CreatePostTransferDto {
   constructor(
-    public postId: number,
-    public files: [],
+    public userId: number,
+    public description: string,
+    public files: Array<Express.Multer.File>,
   ) {}
 }

@@ -6,12 +6,15 @@ import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 export class PostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createPost(userId: number): Promise<string> {
+  async createPost(userId: number, description: string): Promise<PostEntity> {
     const newPost = await this.prisma.post.create({
-      data: { userId },
+      data: { userId, description },
+      include: {
+        user: true,
+      },
     });
 
-    return newPost.id.toString();
+    return newPost;
   }
 
   async findById(postId: number): Promise<PostEntity | null> {

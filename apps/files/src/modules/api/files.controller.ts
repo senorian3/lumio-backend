@@ -1,34 +1,26 @@
-import {
-  Controller,
-  Post,
-  Req,
-  UploadedFiles,
-  UseGuards,
-  UseInterceptors,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { UploadFilesCreatedPostCommand } from '@files/application/use-cases/upload-post-file.usecase';
-import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
+import { UploadFilesCreatedPostCommand } from '../application/use-cases/upload-post-file.usecase';
+import { InputUploadFilesType } from './dto/upload-files.input.dto';
+import { PostFileEntity } from '../domain/entities/post-file.entity';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly commandBus: CommandBus) {}
-
   @Post('upload-post-files')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('files'))
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  @UseGuards(InternalApiGuard)
   async uploadPostFiles(
-    @Req() req: any,
-    @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
-  ): Promise<void> {
-    return await this.commandBus.execute<UploadFilesCreatedPostCommand, void>(
-      new UploadFilesCreatedPostCommand(files, req.user.userId),
-    );
+    @Body() dto: InputUploadFilesType,
+  ): Promise<PostFileEntity[]> {
+    console.log('POST ID IN CONTROLLER FILES', dto.postId);
+    console.log('FILES IN CONTROLLER FILES', dto.files);
+    const postFiles = await this.commandBus.execute<
+      UploadFilesCreatedPostCommand,
+      PostFileEntity[]
+    >(new UploadFilesCreatedPostCommand(+dto.postId, dto.files));
+
+    return postFiles;
   }
 
   // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_CREATED)

@@ -8,7 +8,7 @@ import {
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 
 @Injectable()
-export class PostQueryRepository {
+export class QueryPostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(postId: number): Promise<PostEntity | null> {

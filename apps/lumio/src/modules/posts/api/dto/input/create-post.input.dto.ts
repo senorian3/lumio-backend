@@ -1,3 +1,8 @@
-export class InputCreatePostDto {
-  constructor(public userId: string) {}
+import { IsString, MaxLength, MinLength } from 'class-validator';
+
+export class InputCreatePostType {
+  @IsString()
+  @MaxLength(500)
+  @MinLength(6)
+  description: string;
 }

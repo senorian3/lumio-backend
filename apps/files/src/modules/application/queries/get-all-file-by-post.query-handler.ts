@@ -1,5 +1,5 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { QueryFileRepository } from '@files/domain/infrastructure/file.query.repository';
+import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 export class GetAllFilesByPostUserQuery {
@@ -16,7 +16,7 @@ export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
   async execute(
     query: GetAllFilesByPostUserQuery,
   ): Promise<OutputFileType[] | null> {
-    const files = await this.queryFileRepository.getAllFileByPostId(
+    const files = await this.queryFileRepository.getAllFilesByPostId(
       query.postId,
     );
 

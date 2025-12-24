@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateFileDomainDto } from '@files/domain/dto/create-file.domain.dto';
-import { PostFileEntity } from '@files/domain/entities/post-file.entity';
+import { CreateFileDomainDto } from '@files/modules/domain/dto/create-file.domain.dto';
+import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
 import { PrismaService } from '@files/prisma/prisma.service';
 
 @Injectable()

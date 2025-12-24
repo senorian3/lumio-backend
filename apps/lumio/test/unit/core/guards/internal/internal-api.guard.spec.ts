@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { InternalApiGuard } from '../../../../../src/core/guards/internal/internal-api.guard';
+import { InternalApiGuard } from '../../../../../../files/src/core/guards/internal/internal-api.guard';
 import { CoreConfig } from '../../../../../src/core/core.config';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExecutionContext } from '@nestjs/common';

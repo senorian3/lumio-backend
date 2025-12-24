@@ -8,18 +8,23 @@ import {
   Post,
   Put,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { InputCreatePostDto } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
+import { InputCreatePostType } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { InternalApiGuard } from '@lumio/core/guards/internal/internal-api.guard';
 import { CommandBus } from '@nestjs/cqrs';
-import { CreateEmptyPostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
+import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
-import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
+import { InputUpdatePostType } from './dto/input/update-post.input.dto';
 import { AttachFilesPostCommand } from '../application/use-case/attach-files-post.usecase';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 
 @Controller('posts')
 export class PostsController {
@@ -41,14 +46,20 @@ export class PostsController {
   // }
 
   @Post()
-  @UseGuards(InternalApiGuard)
-  async createEmptyPost(@Body() dto: InputCreatePostDto): Promise<string> {
-    const postId = await this.commandBus.execute<
-      CreateEmptyPostCommand,
-      string
-    >(new CreateEmptyPostCommand(+dto.userId));
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FilesInterceptor('files'))
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async createPost(
+    @Req() req: any,
+    @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
+    @Body() dto: InputCreatePostType,
+  ): Promise<PostView> {
+    console.log('USERID IN CREATE POST ENDPOINT', req.user.userId);
+    const post = await this.commandBus.execute<CreatePostCommand, PostView>(
+      new CreatePostCommand(req.user.userId, dto.description, files),
+    );
 
-    return postId;
+    return post;
   }
 
   @Put('/:postId')
@@ -56,7 +67,7 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   async updatePost(
     @Param('postId') postId: number,
-    @Body() dto: InputUpdatePostDto,
+    @Body() dto: InputUpdatePostType,
     @Req() req: any,
   ): Promise<PostView> {
     const userId = req.user.userId;

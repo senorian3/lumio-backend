@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { FilesController } from '../api/files.controller';
-import { FilesService } from '@files/application/s3.service';
-import { UploadFilesCreatedPostUseCase } from '@files/application/use-cases/upload-post-file.usecase';
-import { FileRepository } from '@files/domain/infrastructure/file.repository';
+import { FilesController } from '../modules/api/files.controller';
+import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
 import { PrismaModule } from '@files/prisma/prisma.module';
 import { CoreModule } from '@files/core/core.module';
 import { CoreConfig } from '@files/core/core.config';
-import { GetAllFilesByPostUserQueryHandler } from '@files/application/queries/get-all-file-by-post.query-handler';
-import { QueryFileRepository } from '@files/domain/infrastructure/file.query.repository';
-import { DeletedPostFilePostUseCase } from '@files/application/use-cases/deleted-post-file.usecase';
+import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
+import { FilesService } from '@files/modules/application/s3.service';
+import { DeletedPostFilePostUseCase } from '@files/modules/application/use-cases/deleted-post-file.usecase';
+import { GetAllFilesByPostUserQueryHandler } from '@files/modules/application/queries/get-all-file-by-post.query-handler';
+import { UploadFilesCreatedPostUseCase } from '@files/modules/application/use-cases/upload-post-file.usecase';
 
 const services = [FilesService];
 
