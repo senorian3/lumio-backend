@@ -8,6 +8,7 @@ import { validationConstraintsSetup } from '@libs/settings/validation-constraint
 import { CoreConfig } from '../core/core.config';
 import { exceptionFilterSetup } from '../core/exception-filter.setup';
 import { enableCorsSetup } from '@lumio/core/settings/enable-cors.setup';
+import { jsonLimitSetup } from '@libs/settings/json-limit.setup';
 
 export function appSetup(
   app: INestApplication,
@@ -18,6 +19,7 @@ export function appSetup(
   proxySetup(app);
   globalPrefixSetup(app);
   pipesSetup(app);
+  jsonLimitSetup(app);
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);
   cookieParserSetup(app);

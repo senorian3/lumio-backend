@@ -8,9 +8,9 @@ export class PostView {
 
   userId: number;
 
-  postFiles: OutputFileType[];
+  postFiles?: OutputFileType[];
 
-  static fromEntity(post: PostEntity, allFiles: OutputFileType[]): PostView {
+  static fromEntity(post: PostEntity, allFiles?: OutputFileType[]): PostView {
     const view = new PostView();
 
     view.id = post.id;
@@ -19,12 +19,14 @@ export class PostView {
     view.userId = post.userId;
 
     view.postFiles = allFiles
-      .filter(
-        (file) =>
-          file.postId === post.id ||
-          (file.postId === undefined && file.id === post.id),
-      )
-      .map((f) => new OutputFileType(f.id, f.url, f.postId || post.id));
+      ? allFiles
+          .filter(
+            (file) =>
+              file.postId === post.id ||
+              (file.postId === undefined && file.id === post.id),
+          )
+          .map((f) => new OutputFileType(f.id, f.url, f.postId || post.id))
+      : [];
 
     return view;
   }

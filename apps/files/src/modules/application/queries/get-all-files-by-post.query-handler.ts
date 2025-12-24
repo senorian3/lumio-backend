@@ -9,13 +9,11 @@ export class GetAllFilesByPostUserQuery {
 @QueryHandler(GetAllFilesByPostUserQuery)
 export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
   GetAllFilesByPostUserQuery,
-  OutputFileType[] | null
+  OutputFileType[]
 > {
   constructor(private readonly queryFileRepository: QueryFileRepository) {}
 
-  async execute(
-    query: GetAllFilesByPostUserQuery,
-  ): Promise<OutputFileType[] | null> {
+  async execute(query: GetAllFilesByPostUserQuery): Promise<OutputFileType[]> {
     const files = await this.queryFileRepository.getAllFilesByPostId(
       query.postId,
     );

@@ -81,9 +81,10 @@ export class FilesService {
           key: fileKey,
           url: fileUrl,
           fileName: originalname,
-          mimeType,
+          mimetype: mimeType,
           size: fileBuffer.length,
           index: i,
+          postId: postId,
         });
       } catch (exception) {
         console.error(`Error uploading file ${fileName}:`, exception);

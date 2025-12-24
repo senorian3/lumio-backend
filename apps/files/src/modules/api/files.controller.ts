@@ -1,25 +1,39 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import {
+  Body,
+  Controller,
+  Post,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
 import { UploadFilesCreatedPostCommand } from '../application/use-cases/upload-post-file.usecase';
 import { InputUploadFilesType } from './dto/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('files')
 export class FilesController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
   @Post('upload-post-files')
+  @UseInterceptors(FilesInterceptor('files'))
   @UseGuards(InternalApiGuard)
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async uploadPostFiles(
+    @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() dto: InputUploadFilesType,
   ): Promise<PostFileEntity[]> {
-    console.log('POST ID IN CONTROLLER FILES', dto.postId);
-    console.log('FILES IN CONTROLLER FILES', dto.files);
     const postFiles = await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
-    >(new UploadFilesCreatedPostCommand(+dto.postId, dto.files));
-
+    >(new UploadFilesCreatedPostCommand(+dto.postId, files));
+    console.log('POSTID', dto.postId);
     return postFiles;
   }
 

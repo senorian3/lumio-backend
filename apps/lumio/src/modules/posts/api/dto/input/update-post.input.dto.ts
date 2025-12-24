@@ -5,8 +5,4 @@ export class InputUpdatePostType {
   @MaxLength(500)
   @MinLength(6)
   description: string;
-
-  files: any;
-
-  isAttaching: boolean;
 }

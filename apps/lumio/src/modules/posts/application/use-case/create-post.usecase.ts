@@ -4,6 +4,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import FormData from 'form-data';
 import { PostView } from '../../api/dto/output/create-post.output';
 import { PostEntity } from '../../domain/entities/post.entity';
 
@@ -41,12 +42,22 @@ export class CreatePostUseCase implements ICommandHandler<
     const internalApiKey = this.configService.get('INTERNAL_API_KEY');
 
     try {
+      const formData = new FormData();
+      formData.append('postId', newPost.id.toString());
+
+      command.files.forEach((file) => {
+        formData.append('files', file.buffer, {
+          filename: file.originalname,
+          contentType: file.mimetype,
+        });
+      });
+
       const response = await axios.post(
         'http://localhost:3001/api/v1/files/upload-post-files',
-        { postId: newPost.id, files: command.files },
+        formData,
         {
           headers: {
-            'Content-Type': 'application/json',
+            ...formData.getHeaders(),
             'X-Internal-API-Key': internalApiKey,
           },
         },
@@ -54,7 +65,7 @@ export class CreatePostUseCase implements ICommandHandler<
 
       console.log('SUCESS IN AXIOS POSTS', response.data);
 
-      return PostView.fromEntity(newPost, response.data);
+      return PostView.fromEntity(newPost);
     } catch (error) {
       console.log('ERROR IN AXIOS POSTS', error);
       throw error;

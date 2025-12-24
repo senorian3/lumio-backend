@@ -5,14 +5,13 @@ import {
   BadRequestDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { UpdatePostDto } from '../../api/dto/transfer/update-post..dto';
 import { PostView } from '../../api/dto/output/create-post.output';
 
 export class UpdatePostCommand {
   constructor(
-    public readonly postId: number,
-    public readonly userId: number,
-    public dto: UpdatePostDto,
+    public postId: number,
+    public userId: number,
+    public description: string,
   ) {}
 }
 
@@ -48,9 +47,9 @@ export class UpdatePostUseCase implements ICommandHandler<
 
     const updatedPost = await this.postRepository.updateDescription(
       command.postId,
-      command.dto.description,
+      command.description,
     );
 
-    return PostView.fromEntity(updatedPost, command.dto.files);
+    return PostView.fromEntity(updatedPost);
   }
 }

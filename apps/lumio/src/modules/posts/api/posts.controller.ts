@@ -22,7 +22,6 @@ import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/upd
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
 import { InputUpdatePostType } from './dto/input/update-post.input.dto';
-import { AttachFilesPostCommand } from '../application/use-case/attach-files-post.usecase';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 
@@ -62,7 +61,7 @@ export class PostsController {
     return post;
   }
 
-  @Put('/:postId')
+  @Put(':postId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async updatePost(
@@ -70,20 +69,15 @@ export class PostsController {
     @Body() dto: InputUpdatePostType,
     @Req() req: any,
   ): Promise<PostView> {
-    const userId = req.user.userId;
+    const updatedPost = await this.commandBus.execute<
+      UpdatePostCommand,
+      PostView
+    >(new UpdatePostCommand(postId, req.user.userId, dto.description));
 
-    if (dto.isAttaching) {
-      return await this.commandBus.execute<AttachFilesPostCommand, PostView>(
-        new AttachFilesPostCommand(postId, userId, dto.files),
-      );
-    }
-
-    return await this.commandBus.execute<UpdatePostCommand, PostView>(
-      new UpdatePostCommand(postId, userId, dto),
-    );
+    return updatedPost;
   }
 
-  @Delete('/:postId')
+  @Delete(':postId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deletePost(
