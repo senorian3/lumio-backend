@@ -12,6 +12,9 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { YandexDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/yandex.dto';
 
+const DEFAULT_PASSWORD_LENGTH = 12;
+const MILLISECONDS_IN_SECOND = 1000;
+
 export class LoginUserYandexCommand {
   constructor(
     public userYandexDto: YandexDto,
@@ -50,64 +53,119 @@ export class LoginUserYandexUseCase implements ICommandHandler<
       userYandexDto.email,
     );
 
-    let appUser;
-
-    if (!existingUser && !yandex) {
-      const isConfitmed = true;
-      const newPassword = randomUUID().replace(/-/g, '').slice(0, 12);
-      const passwordHash =
-        await this.cryptoService.createPasswordHash(newPassword);
-      appUser = await this.userRepository.createUser(
-        {
-          email: userYandexDto.email,
-          username: userYandexDto.username,
-          password: passwordHash,
-        },
-        passwordHash,
-        isConfitmed,
-      );
-
-      await this.userRepository.createYandex({
-        yandexId: userYandexDto.yandexId,
-        email: userYandexDto.email,
-        username: userYandexDto.username,
-        userId: appUser.id,
-      });
-    } else if (yandex && !existingUser) {
-      appUser = await this.userRepository.findUserById(yandex.userId);
-
-      await this.userRepository.updateYandex(yandex.id, {
-        userId: appUser.id,
-        email: userYandexDto.email,
-        username: userYandexDto.username,
-      });
-    } else if (existingUser && !yandex) {
-      appUser = existingUser;
-
-      await this.userRepository.createYandex({
-        yandexId: userYandexDto.yandexId,
-        email: userYandexDto.email,
-        username: userYandexDto.username,
-        userId: appUser.id,
-      });
-    } else {
-      appUser = existingUser;
-    }
+    const appUser = await this.determineUser(
+      yandex,
+      existingUser,
+      userYandexDto,
+    );
 
     const userId = appUser.id;
+    const deviceId = await this.getOrCreateDeviceId(userId, deviceName);
 
-    const existSession = await this.sessionRepository.findSession({
+    const { accessToken, refreshToken } = await this.createTokens(
       userId,
-      deviceName: deviceName,
+      deviceId,
+      deviceName,
+      ip,
+    );
+
+    await this.updateOrCreateSession(userId, deviceId, deviceName, ip);
+
+    return { accessToken, refreshToken };
+  }
+
+  private async determineUser(
+    yandex: any,
+    existingUser: any,
+    userYandexDto: YandexDto,
+  ) {
+    if (!existingUser && !yandex) {
+      return await this.createYandexUser(userYandexDto);
+    } else if (yandex && !existingUser) {
+      return await this.updateExistingYandexUser(yandex, userYandexDto);
+    } else if (existingUser && !yandex) {
+      await this.createYandexForExistingUser(userYandexDto, existingUser.id);
+      return existingUser;
+    } else {
+      return existingUser;
+    }
+  }
+
+  private async createYandexUser(userYandexDto: YandexDto) {
+    const isConfirmed = true;
+    const newPassword = this.generateTemporaryPassword();
+    const passwordHash =
+      await this.cryptoService.createPasswordHash(newPassword);
+
+    const newUser = await this.userRepository.createUser(
+      {
+        email: userYandexDto.email,
+        username: userYandexDto.username,
+        password: passwordHash,
+      },
+      passwordHash,
+      isConfirmed,
+    );
+
+    await this.userRepository.createYandex({
+      yandexId: userYandexDto.yandexId,
+      email: userYandexDto.email,
+      username: userYandexDto.username,
+      userId: Number(newUser.id),
     });
 
-    let deviceId: string;
-    if (existSession) {
-      deviceId = existSession.deviceId;
-    } else {
-      deviceId = randomUUID();
-    }
+    return newUser;
+  }
 
+  private async updateExistingYandexUser(
+    yandex: any,
+    userYandexDto: YandexDto,
+  ) {
+    const appUser = await this.userRepository.findUserById(yandex.userId);
+
+    await this.userRepository.updateYandex(yandex.id, {
+      userId: appUser.id,
+      email: userYandexDto.email,
+      username: userYandexDto.username,
+    });
+
+    return appUser;
+  }
+
+  private async createYandexForExistingUser(
+    userYandexDto: YandexDto,
+    userId: string,
+  ) {
+    await this.userRepository.createYandex({
+      yandexId: userYandexDto.yandexId,
+      email: userYandexDto.email,
+      username: userYandexDto.username,
+      userId: Number(userId),
+    });
+  }
+
+  private generateTemporaryPassword(): string {
+    return randomUUID().replace(/-/g, '').slice(0, DEFAULT_PASSWORD_LENGTH);
+  }
+
+  private async getOrCreateDeviceId(
+    userId: string,
+    deviceName: string,
+  ): Promise<string> {
+    const existSession = await this.sessionRepository.findSession({
+      userId: Number(userId),
+      deviceName,
+    });
+
+    return existSession ? existSession.deviceId : randomUUID();
+  }
+
+  private async createTokens(
+    userId: string,
+    deviceId: string,
+    deviceName: string,
+    ip: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const refreshToken = this.refreshTokenContext.sign({
       userId,
       deviceId,
@@ -123,9 +181,43 @@ export class LoginUserYandexUseCase implements ICommandHandler<
         'refreshToken',
       );
     }
+
+    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
+
+    return { accessToken, refreshToken };
+  }
+
+  private async updateOrCreateSession(
+    userId: string,
+    deviceId: string,
+    deviceName: string,
+    ip: string,
+  ): Promise<void> {
+    const existSession = await this.sessionRepository.findSession({
+      userId: Number(userId),
+      deviceName,
+    });
+
+    const { iat, exp } = this.refreshTokenContext.verify(
+      this.refreshTokenContext.sign({
+        userId,
+        deviceId,
+        deviceName,
+        ip,
+      }),
+    );
+
+    if (!iat || !exp) {
+      throw ForbiddenDomainException.create(
+        'Refresh token not verified',
+        'refreshToken',
+      );
+    }
+
+    const newIat = new Date(iat * MILLISECONDS_IN_SECOND);
+    const newExp = new Date(exp * MILLISECONDS_IN_SECOND);
+
     if (existSession) {
-      const newIat = new Date(iat * 1000);
-      const newExp = new Date(exp * 1000);
       await this.sessionRepository.updateSession({
         sessionId: existSession.id,
         iat: newIat,
@@ -134,16 +226,13 @@ export class LoginUserYandexUseCase implements ICommandHandler<
       });
     } else {
       await this.sessionRepository.createSession({
-        userId,
-        iat: new Date(iat * 1000),
-        exp: new Date(exp * 1000),
+        userId: Number(userId),
+        iat: newIat,
+        exp: newExp,
         deviceId,
         ip,
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({ userId, deviceId });
-
-    return { accessToken, refreshToken };
   }
 }
