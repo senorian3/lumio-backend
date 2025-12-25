@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DeleteObjectCommand, PutObjectCommand, S3 } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
@@ -7,24 +13,31 @@ import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity'
 
 @Injectable()
 export class FilesService {
-  private s3: S3;
-  private bucketName: string;
-  private region: string;
-  private endpoint: string;
+  private readonly s3: S3Client;
+  private readonly bucketName: string;
+  private readonly region: string;
+  private readonly endpoint: string;
+  private readonly urlExpirationTime: number = 3600;
+  private readonly kmsKeyId: string;
+  private readonly accessKeyId: string;
+  private readonly secretAccessKey: string;
 
   constructor(private readonly coreConfig: CoreConfig) {
     this.bucketName = this.coreConfig.s3BucketName;
     this.region = this.coreConfig.s3Region;
     this.endpoint = this.coreConfig.s3Endpoint;
+    this.kmsKeyId = this.coreConfig.s3KmsKeyId;
+    this.accessKeyId = this.coreConfig.s3AccessKeyId;
+    this.secretAccessKey = this.coreConfig.s3SecretAccessKey;
 
-    this.s3 = new S3({
+    this.s3 = new S3Client({
       endpoint: this.endpoint,
       region: this.region,
       credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        accessKeyId: this.accessKeyId,
+        secretAccessKey: this.secretAccessKey,
       },
-      forcePathStyle: true,
+      forcePathStyle: false,
     });
   }
 
@@ -37,17 +50,9 @@ export class FilesService {
     for (let i = 0; i < files.length; i++) {
       const { buffer, originalname } = files[i];
 
-      // Преобразуем buffer в Buffer, если нужно
       let fileBuffer: Buffer;
       if (Buffer.isBuffer(buffer)) {
         fileBuffer = buffer;
-      } else if (
-        buffer &&
-        buffer.type === 'Buffer' &&
-        Array.isArray(buffer.data)
-      ) {
-        // Это сериализованный Buffer (например, из JSON)
-        fileBuffer = Buffer.from(buffer.data);
       } else if (buffer instanceof Uint8Array) {
         fileBuffer = Buffer.from(buffer);
       } else if (Array.isArray(buffer)) {
@@ -65,16 +70,18 @@ export class FilesService {
       const fileKey = `content/posts/${postId}/${fileName}`;
 
       try {
-        const command = new PutObjectCommand({
+        const uploadCommand = new PutObjectCommand({
           Bucket: this.bucketName,
           Key: fileKey,
           Body: fileBuffer,
           ContentType: mimeType,
+          ServerSideEncryption: 'aws:kms',
+          SSEKMSKeyId: this.kmsKeyId,
         });
 
-        await this.s3.send(command);
+        await this.s3.send(uploadCommand);
 
-        const fileUrl = `https://storage.yandexcloud.net/${this.bucketName}/${fileKey}`;
+        const fileUrl = await this.generateSignedUrl(fileKey);
 
         uploadedFiles.push({
           key: fileKey,
@@ -92,6 +99,26 @@ export class FilesService {
     }
 
     return uploadedFiles;
+  }
+
+  async generateSignedUrl(
+    fileKey: string,
+    expiresIn: number = this.urlExpirationTime,
+  ): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: fileKey,
+      });
+
+      const signedUrl = await getSignedUrl(this.s3 as any, command, {
+        expiresIn,
+      });
+      return signedUrl;
+    } catch (error) {
+      console.error(`Error generating signed URL for ${fileKey}:`, error);
+      throw new Error(`Failed to generate signed URL: ${error.message}`);
+    }
   }
 
   async deleteFile(s3key: string): Promise<void> {
