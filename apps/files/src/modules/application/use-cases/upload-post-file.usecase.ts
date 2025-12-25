@@ -2,7 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
 import { FilesService } from '../s3.service';
 import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
-import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
 
 export class UploadFilesCreatedPostCommand {
   constructor(
@@ -14,18 +13,17 @@ export class UploadFilesCreatedPostCommand {
 @CommandHandler(UploadFilesCreatedPostCommand)
 export class UploadFilesCreatedPostUseCase implements ICommandHandler<
   UploadFilesCreatedPostCommand,
-  PostFileEntity[]
+  void
 > {
   constructor(
     private filesService: FilesService,
     private fileRepository: FileRepository,
-    private queryFilesRepository: QueryFileRepository,
   ) {}
 
   async execute({
     postId,
     files,
-  }: UploadFilesCreatedPostCommand): Promise<PostFileEntity[]> {
+  }: UploadFilesCreatedPostCommand): Promise<void> {
     const uploadedFiles: PostFileEntity[] = await this.filesService.uploadFiles(
       postId,
       files,
@@ -40,7 +38,5 @@ export class UploadFilesCreatedPostUseCase implements ICommandHandler<
         postId,
       });
     }
-
-    return await this.queryFilesRepository.getAllFilesByPostId(postId);
   }
 }
