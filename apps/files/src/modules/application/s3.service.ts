@@ -70,7 +70,6 @@ export class FilesService {
           Key: fileKey,
           Body: fileBuffer,
           ContentType: mimeType,
-          ACL: 'public-read',
         });
 
         await this.s3.send(command);
@@ -83,8 +82,6 @@ export class FilesService {
           fileName: originalname,
           mimetype: mimeType,
           size: fileBuffer.length,
-          index: i,
-          postId: postId,
         });
       } catch (exception) {
         console.error(`Error uploading file ${fileName}:`, exception);
