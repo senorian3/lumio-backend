@@ -133,9 +133,7 @@ export class AuthController {
   @ApiGithub()
   @SkipThrottle()
   @UseGuards(AuthGuard('github'))
-  async githubLogin(): Promise<void> {
-    // Guard сам инициирует редирект — ничего не нужно
-  }
+  async githubLogin(): Promise<void> {}
 
   @Get(AUTH_ROUTES.GITHUB_CALLBACK)
   @ApiGithubCallback()
@@ -148,12 +146,11 @@ export class AuthController {
   ): Promise<void> {
     const ip = getClientIp(req);
     const deviceName = getUserAgent(req);
-    const user = req.user;
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginUserGitHubCommand,
       { accessToken: string; refreshToken: string }
-    >(new LoginUserGitHubCommand(user, deviceName, ip));
+    >(new LoginUserGitHubCommand(req.user, deviceName, ip));
 
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
@@ -165,9 +162,7 @@ export class AuthController {
   @Get(AUTH_ROUTES.GOOGLE)
   @ApiGoogle()
   @UseGuards(AuthGuard('google'))
-  async googleLogin(): Promise<void> {
-    // Guard сам инициирует редирект — ничего не нужно
-  }
+  async googleLogin(): Promise<void> {}
 
   @Get(AUTH_ROUTES.GOOGLE_CALLBACK)
   @ApiGoogleCallback()
@@ -179,12 +174,11 @@ export class AuthController {
   ): Promise<void> {
     const ip = getClientIp(req);
     const deviceName = getUserAgent(req);
-    const user = req.user;
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginUserGoogleCommand,
       { accessToken: string; refreshToken: string }
-    >(new LoginUserGoogleCommand(user, deviceName, ip));
+    >(new LoginUserGoogleCommand(req.user, deviceName, ip));
 
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
@@ -196,9 +190,7 @@ export class AuthController {
   @Get(AUTH_ROUTES.YANDEX)
   @ApiYandex()
   @UseGuards(AuthGuard('yandex'))
-  async yandexLogin(): Promise<void> {
-    // Guard сам инициирует редирект — ничего не нужно
-  }
+  async yandexLogin(): Promise<void> {}
 
   @Get(AUTH_ROUTES.YANDEX_CALLBACK)
   @ApiYandexCallback()
@@ -210,12 +202,11 @@ export class AuthController {
   ): Promise<void> {
     const ip = getClientIp(req);
     const deviceName = getUserAgent(req);
-    const user = req.user;
 
     const { refreshToken, accessToken } = await this.commandBus.execute<
       LoginUserYandexCommand,
       { refreshToken: string; accessToken: string }
-    >(new LoginUserYandexCommand(user, deviceName, ip));
+    >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
@@ -224,8 +215,8 @@ export class AuthController {
     );
   }
 
-  @ApiRegistrationConfirmation()
   @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
+  @ApiRegistrationConfirmation()
   @HttpCode(HttpStatus.NO_CONTENT)
   @SkipThrottle()
   async registrationConfirmation(
@@ -237,8 +228,8 @@ export class AuthController {
     >(new RegistrationConfirmationUserCommand(dto.confirmCode));
   }
 
-  @ApiRefreshToken()
   @Post(AUTH_ROUTES.REFRESH_TOKEN)
+  @ApiRefreshToken()
   @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
   async refreshToken(
@@ -254,11 +245,11 @@ export class AuthController {
 
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
-    return { accessToken: accessToken };
+    return { accessToken };
   }
 
-  @ApiGetCurrentUser()
   @Get(AUTH_ROUTES.ME)
+  @ApiGetCurrentUser()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async me(@Req() req: any): Promise<AboutUserOutputDto> {
