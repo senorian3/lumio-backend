@@ -5,20 +5,23 @@ import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/t
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
 import { registrationDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/registration.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class RegisterUserCommand {
   constructor(public registerDto: registrationDto) {}
 }
 
 @CommandHandler(RegisterUserCommand)
-export class RegisterUserUseCase
-  implements ICommandHandler<RegisterUserCommand, void>
-{
+export class RegisterUserUseCase implements ICommandHandler<
+  RegisterUserCommand,
+  void
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly nodemailerService: NodemailerService,
     private readonly emailService: EmailService,
     private readonly commandBus: CommandBus,
+    private readonly loggerService: AppLoggerService,
   ) {}
 
   async execute({ registerDto }: RegisterUserCommand): Promise<void> {
@@ -61,7 +64,13 @@ export class RegisterUserUseCase
         emailConfirmation.confirmationCode,
         this.emailService.registrationEmail.bind(this.emailService),
       )
-      .catch((er) => console.error('error in send email:', er));
+      .catch((error) => {
+        this.loggerService.error(
+          `Ошибка отправки email: ${error.message}`,
+          error.stack,
+          RegisterUserUseCase.name,
+        );
+      });
 
     return;
   }

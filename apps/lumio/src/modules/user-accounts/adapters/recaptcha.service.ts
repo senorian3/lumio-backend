@@ -67,7 +67,6 @@ export class RecaptchaService {
         error.stack,
         RecaptchaService.name,
       );
-      // In case of network errors or JSON parsing errors, return false
       return false;
     }
   }

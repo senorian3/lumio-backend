@@ -40,41 +40,59 @@ describe('JwtStrategy', () => {
   });
 
   describe('validate', () => {
-    it('should return userId from payload', async () => {
+    it('should return userId and deviceId from payload', async () => {
       // Arrange
-      const payload = { userId: '123' };
+      const payload = { userId: 1, deviceId: 'device-123', tokenVersion: 1 };
 
       // Act
       const result = await strategy.validate(payload);
 
       // Assert
-      expect(result).toBe('123');
+      expect(result).toEqual({
+        userId: 1,
+        deviceId: 'device-123',
+        tokenVersion: 1,
+      });
     });
 
-    it('should return userId when payload has additional properties', async () => {
+    it('should return userId and deviceId when payload has additional properties', async () => {
       // Arrange
       const payload = {
-        userId: '456',
+        userId: 456,
+        deviceId: 'device-456',
         email: 'test@example.com',
         roles: ['user'],
+        tokenVersion: 1,
       };
 
       // Act
       const result = await strategy.validate(payload);
 
       // Assert
-      expect(result).toBe('456');
+      expect(result).toEqual({
+        userId: 456,
+        deviceId: 'device-456',
+        tokenVersion: 1,
+      });
     });
 
     it('should handle numeric userId converted to string', async () => {
       // Arrange
-      const payload = { userId: 789 } as any;
+      const payload = {
+        userId: 789,
+        deviceId: 'device-789',
+        tokenVersion: 1,
+      } as any;
 
       // Act
       const result = await strategy.validate(payload);
 
       // Assert
-      expect(result).toBe(789);
+      expect(result).toEqual({
+        userId: 789,
+        deviceId: 'device-789',
+        tokenVersion: 1,
+      });
     });
   });
 });

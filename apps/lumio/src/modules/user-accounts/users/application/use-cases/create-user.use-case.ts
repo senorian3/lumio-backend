@@ -8,9 +8,10 @@ export class CreateUserCommand {
 }
 
 @CommandHandler(CreateUserCommand)
-export class CreateUserUseCase
-  implements ICommandHandler<CreateUserCommand, number>
-{
+export class CreateUserUseCase implements ICommandHandler<
+  CreateUserCommand,
+  number
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,

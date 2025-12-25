@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  LoginUserGoogleUseCase,
-  LoginUserGoogleCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
+  LoginUserYandexUseCase,
+  LoginUserYandexCommand,
+} from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
@@ -13,34 +13,34 @@ import {
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 
-describe('LoginUserGoogleUseCase', () => {
-  let useCase: LoginUserGoogleUseCase;
+describe('LoginUserYandexUseCase', () => {
+  let useCase: LoginUserYandexUseCase;
   let mockSessionRepository: SessionRepository;
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
   let mockAccessTokenJwtService: JwtService;
   let mockRefreshTokenJwtService: JwtService;
 
-  const mockGoogleDto = {
-    googleId: 'google-123',
-    email: 'google@example.com',
-    username: 'googleuser',
+  const mockYandexDto = {
+    yandexId: 'yandex-123',
+    email: 'yandex@example.com',
+    username: 'yandexuser',
   };
   const deviceName = 'Chrome on Windows';
   const ip = '192.168.1.1';
   const mockExistingUser = {
     id: 1,
-    email: 'google@example.com',
-    username: 'googleuser',
+    email: 'yandex@example.com',
+    username: 'yandexuser',
   };
-  const mockGoogleRecord = {
+  const mockYandexRecord = {
     id: 10,
-    googleId: 'google-123',
-    email: 'google@example.com',
-    username: 'googleuser',
+    yandexId: 'yandex-123',
+    email: 'yandex@example.com',
+    username: 'yandexuser',
     userId: 1,
   };
-  const deviceId = '123e4567-e89b-12d3-a456-426614174000'; // Хардкодим UUID
+  const deviceId = '123e4567-e89b-12d3-a456-426614174000';
   const mockExistSession = {
     id: 5,
     userId: 1,
@@ -56,7 +56,7 @@ describe('LoginUserGoogleUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LoginUserGoogleUseCase,
+        LoginUserYandexUseCase,
         {
           provide: SessionRepository,
           useValue: {
@@ -68,12 +68,12 @@ describe('LoginUserGoogleUseCase', () => {
         {
           provide: UserRepository,
           useValue: {
-            findGoogleByGoogleId: jest.fn(),
+            findYandexByYandexId: jest.fn(),
             findUserByEmail: jest.fn(),
             findUserById: jest.fn(),
             createUser: jest.fn(),
-            createGoogle: jest.fn(),
-            updateGoogle: jest.fn(),
+            createYandex: jest.fn(),
+            updateYandex: jest.fn(),
           },
         },
         {
@@ -98,7 +98,7 @@ describe('LoginUserGoogleUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<LoginUserGoogleUseCase>(LoginUserGoogleUseCase);
+    useCase = module.get<LoginUserYandexUseCase>(LoginUserYandexUseCase);
     mockSessionRepository = module.get<SessionRepository>(SessionRepository);
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockCryptoService = module.get<CryptoService>(CryptoService);
@@ -113,13 +113,12 @@ describe('LoginUserGoogleUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should create new user and Google record when neither exists', async () => {
+    it('should create new user and Yandex record when neither exists', async () => {
       // Arrange
-      const command = new LoginUserGoogleCommand(mockGoogleDto, deviceName, ip);
+      const command = new LoginUserYandexCommand(mockYandexDto, deviceName, ip);
+      jest.spyOn(crypto, 'randomUUID').mockReturnValue(deviceId as any);
 
-      // Убрали мок UUID
-
-      (mockUserRepository.findGoogleByGoogleId as jest.Mock).mockResolvedValue(
+      (mockUserRepository.findYandexByYandexId as jest.Mock).mockResolvedValue(
         null,
       );
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(null);
@@ -127,7 +126,7 @@ describe('LoginUserGoogleUseCase', () => {
         'hashed-password',
       );
       (mockUserRepository.createUser as jest.Mock).mockResolvedValue({ id: 2 });
-      (mockUserRepository.createGoogle as jest.Mock).mockResolvedValue(
+      (mockUserRepository.createYandex as jest.Mock).mockResolvedValue(
         undefined,
       );
       (mockSessionRepository.findSession as jest.Mock).mockResolvedValue(null);
@@ -149,35 +148,38 @@ describe('LoginUserGoogleUseCase', () => {
       const result = await useCase.execute(command);
 
       // Assert
-      expect(mockUserRepository.findGoogleByGoogleId).toHaveBeenCalledWith(
-        mockGoogleDto.googleId,
+      expect(mockUserRepository.findYandexByYandexId).toHaveBeenCalledWith(
+        mockYandexDto.yandexId,
       );
       expect(mockUserRepository.findUserByEmail).toHaveBeenCalledWith(
-        mockGoogleDto.email,
+        mockYandexDto.email,
       );
       expect(mockCryptoService.createPasswordHash).toHaveBeenCalled();
       expect(mockUserRepository.createUser).toHaveBeenCalled();
-      expect(mockUserRepository.createGoogle).toHaveBeenCalledWith(
-        mockGoogleDto,
-        2,
-      );
+      expect(mockUserRepository.createYandex).toHaveBeenCalledWith({
+        yandexId: mockYandexDto.yandexId,
+        email: mockYandexDto.email,
+        username: mockYandexDto.username,
+        userId: 2,
+      });
       expect(result).toEqual({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
       });
     });
 
-    it('should link existing Google record to user when Google exists but user does not', async () => {
+    it('should link existing Yandex record to user when Yandex exists but user does not', async () => {
       // Arrange
-      const command = new LoginUserGoogleCommand(mockGoogleDto, deviceName, ip);
-      (mockUserRepository.findGoogleByGoogleId as jest.Mock).mockResolvedValue(
-        mockGoogleRecord,
+      const command = new LoginUserYandexCommand(mockYandexDto, deviceName, ip);
+
+      (mockUserRepository.findYandexByYandexId as jest.Mock).mockResolvedValue(
+        mockYandexRecord,
       );
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(null);
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockExistingUser,
       );
-      (mockUserRepository.updateGoogle as jest.Mock).mockResolvedValue(
+      (mockUserRepository.updateYandex as jest.Mock).mockResolvedValue(
         undefined,
       );
       (mockSessionRepository.findSession as jest.Mock).mockResolvedValue(
@@ -201,17 +203,18 @@ describe('LoginUserGoogleUseCase', () => {
       const result = await useCase.execute(command);
 
       // Assert
-      expect(mockUserRepository.findGoogleByGoogleId).toHaveBeenCalledWith(
-        mockGoogleDto.googleId,
+      expect(mockUserRepository.findYandexByYandexId).toHaveBeenCalledWith(
+        mockYandexDto.yandexId,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(
-        mockGoogleRecord.userId,
+        mockYandexRecord.userId,
       );
-      expect(mockUserRepository.updateGoogle).toHaveBeenCalledWith(
-        mockGoogleDto.googleId,
+      expect(mockUserRepository.updateYandex).toHaveBeenCalledWith(
+        mockYandexRecord.id,
         {
-          email: mockGoogleRecord.email,
-          username: mockGoogleRecord.username,
+          userId: mockExistingUser.id,
+          email: mockYandexDto.email,
+          username: mockYandexDto.username,
         },
       );
       expect(result).toEqual({
@@ -220,16 +223,18 @@ describe('LoginUserGoogleUseCase', () => {
       });
     });
 
-    it('should create Google record when user exists but Google does not', async () => {
+    it('should create Yandex record when user exists but Yandex does not', async () => {
       // Arrange
-      const command = new LoginUserGoogleCommand(mockGoogleDto, deviceName, ip);
-      (mockUserRepository.findGoogleByGoogleId as jest.Mock).mockResolvedValue(
+      const command = new LoginUserYandexCommand(mockYandexDto, deviceName, ip);
+      jest.spyOn(crypto, 'randomUUID').mockReturnValue(deviceId as any);
+
+      (mockUserRepository.findYandexByYandexId as jest.Mock).mockResolvedValue(
         null,
       );
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(
         mockExistingUser,
       );
-      (mockUserRepository.createGoogle as jest.Mock).mockResolvedValue(
+      (mockUserRepository.createYandex as jest.Mock).mockResolvedValue(
         undefined,
       );
       (mockSessionRepository.findSession as jest.Mock).mockResolvedValue(null);
@@ -247,28 +252,28 @@ describe('LoginUserGoogleUseCase', () => {
         undefined,
       );
 
-      // Mock randomUUID for deviceId - изменено
-      jest.spyOn(crypto, 'randomUUID').mockReturnValue(deviceId as any);
-
       // Act
       const result = await useCase.execute(command);
 
       // Assert
-      expect(mockUserRepository.createGoogle).toHaveBeenCalledWith(
-        mockGoogleDto,
-        mockExistingUser.id,
-      );
+      expect(mockUserRepository.createYandex).toHaveBeenCalledWith({
+        yandexId: mockYandexDto.yandexId,
+        email: mockYandexDto.email,
+        username: mockYandexDto.username,
+        userId: mockExistingUser.id,
+      });
       expect(result).toEqual({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
       });
     });
 
-    it('should use existing user and Google when both exist', async () => {
+    it('should use existing user and Yandex when both exist', async () => {
       // Arrange
-      const command = new LoginUserGoogleCommand(mockGoogleDto, deviceName, ip);
-      (mockUserRepository.findGoogleByGoogleId as jest.Mock).mockResolvedValue(
-        mockGoogleRecord,
+      const command = new LoginUserYandexCommand(mockYandexDto, deviceName, ip);
+
+      (mockUserRepository.findYandexByYandexId as jest.Mock).mockResolvedValue(
+        mockYandexRecord,
       );
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(
         mockExistingUser,
@@ -295,18 +300,20 @@ describe('LoginUserGoogleUseCase', () => {
 
       // Assert
       expect(mockUserRepository.createUser).not.toHaveBeenCalled();
-      expect(mockUserRepository.createGoogle).not.toHaveBeenCalled();
-      expect(mockUserRepository.updateGoogle).not.toHaveBeenCalled();
+      expect(mockUserRepository.createYandex).not.toHaveBeenCalled();
+      expect(mockUserRepository.updateYandex).not.toHaveBeenCalled();
       expect(result).toEqual({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
       });
     });
 
-    it('should throw ForbiddenDomainException when refresh token verification fails', async () => {
+    it('should throw DomainException when refresh token verification fails', async () => {
       // Arrange
-      const command = new LoginUserGoogleCommand(mockGoogleDto, deviceName, ip);
-      (mockUserRepository.findGoogleByGoogleId as jest.Mock).mockResolvedValue(
+      const command = new LoginUserYandexCommand(mockYandexDto, deviceName, ip);
+      jest.spyOn(crypto, 'randomUUID').mockReturnValue(deviceId as any);
+
+      (mockUserRepository.findYandexByYandexId as jest.Mock).mockResolvedValue(
         null,
       );
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(null);
@@ -314,17 +321,14 @@ describe('LoginUserGoogleUseCase', () => {
         'hashed-password',
       );
       (mockUserRepository.createUser as jest.Mock).mockResolvedValue({ id: 2 });
-      (mockUserRepository.createGoogle as jest.Mock).mockResolvedValue(
+      (mockUserRepository.createYandex as jest.Mock).mockResolvedValue(
         undefined,
       );
       (mockSessionRepository.findSession as jest.Mock).mockResolvedValue(null);
       (mockRefreshTokenJwtService.sign as jest.Mock).mockReturnValue(
         mockRefreshToken,
       );
-      (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue({}); // missing iat, exp
-
-      // Mock randomUUID for deviceId - изменено
-      jest.spyOn(crypto, 'randomUUID').mockReturnValue(deviceId as any);
+      (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue({});
 
       // Act & Assert
       await expect(useCase.execute(command)).rejects.toThrow(DomainException);
@@ -334,9 +338,6 @@ describe('LoginUserGoogleUseCase', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение
-        expect(domainException.message).toBe('Forbidden');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'Refresh token not verified',
         );

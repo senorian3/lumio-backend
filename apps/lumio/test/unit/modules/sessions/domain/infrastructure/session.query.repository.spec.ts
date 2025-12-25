@@ -17,6 +17,7 @@ describe('QuerySessionsRepository', () => {
       deletedAt: null,
       expiresAt: new Date('2025-07-01T10:00:00Z'),
       deviceId: 'device-123',
+      tokenVersion: 1,
       user: {} as any,
     },
     {
@@ -28,6 +29,7 @@ describe('QuerySessionsRepository', () => {
       deletedAt: null,
       expiresAt: new Date('2025-07-02T10:00:00Z'),
       deviceId: 'device-456',
+      tokenVersion: 1,
       user: {} as any,
     },
   ];

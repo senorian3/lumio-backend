@@ -2,12 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as nodemailer from 'nodemailer';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 jest.mock('nodemailer');
 
 describe('NodemailerService', () => {
   let service: NodemailerService;
   let mockUserAccountsConfig: UserAccountsConfig;
+  let mockLoggerService: AppLoggerService;
   let mockTransporter: { sendMail: jest.Mock };
 
   const mockConfig = {
@@ -37,11 +39,19 @@ describe('NodemailerService', () => {
           provide: UserAccountsConfig,
           useValue: mockConfig,
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<NodemailerService>(NodemailerService);
     mockUserAccountsConfig = module.get<UserAccountsConfig>(UserAccountsConfig);
+    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
   });
 
   afterEach(() => {
@@ -86,17 +96,22 @@ describe('NodemailerService', () => {
       });
     });
 
-    it('should handle email sending error', async () => {
+    it('should handle email sending error gracefully (no throw)', async () => {
       // Arrange
       const email = 'recipient@example.com';
       const code = '123456';
       const error = new Error('SMTP connection failed');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert
+      // Act & Assert - should NOT throw because error is caught and logged
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow('Не удалось отправить email');
+      ).resolves.not.toThrow();
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        `Ошибка отправки email на ${email}`,
+        error.stack,
+        NodemailerService.name,
+      );
     });
 
     it('should use template to generate html and subject', async () => {
@@ -127,16 +142,32 @@ describe('NodemailerService', () => {
       const code = '123456';
       const error = new Error('Network error');
       mockTransporter.sendMail.mockRejectedValue(error);
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      // Act & Assert
+      // Act & Assert - should NOT throw
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow('Не удалось отправить email');
-      expect(consoleSpy).toHaveBeenCalledWith('Ошибка отправки email:', error);
+      ).resolves.not.toThrow();
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        `Ошибка отправки email на ${email}`,
+        error.stack,
+        NodemailerService.name,
+      );
+    });
 
-      // Cleanup
-      consoleSpy.mockRestore();
+    it('should log success when email is sent', async () => {
+      // Arrange
+      const email = 'recipient@example.com';
+      const code = '123456';
+      mockTransporter.sendMail.mockResolvedValue({});
+
+      // Act
+      await service.sendEmail(email, code, mockTemplate);
+
+      // Assert
+      expect(mockLoggerService.log).toHaveBeenCalledWith(
+        `Email успешно отправлен на ${email}`,
+        NodemailerService.name,
+      );
     });
   });
 });

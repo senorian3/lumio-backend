@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function ApiLogout() {
   return applyDecorators(
@@ -7,12 +7,6 @@ export function ApiLogout() {
       summary: 'User logout',
       description: 'Endpoint for user logout',
       operationId: 'logoutUser',
-    }),
-
-    ApiHeader({
-      name: 'Cookie',
-      description: 'Refresh token',
-      required: true,
     }),
 
     ApiResponse({
@@ -25,12 +19,12 @@ export function ApiLogout() {
       description: 'Unauthorized',
       examples: {
         no_refresh_token: {
-          summary: 'No refresh token in request',
+          summary: 'No accessToken token in request',
           value: {
             errorMessages: [
               {
-                message: 'There is no refresh token in request',
-                field: 'refreshToken',
+                message: 'There is no access token in request',
+                field: 'accessToken',
               },
             ],
           },

@@ -27,7 +27,14 @@ describe('LoginUserUseCase', () => {
   const deviceName = 'Chrome on Windows';
   const ip = '192.168.1.1';
   const userId = 1;
-  const mockUser = { id: userId };
+  const mockUser = {
+    id: userId,
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'hashedPassword123',
+    createdAt: new Date(),
+    deletedAt: null,
+  };
   const deviceId = randomUUID();
   const mockExistSession = {
     id: 5,
@@ -35,6 +42,10 @@ describe('LoginUserUseCase', () => {
     deviceId,
     deviceName,
     ip: '192.168.1.1',
+    tokenVersion: 1,
+    deletedAt: null,
+    createdAt: new Date(),
+    expiresAt: new Date(),
   };
   const mockRefreshToken = 'refresh-token';
   const mockAccessToken = 'access-token';
@@ -139,7 +150,11 @@ describe('LoginUserUseCase', () => {
         ip,
         deviceName,
       });
-      expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({ userId });
+      expect(mockAccessTokenJwtService.sign).toHaveBeenCalledWith({
+        userId,
+        deviceId: expect.any(String),
+        tokenVersion: 1,
+      });
       expect(result).toEqual({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
@@ -187,6 +202,7 @@ describe('LoginUserUseCase', () => {
         sessionId: mockExistSession.id,
         iat: new Date(iat * 1000),
         exp: new Date(exp * 1000),
+        tokenVersion: expect.any(Number),
       });
       expect(mockSessionRepository.createSession).not.toHaveBeenCalled();
       expect(result).toEqual({
@@ -225,6 +241,113 @@ describe('LoginUserUseCase', () => {
 
       expect(mockSessionRepository.createSession).not.toHaveBeenCalled();
       expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle database connection error when checking user credentials', async () => {
+      // Arrange
+      const command = new LoginUserCommand(mockLoginDto, deviceName, ip);
+      const dbError = new Error('Database connection failed');
+      jest
+        .spyOn(mockAuthService, 'checkUserCredentials')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockSessionRepository.findSession).not.toHaveBeenCalled();
+      expect(mockRefreshTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when finding existing session', async () => {
+      // Arrange
+      const command = new LoginUserCommand(mockLoginDto, deviceName, ip);
+      const dbError = new Error('Session table not found');
+      jest
+        .spyOn(mockAuthService, 'checkUserCredentials')
+        .mockResolvedValue(mockUser);
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockRefreshTokenJwtService.sign).not.toHaveBeenCalled();
+      expect(mockSessionRepository.createSession).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when creating new session', async () => {
+      // Arrange
+      const command = new LoginUserCommand(mockLoginDto, deviceName, ip);
+      const dbError = new Error('Cannot insert into sessions table');
+      jest
+        .spyOn(mockAuthService, 'checkUserCredentials')
+        .mockResolvedValue(mockUser);
+      jest.spyOn(mockSessionRepository, 'findSession').mockResolvedValue(null);
+      jest
+        .spyOn(mockRefreshTokenJwtService, 'sign')
+        .mockReturnValue(mockRefreshToken);
+      jest.spyOn(mockRefreshTokenJwtService, 'verify').mockReturnValue({
+        iat,
+        exp,
+      });
+      jest
+        .spyOn(mockSessionRepository, 'createSession')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when updating existing session', async () => {
+      // Arrange
+      const command = new LoginUserCommand(mockLoginDto, deviceName, ip);
+      const dbError = new Error('Cannot update session');
+      jest
+        .spyOn(mockAuthService, 'checkUserCredentials')
+        .mockResolvedValue(mockUser);
+      jest
+        .spyOn(mockSessionRepository, 'findSession')
+        .mockResolvedValue(mockExistSession);
+      jest
+        .spyOn(mockRefreshTokenJwtService, 'sign')
+        .mockReturnValue(mockRefreshToken);
+      jest.spyOn(mockRefreshTokenJwtService, 'verify').mockReturnValue({
+        iat,
+        exp,
+      });
+      jest
+        .spyOn(mockSessionRepository, 'updateSession')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
+    });
+
+    it('should handle JWT signing error', async () => {
+      // Arrange
+      const command = new LoginUserCommand(mockLoginDto, deviceName, ip);
+      const jwtError = new Error('JWT signing failed');
+      jest
+        .spyOn(mockAuthService, 'checkUserCredentials')
+        .mockResolvedValue(mockUser);
+      jest.spyOn(mockSessionRepository, 'findSession').mockResolvedValue(null);
+      jest
+        .spyOn(mockRefreshTokenJwtService, 'sign')
+        .mockReturnValue(mockRefreshToken);
+      jest.spyOn(mockRefreshTokenJwtService, 'verify').mockReturnValue({
+        iat,
+        exp,
+      });
+      jest
+        .spyOn(mockSessionRepository, 'createSession')
+        .mockResolvedValue(undefined);
+      jest.spyOn(mockAccessTokenJwtService, 'sign').mockImplementation(() => {
+        throw jwtError;
+      });
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(jwtError);
     });
   });
 });

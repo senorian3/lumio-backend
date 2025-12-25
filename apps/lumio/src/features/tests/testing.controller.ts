@@ -6,9 +6,8 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
 
-@ApiExcludeController()
+// @ApiExcludeController()
 @Controller('testing')
 export class TestingController {
   constructor(
@@ -20,8 +19,6 @@ export class TestingController {
   async deleteAllData(): Promise<void> {
     await this.prismaService.session.deleteMany();
     await this.prismaService.emailConfirmation.deleteMany();
-    await this.prismaService.gitHub.deleteMany();
-    await this.prismaService.google.deleteMany();
     await this.prismaService.yandex.deleteMany();
     await this.prismaService.post.deleteMany();
     await this.prismaService.user.deleteMany();

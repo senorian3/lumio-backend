@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CreateUserDomainDto } from '@lumio/modules/user-accounts/users/domain/dto/create-user.domain.dto';
-import { GoogleDomainDto } from '@lumio/modules/user-accounts/users/domain/dto/google.domain.dto';
 import { add } from 'date-fns';
 
 describe('UserRepository', () => {
@@ -35,24 +34,6 @@ describe('UserRepository', () => {
     user: mockUserEntity,
   };
 
-  const mockGitHubEntity = {
-    id: 1,
-    gitId: 'github-123',
-    email: 'github@example.com',
-    username: 'githubuser',
-    userId: 1,
-    user: mockUserEntity,
-  };
-
-  const mockGoogleEntity = {
-    id: 1,
-    googleId: 'google-123',
-    email: 'google@example.com',
-    username: 'googleuser',
-    userId: 1,
-    user: mockUserEntity,
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -71,16 +52,6 @@ describe('UserRepository', () => {
               findFirst: jest.fn(),
               update: jest.fn(),
               deleteMany: jest.fn(),
-            },
-            gitHub: {
-              findUnique: jest.fn(),
-              create: jest.fn(),
-              update: jest.fn(),
-            },
-            google: {
-              findUnique: jest.fn(),
-              create: jest.fn(),
-              update: jest.fn(),
             },
             $transaction: jest.fn(),
           },
@@ -336,133 +307,6 @@ describe('UserRepository', () => {
     });
   });
 
-  describe('GitHub operations', () => {
-    it('should find GitHub by gitId', async () => {
-      // Arrange
-      const gitId = 'github-123';
-      (mockPrismaService.gitHub.findUnique as jest.Mock).mockResolvedValue(
-        mockGitHubEntity,
-      );
-
-      // Act
-      const result = await repository.findGitHubByGitId(gitId);
-
-      // Assert
-      expect(mockPrismaService.gitHub.findUnique).toHaveBeenCalledWith({
-        where: { gitId },
-        include: { user: true },
-      });
-      expect(result).toEqual(mockGitHubEntity);
-    });
-
-    it('should create GitHub record', async () => {
-      // Arrange
-      const data = {
-        gitId: 'github-123',
-        email: 'github@example.com',
-        username: 'githubuser',
-        userId: 1,
-      };
-      (mockPrismaService.gitHub.create as jest.Mock).mockResolvedValue(
-        mockGitHubEntity,
-      );
-
-      // Act
-      const result = await repository.createGitHub(data);
-
-      // Assert
-      expect(mockPrismaService.gitHub.create).toHaveBeenCalledWith({
-        data: {
-          gitId: data.gitId,
-          email: data.email,
-          username: data.username,
-          userId: data.userId,
-        },
-      });
-      expect(result).toEqual(mockGitHubEntity);
-    });
-
-    it('should update GitHub record', async () => {
-      // Arrange
-      const id = 1;
-      const data = { email: 'updated@example.com' };
-      (mockPrismaService.gitHub.update as jest.Mock).mockResolvedValue({});
-
-      // Act
-      await repository.updateGitHub(id, data);
-
-      // Assert
-      expect(mockPrismaService.gitHub.update).toHaveBeenCalledWith({
-        where: { id },
-        data,
-      });
-    });
-  });
-
-  describe('Google operations', () => {
-    it('should find Google by googleId', async () => {
-      // Arrange
-      const googleId = 'google-123';
-      (mockPrismaService.google.findUnique as jest.Mock).mockResolvedValue(
-        mockGoogleEntity,
-      );
-
-      // Act
-      const result = await repository.findGoogleByGoogleId(googleId);
-
-      // Assert
-      expect(mockPrismaService.google.findUnique).toHaveBeenCalledWith({
-        where: { googleId },
-        include: { user: true },
-      });
-      expect(result).toEqual(mockGoogleEntity);
-    });
-
-    it('should create Google record', async () => {
-      // Arrange
-      const dto: GoogleDomainDto = {
-        googleId: 'google-123',
-        email: 'google@example.com',
-        username: 'googleuser',
-      };
-      const userId = 1;
-      (mockPrismaService.google.create as jest.Mock).mockResolvedValue(
-        mockGoogleEntity,
-      );
-
-      // Act
-      const result = await repository.createGoogle(dto, userId);
-
-      // Assert
-      expect(mockPrismaService.google.create).toHaveBeenCalledWith({
-        data: {
-          email: dto.email,
-          username: dto.username,
-          googleId: dto.googleId,
-          userId,
-        },
-        include: { user: true },
-      });
-      expect(result).toEqual(mockGoogleEntity);
-    });
-
-    it('should update Google record', async () => {
-      // Arrange
-      const googleId = 'google-123';
-      const data = { username: 'updateduser' };
-      (mockPrismaService.google.update as jest.Mock).mockResolvedValue({});
-
-      // Act
-      await repository.updateGoogle(googleId, data);
-
-      // Assert
-      expect(mockPrismaService.google.update).toHaveBeenCalledWith({
-        where: { googleId },
-        data,
-      });
-    });
-  });
-
   describe('confirmEmail', () => {
     it('should confirm user email', async () => {
       // Arrange
@@ -520,7 +364,6 @@ describe('UserRepository', () => {
         ...mockUserEntity,
         emailConfirmation: mockEmailConfirmation,
         sessions: [],
-        github: mockGitHubEntity,
       };
       (mockPrismaService.user.findUnique as jest.Mock).mockResolvedValue(
         userWithRelations,
@@ -535,7 +378,6 @@ describe('UserRepository', () => {
         include: {
           emailConfirmation: true,
           sessions: true,
-          github: true,
         },
       });
       expect(result).toEqual(userWithRelations);

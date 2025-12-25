@@ -46,11 +46,6 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: DATABASE_URL
-            - name: RABBITMQ_URL
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: RABBITMQ_URL
             - name: IS_SWAGGER_ENABLED
               valueFrom:
                 secretKeyRef:
@@ -66,11 +61,6 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: SMTP_FROM_GMAIL
-            - name: SMPT_COM_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: SMPT_COM_PASS
             - name: ACCESS_TOKEN_EXPIRE_IN
               valueFrom:
                 secretKeyRef:
@@ -91,41 +81,11 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: THROTTLER_LIMIT
-            - name: GITHUB_CLIENT_ID
+            - name: SMPT_COM_PASS
               valueFrom:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
-                  key: GITHUB_CLIENT_ID
-            - name: GITHUB_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: GITHUB_CLIENT_SECRET
-            - name: GITHUB_CALLBACK_URL
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: GITHUB_CALLBACK_URL
-            - name: GOOGLE_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: GOOGLE_CLIENT_ID
-            - name: GOOGLE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: GOOGLE_CLIENT_SECRET
-            - name: GOOGLE_CALLBACK_URL
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: GOOGLE_CALLBACK_URL
-            - name: NODE_ENV
-              valueFrom:
-                secretKeyRef:
-                  name: lumio-back-end-production-config-secret
-                  key: NODE_ENV
+                  key: SMPT_COM_PASS
             - name: SMTP_HOST
               valueFrom:
                 secretKeyRef:
@@ -146,13 +106,28 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: FRONTEND_URL
-            - name: INTERNAL_API_KEY
+            - name: YANDEX_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
-                  key: INTERNAL_API_KEY
+                  key: YANDEX_CLIENT_ID
+            - name: YANDEX_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: YANDEX_CLIENT_SECRET
+            - name: YANDEX_CALLBACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: YANDEX_CALLBACK_URL
             - name: FILES_FRONTEND_URL
               valueFrom:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: FILES_FRONTEND_URL
+            - name: NODE_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: NODE_ENV

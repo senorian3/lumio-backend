@@ -9,12 +9,14 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 describe('RegisterUserUseCase', () => {
   let useCase: RegisterUserUseCase;
   let mockUserRepository: UserRepository;
   let mockNodemailerService: NodemailerService;
   let mockCommandBus: CommandBus;
+  let mockLoggerService: AppLoggerService;
 
   const mockRegisterDto = {
     username: 'testuser',
@@ -64,6 +66,16 @@ describe('RegisterUserUseCase', () => {
             execute: jest.fn(),
           },
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            verbose: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -71,6 +83,7 @@ describe('RegisterUserUseCase', () => {
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockNodemailerService = module.get<NodemailerService>(NodemailerService);
     mockCommandBus = module.get<CommandBus>(CommandBus);
+    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -214,23 +227,81 @@ describe('RegisterUserUseCase', () => {
         new Error('SMTP error'),
       );
 
-      // Подавляем console.error чтобы не было вывода в тестах
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
       // Act & Assert - should not throw because error is caught inside useCase
       await expect(useCase.execute(command)).resolves.not.toThrow();
       expect(mockNodemailerService.sendEmail).toHaveBeenCalled();
 
-      // Проверяем, что console.error был вызван
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'error in send email:',
-        expect.any(Error),
+      // Проверяем, что loggerService.error был вызван
+      expect(mockLoggerService.error).toHaveBeenCalledWith(
+        `Ошибка отправки email: SMTP error`,
+        expect.any(String),
+        'RegisterUserUseCase',
       );
+    });
 
-      // Восстанавливаем console.error
-      consoleErrorSpy.mockRestore();
+    it('should handle database connection error when checking username/email', async () => {
+      // Arrange
+      const command = new RegisterUserCommand(mockRegisterDto);
+      const dbError = new Error('Database connection failed');
+      jest
+        .spyOn(mockUserRepository, 'doesExistByUsernameOrEmail')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockCommandBus.execute).not.toHaveBeenCalled();
+      expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when creating user', async () => {
+      // Arrange
+      const command = new RegisterUserCommand(mockRegisterDto);
+      const dbError = new Error('Cannot insert into users table');
+      jest
+        .spyOn(mockUserRepository, 'doesExistByUsernameOrEmail')
+        .mockResolvedValue(null);
+      jest.spyOn(mockCommandBus, 'execute').mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(
+        mockUserRepository.findByCodeOrIdEmailConfirmation,
+      ).not.toHaveBeenCalled();
+      expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('should handle database error when finding email confirmation', async () => {
+      // Arrange
+      const command = new RegisterUserCommand(mockRegisterDto);
+      const dbError = new Error('Email confirmation table not found');
+      jest
+        .spyOn(mockUserRepository, 'doesExistByUsernameOrEmail')
+        .mockResolvedValue(null);
+      jest.spyOn(mockCommandBus, 'execute').mockResolvedValue(100);
+      jest
+        .spyOn(mockUserRepository, 'findByCodeOrIdEmailConfirmation')
+        .mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
+      expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it('should handle database constraint violation when creating user', async () => {
+      // Arrange
+      const command = new RegisterUserCommand(mockRegisterDto);
+      const constraintError = new Error('Unique constraint violation');
+      jest
+        .spyOn(mockUserRepository, 'doesExistByUsernameOrEmail')
+        .mockResolvedValue(null);
+      jest.spyOn(mockCommandBus, 'execute').mockRejectedValue(constraintError);
+
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(constraintError);
+      expect(
+        mockUserRepository.findByCodeOrIdEmailConfirmation,
+      ).not.toHaveBeenCalled();
+      expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
     });
   });
 });

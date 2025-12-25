@@ -7,6 +7,7 @@ import { CoreModule } from '../core/core.module';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';
 import { throttlerModule } from '../core/guards/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Module({
   imports: [
@@ -14,9 +15,10 @@ import { PostsModule } from '@lumio/modules/posts/posts.module';
     throttlerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
-        const uri = coreConfig.dbUrl;
-        console.log('Connected to postgres');
-        return { url: uri };
+        const logger = new AppLoggerService();
+        const url = coreConfig.dbUrl;
+        logger.log(`Connected to DB:${url}`, AppModule.name);
+        return { url };
       },
       inject: [CoreConfig],
     }),

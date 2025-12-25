@@ -32,14 +32,7 @@ function getBaseCookieOptions(req?: Request): Omit<CookieOptions, 'sameSite'> {
   return base;
 }
 
-export function getLoginCookieOptions(req?: Request): CookieOptions {
-  return {
-    ...getBaseCookieOptions(req),
-    sameSite: 'strict',
-  };
-}
-
-export function getOAuthCookieOptions(req?: Request): CookieOptions {
+export function getStrictCookieOptions(req?: Request): CookieOptions {
   return {
     ...getBaseCookieOptions(req),
     sameSite: 'strict',

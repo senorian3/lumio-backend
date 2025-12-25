@@ -27,6 +27,7 @@ describe('DeleteSessionUseCase', () => {
     deletedAt: null,
     expiresAt: new Date('2025-07-02T10:00:00Z'),
     deviceId: 'target-device-456',
+    tokenVersion: 1,
     user: {} as any,
   };
 

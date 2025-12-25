@@ -16,6 +16,7 @@ describe('SessionRepository', () => {
     deletedAt: null,
     expiresAt: new Date('2025-07-01T10:00:00Z'),
     deviceId: 'device-123',
+    tokenVersion: 1,
     user: {} as any,
   };
 
@@ -103,6 +104,7 @@ describe('SessionRepository', () => {
         sessionId: 1,
         iat: new Date('2025-01-02T10:00:00Z'),
         exp: new Date('2025-07-02T10:00:00Z'),
+        tokenVersion: 1,
       };
       const updatedSession = {
         ...mockSession,
@@ -119,7 +121,11 @@ describe('SessionRepository', () => {
       // Assert
       expect(mockPrismaService.session.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { createdAt: dto.iat, expiresAt: dto.exp },
+        data: {
+          createdAt: dto.iat,
+          expiresAt: dto.exp,
+          tokenVersion: dto.tokenVersion,
+        },
       });
       expect(result).toEqual(updatedSession);
     });
@@ -152,6 +158,7 @@ describe('SessionRepository', () => {
           deviceName: dto.deviceName,
           createdAt: dto.iat,
           expiresAt: dto.exp,
+          tokenVersion: 1,
         },
       });
       expect(result).toEqual(mockSession);

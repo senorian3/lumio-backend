@@ -52,7 +52,6 @@ export class NodemailerService {
         error.stack,
         NodemailerService.name,
       );
-      throw new Error('Не удалось отправить email');
     }
   }
 }

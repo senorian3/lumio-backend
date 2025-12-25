@@ -4,9 +4,8 @@ export function enableCorsSetup(app: INestApplication) {
   app.enableCors({
     origin: [
       'http://localhost:3000',
+      'http://localhost:4121',
       'https://lumio.su',
-      'https://www.lumio.su',
-      'https://files.lumio.su',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

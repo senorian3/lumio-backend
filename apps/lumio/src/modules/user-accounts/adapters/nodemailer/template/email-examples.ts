@@ -10,7 +10,7 @@ export class EmailService {
         <p style="font-size: 16px; margin: 20px 0;">
           You're almost part of the community! Tap below to confirm your email.
         </p>
-        <a href="https://lumio.su/confirm-email?code=${code}"
+        <a href="https://lumio.su/auth/confirm-email?code=${code}"
            style="display:inline-block; background:#e1306c; color:#fff; padding:12px 24px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
           Complete Registration
         </a>
@@ -31,7 +31,7 @@ export class EmailService {
           <p style="font-size: 16px; margin: 20px 0;">
             Forgot your password? No worries — tap below to recover it.
           </p>
-          <a href="https://lumio.su/password-recovery?recoveryCode=${code}"
+          <a href="https://lumio.su/auth/password-recovery?recoveryCode=${code}"
              style="display:inline-block; background:#0095f6; color:#fff; padding:12px 24px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
             Recover Password
           </a>

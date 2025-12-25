@@ -23,5 +23,5 @@ export function appSetup(
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);
   cookieParserSetup(app);
-  swaggerSetup(app, coreConfig.isSwaggerEnabled, coreConfig.port);
+  swaggerSetup(app, coreConfig.isSwaggerEnabled);
 }

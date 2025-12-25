@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { SessionsController } from '@lumio/modules/sessions/api/sessions.controller';
-import { OutputSessionType } from '@lumio/modules/sessions/api/dto/output/output';
+import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/output';
 import { GetAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/get-all-sessions.usecase';
 import { DeleteSessionCommand } from '@lumio/modules/sessions/application/use-cases/delete-session.usecase';
 import { DeleteAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/delete-all-sessions.usecase';
@@ -18,13 +18,13 @@ describe('SessionsController', () => {
       deviceId: 'device-123',
     },
   };
-  const mockSessions: OutputSessionType[] = [
-    new OutputSessionType(
+  const mockSessions: OutputSessionDto[] = [
+    new OutputSessionDto(
       'Chrome on Windows',
       '192.168.1.1',
       '2025-01-01T10:00:00.000Z',
     ),
-    new OutputSessionType(
+    new OutputSessionDto(
       'Safari on Mac',
       '192.168.1.2',
       '2025-01-02T10:00:00.000Z',

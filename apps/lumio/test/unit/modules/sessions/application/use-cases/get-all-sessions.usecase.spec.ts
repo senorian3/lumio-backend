@@ -4,7 +4,7 @@ import {
   GetAllSessionsCommand,
 } from '@lumio/modules/sessions/application/use-cases/get-all-sessions.usecase';
 import { QuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.query.repository';
-import { OutputSessionType } from '@lumio/modules/sessions/api/dto/output/output';
+import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/output';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 
@@ -22,6 +22,7 @@ describe('GetAllSessionsUseCase', () => {
       deletedAt: null,
       expiresAt: new Date('2025-07-01T10:00:00Z'),
       deviceId: 'device-123',
+      tokenVersion: 1,
       user: {} as any,
     },
     {
@@ -33,17 +34,18 @@ describe('GetAllSessionsUseCase', () => {
       deletedAt: null,
       expiresAt: new Date('2025-07-02T10:00:00Z'),
       deviceId: 'device-456',
+      tokenVersion: 1,
       user: {} as any,
     },
   ];
 
-  const expectedOutput: OutputSessionType[] = [
-    new OutputSessionType(
+  const expectedOutput: OutputSessionDto[] = [
+    new OutputSessionDto(
       'Chrome on Windows',
       '192.168.1.1',
       '2025-01-01T10:00:00.000Z',
     ),
-    new OutputSessionType(
+    new OutputSessionDto(
       'Safari on Mac',
       '192.168.1.2',
       '2025-01-02T10:00:00.000Z',

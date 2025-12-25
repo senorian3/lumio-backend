@@ -3,5 +3,6 @@ export class UpdateSessionDomainDto {
     public sessionId: number,
     public iat: Date,
     public exp: Date,
+    public tokenVersion: number,
   ) {}
 }

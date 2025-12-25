@@ -1,6 +1,6 @@
-export class GitHubDto {
+export class AboutUserOutputDto {
   constructor(
-    public gitId: string,
+    public userId: number,
     public username: string,
     public email: string,
   ) {}

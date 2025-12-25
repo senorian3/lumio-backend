@@ -12,25 +12,25 @@ describe('CreateUserUseCase', () => {
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
 
-  const mockCreateUserDto: CreateUserDto = {
-    username: 'testuser',
-    password: 'Password123',
-    email: 'test@example.com',
-  };
+  const mockCreateDto = new CreateUserDto(
+    'testuser',
+    'Password123',
+    'test@example.com',
+  );
 
-  const mockCreatedUser = {
+  const mockHashedPassword = 'hashedPassword123';
+  const mockUser = {
     id: 1,
     username: 'testuser',
     email: 'test@example.com',
-    password: 'hashedPassword123',
+    password: mockHashedPassword,
     createdAt: new Date(),
-    updatedAt: new Date(),
     deletedAt: null,
     emailConfirmation: {
       id: 1,
       userId: 1,
+      confirmationCode: '123456',
       isConfirmed: false,
-      confirmationCode: 'code-123',
       expirationDate: new Date(),
     },
   };
@@ -59,94 +59,143 @@ describe('CreateUserUseCase', () => {
     mockCryptoService = module.get<CryptoService>(CryptoService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should be defined', () => {
     expect(useCase).toBeDefined();
   });
 
   describe('execute', () => {
-    it('should create user and return user id', async () => {
+    it('should create user successfully', async () => {
       // Arrange
-      const command = new CreateUserCommand(mockCreateUserDto);
-      const hashedPassword = 'hashedPassword123';
+      const command = new CreateUserCommand(mockCreateDto);
       (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
-        hashedPassword,
+        mockHashedPassword,
       );
-      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(
-        mockCreatedUser,
-      );
+      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(mockUser);
 
       // Act
       const result = await useCase.execute(command);
 
       // Assert
       expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith(
-        mockCreateUserDto.password,
+        mockCreateDto.password,
       );
-
-      // Метод вызывается с двумя аргументами (подтверждено отладкой)
       expect(mockUserRepository.createUser).toHaveBeenCalledWith(
-        mockCreateUserDto,
-        hashedPassword,
+        mockCreateDto,
+        mockHashedPassword,
       );
-
-      expect(result).toBe(mockCreatedUser.id);
+      expect(result).toBe(mockUser.id);
     });
 
-    it('should hash password before creating user', async () => {
+    it('should handle database error when creating user', async () => {
       // Arrange
-      const command = new CreateUserCommand(mockCreateUserDto);
-      const hashedPassword = 'hashedPassword123';
+      const command = new CreateUserCommand(mockCreateDto);
+      const dbError = new Error('Cannot insert into users table');
       (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
-        hashedPassword,
+        mockHashedPassword,
       );
-      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(
-        mockCreatedUser,
-      );
+      (mockUserRepository.createUser as jest.Mock).mockRejectedValue(dbError);
 
-      // Act
-      await useCase.execute(command);
-
-      // Assert
+      // Act & Assert
+      await expect(useCase.execute(command)).rejects.toThrow(dbError);
       expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith(
-        'Password123',
+        mockCreateDto.password,
       );
-
       expect(mockUserRepository.createUser).toHaveBeenCalledWith(
-        mockCreateUserDto,
-        hashedPassword,
+        mockCreateDto,
+        mockHashedPassword,
       );
     });
 
-    it('should handle crypto service errors', async () => {
+    it('should handle crypto service error when hashing password', async () => {
       // Arrange
-      const command = new CreateUserCommand(mockCreateUserDto);
-      const error = new Error('Hash failed');
+      const command = new CreateUserCommand(mockCreateDto);
+      const cryptoError = new Error('Password hashing failed');
       (mockCryptoService.createPasswordHash as jest.Mock).mockRejectedValue(
-        error,
+        cryptoError,
       );
 
       // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow('Hash failed');
+      await expect(useCase.execute(command)).rejects.toThrow(cryptoError);
+      expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith(
+        mockCreateDto.password,
+      );
       expect(mockUserRepository.createUser).not.toHaveBeenCalled();
     });
 
-    it('should handle repository errors', async () => {
+    it('should handle empty password', async () => {
       // Arrange
-      const command = new CreateUserCommand(mockCreateUserDto);
-      const hashedPassword = 'hashedPassword123';
-      const error = new Error('Database error');
-      (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
-        hashedPassword,
+      const command = new CreateUserCommand(
+        new CreateUserDto('testuser', '', 'test@example.com'),
       );
-      (mockUserRepository.createUser as jest.Mock).mockRejectedValue(error);
+      (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
+        mockHashedPassword,
+      );
+      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(mockUser);
 
-      // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow('Database error');
-      expect(mockCryptoService.createPasswordHash).toHaveBeenCalled();
+      // Act
+      const result = await useCase.execute(command);
+
+      // Assert
+      expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith('');
+      expect(mockUserRepository.createUser).toHaveBeenCalledWith(
+        command.createDto,
+        mockHashedPassword,
+      );
+      expect(result).toBe(mockUser.id);
+    });
+
+    it('should handle special characters in username and email', async () => {
+      // Arrange
+      const specialDto = new CreateUserDto(
+        'test_user.123',
+        'Password123',
+        'test+special@example.com',
+      );
+      const command = new CreateUserCommand(specialDto);
+      (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
+        mockHashedPassword,
+      );
+      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(mockUser);
+
+      // Act
+      const result = await useCase.execute(command);
+
+      // Assert
+      expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith(
+        specialDto.password,
+      );
+      expect(mockUserRepository.createUser).toHaveBeenCalledWith(
+        specialDto,
+        mockHashedPassword,
+      );
+      expect(result).toBe(mockUser.id);
+    });
+
+    it('should handle unicode characters', async () => {
+      // Arrange
+      const unicodeDto = new CreateUserDto(
+        'тестпользователь',
+        'Password123',
+        'тест@example.com',
+      );
+      const command = new CreateUserCommand(unicodeDto);
+      (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
+        mockHashedPassword,
+      );
+      (mockUserRepository.createUser as jest.Mock).mockResolvedValue(mockUser);
+
+      // Act
+      const result = await useCase.execute(command);
+
+      // Assert
+      expect(mockCryptoService.createPasswordHash).toHaveBeenCalledWith(
+        unicodeDto.password,
+      );
+      expect(mockUserRepository.createUser).toHaveBeenCalledWith(
+        unicodeDto,
+        mockHashedPassword,
+      );
+      expect(result).toBe(mockUser.id);
     });
   });
 });

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
-import { OutputSessionType } from './dto/output/output';
+import { OutputSessionDto } from './dto/output/output';
 import { GetAllSessionsCommand } from '../application/use-cases/get-all-sessions.usecase';
 import { DeleteSessionCommand } from '../application/use-cases/delete-session.usecase';
 import { DeleteAllSessionsCommand } from '../application/use-cases/delete-all-sessions.usecase';
@@ -29,10 +29,10 @@ export class SessionsController {
 
   @Get()
   @ApiGetAllSessions()
-  async getAllSessions(@Req() req: any): Promise<OutputSessionType[]> {
+  async getAllSessions(@Req() req: any): Promise<OutputSessionDto[]> {
     return await this.queryBus.execute<
       GetAllSessionsCommand,
-      OutputSessionType[]
+      OutputSessionDto[]
     >(new GetAllSessionsCommand(req.user.userId));
   }
 

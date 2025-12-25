@@ -9,9 +9,7 @@ export class DeleteAllSessionsCommand {
 }
 
 @CommandHandler(DeleteAllSessionsCommand)
-export class DeleteAllSessionssUseCase
-  implements ICommandHandler<DeleteAllSessionsCommand>
-{
+export class DeleteAllSessionssUseCase implements ICommandHandler<DeleteAllSessionsCommand> {
   constructor(private readonly sessionRepository: SessionRepository) {}
 
   async execute({

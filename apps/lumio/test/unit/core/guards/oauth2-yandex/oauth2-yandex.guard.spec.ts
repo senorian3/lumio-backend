@@ -1,27 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GoogleStrategy } from '@lumio/core/guards/oauth2-google/oauth2-google.guard';
+import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
 import { CoreConfig } from '@lumio/core/core.config';
 
-describe('GoogleStrategy', () => {
-  let strategy: GoogleStrategy;
+describe('YandexStrategy', () => {
+  let strategy: YandexStrategy;
   let mockCoreConfig: CoreConfig;
 
   const mockCoreConfigValues = {
-    googleClientId: 'test-google-client-id',
-    googleClientSecret: 'test-google-client-secret',
-    googleCallbackUrl: 'http://localhost:3000/auth/google/callback',
+    yandexClientId: 'test-yandex-client-id',
+    yandexClientSecret: 'test-yandex-client-secret',
+    yandexCallbackUrl: 'http://localhost:3000/auth/yandex/callback',
   };
 
   beforeEach(async () => {
     mockCoreConfig = {
-      googleClientId: mockCoreConfigValues.googleClientId,
-      googleClientSecret: mockCoreConfigValues.googleClientSecret,
-      googleCallbackUrl: mockCoreConfigValues.googleCallbackUrl,
+      yandexClientId: mockCoreConfigValues.yandexClientId,
+      yandexClientSecret: mockCoreConfigValues.yandexClientSecret,
+      yandexCallbackUrl: mockCoreConfigValues.yandexCallbackUrl,
     } as CoreConfig;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GoogleStrategy,
+        YandexStrategy,
         {
           provide: CoreConfig,
           useValue: mockCoreConfig,
@@ -29,7 +29,7 @@ describe('GoogleStrategy', () => {
       ],
     }).compile();
 
-    strategy = module.get<GoogleStrategy>(GoogleStrategy);
+    strategy = module.get<YandexStrategy>(YandexStrategy);
   });
 
   afterEach(() => {
@@ -41,8 +41,9 @@ describe('GoogleStrategy', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with correct OAuth2 configuration', () => {
-      expect(strategy).toBeInstanceOf(GoogleStrategy);
+    it('should initialize PassportStrategy with correct configuration', () => {
+      expect(strategy).toBeInstanceOf(YandexStrategy);
+      // Можно проверить, что конфигурация передается правильно через CoreConfig
     });
   });
 
@@ -53,10 +54,10 @@ describe('GoogleStrategy', () => {
     it('should return user data when profile has all fields', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
-        emails: [{ value: 'google@example.com', verified: true }],
-      } as any; // Используем any для упрощения
+        id: 'yandex-123',
+        username: 'yandexuser',
+        emails: [{ value: 'yandex@example.com' }],
+      };
 
       // Act
       const result = await strategy.validate(
@@ -67,19 +68,19 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-123',
-        email: 'google@example.com',
-        username: 'Google User',
+        yandexId: 'yandex-123',
+        email: 'yandex@example.com',
+        username: 'yandexuser',
       });
     });
 
     it('should return email when available', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
-        emails: [{ value: 'user@gmail.com', verified: true }],
-      } as any;
+        id: 'yandex-456',
+        username: 'yandexuser2',
+        emails: [{ value: 'user@yandex.ru' }],
+      };
 
       // Act
       const result = await strategy.validate(
@@ -89,16 +90,16 @@ describe('GoogleStrategy', () => {
       );
 
       // Assert
-      expect(result.email).toBe('user@gmail.com');
+      expect(result.email).toBe('user@yandex.ru');
     });
 
     it('should return null email when no emails in profile', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
+        id: 'yandex-789',
+        username: 'yandexuser3',
         emails: undefined,
-      } as any;
+      };
 
       // Act
       const result = await strategy.validate(
@@ -109,19 +110,19 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-123',
+        yandexId: 'yandex-789',
         email: null,
-        username: 'Google User',
+        username: 'yandexuser3',
       });
     });
 
     it('should return null email when emails array is empty', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
+        id: 'yandex-999',
+        username: 'yandexuser4',
         emails: [],
-      } as any;
+      };
 
       // Act
       const result = await strategy.validate(
@@ -132,19 +133,19 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-123',
+        yandexId: 'yandex-999',
         email: null,
-        username: 'Google User',
+        username: 'yandexuser4',
       });
     });
 
-    it('should return null username when displayName is not available', async () => {
+    it('should return null username when username is not available', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: undefined,
-        emails: [{ value: 'google@example.com', verified: true }],
-      } as any;
+        id: 'yandex-111',
+        username: undefined,
+        emails: [{ value: 'test@yandex.ru' }],
+      };
 
       // Act
       const result = await strategy.validate(
@@ -155,8 +156,8 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-123',
-        email: 'google@example.com',
+        yandexId: 'yandex-111',
+        email: 'test@yandex.ru',
         username: null,
       });
     });
@@ -164,13 +165,13 @@ describe('GoogleStrategy', () => {
     it('should handle profile with multiple emails', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
+        id: 'yandex-222',
+        username: 'multiemail',
         emails: [
-          { value: 'primary@gmail.com', verified: true },
-          { value: 'secondary@gmail.com', verified: true },
+          { value: 'primary@yandex.ru' },
+          { value: 'secondary@yandex.ru' },
         ],
-      } as any;
+      };
 
       // Act
       const result = await strategy.validate(
@@ -180,35 +181,16 @@ describe('GoogleStrategy', () => {
       );
 
       // Assert
-      expect(result.email).toBe('primary@gmail.com');
-    });
-
-    it('should use first email even if not verified', async () => {
-      // Arrange
-      const mockProfile = {
-        id: 'google-123',
-        displayName: 'Google User',
-        emails: [{ value: 'unverified@gmail.com', verified: false }],
-      } as any;
-
-      // Act
-      const result = await strategy.validate(
-        mockAccessToken,
-        mockRefreshToken,
-        mockProfile,
-      );
-
-      // Assert
-      expect(result.email).toBe('unverified@gmail.com');
+      expect(result.email).toBe('primary@yandex.ru');
     });
 
     it('should return correct data for minimal profile', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-minimal-123',
-        displayName: null,
+        id: 'yandex-minimal',
+        username: null,
         emails: null,
-      } as any;
+      };
 
       // Act
       const result = await strategy.validate(
@@ -219,24 +201,19 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-minimal-123',
+        yandexId: 'yandex-minimal',
         email: null,
         username: null,
       });
     });
-  });
 
-  describe('validate edge cases', () => {
-    const mockAccessToken = 'test-access-token';
-    const mockRefreshToken = 'test-refresh-token';
-
-    it('should handle empty string displayName', async () => {
+    it('should handle empty string username', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-123',
-        displayName: '',
-        emails: [{ value: 'test@example.com', verified: true }],
-      } as any;
+        id: 'yandex-333',
+        username: '',
+        emails: [{ value: 'empty@yandex.ru' }],
+      };
 
       // Act
       const result = await strategy.validate(
@@ -252,10 +229,10 @@ describe('GoogleStrategy', () => {
     it('should handle profile with only id', async () => {
       // Arrange
       const mockProfile = {
-        id: 'google-only-id',
-        displayName: undefined,
+        id: 'yandex-only-id',
+        username: undefined,
         emails: undefined,
-      } as any;
+      };
 
       // Act
       const result = await strategy.validate(
@@ -266,7 +243,7 @@ describe('GoogleStrategy', () => {
 
       // Assert
       expect(result).toEqual({
-        googleId: 'google-only-id',
+        yandexId: 'yandex-only-id',
         email: null,
         username: null,
       });

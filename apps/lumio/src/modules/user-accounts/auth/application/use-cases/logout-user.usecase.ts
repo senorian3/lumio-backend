@@ -12,10 +12,7 @@ export class LogoutUserCommand {
 @CommandHandler(LogoutUserCommand)
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
   constructor(private readonly sessionRepository: SessionRepository) {}
-  async execute({ userId, deviceId }: LogoutUserCommand): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> {
+  async execute({ userId, deviceId }: LogoutUserCommand): Promise<void> {
     if (!userId || !deviceId) return;
 
     const foundSessionByDeviceIdAndUserId: SessionEntity | null =
@@ -26,11 +23,11 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
 
     if (!foundSessionByDeviceIdAndUserId) return;
 
-    await this.sessionRepository.deleteSession({
-      userId: foundSessionByDeviceIdAndUserId.userId,
-      deviceId: foundSessionByDeviceIdAndUserId.deviceId,
+    await this.sessionRepository.updateSession({
       sessionId: foundSessionByDeviceIdAndUserId.id,
-      deletedAt: new Date(),
+      iat: foundSessionByDeviceIdAndUserId.createdAt,
+      exp: foundSessionByDeviceIdAndUserId.expiresAt,
+      tokenVersion: foundSessionByDeviceIdAndUserId.tokenVersion + 1,
     });
 
     return;
