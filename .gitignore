@@ -41,7 +41,6 @@ lerna-debug.log*
 *.env*
 *.env
 !.env.*.example
-!jenkins-test-env
 
 # temp directory
 .temp
