@@ -18,7 +18,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.userId || !user.deviceId || !user.tokenVersion) {
+    if (!user || !user.userId || !user.deviceId) {
       throw UnauthorizedDomainException.create(
         'Invalid user data in JWT',
         'user',
@@ -37,11 +37,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
 
-    if (session.tokenVersion !== user.tokenVersion) {
-      throw UnauthorizedDomainException.create(
-        'Token version mismatch - token is invalidated',
-        'tokenVersion',
-      );
+    if (user.tokenVersion !== undefined) {
+      if (session.tokenVersion > user.tokenVersion) {
+        throw UnauthorizedDomainException.create(
+          'Token version mismatch - token is invalidated',
+          'tokenVersion',
+        );
+      }
     }
 
     return true;
