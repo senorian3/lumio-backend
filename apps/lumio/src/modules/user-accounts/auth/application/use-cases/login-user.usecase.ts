@@ -11,6 +11,8 @@ import {
 import { loginDto } from '../../../users/api/dto/transfer/login.dto';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
+const MILLISECONDS_IN_SECOND = 1000;
+
 export class LoginUserCommand {
   constructor(
     public loginDto: loginDto,
@@ -32,6 +34,7 @@ export class LoginUserUseCase implements ICommandHandler<
     private readonly authService: AuthService,
     private readonly sessionRepository: SessionRepository,
   ) {}
+
   async execute({ loginDto, deviceName, ip }: LoginUserCommand): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -42,20 +45,45 @@ export class LoginUserUseCase implements ICommandHandler<
     );
 
     const userId = result.id;
+    const deviceId = await this.getOrCreateDeviceId(userId, deviceName);
 
+    const refreshToken = await this.createRefreshToken(
+      userId,
+      deviceId,
+      deviceName,
+      ip,
+    );
+
+    const tokenVersion = await this.updateOrCreateSession(
+      userId,
+      deviceId,
+      deviceName,
+      ip,
+    );
+
+    const accessToken = this.createAccessToken(userId, deviceId, tokenVersion);
+
+    return { accessToken, refreshToken };
+  }
+
+  private async getOrCreateDeviceId(
+    userId: number,
+    deviceName: string,
+  ): Promise<string> {
     const existSession = await this.sessionRepository.findSession({
       userId,
-      deviceName: deviceName,
+      deviceName,
     });
 
-    let deviceId: string;
+    return existSession ? existSession.deviceId : randomUUID();
+  }
 
-    if (existSession) {
-      deviceId = existSession.deviceId;
-    } else {
-      deviceId = randomUUID();
-    }
-
+  private async createRefreshToken(
+    userId: number,
+    deviceId: string,
+    deviceName: string,
+    ip: string,
+  ): Promise<string> {
     const refreshToken = this.refreshTokenContext.sign({
       userId,
       deviceId,
@@ -71,29 +99,73 @@ export class LoginUserUseCase implements ICommandHandler<
         'refreshToken',
       );
     }
+
+    return refreshToken;
+  }
+
+  private createAccessToken(
+    userId: number,
+    deviceId: string,
+    tokenVersion: number,
+  ): string {
+    return this.accessTokenContext.sign({
+      userId,
+      deviceId,
+      tokenVersion,
+    });
+  }
+
+  private async updateOrCreateSession(
+    userId: number,
+    deviceId: string,
+    deviceName: string,
+    ip: string,
+  ): Promise<number> {
+    const existSession = await this.sessionRepository.findSession({
+      userId,
+      deviceName,
+    });
+
+    const { iat, exp } = this.refreshTokenContext.verify(
+      this.refreshTokenContext.sign({
+        userId,
+        deviceId,
+        deviceName,
+        ip,
+      }),
+    );
+
+    if (!iat || !exp) {
+      throw ForbiddenDomainException.create(
+        'Refresh token is not verified',
+        'refreshToken',
+      );
+    }
+
+    const newIat = new Date(iat * MILLISECONDS_IN_SECOND);
+    const newExp = new Date(exp * MILLISECONDS_IN_SECOND);
+
+    let tokenVersion: number;
     if (existSession) {
+      tokenVersion = existSession.tokenVersion;
       await this.sessionRepository.updateSession({
         sessionId: existSession.id,
-        iat: new Date(iat * 1000),
-        exp: new Date(exp * 1000),
-        tokenVersion: existSession.tokenVersion,
+        iat: newIat,
+        exp: newExp,
+        tokenVersion,
       });
     } else {
+      tokenVersion = 1;
       await this.sessionRepository.createSession({
         userId,
-        iat: new Date(iat * 1000),
-        exp: new Date(exp * 1000),
+        iat: newIat,
+        exp: newExp,
         deviceId,
         ip,
         deviceName,
       });
     }
-    const accessToken = this.accessTokenContext.sign({
-      userId,
-      deviceId,
-      tokenVersion: existSession ? existSession.tokenVersion : 1,
-    });
 
-    return { accessToken, refreshToken };
+    return tokenVersion;
   }
 }
