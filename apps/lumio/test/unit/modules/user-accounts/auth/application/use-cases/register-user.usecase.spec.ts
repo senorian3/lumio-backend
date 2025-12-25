@@ -142,7 +142,7 @@ describe('RegisterUserUseCase', () => {
 
       try {
         await useCase.execute(command);
-        fail('Should have thrown an exception');
+        throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
         // Основное сообщение
@@ -172,7 +172,7 @@ describe('RegisterUserUseCase', () => {
 
       try {
         await useCase.execute(command);
-        fail('Should have thrown an exception');
+        throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
         expect(domainException.message).toBe('Bad Request');
@@ -201,7 +201,7 @@ describe('RegisterUserUseCase', () => {
 
       try {
         await useCase.execute(command);
-        fail('Should have thrown an exception');
+        throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
         expect(domainException.message).toBe('Bad Request');
