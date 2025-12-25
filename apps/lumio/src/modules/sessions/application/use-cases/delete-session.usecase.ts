@@ -12,9 +12,7 @@ export class DeleteSessionCommand {
 }
 
 @CommandHandler(DeleteSessionCommand)
-export class DeleteSessionUseCase
-  implements ICommandHandler<DeleteSessionCommand>
-{
+export class DeleteSessionUseCase implements ICommandHandler<DeleteSessionCommand> {
   constructor(private readonly sessionRepository: SessionRepository) {}
 
   async execute({ deleteSessionDto }: DeleteSessionCommand): Promise<void> {

@@ -138,7 +138,7 @@ describe('AuthController', () => {
 
       // Assert
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
-        new LoginUserCommand(dto, 'Test Agent', '192.168.1.1'),
+        new LoginUserCommand(dto, 'Test Agent', '192.168.1.2'),
       );
       expect(mockResponse.cookie).toHaveBeenCalledWith(
         'refreshToken',

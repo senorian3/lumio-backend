@@ -7,9 +7,10 @@ export class RegistrationConfirmationUserCommand {
 }
 
 @CommandHandler(RegistrationConfirmationUserCommand)
-export class RegistrationConfirmationUserUseCase
-  implements ICommandHandler<RegistrationConfirmationUserCommand, void>
-{
+export class RegistrationConfirmationUserUseCase implements ICommandHandler<
+  RegistrationConfirmationUserCommand,
+  void
+> {
   constructor(private userRepository: UserRepository) {}
   async execute({
     confirmCode,

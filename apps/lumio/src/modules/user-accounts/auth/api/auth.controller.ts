@@ -48,6 +48,7 @@ import {
   getStrictCookieOptions,
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
+import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
@@ -79,14 +80,8 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ): Promise<{ accessToken: string }> {
-    const ip: string =
-      req.socket.remoteAddress ||
-      (Array.isArray(req.headers['x-forwarded-for'])
-        ? req.headers['x-forwarded-for'][0]
-        : req.headers['x-forwarded-for']) ||
-      'unknown';
-
-    const userAgent = (req.headers['user-agent'] || 'unknown').trim();
+    const ip = getClientIp(req);
+    const userAgent = getUserAgent(req);
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
       LoginUserCommand,
@@ -151,13 +146,8 @@ export class AuthController {
     @Req() req,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const ip: string =
-      req.socket.remoteAddress ||
-      (Array.isArray(req.headers['x-forwarded-for'])
-        ? req.headers['x-forwarded-for'][0]
-        : req.headers['x-forwarded-for']) ||
-      'unknown';
-    const deviceName = req.headers['user-agent'] || 'unknown';
+    const ip = getClientIp(req);
+    const deviceName = getUserAgent(req);
     const user = req.user;
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
@@ -187,15 +177,8 @@ export class AuthController {
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const ip: string =
-      req.socket.remoteAddress ||
-      (Array.isArray(req.headers['x-forwarded-for'])
-        ? req.headers['x-forwarded-for'][0]
-        : req.headers['x-forwarded-for']) ||
-      'unknown';
-
-    const deviceName = req.headers['user-agent'] || 'unknown';
-
+    const ip = getClientIp(req);
+    const deviceName = getUserAgent(req);
     const user = req.user;
 
     const { accessToken, refreshToken } = await this.commandBus.execute<
@@ -225,15 +208,8 @@ export class AuthController {
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const ip: string =
-      req.socket.remoteAddress ||
-      (Array.isArray(req.headers['x-forwarded-for'])
-        ? req.headers['x-forwarded-for'][0]
-        : req.headers['x-forwarded-for']) ||
-      'unknown';
-
-    const deviceName = req.headers['user-agent'] || 'unknown';
-
+    const ip = getClientIp(req);
+    const deviceName = getUserAgent(req);
     const user = req.user;
 
     const { refreshToken, accessToken } = await this.commandBus.execute<

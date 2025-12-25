@@ -14,9 +14,10 @@ export class PasswordRecoveryCommand {
 }
 
 @CommandHandler(PasswordRecoveryCommand)
-export class PasswordRecoveryUseCase
-  implements ICommandHandler<PasswordRecoveryCommand, void>
-{
+export class PasswordRecoveryUseCase implements ICommandHandler<
+  PasswordRecoveryCommand,
+  void
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly nodemailerService: NodemailerService,

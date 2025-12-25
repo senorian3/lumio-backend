@@ -10,9 +10,10 @@ export class NewPasswordCommand {
 }
 
 @CommandHandler(NewPasswordCommand)
-export class NewPasswordUseCase
-  implements ICommandHandler<NewPasswordCommand, void>
-{
+export class NewPasswordUseCase implements ICommandHandler<
+  NewPasswordCommand,
+  void
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,

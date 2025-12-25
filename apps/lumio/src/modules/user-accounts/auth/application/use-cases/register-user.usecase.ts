@@ -12,9 +12,10 @@ export class RegisterUserCommand {
 }
 
 @CommandHandler(RegisterUserCommand)
-export class RegisterUserUseCase
-  implements ICommandHandler<RegisterUserCommand, void>
-{
+export class RegisterUserUseCase implements ICommandHandler<
+  RegisterUserCommand,
+  void
+> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly nodemailerService: NodemailerService,
