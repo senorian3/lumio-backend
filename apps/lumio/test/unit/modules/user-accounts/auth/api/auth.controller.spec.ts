@@ -17,8 +17,6 @@ import { LoginUserCommand } from '@lumio/modules/user-accounts/auth/application/
 import { LogoutUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
 import { PasswordRecoveryCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/new-password.usecase';
-import { LoginUserGitHubCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-github.usecase';
-import { LoginUserGoogleCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
@@ -80,10 +78,6 @@ describe('AuthController', () => {
       .overrideGuard(ThrottlerGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(RefreshTokenGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(AuthGuard('github'))
-      .useValue({ canActivate: () => true })
-      .overrideGuard(AuthGuard('google'))
       .useValue({ canActivate: () => true })
       .overrideGuard(AuthGuard('yandex'))
       .useValue({ canActivate: () => true })
@@ -218,100 +212,6 @@ describe('AuthController', () => {
       // Assert
       expect(mockCommandBus.execute).toHaveBeenCalledWith(
         new NewPasswordCommand(dto),
-      );
-    });
-  });
-
-  describe('githubCallback', () => {
-    it('should handle GitHub OAuth callback', async () => {
-      // Arrange
-      const mockGitHubRequest = {
-        socket: { remoteAddress: '192.168.1.3' },
-        headers: {
-          'user-agent': 'OAuth Agent',
-          host: 'localhost:3000',
-        },
-        user: {
-          gitId: 'github-123',
-          email: 'github@example.com',
-          username: 'githubuser',
-        },
-        get: jest.fn().mockImplementation((key: string) => {
-          if (key === 'host') return 'localhost:3000';
-          return null;
-        }),
-      } as any;
-      const expectedResult = {
-        accessToken: 'github-access-token',
-        refreshToken: 'github-refresh-token',
-      };
-      (mockCommandBus.execute as jest.Mock).mockResolvedValue(expectedResult);
-
-      // Act
-      await controller.githubCallback(mockGitHubRequest, mockResponse);
-
-      // Assert
-      expect(mockCommandBus.execute).toHaveBeenCalledWith(
-        new LoginUserGitHubCommand(
-          mockGitHubRequest.user,
-          'OAuth Agent',
-          '192.168.1.3',
-        ),
-      );
-      expect(mockResponse.cookie).toHaveBeenCalledWith(
-        'refreshToken',
-        'github-refresh-token',
-        expect.any(Object), // getOAuthCookieOptions возвращает объект
-      );
-      expect(mockResponse.redirect).toHaveBeenCalledWith(
-        'http://localhost:3000/auth/oauth-success?accessToken=github-access-token',
-      );
-    });
-  });
-
-  describe('googleCallback', () => {
-    it('should handle Google OAuth callback', async () => {
-      // Arrange
-      const mockGoogleRequest = {
-        socket: { remoteAddress: '192.168.1.4' },
-        headers: {
-          'user-agent': 'OAuth Agent',
-          host: 'localhost:3000',
-        },
-        user: {
-          googleId: 'google-123',
-          email: 'google@example.com',
-          username: 'googleuser',
-        },
-        get: jest.fn().mockImplementation((key: string) => {
-          if (key === 'host') return 'localhost:3000';
-          return null;
-        }),
-      } as any;
-      const expectedResult = {
-        accessToken: 'google-access-token',
-        refreshToken: 'google-refresh-token',
-      };
-      (mockCommandBus.execute as jest.Mock).mockResolvedValue(expectedResult);
-
-      // Act
-      await controller.googleCallback(mockGoogleRequest, mockResponse);
-
-      // Assert
-      expect(mockCommandBus.execute).toHaveBeenCalledWith(
-        new LoginUserGoogleCommand(
-          mockGoogleRequest.user,
-          'OAuth Agent',
-          '192.168.1.4',
-        ),
-      );
-      expect(mockResponse.cookie).toHaveBeenCalledWith(
-        'refreshToken',
-        'google-refresh-token',
-        expect.any(Object),
-      );
-      expect(mockResponse.redirect).toHaveBeenCalledWith(
-        'http://localhost:3000/auth/oauth-success?accessToken=google-access-token',
       );
     });
   });

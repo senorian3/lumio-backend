@@ -12,7 +12,7 @@ export function ApiLogin() {
 
     ApiResponse({
       status: 200,
-      description: 'User successfully login via github',
+      description: 'User successfully login',
       example: {
         accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
       },

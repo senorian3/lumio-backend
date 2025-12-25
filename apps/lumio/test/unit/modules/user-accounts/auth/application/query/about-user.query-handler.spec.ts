@@ -25,8 +25,6 @@ describe('AboutUserQueryHandler', () => {
       userId: mockUserId,
     },
     sessions: [],
-    github: null,
-    google: null,
   };
 
   const mockAboutUserOutput = {
@@ -141,52 +139,6 @@ describe('AboutUserQueryHandler', () => {
       const query = new AboutUserUserQuery(mockUserId);
       (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
         userWithEmptySessions,
-      );
-
-      // Act
-      const result = await handler.execute(query);
-
-      // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
-      expect(result).toEqual(mockAboutUserOutput);
-    });
-
-    it('should handle user with GitHub integration', async () => {
-      // Arrange
-      const userWithGitHub = {
-        ...mockUser,
-        github: {
-          id: 1,
-          gitId: 'github123',
-          userId: mockUserId,
-        },
-      };
-      const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
-        userWithGitHub,
-      );
-
-      // Act
-      const result = await handler.execute(query);
-
-      // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
-      expect(result).toEqual(mockAboutUserOutput);
-    });
-
-    it('should handle user with Google integration', async () => {
-      // Arrange
-      const userWithGoogle = {
-        ...mockUser,
-        google: {
-          id: 1,
-          googleId: 'google123',
-          userId: mockUserId,
-        },
-      };
-      const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
-        userWithGoogle,
       );
 
       // Act

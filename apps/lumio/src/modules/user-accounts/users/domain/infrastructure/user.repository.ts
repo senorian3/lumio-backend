@@ -2,11 +2,9 @@ import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
-import { EmailConfirmation, GitHub, User } from 'generated/prisma-lumio';
+import { EmailConfirmation, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
-import { GoogleEntity } from '@lumio/modules/user-accounts/users/domain/entities/google.entity';
-import { GoogleDomainDto } from '@lumio/modules/user-accounts/users/domain/dto/google.domain.dto';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
 @Injectable()
 export class UserRepository {
@@ -104,93 +102,12 @@ export class UserRepository {
     });
   }
 
-  async findGitHubByGitId(gitId: string): Promise<GitHub | null> {
-    return this.prisma.gitHub.findUnique({
-      where: { gitId },
-      include: {
-        user: true,
-      },
-    });
-  }
-
-  async createGitHub(data: {
-    gitId: string;
-    email: string;
-    username: string;
-    userId: number;
-  }) {
-    return this.prisma.gitHub.create({
-      data: {
-        gitId: data.gitId,
-        email: data.email,
-        username: data.username,
-        userId: data.userId,
-      },
-    });
-  }
-
-  async updateGitHub(
-    id: number,
-    data: {
-      userId?: number;
-      email?: string;
-      username?: string;
-    },
-  ): Promise<void> {
-    await this.prisma.gitHub.update({
-      where: { id },
-      data,
-    });
-  }
-
   async findUserById(id: number): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: { id },
       include: {
         emailConfirmation: true,
         sessions: true,
-        github: true,
-      },
-    });
-  }
-
-  async findGoogleByGoogleId(googleId: string): Promise<GoogleEntity | null> {
-    return this.prisma.google.findUnique({
-      where: { googleId },
-      include: {
-        user: true,
-      },
-    });
-  }
-
-  async createGoogle(
-    data: GoogleDomainDto,
-    userId: number,
-  ): Promise<GoogleEntity> {
-    return this.prisma.google.create({
-      data: {
-        email: data.email,
-        username: data.username,
-        googleId: data.googleId,
-        userId: userId,
-      },
-      include: {
-        user: true,
-      },
-    });
-  }
-
-  async updateGoogle(
-    googleId: string,
-    data: {
-      email?: string;
-      username?: string;
-    },
-  ): Promise<void> {
-    await this.prisma.google.update({
-      where: { googleId },
-      data: {
-        ...data,
       },
     });
   }

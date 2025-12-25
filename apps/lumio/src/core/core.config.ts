@@ -49,24 +49,6 @@ export class CoreConfig {
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
 
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_ID' })
-  githubClientId: string = this.configService.get('GITHUB_CLIENT_ID');
-
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_SECRET' })
-  githubClientSecret: string = this.configService.get('GITHUB_CLIENT_SECRET');
-
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CALLBACK_URL' })
-  githubCallbackUrl: string = this.configService.get('GITHUB_CALLBACK_URL');
-
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_ID' })
-  googleClientId: string = this.configService.get('GOOGLE_CLIENT_ID');
-
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_SECRET' })
-  googleClientSecret: string = this.configService.get('GOOGLE_CLIENT_SECRET');
-
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CALLBACK_URL' })
-  googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
-
   @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_ID' })
   yandexClientId: string = this.configService.get('YANDEX_CLIENT_ID');
 

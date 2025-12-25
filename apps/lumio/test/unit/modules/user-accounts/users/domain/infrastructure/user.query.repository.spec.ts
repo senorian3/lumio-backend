@@ -22,8 +22,6 @@ describe('UserQueryRepository', () => {
       userId: 1,
     },
     sessions: [],
-    github: null,
-    google: null,
   };
 
   beforeEach(async () => {
