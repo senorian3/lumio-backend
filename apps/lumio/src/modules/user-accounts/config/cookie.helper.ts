@@ -29,12 +29,27 @@ function getBaseCookieOptions(req?: Request): Omit<CookieOptions, 'sameSite'> {
     };
   }
 
+  // For localhost, don't set domain to allow cookies on localhost:3000
   return base;
 }
 
 export function getStrictCookieOptions(req?: Request): CookieOptions {
+  const baseOptions = getBaseCookieOptions(req);
+
+  // For localhost, set sameSite to 'none' to allow cross-origin cookies
+  // but only if secure is false (which it is for localhost)
+  if (
+    req?.get('host')?.includes('localhost') ||
+    req?.get('host')?.includes('127.0.0.1')
+  ) {
+    return {
+      ...baseOptions,
+      sameSite: 'none',
+    };
+  }
+
   return {
-    ...getBaseCookieOptions(req),
+    ...baseOptions,
     sameSite: 'strict',
   };
 }
