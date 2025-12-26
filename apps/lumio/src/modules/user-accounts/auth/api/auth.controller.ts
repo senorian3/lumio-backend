@@ -144,7 +144,14 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    // Ensure refreshToken cookie is set for localhost:3000 during Yandex redirect
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false, // false for localhost
+      sameSite: 'none', // allows cross-origin cookies
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     res.redirect(
       `http://localhost:3000/api/v1/auth/oauth-success?accessToken=${accessToken}`,

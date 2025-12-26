@@ -36,21 +36,10 @@ function getBaseCookieOptions(req?: Request): Omit<CookieOptions, 'sameSite'> {
 export function getStrictCookieOptions(req?: Request): CookieOptions {
   const baseOptions = getBaseCookieOptions(req);
 
-  // For localhost, set sameSite to 'none' to allow cross-origin cookies
-  // but only if secure is false (which it is for localhost)
-  if (
-    req?.get('host')?.includes('localhost') ||
-    req?.get('host')?.includes('127.0.0.1')
-  ) {
-    return {
-      ...baseOptions,
-      sameSite: 'none',
-    };
-  }
-
+  // Hardcoded for localhost:3000 to receive refreshToken
   return {
     ...baseOptions,
-    sameSite: 'strict',
+    sameSite: 'none',
   };
 }
 
