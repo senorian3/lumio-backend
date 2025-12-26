@@ -144,10 +144,16 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     res.redirect(
-      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
+      `http://localhost:3000/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
