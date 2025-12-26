@@ -147,7 +147,7 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     res.redirect(
-      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
+      `localhost:3000/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
