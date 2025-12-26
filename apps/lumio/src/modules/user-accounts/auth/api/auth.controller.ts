@@ -89,6 +89,7 @@ export class AuthController {
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
+      domain: 'localhost',
     });
 
     return { accessToken };
@@ -157,6 +158,7 @@ export class AuthController {
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
+      domain: 'localhost',
     });
 
     res.redirect(
