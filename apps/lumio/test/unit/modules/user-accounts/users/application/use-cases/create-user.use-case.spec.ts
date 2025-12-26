@@ -5,14 +5,14 @@ import {
 } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
-import { CreateUserDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/create-user.transfer.dto';
+import { CreateUserTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/create-user.transfer.dto';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
 
-  const mockCreateDto = new CreateUserDto(
+  const mockCreateDto = new CreateUserTransferDto(
     'testuser',
     'Password123',
     'test@example.com',
@@ -125,7 +125,7 @@ describe('CreateUserUseCase', () => {
     it('should handle empty password', async () => {
       // Arrange
       const command = new CreateUserCommand(
-        new CreateUserDto('testuser', '', 'test@example.com'),
+        new CreateUserTransferDto('testuser', '', 'test@example.com'),
       );
       (mockCryptoService.createPasswordHash as jest.Mock).mockResolvedValue(
         mockHashedPassword,
@@ -146,7 +146,7 @@ describe('CreateUserUseCase', () => {
 
     it('should handle special characters in username and email', async () => {
       // Arrange
-      const specialDto = new CreateUserDto(
+      const specialDto = new CreateUserTransferDto(
         'test_user.123',
         'Password123',
         'test+special@example.com',
@@ -173,7 +173,7 @@ describe('CreateUserUseCase', () => {
 
     it('should handle unicode characters', async () => {
       // Arrange
-      const unicodeDto = new CreateUserDto(
+      const unicodeDto = new CreateUserTransferDto(
         'тестпользователь',
         'Password123',
         'тест@example.com',

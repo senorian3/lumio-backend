@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
+import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   DeleteSessionUseCase,
   DeleteSessionCommand,
-} from '@lumio/modules/sessions/application/use-cases/delete-session.usecase';
-import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
-import { DeleteSessionDto } from '@lumio/modules/sessions/api/dto/transfer/delete-session.dto';
-import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
-import { DomainException } from '@libs/core/exceptions/domain-exceptions';
+} from '@lumio/modules/sessions/application/use-cases/command/delete-session.usecase';
+import { DeleteSessionTransferDto } from '@lumio/modules/sessions/api/dto/transfer/delete-session.dto';
 
 describe('DeleteSessionUseCase', () => {
   let useCase: DeleteSessionUseCase;
   let mockRepository: SessionRepository;
 
-  const mockDeleteSessionDto: DeleteSessionDto = {
+  const mockDeleteSessionDto: DeleteSessionTransferDto = {
     userId: 1,
     userDeviceId: 'current-device-123',
     paramDeviceId: 'target-device-456',

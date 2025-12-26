@@ -1,18 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  DeleteAllSessionssUseCase,
-  DeleteAllSessionsCommand,
-} from '@lumio/modules/sessions/application/use-cases/delete-all-sessions.usecase';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
-import { DeleteAllSessionsDto } from '@lumio/modules/sessions/api/dto/transfer/delete-all-sessions.transfer.dto';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  DeleteAllSessionsUseCase,
+  DeleteAllSessionsCommand,
+} from '@lumio/modules/sessions/application/use-cases/command/delete-all-sessions.usecase';
+import { DeleteAllSessionsTransferDto } from '@lumio/modules/sessions/api/dto/transfer/delete-all-sessions.transfer.dto';
 
 describe('DeleteAllSessionssUseCase', () => {
-  let useCase: DeleteAllSessionssUseCase;
+  let useCase: DeleteAllSessionsUseCase;
   let mockRepository: SessionRepository;
 
-  const mockDeleteAllSessionsDto: DeleteAllSessionsDto = {
+  const mockDeleteAllSessionsDto: DeleteAllSessionsTransferDto = {
     userId: 1,
     deviceId: 'current-device-123',
   };
@@ -33,7 +33,7 @@ describe('DeleteAllSessionssUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DeleteAllSessionssUseCase,
+        DeleteAllSessionsUseCase,
         {
           provide: SessionRepository,
           useValue: {
@@ -44,7 +44,7 @@ describe('DeleteAllSessionssUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<DeleteAllSessionssUseCase>(DeleteAllSessionssUseCase);
+    useCase = module.get<DeleteAllSessionsUseCase>(DeleteAllSessionsUseCase);
     mockRepository = module.get<SessionRepository>(SessionRepository);
   });
 

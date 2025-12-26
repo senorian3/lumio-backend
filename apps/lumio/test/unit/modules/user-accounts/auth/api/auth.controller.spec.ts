@@ -11,7 +11,7 @@ import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto
 import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/login.input.dto';
 import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input.dto';
 import { InputNewPasswordDto } from '@lumio/modules/user-accounts/users/api/dto/input/new-password.input.dto';
-import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
+import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
 import { RegisterUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/register-user.usecase';
 import { LoginUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user.usecase';
 import { LogoutUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
@@ -219,7 +219,7 @@ describe('AuthController', () => {
   describe('registrationConfirmation', () => {
     it('should confirm registration', async () => {
       // Arrange
-      const dto: RegistrationConfirmationInputDto = {
+      const dto: InputRegistrationConfirmationDto = {
         confirmCode: 'confirmation-code',
       };
       (mockCommandBus.execute as jest.Mock).mockResolvedValue(undefined);
