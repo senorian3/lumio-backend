@@ -10,6 +10,7 @@ import { GetCreatePostQueryHandler } from './application/query/get-by-id-create-
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsModule } from '../sessions/sessions.module';
 import { GetAllUserPostsQueryHandler } from './application/query/get-all-user-posts.query-handler';
+import { LoggerModule } from '@libs/logger/logger.module';
 
 const useCases = [CreatePostUseCase, UpdatePostUseCase, DeletePostUseCase];
 
@@ -20,7 +21,7 @@ const repository = [PostRepository];
 const queryRepository = [QueryPostRepository];
 
 @Module({
-  imports: [UserAccountsModule, JwtModule, SessionsModule],
+  imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
 
   controllers: [PostsController],
   providers: [
