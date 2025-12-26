@@ -13,6 +13,7 @@ import { MainController } from './api/main.controller';
 import { GetAllUserPostsUseCase } from './application/use-case/query/get-all-user-posts.usecase';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { GetMainPageUseCase } from './application/use-case/query/get-main-page.usecase';
+import { HttpService } from './application/http.service';
 
 const useCases = [
   CreatePostUseCase,
@@ -24,7 +25,7 @@ const useCases = [
   GetAllUserPostsUseCase,
 ];
 
-const services = [];
+const services = [HttpService];
 
 const repository = [PostRepository];
 

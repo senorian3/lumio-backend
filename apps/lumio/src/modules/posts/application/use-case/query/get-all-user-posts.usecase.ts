@@ -3,12 +3,12 @@ import { GetPostsQueryParams } from '../../../api/dto/input/get-all-user-posts.q
 import { PostEntity } from '../../../domain/entities/post.entity';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
-import axios from 'axios';
-import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QueryPostRepository } from '../../../domain/infrastructure/post.query.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PostView } from '../../../api/dto/output/create-post.output.dto';
-import { CoreConfig } from '@lumio/core/core.config';
+import { HttpService } from '../../http.service';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class GetAllUserPostsCommand {
   constructor(
@@ -24,7 +24,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
 > {
   constructor(
     private readonly postQueryRepository: QueryPostRepository,
-    private readonly coreConfig: CoreConfig,
+    private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -41,24 +41,14 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
 
     let userPostsFiles: OutputFileType[] = [];
 
-    const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
-    const internalApiKey = this.coreConfig.internalApiKey;
-
     try {
-      const response = await axios.post<OutputFileType[]>(
-        `${filesFrontendUrl}/api/v1/files`,
+      userPostsFiles = await this.httpService.post<OutputFileType[]>(
+        `${GLOBAL_PREFIX}/files`,
         { postIds: [...postIdsUser] },
-        {
-          headers: {
-            'X-Internal-API-Key': internalApiKey,
-            'Content-Type': 'application/json',
-          },
-        },
       );
-      userPostsFiles = response.data;
     } catch (error) {
       this.logger.error(
-        'Failed to fetch files',
+        `Failed to fetch files from postId=${postIdsUser}: ${error.message}`,
         error?.stack,
         GetAllUserPostsUseCase.name,
       );

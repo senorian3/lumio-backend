@@ -1,13 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  NotFoundDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import axios from 'axios';
-import FormData from 'form-data';
 import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { CoreConfig } from '@lumio/core/core.config';
+import { HttpService } from '../../http.service';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 export class CreatePostCommand {
   constructor(
@@ -25,7 +27,7 @@ export class CreatePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
-    private coreConfig: CoreConfig,
+    private httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -43,40 +45,21 @@ export class CreatePostUseCase implements ICommandHandler<
       command.description,
     );
 
-    const internalApiKey = this.coreConfig.internalApiKey;
-
     try {
-      const formData = new FormData();
-      formData.append('postId', newPost.id.toString());
-
-      command.files.forEach((file) => {
-        formData.append('files', file.buffer, {
-          filename: file.originalname,
-          contentType: file.mimetype,
-        });
-      });
-
-      const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
-
-      const mappedFile = await axios.post(
-        `${filesFrontendUrl}/api/v1/files/upload-post-files`,
-        formData,
-        {
-          headers: {
-            ...formData.getHeaders(),
-            'X-Internal-API-Key': internalApiKey,
-          },
-        },
+      const mappedFile = await this.httpService.uploadFiles<OutputFileType[]>(
+        `${GLOBAL_PREFIX}/files/upload-post-files`,
+        newPost.id,
+        command.files,
       );
 
-      return { file: mappedFile.data, postId: newPost.id };
+      return { file: mappedFile, postId: newPost.id };
     } catch (error) {
       this.logger.error(
-        `Failed to upload files for postId=${newPost.id}`,
+        `Failed to upload files for postId=${newPost.id}: ${error.message}`,
         error?.stack,
         CreatePostUseCase.name,
       );
-      throw error;
+      throw NotFoundDomainException.create('Failed to upload files', 'files');
     }
   }
 }

@@ -4,9 +4,11 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
+  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import axios from 'axios';
-import { CoreConfig } from '@lumio/core/core.config';
+import { HttpService } from '../../http.service';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class DeletePostCommand {
   constructor(
@@ -23,7 +25,8 @@ export class DeletePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
-    private coreConfig: CoreConfig,
+    private httpService: HttpService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
@@ -47,21 +50,17 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
-    const internalApiKey = this.coreConfig.internalApiKey;
-
-    const fileIsDeleted = await axios.delete(
-      `${filesFrontendUrl}/api/v1/files/delete-post-files/${command.postId}`,
-      {
-        headers: {
-          'X-Internal-API-Key': internalApiKey,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-
-    if (!fileIsDeleted) {
-      throw BadRequestDomainException.create('Files were not deleted', 'files');
+    try {
+      await this.httpService.delete(
+        `${GLOBAL_PREFIX}/files/delete-post-files/${command.postId}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete files for postId=${command.postId}: ${error.message}`,
+        error?.stack,
+        DeletePostUseCase.name,
+      );
+      throw NotFoundDomainException.create('Failed to delete files', 'files');
     }
   }
 }
