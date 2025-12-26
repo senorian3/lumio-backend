@@ -20,6 +20,7 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { UploadFilesCreatedPostCommand } from '@files/modules/application/use-cases/upload-post-file.usecase';
 import { DeletedPostFileCommand } from '@files/modules/application/use-cases/deleted-post-file.usecase';
 import { GetUserPostsDto } from '@files/api/dto/input/get-user-post.input-dto';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Controller('files')
 @UseGuards(InternalApiGuard)
@@ -27,6 +28,7 @@ export class FilesController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly logger: AppLoggerService,
   ) {}
 
   @Post('upload-post-files')
@@ -49,31 +51,6 @@ export class FilesController {
     return filesMap;
   }
 
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_CREATED)
-  // async handlePostCreated(
-  //   @Payload() data: { postId: number; files: Array<Express.Multer.File> },
-  //   @Ctx() context: RmqContext,
-  // ): Promise<OutputFilesDto[]> {
-  //   const channel = context.getChannelRef();
-  //   const originalMsg = context.getMessage();
-  //   try {
-  //     await this.commandBus.execute<UploadFilesCreatedPostCommand, void>(
-  //       new UploadFilesCreatedPostCommand(data.postId, data.files),
-  //     );
-
-  //     const result = await this.queryBus.execute<
-  //       GetAllFilesByPostUserQuery,
-  //       OutputFilesDto[] | null
-  //     >(new GetAllFilesByPostUserQuery(data.postId));
-
-  //     channel.ack(originalMsg);
-  //     return result || [];
-  //   } catch (error) {
-  //     channel.nack(originalMsg);
-  //     throw error;
-  //   }
-  // }
-
   @Delete('delete-post-files/:postId')
   async handlePostDeleted(@Param('postId') postId: number): Promise<boolean> {
     try {
@@ -82,7 +59,11 @@ export class FilesController {
       );
       return true;
     } catch (error) {
-      console.error('Failed to delete post files:', error);
+      this.logger.error(
+        'Failed to delete post files',
+        error?.stack,
+        FilesController.name,
+      );
       return false;
     }
   }
