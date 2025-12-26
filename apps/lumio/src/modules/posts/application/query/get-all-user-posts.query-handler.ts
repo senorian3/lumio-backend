@@ -8,6 +8,7 @@ import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
 import { ConfigService } from '@nestjs/config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class GetAllUserPostsQuery {
   constructor(
@@ -24,6 +25,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
   constructor(
     private readonly postQueryRepository: QueryPostRepository,
     private readonly configService: ConfigService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(
@@ -55,7 +57,11 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
       );
       userPostsFiles = response.data;
     } catch (error) {
-      console.error(error);
+      this.logger.error(
+        'Failed to fetch files',
+        error?.stack,
+        GetAllUserPostsQueryHandler.name,
+      );
       throw NotFoundDomainException.create('Failed to fetch files', 'files');
     }
 

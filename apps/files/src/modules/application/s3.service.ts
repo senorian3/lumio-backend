@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
 import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class FilesService {
@@ -22,7 +23,10 @@ export class FilesService {
   private readonly accessKeyId: string;
   private readonly secretAccessKey: string;
 
-  constructor(private readonly coreConfig: CoreConfig) {
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly logger: AppLoggerService,
+  ) {
     this.bucketName = this.coreConfig.s3BucketName;
     this.region = this.coreConfig.s3Region;
     this.endpoint = this.coreConfig.s3Endpoint;
@@ -91,7 +95,11 @@ export class FilesService {
           size: fileBuffer.length,
         });
       } catch (exception) {
-        console.error(`Error uploading file ${fileName}:`, exception);
+        this.logger.error(
+          `Error uploading file ${fileName}`,
+          exception?.stack,
+          FilesService.name,
+        );
         throw new Error(
           `Failed to upload file ${originalname}: ${exception.message}`,
         );
@@ -116,7 +124,11 @@ export class FilesService {
       });
       return signedUrl;
     } catch (error) {
-      console.error(`Error generating signed URL for ${fileKey}:`, error);
+      this.logger.error(
+        `Error generating signed URL for ${fileKey}`,
+        error?.stack,
+        FilesService.name,
+      );
       throw new Error(`Failed to generate signed URL: ${error.message}`);
     }
   }
@@ -130,7 +142,11 @@ export class FilesService {
 
       await this.s3.send(command);
     } catch (error) {
-      console.error(`Error deleting file ${s3key}:`, error);
+      this.logger.error(
+        `Error deleting file ${s3key}`,
+        error?.stack,
+        FilesService.name,
+      );
       throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
     }
   }

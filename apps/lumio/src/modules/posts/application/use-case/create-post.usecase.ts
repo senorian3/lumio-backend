@@ -7,6 +7,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class CreatePostCommand {
   constructor(
@@ -25,6 +26,7 @@ export class CreatePostUseCase implements ICommandHandler<
     private userRepository: UserRepository,
     private postRepository: PostRepository,
     private configService: ConfigService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(
@@ -69,6 +71,11 @@ export class CreatePostUseCase implements ICommandHandler<
 
       return { file: mappedFile.data, postId: newPost.id };
     } catch (error) {
+      this.logger.error(
+        `Failed to upload files for postId=${newPost.id}`,
+        error?.stack,
+        CreatePostUseCase.name,
+      );
       throw error;
     }
   }

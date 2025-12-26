@@ -10,6 +10,7 @@ import { FilesService } from '@files/modules/application/s3.service';
 import { DeletedPostFilePostUseCase } from '@files/modules/application/use-cases/deleted-post-file.usecase';
 import { GetAllFilesByPostUserQueryHandler } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
 import { UploadFilesCreatedPostUseCase } from '@files/modules/application/use-cases/upload-post-file.usecase';
+import { LoggerModule } from '@libs/logger/logger.module';
 
 const services = [FilesService];
 
@@ -27,6 +28,7 @@ const queryFileRepository = [QueryFileRepository];
       isGlobal: true,
     }),
     CoreModule,
+    LoggerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),
       inject: [CoreConfig],

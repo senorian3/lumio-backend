@@ -12,6 +12,7 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { MainController } from './api/main.controller';
 import { GetMainPageQueryUseCase } from './application/query/get-main-page.query-handelr';
 import { GetAllUserPostsUseCase } from './application/query/get-all-user-posts.query-handler';
+import { LoggerModule } from '@libs/logger/logger.module';
 
 const useCases = [
   CreatePostUseCase,
@@ -30,7 +31,7 @@ const repository = [PostRepository];
 const queryRepository = [QueryPostRepository];
 
 @Module({
-  imports: [UserAccountsModule, JwtModule, SessionsModule],
+  imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
 
   controllers: [PostsController, MainController],
   providers: [
