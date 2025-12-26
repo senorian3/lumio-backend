@@ -12,8 +12,8 @@ export class DeletedPostFilePostUseCase implements ICommandHandler<
   void
 > {
   constructor(
-    private filesService: FilesService,
-    private fileRepository: FileRepository,
+    private readonly filesService: FilesService,
+    private readonly fileRepository: FileRepository,
   ) {}
 
   async execute({ postId }: DeletedPostFileCommand) {

@@ -11,7 +11,7 @@ export class RegistrationConfirmationUserUseCase implements ICommandHandler<
   RegistrationConfirmationUserCommand,
   void
 > {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository) {}
   async execute({
     confirmCode,
   }: RegistrationConfirmationUserCommand): Promise<void> {

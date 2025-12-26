@@ -21,8 +21,8 @@ export class UpdatePostUseCase implements ICommandHandler<
   PostView
 > {
   constructor(
-    private userRepository: UserRepository,
-    private postRepository: PostRepository,
+    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<PostView> {

@@ -25,9 +25,9 @@ export class CreatePostUseCase implements ICommandHandler<
   { file: OutputFileType[]; postId: number }
 > {
   constructor(
-    private userRepository: UserRepository,
-    private postRepository: PostRepository,
-    private httpService: HttpService,
+    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository,
+    private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {}
 

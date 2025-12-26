@@ -29,9 +29,6 @@ describe('JwtStrategy', () => {
 
   describe('constructor', () => {
     it('should configure JWT strategy with correct options', () => {
-      // The strategy is instantiated in beforeEach, we can assert its configuration
-      // by checking that the parent class was called with correct options
-      // Since we can't directly access private properties, we can test through the validate method
       expect(strategy).toBeInstanceOf(JwtStrategy);
       expect(mockUserAccountsConfig.accessTokenSecret).toBe(
         'test-access-token-secret',

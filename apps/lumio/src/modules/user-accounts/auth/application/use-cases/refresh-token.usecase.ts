@@ -23,12 +23,10 @@ export class RefreshTokenUseCase implements ICommandHandler<
 > {
   constructor(
     @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
-    private accessTokenContext: JwtService,
-
+    private readonly accessTokenContext: JwtService,
     @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
-    private refreshTokenContext: JwtService,
-
-    private sessionRepository: SessionRepository,
+    private readonly refreshTokenContext: JwtService,
+    private readonly sessionRepository: SessionRepository,
   ) {}
 
   async execute({

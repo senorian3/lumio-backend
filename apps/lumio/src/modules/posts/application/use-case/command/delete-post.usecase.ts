@@ -23,9 +23,9 @@ export class DeletePostUseCase implements ICommandHandler<
   void
 > {
   constructor(
-    private userRepository: UserRepository,
-    private postRepository: PostRepository,
-    private httpService: HttpService,
+    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository,
+    private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {}
 

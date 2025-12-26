@@ -77,7 +77,7 @@ export class CoreConfig {
   @IsNumber({}, { message: 'Set Env variable THROTTLER_LIMIT, example: 5' })
   throttlerLimit: number = Number(this.configService.get('THROTTLER_LIMIT'));
 
-  constructor(private configService: ConfigService<any, true>) {
+  constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }

@@ -12,7 +12,7 @@ export class AboutUserQueryHandler implements IQueryHandler<
   AboutUserUserQuery,
   AboutUserOutputDto
 > {
-  constructor(private userQueryRepository: UserQueryRepository) {}
+  constructor(private readonly userQueryRepository: UserQueryRepository) {}
 
   async execute(query: AboutUserUserQuery): Promise<AboutUserOutputDto | null> {
     const user = await this.userQueryRepository.findById(query.userId);

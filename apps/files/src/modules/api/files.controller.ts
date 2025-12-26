@@ -52,7 +52,7 @@ export class FilesController {
   }
 
   @Delete('delete-post-files/:postId')
-  async handlePostDeleted(@Param('postId') postId: number): Promise<boolean> {
+  async deletePostFiles(@Param('postId') postId: number): Promise<boolean> {
     try {
       await this.commandBus.execute<DeletedPostFileCommand, void>(
         new DeletedPostFileCommand(postId),
@@ -69,16 +69,18 @@ export class FilesController {
   }
 
   @Post()
-  async handleGetUserPosts(
+  async getAllUserPostsFiles(
     @Body()
     data: GetUserPostsDto,
   ): Promise<OutputFileType[]> {
     const allFiles: OutputFileType[] = [];
+
     for (const postId of data.postIds) {
       const files = await this.queryBus.execute<
         GetAllFilesByPostUserQuery,
-        OutputFileType[] | null
+        OutputFileType[]
       >(new GetAllFilesByPostUserQuery(postId));
+
       if (files && files.length > 0) {
         allFiles.push(...files);
       }
