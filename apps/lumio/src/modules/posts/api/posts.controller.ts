@@ -30,6 +30,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
+import { ApiCreatePost } from '@lumio/core/decorators/swagger/create-post.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -51,6 +52,7 @@ export class PostsController {
   }
 
   @Post()
+  @ApiCreatePost()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files'))
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
