@@ -28,7 +28,6 @@ import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/query/g
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
-import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
 
@@ -40,7 +39,7 @@ export class PostsController {
   ) {}
 
   @Get('my')
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(JwtAuthGuard)
   async getAllUserPosts(
     @Query()
     query: GetPostsQueryParams,

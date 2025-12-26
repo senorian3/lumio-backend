@@ -69,7 +69,6 @@ export class CreatePostUseCase implements ICommandHandler<
 
       return { file: mappedFile.data, postId: newPost.id };
     } catch (error) {
-      console.log('ERROR IN AXIOS POSTS', error);
       throw error;
     }
   }

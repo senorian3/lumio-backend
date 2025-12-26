@@ -22,6 +22,7 @@ import { DeletedPostFileCommand } from '@files/modules/application/use-cases/del
 import { GetUserPostsDto } from '@files/api/dto/input/get-user-post.input-dto';
 
 @Controller('files')
+@UseGuards(InternalApiGuard)
 export class FilesController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -30,7 +31,6 @@ export class FilesController {
 
   @Post('upload-post-files')
   @UseInterceptors(FilesInterceptor('files'))
-  @UseGuards(InternalApiGuard)
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async uploadPostFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
@@ -89,7 +89,8 @@ export class FilesController {
 
   @Post()
   async handleGetUserPosts(
-    @Body() data: GetUserPostsDto,
+    @Body()
+    data: GetUserPostsDto,
   ): Promise<OutputFileType[]> {
     const allFiles: OutputFileType[] = [];
     for (const postId of data.postIds) {

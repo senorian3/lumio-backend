@@ -6,6 +6,7 @@ import {
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 export class DeletePostCommand {
   constructor(
@@ -22,6 +23,7 @@ export class DeletePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
+    private configService: ConfigService,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
@@ -31,6 +33,7 @@ export class DeletePostUseCase implements ICommandHandler<
     }
 
     const post = await this.postRepository.findById(command.postId);
+
     if (!post) {
       throw BadRequestDomainException.create('Post does not exist', 'post');
     }
@@ -44,8 +47,17 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    const fileIsDeleted = await axios.get(
-      `http://localhost:3003/api/v1/files/delete-post-files/${command.postId}`,
+    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
+    const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+
+    const fileIsDeleted = await axios.delete(
+      `${filesFrontendUrl}/api/v1/files/delete-post-files/${command.postId}`,
+      {
+        headers: {
+          'X-Internal-API-Key': internalApiKey,
+          'Content-Type': 'application/json',
+        },
+      },
     );
 
     if (!fileIsDeleted) {

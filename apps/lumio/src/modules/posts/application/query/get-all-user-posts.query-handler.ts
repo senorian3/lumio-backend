@@ -7,6 +7,7 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
+import { ConfigService } from '@nestjs/config';
 
 export class GetAllUserPostsQuery {
   constructor(
@@ -20,7 +21,10 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
   GetAllUserPostsQuery,
   PaginatedViewDto<PostView[]>
 > {
-  constructor(private readonly postQueryRepository: QueryPostRepository) {}
+  constructor(
+    private readonly postQueryRepository: QueryPostRepository,
+    private readonly configService: ConfigService,
+  ) {}
 
   async execute(
     command: GetAllUserPostsQuery,
@@ -34,10 +38,20 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
     const postIdsUser: number[] = paginatedPosts.items.map((post) => post.id);
 
     let userPostsFiles: OutputFileType[] = [];
+
+    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
+    const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+
     try {
       const response = await axios.post<OutputFileType[]>(
-        'http://localhost:3003/api/v1/files',
+        `${filesFrontendUrl}/api/v1/files`,
         { postIds: [...postIdsUser] },
+        {
+          headers: {
+            'X-Internal-API-Key': internalApiKey,
+            'Content-Type': 'application/json',
+          },
+        },
       );
       userPostsFiles = response.data;
     } catch (error) {

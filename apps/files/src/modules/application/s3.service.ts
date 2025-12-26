@@ -129,7 +129,6 @@ export class FilesService {
       });
 
       await this.s3.send(command);
-      console.log(`File deleted: ${s3key}`);
     } catch (error) {
       console.error(`Error deleting file ${s3key}:`, error);
       throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
