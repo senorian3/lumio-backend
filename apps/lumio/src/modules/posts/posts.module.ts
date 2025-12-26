@@ -7,9 +7,9 @@ import { UpdatePostUseCase } from '@lumio/modules/posts/application/use-case/upd
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { DeletePostUseCase } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
 import { GetCreatePostQueryHandler } from './application/query/get-by-id-create-post.query-handler copy';
-// import { GetAllUserPostsQueryHandler } from './application/query/get-all-user-posts.query-handler';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsModule } from '../sessions/sessions.module';
+import { GetAllUserPostsQueryHandler } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
 
 const useCases = [CreatePostUseCase, UpdatePostUseCase, DeletePostUseCase];
 
@@ -30,7 +30,7 @@ const queryRepository = [QueryPostRepository];
     ...queryRepository,
     GetCreatePostQueryHandler,
     QueryPostRepository,
-    // GetAllUserPostsQueryHandler,
+    GetAllUserPostsQueryHandler,
   ],
 })
 export class PostsModule {}

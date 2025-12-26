@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Param,
   Post,
   UploadedFiles,
   UseGuards,
@@ -10,12 +12,14 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
-import { UploadFilesCreatedPostCommand } from '../application/use-cases/upload-post-file.usecase';
 import { InputUploadFilesType } from './dto/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetAllFilesByPostUserQuery } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { UploadFilesCreatedPostCommand } from '@files/modules/application/use-cases/upload-post-file.usecase';
+import { DeletedPostFileCommand } from '@files/modules/application/use-cases/deleted-post-file.usecase';
+import { GetUserPostsDto } from '@files/api/dto/input/get-user-post.input-dto';
 
 @Controller('files')
 export class FilesController {
@@ -70,51 +74,33 @@ export class FilesController {
   //   }
   // }
 
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.POST_DELETED)
-  // async handlePostDeleted(
-  //   @Payload() data: { postId: number },
-  //   @Ctx() context: RmqContext,
-  // ): Promise<void> {
-  //   const channel = context.getChannelRef();
-  //   const originalMsg = context.getMessage();
-  //   try {
-  //     await this.commandBus.execute<DeletedPostFileCommand, void>(
-  //       new DeletedPostFileCommand(data.postId),
-  //     );
-  //     channel.ack(originalMsg);
-  //   } catch (error) {
-  //     channel.nack(originalMsg);
-  //     throw error;
-  //   }
-  // }
+  @Delete('delete-post-files/:postId')
+  async handlePostDeleted(@Param('postId') postId: number): Promise<boolean> {
+    try {
+      await this.commandBus.execute<DeletedPostFileCommand, void>(
+        new DeletedPostFileCommand(postId),
+      );
+      return true;
+    } catch (error) {
+      console.error('Failed to delete post files:', error);
+      return false;
+    }
+  }
 
-  // @MessagePattern(RABBITMQ_CONFIG.messagePatterns.GET_USER_POSTS)
-  // async handleGetUserPosts(
-  //   @Payload() data: { postIds: number[] },
-  //   @Ctx() context: RmqContext,
-  // ): Promise<OutputFilesDto[]> {
-  //   const channel = context.getChannelRef();
-  //   const originalMsg = context.getMessage();
-  //   try {
-  //     const allFiles: OutputFilesDto[] = [];
-
-  //     // Process each post ID to get all files
-  //     for (const postId of data.postIds) {
-  //       const files = await this.queryBus.execute<
-  //         GetAllFilesByPostUserQuery,
-  //         OutputFilesDto[] | null
-  //       >(new GetAllFilesByPostUserQuery(postId));
-
-  //       if (files && files.length > 0) {
-  //         allFiles.push(...files);
-  //       }
-  //     }
-
-  //     channel.ack(originalMsg);
-  //     return allFiles;
-  //   } catch (error) {
-  //     channel.nack(originalMsg);
-  //     throw error;
-  //   }
-  // }
+  @Post()
+  async handleGetUserPosts(
+    @Body() data: GetUserPostsDto,
+  ): Promise<OutputFileType[]> {
+    const allFiles: OutputFileType[] = [];
+    for (const postId of data.postIds) {
+      const files = await this.queryBus.execute<
+        GetAllFilesByPostUserQuery,
+        OutputFileType[] | null
+      >(new GetAllFilesByPostUserQuery(postId));
+      if (files && files.length > 0) {
+        allFiles.push(...files);
+      }
+    }
+    return allFiles;
+  }
 }
