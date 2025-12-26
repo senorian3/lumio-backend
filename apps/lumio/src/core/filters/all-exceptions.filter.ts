@@ -25,7 +25,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
       response.status(status).json({
         errorsMessages: [
           {
-            message: 'Too many requessts',
+            message: 'Too many requests',
           },
         ],
       });
