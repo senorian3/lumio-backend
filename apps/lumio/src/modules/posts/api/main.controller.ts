@@ -1,7 +1,13 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { GetMainPageQuery } from '../application/query/get-main-page.query-handelr';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { GetMainPageCommand } from '../application/use-case/query/get-main-page.usecase';
 
 @UseGuards(ThrottlerGuard)
 @Controller('/')
@@ -9,9 +15,13 @@ export class MainController {
   constructor(private readonly queryBus: QueryBus) {}
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   async getMainPage(): Promise<number> {
-    return await this.queryBus.execute<GetMainPageQuery, any>(
-      new GetMainPageQuery(),
-    );
+    const mainPageData = await this.queryBus.execute<
+      GetMainPageCommand,
+      number
+    >(new GetMainPageCommand());
+
+    return mainPageData;
   }
 }

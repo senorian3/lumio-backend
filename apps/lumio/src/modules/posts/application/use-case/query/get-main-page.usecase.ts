@@ -1,21 +1,21 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
-import { MainPageView } from '@lumio/modules/posts/api/dto/output/main-page.output';
-import { PostEntity } from '../../domain/entities/post.entity';
+import { MainPageView } from '@lumio/modules/posts/api/dto/output/main-page.output.dto';
+import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ConfigService } from '@nestjs/config';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { PostView } from '../../../api/dto/output/create-post.output.dto';
 
-export class GetMainPageQuery {
+export class GetMainPageCommand {
   constructor() {}
 }
 
-@QueryHandler(GetMainPageQuery)
-export class GetMainPageQueryUseCase implements IQueryHandler<
-  GetMainPageQuery,
+@QueryHandler(GetMainPageCommand)
+export class GetMainPageUseCase implements IQueryHandler<
+  GetMainPageCommand,
   MainPageView
 > {
   constructor(

@@ -8,14 +8,14 @@ import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
-import { loginDto } from '../../../users/api/dto/transfer/login.dto';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { LoginUserTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/login.transfer.dto';
 
 const MILLISECONDS_IN_SECOND = 1000;
 
 export class LoginUserCommand {
   constructor(
-    public loginDto: loginDto,
+    public loginDto: LoginUserTransferDto,
     public deviceName: string,
     public ip: string,
   ) {}

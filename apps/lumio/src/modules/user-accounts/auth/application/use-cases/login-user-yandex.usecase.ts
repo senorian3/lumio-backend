@@ -10,14 +10,14 @@ import {
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
-import { YandexDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/yandex.dto';
+import { YandexTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/yandex-login.dto';
 
 const DEFAULT_PASSWORD_LENGTH = 12;
 const MILLISECONDS_IN_SECOND = 1000;
 
 export class LoginUserYandexCommand {
   constructor(
-    public userYandexDto: YandexDto,
+    public userYandexDto: YandexTransferDto,
     public deviceName: string,
     public ip: string,
   ) {}
@@ -77,7 +77,7 @@ export class LoginUserYandexUseCase implements ICommandHandler<
   private async determineUser(
     yandex: any,
     existingUser: any,
-    userYandexDto: YandexDto,
+    userYandexDto: YandexTransferDto,
   ) {
     if (!existingUser && !yandex) {
       return await this.createYandexUser(userYandexDto);
@@ -91,7 +91,7 @@ export class LoginUserYandexUseCase implements ICommandHandler<
     }
   }
 
-  private async createYandexUser(userYandexDto: YandexDto) {
+  private async createYandexUser(userYandexDto: YandexTransferDto) {
     const isConfirmed = true;
     const newPassword = this.generateTemporaryPassword();
     const passwordHash =
@@ -119,7 +119,7 @@ export class LoginUserYandexUseCase implements ICommandHandler<
 
   private async updateExistingYandexUser(
     yandex: any,
-    userYandexDto: YandexDto,
+    userYandexDto: YandexTransferDto,
   ) {
     const appUser = await this.userRepository.findUserById(yandex.userId);
 
@@ -133,7 +133,7 @@ export class LoginUserYandexUseCase implements ICommandHandler<
   }
 
   private async createYandexForExistingUser(
-    userYandexDto: YandexDto,
+    userYandexDto: YandexTransferDto,
     userId: string,
   ) {
     await this.userRepository.createYandex({

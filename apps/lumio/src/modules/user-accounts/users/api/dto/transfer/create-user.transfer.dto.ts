@@ -1,7 +1,7 @@
-export class YandexDto {
+export class CreateUserTransferDto {
   constructor(
-    public yandexId: string,
     public username: string,
+    public password: string,
     public email: string,
   ) {}
 }

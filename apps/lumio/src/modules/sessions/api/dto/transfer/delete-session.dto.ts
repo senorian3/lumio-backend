@@ -1,4 +1,4 @@
-export class DeleteSessionDto {
+export class DeleteSessionTransferDto {
   constructor(
     public userId: number,
     public userDeviceId: string,

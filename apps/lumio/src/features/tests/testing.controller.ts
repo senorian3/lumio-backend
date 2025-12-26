@@ -7,7 +7,6 @@ import {
   Inject,
 } from '@nestjs/common';
 
-// @ApiExcludeController()
 @Controller('testing')
 export class TestingController {
   constructor(

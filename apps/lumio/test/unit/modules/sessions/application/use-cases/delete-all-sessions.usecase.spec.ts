@@ -4,7 +4,7 @@ import {
   DeleteAllSessionsCommand,
 } from '@lumio/modules/sessions/application/use-cases/delete-all-sessions.usecase';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
-import { DeleteAllSessionsDto } from '@lumio/modules/sessions/api/dto/transfer/delete-all-sessions.dto';
+import { DeleteAllSessionsDto } from '@lumio/modules/sessions/api/dto/transfer/delete-all-sessions.transfer.dto';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 

@@ -1,4 +1,4 @@
-export class CreateUserDto {
+export class RegistrationTransferDto {
   constructor(
     public username: string,
     public password: string,

@@ -1,23 +1,23 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
-import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { PostView } from '../../../api/dto/output/create-post.output.dto';
 
-export class GetCreatePostUserQuery {
+export class GetCreatePostUserCommand {
   constructor(
     public readonly postId: number,
     public readonly files: OutputFileType[],
   ) {}
 }
 
-@QueryHandler(GetCreatePostUserQuery)
+@QueryHandler(GetCreatePostUserCommand)
 export class GetCreatePostUseCase implements IQueryHandler<
-  GetCreatePostUserQuery,
+  GetCreatePostUserCommand,
   PostView
 > {
   constructor(private readonly queryPostRepository: QueryPostRepository) {}
 
-  async execute(command: GetCreatePostUserQuery): Promise<PostView> {
+  async execute(command: GetCreatePostUserCommand): Promise<PostView> {
     const post = await this.queryPostRepository.findById(command.postId);
 
     const view = PostView.fromEntity(post, command.files);

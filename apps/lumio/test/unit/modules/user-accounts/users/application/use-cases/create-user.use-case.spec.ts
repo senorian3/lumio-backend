@@ -5,7 +5,7 @@ import {
 } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
-import { CreateUserDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/create-user.dto';
+import { CreateUserDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/create-user.transfer.dto';
 
 describe('CreateUserUseCase', () => {
   let useCase: CreateUserUseCase;

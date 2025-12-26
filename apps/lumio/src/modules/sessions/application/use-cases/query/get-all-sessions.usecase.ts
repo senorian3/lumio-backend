@@ -1,8 +1,8 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { QuerySessionsRepository } from '../../domain/infrastructure/session.query.repository';
-import { OutputSessionDto } from '../../api/dto/output/output';
-import { SessionEntity } from '../../domain/session.entity';
+import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session.output.dto';
+import { QuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.query.repository';
+import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 
 export class GetAllSessionsCommand {
   constructor(public userId: number) {}

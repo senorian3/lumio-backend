@@ -5,7 +5,7 @@ import {
   BadRequestDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { PostView } from '../../api/dto/output/create-post.output';
+import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output.dto';
 
 export class UpdatePostCommand {
   constructor(

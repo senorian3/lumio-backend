@@ -1,25 +1,25 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
-import { GetPostsQueryParams } from '../../api/dto/input/get-all-user-posts.query.dto';
-import { PostEntity } from '../../domain/entities/post.entity';
+import { GetPostsQueryParams } from '../../../api/dto/input/get-all-user-posts.query.dto';
+import { PostEntity } from '../../../domain/entities/post.entity';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
+import { QueryPostRepository } from '../../../domain/infrastructure/post.query.repository';
 import { ConfigService } from '@nestjs/config';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { PostView } from '../../../api/dto/output/create-post.output.dto';
 
-export class GetAllUserPostsQuery {
+export class GetAllUserPostsCommand {
   constructor(
     public readonly userId: number,
     public readonly query: GetPostsQueryParams,
   ) {}
 }
 
-@QueryHandler(GetAllUserPostsQuery)
+@QueryHandler(GetAllUserPostsCommand)
 export class GetAllUserPostsUseCase implements IQueryHandler<
-  GetAllUserPostsQuery,
+  GetAllUserPostsCommand,
   PaginatedViewDto<PostView[]>
 > {
   constructor(
@@ -29,7 +29,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
   ) {}
 
   async execute(
-    command: GetAllUserPostsQuery,
+    command: GetAllUserPostsCommand,
   ): Promise<PaginatedViewDto<PostView[]>> {
     const paginatedPosts: PaginatedViewDto<PostEntity[]> =
       await this.postQueryRepository.findUserPosts(
@@ -60,7 +60,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
       this.logger.error(
         'Failed to fetch files',
         error?.stack,
-        GetAllUserPostsQueryHandler.name,
+        GetAllUserPostsUseCase.name,
       );
       throw NotFoundDomainException.create('Failed to fetch files', 'files');
     }

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
-import { InputRegistrationDto } from './registration.input-dto';
+import { InputRegistrationDto } from './registration.input.dto';
 
 export class InputNewPasswordDto extends PickType(InputRegistrationDto, [
   'password',

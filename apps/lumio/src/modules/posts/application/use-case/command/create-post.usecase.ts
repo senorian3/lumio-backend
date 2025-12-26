@@ -5,7 +5,7 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import FormData from 'form-data';
-import { PostEntity } from '../../domain/entities/post.entity';
+import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
 

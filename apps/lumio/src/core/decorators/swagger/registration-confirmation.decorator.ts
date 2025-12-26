@@ -1,6 +1,6 @@
+import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
 
 export function ApiRegistrationConfirmation() {
   return applyDecorators(
@@ -11,7 +11,7 @@ export function ApiRegistrationConfirmation() {
     }),
 
     ApiBody({
-      type: RegistrationConfirmationInputDto,
+      type: InputRegistrationConfirmationDto,
       description: 'Confirmation code payload',
     }),
 

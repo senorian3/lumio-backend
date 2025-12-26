@@ -8,6 +8,5 @@ export class EmailConfirmationEntity implements EmailConfirmation {
   isConfirmed: boolean;
   userId: number;
 
-  // обратная связь с User
   user?: UserEntity;
 }

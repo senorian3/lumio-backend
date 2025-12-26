@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { SessionsController } from '@lumio/modules/sessions/api/sessions.controller';
-import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/output';
+import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session.output.dto';
 import { GetAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/get-all-sessions.usecase';
 import { DeleteSessionCommand } from '@lumio/modules/sessions/application/use-cases/delete-session.usecase';
 import { DeleteAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/delete-all-sessions.usecase';

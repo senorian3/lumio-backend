@@ -1,10 +1,10 @@
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CreateUserDto } from '../../api/dto/transfer/create-user.dto';
 import { UserRepository } from '../../domain/infrastructure/user.repository';
+import { CreateUserTransferDto } from '../../api/dto/transfer/create-user.transfer.dto';
 
 export class CreateUserCommand {
-  constructor(public createDto: CreateUserDto) {}
+  constructor(public createDto: CreateUserTransferDto) {}
 }
 
 @CommandHandler(CreateUserCommand)

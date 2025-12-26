@@ -1,4 +1,4 @@
-export class UpdatePostDto {
+export class UpdatePostTransferDto {
   constructor(
     public postId: number,
     public userId: number,

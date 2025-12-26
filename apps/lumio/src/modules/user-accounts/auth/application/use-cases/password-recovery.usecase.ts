@@ -5,12 +5,12 @@ import { add } from 'date-fns';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
-import { passwordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/password-recovery.dto';
+import { PasswordRecoveryTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/password-recovery.transferdto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class PasswordRecoveryCommand {
-  constructor(public passwordRecoveryDto: passwordRecoveryDto) {}
+  constructor(public passwordRecoveryDto: PasswordRecoveryTransferDto) {}
 }
 
 @CommandHandler(PasswordRecoveryCommand)

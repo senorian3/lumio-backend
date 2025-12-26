@@ -7,11 +7,11 @@ import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guar
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { AuthController } from '@lumio/modules/user-accounts/auth/api/auth.controller';
 import { CoreConfig } from '@lumio/core/core.config';
-import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration.input-dto';
-import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/login.input-dto';
-import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input-dto';
-import { InputNewPasswordDto } from '@lumio/modules/user-accounts/users/api/dto/input/new-password.input-dto';
-import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
+import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration.input.dto';
+import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/login.input.dto';
+import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input.dto';
+import { InputNewPasswordDto } from '@lumio/modules/user-accounts/users/api/dto/input/new-password.input.dto';
+import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
 import { RegisterUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/register-user.usecase';
 import { LoginUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user.usecase';
 import { LogoutUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
@@ -19,7 +19,7 @@ import { PasswordRecoveryCommand } from '@lumio/modules/user-accounts/auth/appli
 import { NewPasswordCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/new-password.usecase';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
-import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
+import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
 
 describe('AuthController', () => {
   let controller: AuthController;

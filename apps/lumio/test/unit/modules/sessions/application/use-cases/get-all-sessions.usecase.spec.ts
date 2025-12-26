@@ -4,7 +4,7 @@ import {
   GetAllSessionsCommand,
 } from '@lumio/modules/sessions/application/use-cases/get-all-sessions.usecase';
 import { QuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.query.repository';
-import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/output';
+import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session.output.dto';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 

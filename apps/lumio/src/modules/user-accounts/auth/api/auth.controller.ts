@@ -19,10 +19,10 @@ import { LogoutUserCommand } from '../application/use-cases/logout-user.usecase'
 import { NewPasswordCommand } from '../application/use-cases/new-password.usecase';
 import { PasswordRecoveryCommand } from '../application/use-cases/password-recovery.usecase';
 import { RegisterUserCommand } from '../application/use-cases/register-user.usecase';
-import { InputLoginDto } from '../../users/api/dto/input/login.input-dto';
-import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input-dto';
-import { InputRegistrationDto } from '../../users/api/dto/input/registration.input-dto';
-import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input-dto';
+import { InputLoginDto } from '../../users/api/dto/input/login.input.dto';
+import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input.dto';
+import { InputRegistrationDto } from '../../users/api/dto/input/registration.input.dto';
+import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input.dto';
 import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
 import { ApiRegistration } from '@lumio/core/decorators/swagger/registration.decorator';
 import { ApiLogin } from '@lumio/core/decorators/swagger/login.decorator';
@@ -30,7 +30,7 @@ import { ApiLogout } from '@lumio/core/decorators/swagger/logout.decorator';
 import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/password-recovery.decorator';
 import { ApiNewPassword } from '@lumio/core/decorators/swagger/new-password.decorator';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
-import { RegistrationConfirmationInputDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input-dto';
+import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
 import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/registration-confirmation.decorator';
 import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
@@ -44,7 +44,7 @@ import {
 import { CoreConfig } from '@lumio/core/core.config';
 import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
-import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
+import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 
@@ -156,7 +156,7 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @SkipThrottle()
   async registrationConfirmation(
-    @Body() dto: RegistrationConfirmationInputDto,
+    @Body() dto: InputRegistrationConfirmationDto,
   ): Promise<void> {
     return await this.commandBus.execute<
       RegistrationConfirmationUserCommand,

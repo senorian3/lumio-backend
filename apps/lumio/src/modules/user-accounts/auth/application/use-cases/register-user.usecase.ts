@@ -3,12 +3,12 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
-import { registrationDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/registration.dto';
+import { RegistrationTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/registration.transfer.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class RegisterUserCommand {
-  constructor(public registerDto: registrationDto) {}
+  constructor(public registerDto: RegistrationTransferDto) {}
 }
 
 @CommandHandler(RegisterUserCommand)

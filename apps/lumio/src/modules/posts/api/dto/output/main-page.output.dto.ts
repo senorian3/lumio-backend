@@ -1,4 +1,4 @@
-import { PostView } from './create-post.output';
+import { PostView } from './create-post.output.dto';
 
 export class MainPageView {
   constructor(

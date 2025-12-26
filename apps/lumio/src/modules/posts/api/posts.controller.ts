@@ -16,21 +16,20 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { InputCreatePostType } from '@lumio/modules/posts/api/dto/input/create-post.input.dto';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/create-post.usecase';
-import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/update-post.usecase';
-import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
-import { InputUpdatePostType } from './dto/input/update-post.input.dto';
+import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/command/create-post.usecase';
+import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/command/update-post.usecase';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
-import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/query/get-by-id-create-post.query-handler copy';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
+import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/command/delete-post.usecase';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
-import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/query/get-all-user-posts.query-handler';
 import { ApiCreatePost } from '@lumio/core/decorators/swagger/create-post.decorator';
+import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
+import { PostView } from './dto/output/create-post.output.dto';
+import { GetAllUserPostsCommand } from '../application/use-case/query/get-all-user-posts.usecase';
+import { GetCreatePostUserCommand } from '../application/use-case/query/get-by-id-create-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -46,8 +45,8 @@ export class PostsController {
     query: GetPostsQueryParams,
     @Req() req: any,
   ): Promise<number> {
-    return await this.queryBus.execute<GetAllUserPostsQuery, any>(
-      new GetAllUserPostsQuery(req.user.userId, query),
+    return await this.queryBus.execute<GetAllUserPostsCommand, any>(
+      new GetAllUserPostsCommand(req.user.userId, query),
     );
   }
 
@@ -59,16 +58,17 @@ export class PostsController {
   async createPost(
     @Req() req: any,
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
-    @Body() dto: InputCreatePostType,
+    @Body() dto: InputUpdatePostDto,
   ): Promise<PostView> {
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
       { file: OutputFileType[]; postId: number }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
-    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
-      new GetCreatePostUserQuery(postFile.postId, postFile.file),
-    );
+    const post = await this.queryBus.execute<
+      GetCreatePostUserCommand,
+      PostView
+    >(new GetCreatePostUserCommand(postFile.postId, postFile.file));
 
     return post;
   }
@@ -78,7 +78,7 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   async updatePost(
     @Param('postId') postId: number,
-    @Body() dto: InputUpdatePostType,
+    @Body() dto: InputUpdatePostDto,
     @Req() req: any,
   ): Promise<PostView> {
     const updatedPost = await this.commandBus.execute<
