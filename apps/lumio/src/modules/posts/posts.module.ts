@@ -6,12 +6,22 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { UpdatePostUseCase } from '@lumio/modules/posts/application/use-case/update-post.usecase';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { DeletePostUseCase } from '@lumio/modules/posts/application/use-case/delete-post.usecase';
-import { GetCreatePostQueryHandler } from './application/query/get-by-id-create-post.query-handler copy';
+import { GetCreatePostUseCase } from './application/query/get-by-id-create-post.query-handler copy';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsModule } from '../sessions/sessions.module';
-import { GetAllUserPostsQueryHandler } from './application/query/get-all-user-posts.query-handler';
+import { MainController } from './api/main.controller';
+import { GetMainPageQueryUseCase } from './application/query/get-main-page.query-handelr';
+import { GetAllUserPostsUseCase } from './application/query/get-all-user-posts.query-handler';
 
-const useCases = [CreatePostUseCase, UpdatePostUseCase, DeletePostUseCase];
+const useCases = [
+  CreatePostUseCase,
+  UpdatePostUseCase,
+  DeletePostUseCase,
+  GetCreatePostUseCase,
+  GetMainPageQueryUseCase,
+  GetCreatePostUseCase,
+  GetAllUserPostsUseCase,
+];
 
 const services = [];
 
@@ -22,15 +32,13 @@ const queryRepository = [QueryPostRepository];
 @Module({
   imports: [UserAccountsModule, JwtModule, SessionsModule],
 
-  controllers: [PostsController],
+  controllers: [PostsController, MainController],
   providers: [
     ...services,
     ...useCases,
     ...repository,
     ...queryRepository,
-    GetCreatePostQueryHandler,
     QueryPostRepository,
-    GetAllUserPostsQueryHandler,
   ],
 })
 export class PostsModule {}

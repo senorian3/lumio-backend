@@ -11,7 +11,7 @@ export class GetCreatePostUserQuery {
 }
 
 @QueryHandler(GetCreatePostUserQuery)
-export class GetCreatePostQueryHandler implements IQueryHandler<
+export class GetCreatePostUseCase implements IQueryHandler<
   GetCreatePostUserQuery,
   PostView
 > {

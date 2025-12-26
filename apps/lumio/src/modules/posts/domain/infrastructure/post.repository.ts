@@ -45,4 +45,15 @@ export class PostRepository {
       data: { deletedAt: new Date() },
     });
   }
+
+  async getLastPosts(take: number): Promise<PostEntity[]> {
+    return this.prisma.post.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take,
+      include: {
+        user: true,
+      },
+    });
+  }
 }

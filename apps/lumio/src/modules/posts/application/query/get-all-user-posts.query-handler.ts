@@ -17,7 +17,7 @@ export class GetAllUserPostsQuery {
 }
 
 @QueryHandler(GetAllUserPostsQuery)
-export class GetAllUserPostsQueryHandler implements IQueryHandler<
+export class GetAllUserPostsUseCase implements IQueryHandler<
   GetAllUserPostsQuery,
   PaginatedViewDto<PostView[]>
 > {

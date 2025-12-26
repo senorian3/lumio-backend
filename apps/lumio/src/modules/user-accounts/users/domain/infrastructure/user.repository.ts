@@ -180,4 +180,8 @@ export class UserRepository {
       data,
     });
   }
+
+  async getRegisteredUsersCount(): Promise<number> {
+    return this.prisma.user.count();
+  }
 }
