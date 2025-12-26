@@ -1,5 +1,4 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PostQueryRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output';
 import { GetPostsQueryParams } from '../../api/dto/input/get-all-user-posts.query.dto';
 import { PostEntity } from '../../domain/entities/post.entity';
@@ -7,6 +6,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
 
 export class GetAllUserPostsQuery {
   constructor(
@@ -20,7 +20,7 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
   GetAllUserPostsQuery,
   PaginatedViewDto<PostView[]>
 > {
-  constructor(private readonly postQueryRepository: PostQueryRepository) {}
+  constructor(private readonly postQueryRepository: QueryPostRepository) {}
 
   async execute(
     command: GetAllUserPostsQuery,
