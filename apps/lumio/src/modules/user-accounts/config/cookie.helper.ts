@@ -36,10 +36,11 @@ function getBaseCookieOptions(req?: Request): Omit<CookieOptions, 'sameSite'> {
 export function getStrictCookieOptions(req?: Request): CookieOptions {
   const baseOptions = getBaseCookieOptions(req);
 
-  // Hardcoded for localhost:3000 to receive refreshToken
+  // Ensure cookies work for localhost:3000
   return {
     ...baseOptions,
     sameSite: 'none',
+    secure: false, // Always false for localhost to ensure cookies work
   };
 }
 

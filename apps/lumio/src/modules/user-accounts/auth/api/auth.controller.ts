@@ -82,7 +82,14 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    // Ensure refreshToken cookie works for localhost:3000
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     return { accessToken };
   }
@@ -154,7 +161,7 @@ export class AuthController {
     });
 
     res.redirect(
-      `http://localhost:3000/api/v1/auth/oauth-success?accessToken=${accessToken}`,
+      `http://localhost:3000/auth/oauth-success?accessToken=${accessToken}`,
     );
   }
 
@@ -186,7 +193,14 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    // Ensure refreshToken cookie works for localhost:3000
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     return { accessToken };
   }
