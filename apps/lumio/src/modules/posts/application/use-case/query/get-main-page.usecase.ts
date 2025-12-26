@@ -8,6 +8,7 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostView } from '../../../api/dto/output/create-post.output.dto';
 import { CoreConfig } from '@lumio/core/core.config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class GetMainPageCommand {
   constructor() {}
@@ -22,6 +23,7 @@ export class GetMainPageUseCase implements IQueryHandler<
     private readonly postRepository: PostRepository,
     private readonly userRepository: UserRepository,
     private readonly coreConfig: CoreConfig,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(): Promise<MainPageView> {
@@ -49,7 +51,11 @@ export class GetMainPageUseCase implements IQueryHandler<
       );
       userPostsFiles = response.data;
     } catch (error) {
-      console.error(error);
+      this.logger.error(
+        `Failed to fetch files for posts: ${postIdsUser}: ${error.message}`,
+        error?.stack,
+        GetMainPageUseCase.name,
+      );
       throw NotFoundDomainException.create('Failed to fetch files', 'files');
     }
 

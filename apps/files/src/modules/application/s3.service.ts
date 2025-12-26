@@ -62,6 +62,9 @@ export class FilesService {
       } else if (Array.isArray(buffer)) {
         fileBuffer = Buffer.from(buffer);
       } else {
+        this.logger.error(
+          `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
+        );
         throw new Error(
           `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
         );
