@@ -5,7 +5,6 @@ import { configValidationUtility } from '@libs/settings/config-valdation.utility
 
 export enum Environments {
   DEVELOPMENT = 'development',
-  STAGING = 'staging',
   PRODUCTION = 'production',
   TESTING = 'testing',
 }

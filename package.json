@@ -20,8 +20,6 @@
     "prisma:studio:files": "dotenv -e apps/files/.env.files.development -- prisma studio --schema apps/files/src/prisma/schema.prisma",
     "prisma:prod:lumio": "dotenv -e apps/lumio/.env.lumio.production -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "prisma:prod:files": "dotenv -e apps/files/.env.files.production -- prisma migrate deploy --schema apps/files/src/prisma/schema.prisma",
-    "prisma:test:lumio": "dotenv -e apps/lumio/.env.lumio.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
-    "prisma:test:files": "dotenv -e apps/lumio/.env.lumio.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma",
     "docker:up:lumio": "docker-compose -f apps/lumio/docker.compose.lumio.yml up -d",
     "docker:down:lumio": "docker-compose -f apps/lumio/docker.compose.lumio.yml down",
     "docker:clean-db:lumio": "docker-compose -f apps/lumio/docker.compose.lumio.yml exec postgres psql -U postgres -d lumio_db -c \"DROP SCHEMA public CASCADE; CREATE SCHEMA public;\"",

@@ -16,7 +16,7 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
       .addBearerAuth()
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
-      .addServer('https://lumio.su', 'Lumio (Staging)')
+      .addServer('https://lumio.su', 'Lumio (Testing)')
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',
