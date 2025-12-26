@@ -3,6 +3,6 @@ import { PostView } from './create-post.output.dto';
 export class MainPageView {
   constructor(
     public posts: PostView[],
-    public lastRegisteredUsersCount: number,
+    public allRegisteredUsersCount: number,
   ) {}
 }

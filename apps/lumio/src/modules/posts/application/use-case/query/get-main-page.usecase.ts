@@ -28,7 +28,7 @@ export class GetMainPageUseCase implements IQueryHandler<
 
   async execute(): Promise<MainPageView> {
     const lastPosts: PostEntity[] = await this.postRepository.getLastPosts(4);
-    const lastRegisteredUsersCount: number =
+    const allRegisteredUsersCount: number =
       await this.userRepository.getRegisteredUsersCount();
 
     const postIdsUser: number[] = lastPosts.map((post) => post.id);
@@ -53,6 +53,6 @@ export class GetMainPageUseCase implements IQueryHandler<
       PostView.fromEntity(post, userPostsFiles),
     );
 
-    return new MainPageView(view, lastRegisteredUsersCount);
+    return new MainPageView(view, allRegisteredUsersCount);
   }
 }

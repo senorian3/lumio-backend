@@ -38,7 +38,7 @@ export class DeletePostUseCase implements ICommandHandler<
     const post = await this.postRepository.findById(command.postId);
 
     if (!post) {
-      throw BadRequestDomainException.create('Post does not exist', 'post');
+      throw NotFoundDomainException.create('Post does not exist', 'post');
     }
 
     if (post.userId !== command.userId) {
