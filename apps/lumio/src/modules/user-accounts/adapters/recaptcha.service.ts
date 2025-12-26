@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '@lumio/core/core.config';
 
 class RecaptchaResponse {
   success: boolean;
@@ -18,12 +18,12 @@ export class RecaptchaService {
   private readonly scoreThreshold = 0.5;
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly coreConfig: CoreConfig,
     private readonly loggerService: AppLoggerService,
   ) {}
 
   private getSecretKey(): string {
-    return this.configService.get<string>('RECAPTCHA_SECRET_KEY') || '';
+    return this.coreConfig.recaptchaSecretKey || '';
   }
 
   async verify(token: string): Promise<boolean> {

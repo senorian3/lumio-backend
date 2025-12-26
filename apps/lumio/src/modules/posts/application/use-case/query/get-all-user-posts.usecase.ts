@@ -6,9 +6,9 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QueryPostRepository } from '../../../domain/infrastructure/post.query.repository';
-import { ConfigService } from '@nestjs/config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PostView } from '../../../api/dto/output/create-post.output.dto';
+import { CoreConfig } from '@lumio/core/core.config';
 
 export class GetAllUserPostsCommand {
   constructor(
@@ -24,7 +24,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
 > {
   constructor(
     private readonly postQueryRepository: QueryPostRepository,
-    private readonly configService: ConfigService,
+    private readonly coreConfig: CoreConfig,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -41,8 +41,8 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
 
     let userPostsFiles: OutputFileType[] = [];
 
-    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
-    const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+    const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
+    const internalApiKey = this.coreConfig.internalApiKey;
 
     try {
       const response = await axios.post<OutputFileType[]>(

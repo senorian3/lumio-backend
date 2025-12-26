@@ -2,12 +2,12 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import FormData from 'form-data';
 import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '@lumio/core/core.config';
 
 export class CreatePostCommand {
   constructor(
@@ -25,7 +25,7 @@ export class CreatePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
-    private configService: ConfigService,
+    private coreConfig: CoreConfig,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -43,7 +43,7 @@ export class CreatePostUseCase implements ICommandHandler<
       command.description,
     );
 
-    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
+    const internalApiKey = this.coreConfig.internalApiKey;
 
     try {
       const formData = new FormData();
@@ -56,7 +56,7 @@ export class CreatePostUseCase implements ICommandHandler<
         });
       });
 
-      const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+      const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
 
       const mappedFile = await axios.post(
         `${filesFrontendUrl}/api/v1/files/upload-post-files`,

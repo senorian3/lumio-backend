@@ -6,7 +6,7 @@ import {
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import axios from 'axios';
-import { ConfigService } from '@nestjs/config';
+import { CoreConfig } from '@lumio/core/core.config';
 
 export class DeletePostCommand {
   constructor(
@@ -23,7 +23,7 @@ export class DeletePostUseCase implements ICommandHandler<
   constructor(
     private userRepository: UserRepository,
     private postRepository: PostRepository,
-    private configService: ConfigService,
+    private coreConfig: CoreConfig,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
@@ -47,8 +47,8 @@ export class DeletePostUseCase implements ICommandHandler<
 
     await this.postRepository.softDeletePostById(command.postId);
 
-    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
-    const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+    const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
+    const internalApiKey = this.coreConfig.internalApiKey;
 
     const fileIsDeleted = await axios.delete(
       `${filesFrontendUrl}/api/v1/files/delete-post-files/${command.postId}`,

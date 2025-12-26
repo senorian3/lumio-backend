@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptcha.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '@lumio/core/core.config';
 
 // Mock fetch globally
 global.fetch = jest.fn();
 
 describe('RecaptchaService', () => {
   let service: RecaptchaService;
-  let mockConfigService: ConfigService;
+  let mockConfigService: CoreConfig;
   let mockLoggerService: AppLoggerService;
 
   beforeEach(async () => {
@@ -16,9 +16,9 @@ describe('RecaptchaService', () => {
       providers: [
         RecaptchaService,
         {
-          provide: ConfigService,
+          provide: CoreConfig,
           useValue: {
-            get: jest.fn(),
+            recaptchaSecretKey: 'secret-key',
           },
         },
         {
@@ -31,7 +31,7 @@ describe('RecaptchaService', () => {
     }).compile();
 
     service = module.get<RecaptchaService>(RecaptchaService);
-    mockConfigService = module.get<ConfigService>(ConfigService);
+    mockConfigService = module.get<CoreConfig>(CoreConfig);
     mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
     jest.clearAllMocks();
   });
@@ -43,7 +43,7 @@ describe('RecaptchaService', () => {
   describe('verify', () => {
     it('should return true when secret key is not set (disabled)', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue(undefined);
+      mockConfigService.recaptchaSecretKey = undefined;
       const token = 'any-token';
 
       // Act
@@ -56,7 +56,7 @@ describe('RecaptchaService', () => {
 
     it('should return false when token is empty', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = '';
 
       // Act
@@ -69,7 +69,7 @@ describe('RecaptchaService', () => {
 
     it('should return false when token is only whitespace', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = '   ';
 
       // Act
@@ -82,7 +82,7 @@ describe('RecaptchaService', () => {
 
     it('should return false when fetch response is not ok', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockResolvedValue({
         ok: false,
@@ -107,7 +107,7 @@ describe('RecaptchaService', () => {
 
     it('should return false when recaptcha response success is false', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -126,7 +126,7 @@ describe('RecaptchaService', () => {
 
     it('should return false when score is below threshold', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -145,7 +145,7 @@ describe('RecaptchaService', () => {
 
     it('should return true when token is valid and score is above threshold', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -174,7 +174,7 @@ describe('RecaptchaService', () => {
 
     it('should handle fetch errors gracefully', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
@@ -185,7 +185,7 @@ describe('RecaptchaService', () => {
 
     it('should log error when fetch fails', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       const error = new Error('Network error');
       (fetch as jest.Mock).mockRejectedValue(error);
@@ -204,7 +204,7 @@ describe('RecaptchaService', () => {
 
     it('should log error when JSON parsing fails', async () => {
       // Arrange
-      (mockConfigService.get as jest.Mock).mockReturnValue('secret-key');
+      mockConfigService.recaptchaSecretKey = 'secret-key';
       const token = 'valid-token';
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,

@@ -48,6 +48,9 @@ export class CoreConfig {
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
 
+  @IsNotEmpty({ message: 'Set Env variable RECAPTCHA_SECRET_KEY' })
+  recaptchaSecretKey: string = this.configService.get('RECAPTCHA_SECRET_KEY');
+
   @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_ID' })
   yandexClientId: string = this.configService.get('YANDEX_CLIENT_ID');
 

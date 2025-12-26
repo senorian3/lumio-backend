@@ -4,10 +4,10 @@ import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import axios from 'axios';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { ConfigService } from '@nestjs/config';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostView } from '../../../api/dto/output/create-post.output.dto';
+import { CoreConfig } from '@lumio/core/core.config';
 
 export class GetMainPageCommand {
   constructor() {}
@@ -21,7 +21,7 @@ export class GetMainPageUseCase implements IQueryHandler<
   constructor(
     private readonly postRepository: PostRepository,
     private readonly userRepository: UserRepository,
-    private readonly configService: ConfigService,
+    private readonly coreConfig: CoreConfig,
   ) {}
 
   async execute(): Promise<MainPageView> {
@@ -33,8 +33,8 @@ export class GetMainPageUseCase implements IQueryHandler<
 
     let userPostsFiles: OutputFileType[] = [];
 
-    const internalApiKey = this.configService.get('INTERNAL_API_KEY');
-    const filesFrontendUrl = this.configService.get('FILES_FRONTEND_URL');
+    const filesFrontendUrl = this.coreConfig.filesFrontendUrl;
+    const internalApiKey = this.coreConfig.internalApiKey;
 
     try {
       const response = await axios.post<OutputFileType[]>(
