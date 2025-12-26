@@ -17,7 +17,7 @@ export class FilesService {
   private readonly bucketName: string;
   private readonly region: string;
   private readonly endpoint: string;
-  private readonly urlExpirationTime: number = 60 * 60 * 24 * 365; // 1 year
+  private readonly urlExpirationTime: number = 60 * 60 * 24 * 7; // 1 weak
   private readonly kmsKeyId: string;
   private readonly accessKeyId: string;
   private readonly secretAccessKey: string;
