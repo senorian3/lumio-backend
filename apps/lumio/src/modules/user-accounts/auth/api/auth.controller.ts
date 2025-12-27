@@ -143,7 +143,7 @@ export class AuthController {
   async yandexCallback(
     @Req() req: any,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
+  ): Promise<{ accessToken: string; redirectUrl: string }> {
     const ip = getClientIp(req);
     const deviceName = getUserAgent(req);
 
@@ -152,6 +152,7 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
+    // Use same cookie settings as in login method for localhost compatibility
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: false,
@@ -161,9 +162,10 @@ export class AuthController {
       domain: 'localhost',
     });
 
-    res.redirect(
-      `http://localhost:3000/auth/oauth-success?accessToken=${accessToken}`,
-    );
+    return {
+      accessToken,
+      redirectUrl: 'http://localhost:3000/auth/oauth-success',
+    };
   }
 
   @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
