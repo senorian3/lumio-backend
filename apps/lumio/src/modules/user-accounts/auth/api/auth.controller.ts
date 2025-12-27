@@ -149,7 +149,7 @@ export class AuthController {
       secure: false,
       sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: undefined,
+      domain: 'localhost',
       path: '/',
     });
 
