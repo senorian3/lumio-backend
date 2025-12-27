@@ -24,19 +24,19 @@ import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.inpu
 import { InputRegistrationDto } from '../../users/api/dto/input/registration.input.dto';
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input.dto';
 import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
-import { ApiRegistration } from '@lumio/core/decorators/swagger/registration.decorator';
-import { ApiLogin } from '@lumio/core/decorators/swagger/login.decorator';
-import { ApiLogout } from '@lumio/core/decorators/swagger/logout.decorator';
-import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/password-recovery.decorator';
-import { ApiNewPassword } from '@lumio/core/decorators/swagger/new-password.decorator';
+import { ApiRegistration } from '@lumio/core/decorators/swagger/auth/registration.decorator';
+import { ApiLogin } from '@lumio/core/decorators/swagger/auth/login.decorator';
+import { ApiLogout } from '@lumio/core/decorators/swagger/auth/logout.decorator';
+import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/auth/password-recovery.decorator';
+import { ApiNewPassword } from '@lumio/core/decorators/swagger/auth/new-password.decorator';
 import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
-import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/registration-confirmation.decorator';
+import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/auth/registration-confirmation.decorator';
 import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
-import { ApiYandex } from '@lumio/core/decorators/swagger/yandex.decorator';
-import { ApiYandexCallback } from '@lumio/core/decorators/swagger/yandex-callback.decorator';
+import { ApiYandex } from '@lumio/core/decorators/swagger/auth/yandex.decorator';
+import { ApiYandexCallback } from '@lumio/core/decorators/swagger/auth/yandex-callback.decorator';
 import { RefreshTokenCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
-import { ApiRefreshToken } from '@lumio/core/decorators/swagger/refresh-token.decorator';
+import { ApiRefreshToken } from '@lumio/core/decorators/swagger/auth/refresh-token.decorator';
 import {
   getClearCookieOptions,
   getStrictCookieOptions,
@@ -45,7 +45,7 @@ import { CoreConfig } from '@lumio/core/core.config';
 import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
-import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/me.decorator';
+import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/auth/me.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 
 @UseGuards(ThrottlerGuard)
