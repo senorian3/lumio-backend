@@ -144,8 +144,14 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
-    // Use dynamic cookie settings based on origin
-    res.cookie('refreshToken', refreshToken, getNoneCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: undefined,
+      path: '/',
+    });
 
     // Determine redirect URL based on origin
     const origin = req.get('origin') || '';

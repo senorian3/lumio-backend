@@ -13,7 +13,7 @@ export interface CookieOptions {
 /**
  * Определяет домен для кук на основе origin запроса
  */
-function getCookieDomain(req?: Request): string | undefined {
+export function getCookieDomain(req?: Request): string | undefined {
   const origin = req?.get('origin') || '';
   const host = req?.get('host') || '';
 
@@ -39,11 +39,12 @@ function getCookieDomain(req?: Request): string | undefined {
 /**
  * Определяет secure флаг для кук
  */
-function isSecureCookie(req?: Request): boolean {
+export function isSecureCookie(req?: Request): boolean {
   const isProduction = process.env.NODE_ENV === 'production';
   const origin = req?.get('origin') || '';
 
-  // Для локальной разработки всегда false
+  // Для sameSite: 'none' всегда требуется secure: true
+  // Для локальной разработки разрешаем secure: false только для sameSite: 'strict' и 'lax'
   if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
     return false;
   }
@@ -54,7 +55,7 @@ function isSecureCookie(req?: Request): boolean {
 function getBaseCookieOptions(req?: Request): Omit<CookieOptions, 'sameSite'> {
   const base: Omit<CookieOptions, 'sameSite'> = {
     httpOnly: true,
-    secure: isSecureCookie(req),
+    secure: false,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
   };
@@ -85,9 +86,12 @@ export function getLaxCookieOptions(req?: Request): CookieOptions {
 }
 
 export function getNoneCookieOptions(req?: Request): CookieOptions {
+  const base = getBaseCookieOptions(req);
   return {
-    ...getBaseCookieOptions(req),
+    ...base,
     sameSite: 'none',
+    secure: true,
+    domain: undefined,
   };
 }
 
