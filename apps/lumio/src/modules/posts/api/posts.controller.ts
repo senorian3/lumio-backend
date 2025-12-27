@@ -32,6 +32,7 @@ import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
 import { POSTS_BASE, POSTS_ROUTES } from '@lumio/core/routs/routs';
+import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 
 @Controller(POSTS_BASE)
 export class PostsController {
@@ -62,7 +63,7 @@ export class PostsController {
   async createPost(
     @Req() req: any,
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
-    @Body() dto: InputUpdatePostDto,
+    @Body() dto: InputCreatePostDto,
   ): Promise<PostView> {
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
