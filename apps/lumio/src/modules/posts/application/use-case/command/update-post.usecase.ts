@@ -4,7 +4,6 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
-  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { PostView } from '@lumio/modules/posts/api/dto/output/create-post.output.dto';
 
@@ -30,13 +29,13 @@ export class UpdatePostUseCase implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'user');
+      throw BadRequestDomainException.create('User does not exist', 'userId');
     }
 
     const post = await this.postRepository.findById(command.postId);
 
     if (!post) {
-      throw NotFoundDomainException.create('Post does not exist', 'post');
+      throw BadRequestDomainException.create('Post does not exist', 'post');
     }
 
     if (post.userId !== command.userId) {

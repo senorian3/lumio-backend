@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 
 export function ApiDeleteAllSessionsExceptCurrent() {
   return applyDecorators(
+    ApiSecurity('refreshToken'),
     ApiOperation({
       summary: 'Delete all user sessions except current',
       description:

@@ -19,9 +19,7 @@ export class FileValidationPipe implements PipeTransform {
       );
     }
 
-    // Проверка каждого файла
     files.forEach((file, index) => {
-      // Проверка размера файла
       if (file.size > this.MAX_FILE_SIZE) {
         throw BadRequestDomainException.create(
           `File ${index + 1} (${file.originalname}) exceeds maximum size of 20MB`,
@@ -29,7 +27,6 @@ export class FileValidationPipe implements PipeTransform {
         );
       }
 
-      // Проверка MIME-типа файла
       if (!this.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
         throw BadRequestDomainException.create(
           `File ${index + 1} (${file.originalname}) has invalid type. Only JPEG and PNG files are allowed`,
@@ -37,7 +34,6 @@ export class FileValidationPipe implements PipeTransform {
         );
       }
 
-      // Дополнительная проверка по расширению файла
       const fileExtension = file.originalname.split('.').pop()?.toLowerCase();
       const validExtensions = ['jpeg', 'png'];
 

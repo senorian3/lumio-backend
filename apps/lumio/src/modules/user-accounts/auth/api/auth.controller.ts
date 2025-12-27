@@ -57,6 +57,47 @@ export class AuthController {
     private readonly queryBus: QueryBus,
   ) {}
 
+  @Get(AUTH_ROUTES.ME)
+  @ApiGetCurrentUser()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async me(@Req() req: any): Promise<AboutUserOutputDto> {
+    const user = await this.queryBus.execute<
+      AboutUserUserQuery,
+      AboutUserOutputDto
+    >(new AboutUserUserQuery(req.user.userId));
+
+    return user;
+  }
+
+  @Get(AUTH_ROUTES.YANDEX)
+  @ApiYandex()
+  @UseGuards(AuthGuard('yandex'))
+  async yandexLogin(): Promise<void> {}
+
+  @Get(AUTH_ROUTES.YANDEX_CALLBACK)
+  @ApiYandexCallback()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('yandex'))
+  async yandexCallback(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const ip = getClientIp(req);
+    const deviceName = getUserAgent(req);
+
+    const { refreshToken, accessToken } = await this.commandBus.execute<
+      LoginUserYandexCommand,
+      { refreshToken: string; accessToken: string }
+    >(new LoginUserYandexCommand(req.user, deviceName, ip));
+
+    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+
+    res.redirect(
+      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
+    );
+  }
+
   @Post(AUTH_ROUTES.REGISTRATION)
   @ApiRegistration()
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -64,6 +105,19 @@ export class AuthController {
     return await this.commandBus.execute<RegisterUserCommand, void>(
       new RegisterUserCommand(dto),
     );
+  }
+
+  @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
+  @ApiRegistrationConfirmation()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @SkipThrottle()
+  async registrationConfirmation(
+    @Body() dto: InputRegistrationConfirmationDto,
+  ): Promise<void> {
+    return await this.commandBus.execute<
+      RegistrationConfirmationUserCommand,
+      void
+    >(new RegistrationConfirmationUserCommand(dto.confirmCode));
   }
 
   @Post(AUTH_ROUTES.LOGIN)
@@ -123,47 +177,6 @@ export class AuthController {
     );
   }
 
-  @Get(AUTH_ROUTES.YANDEX)
-  @ApiYandex()
-  @UseGuards(AuthGuard('yandex'))
-  async yandexLogin(): Promise<void> {}
-
-  @Get(AUTH_ROUTES.YANDEX_CALLBACK)
-  @ApiYandexCallback()
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard('yandex'))
-  async yandexCallback(
-    @Req() req: any,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
-    const ip = getClientIp(req);
-    const deviceName = getUserAgent(req);
-
-    const { refreshToken, accessToken } = await this.commandBus.execute<
-      LoginUserYandexCommand,
-      { refreshToken: string; accessToken: string }
-    >(new LoginUserYandexCommand(req.user, deviceName, ip));
-
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
-
-    res.redirect(
-      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
-    );
-  }
-
-  @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
-  @ApiRegistrationConfirmation()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @SkipThrottle()
-  async registrationConfirmation(
-    @Body() dto: InputRegistrationConfirmationDto,
-  ): Promise<void> {
-    return await this.commandBus.execute<
-      RegistrationConfirmationUserCommand,
-      void
-    >(new RegistrationConfirmationUserCommand(dto.confirmCode));
-  }
-
   @Post(AUTH_ROUTES.REFRESH_TOKEN)
   @ApiRefreshToken()
   @UseGuards(RefreshTokenGuard)
@@ -182,18 +195,5 @@ export class AuthController {
     res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
 
     return { accessToken };
-  }
-
-  @Get(AUTH_ROUTES.ME)
-  @ApiGetCurrentUser()
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  async me(@Req() req: any): Promise<AboutUserOutputDto> {
-    const user = await this.queryBus.execute<
-      AboutUserUserQuery,
-      AboutUserOutputDto
-    >(new AboutUserUserQuery(req.user.userId));
-
-    return user;
   }
 }

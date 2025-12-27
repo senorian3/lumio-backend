@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 
 export function ApiGetAllSessions() {
   return applyDecorators(
+    ApiSecurity('refreshToken'),
     ApiOperation({
       summary: 'Get all user sessions',
       description:

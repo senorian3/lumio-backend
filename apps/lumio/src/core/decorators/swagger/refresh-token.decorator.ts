@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 
 export function ApiRefreshToken() {
   return applyDecorators(
+    ApiSecurity('refreshToken'),
     ApiOperation({
       summary: 'Refresh Token',
       description:

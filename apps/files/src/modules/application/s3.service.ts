@@ -11,6 +11,7 @@ import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
 import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class FilesService {
@@ -65,8 +66,9 @@ export class FilesService {
         this.logger.error(
           `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
         );
-        throw new Error(
-          `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
+        throw BadRequestDomainException.create(
+          'File cannot be uploaded. Unsupported buffer type',
+          'file',
         );
       }
 

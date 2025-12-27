@@ -1,8 +1,6 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { PickType } from '@nestjs/swagger';
+import { InputCreatePostDto } from './create-post.input.dto';
 
-export class InputUpdatePostDto {
-  @IsString()
-  @MaxLength(500)
-  @MinLength(6)
-  description: string;
-}
+export class InputUpdatePostDto extends PickType(InputCreatePostDto, [
+  'description',
+] as const) {}

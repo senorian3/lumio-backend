@@ -1,9 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { PostEntity } from '../../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
@@ -37,7 +34,7 @@ export class CreatePostUseCase implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'user');
+      throw BadRequestDomainException.create('User does not exist', 'userId');
     }
 
     const newPost: PostEntity = await this.postRepository.createPost(
@@ -59,7 +56,7 @@ export class CreatePostUseCase implements ICommandHandler<
         error?.stack,
         CreatePostUseCase.name,
       );
-      throw NotFoundDomainException.create('Failed to upload files', 'files');
+      throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
   }
 }

@@ -1,8 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
 
 export function ApiLogout() {
   return applyDecorators(
+    ApiSecurity('bearer'),
     ApiOperation({
       summary: 'User logout',
       description: 'Endpoint for user logout',

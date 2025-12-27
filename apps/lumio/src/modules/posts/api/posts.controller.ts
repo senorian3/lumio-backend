@@ -13,8 +13,6 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/command/create-post.usecase';
@@ -30,6 +28,9 @@ import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
 import { PostView } from './dto/output/create-post.output.dto';
 import { GetAllUserPostsCommand } from '../application/use-case/query/get-all-user-posts.usecase';
 import { GetCreatePostUserCommand } from '../application/use-case/query/get-by-id-create-post.usecase';
+import { ApiUpdatePost } from '@lumio/core/decorators/swagger/update-post.decorator';
+import { ApiDeletePost } from '@lumio/core/decorators/swagger/delete-post.decorator';
+import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/get-my-posts.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -39,22 +40,24 @@ export class PostsController {
   ) {}
 
   @Get('my')
+  @ApiGetMyPosts()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getAllUserPosts(
     @Query()
     query: GetPostsQueryParams,
     @Req() req: any,
   ): Promise<number> {
-    return await this.queryBus.execute<GetAllUserPostsCommand, any>(
+    return await this.queryBus.execute<GetAllUserPostsCommand, number>(
       new GetAllUserPostsCommand(req.user.userId, query),
     );
   }
 
   @Post()
   @ApiCreatePost()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files'))
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createPost(
     @Req() req: any,
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
@@ -74,6 +77,7 @@ export class PostsController {
   }
 
   @Put(':postId')
+  @ApiUpdatePost()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async updatePost(
@@ -90,15 +94,15 @@ export class PostsController {
   }
 
   @Delete(':postId')
+  @ApiDeletePost()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deletePost(
     @Param('postId') postId: number,
     @Req() req: any,
   ): Promise<void> {
-    const userId = req.user.userId;
-    await this.commandBus.execute<DeletePostCommand, void>(
-      new DeletePostCommand(userId, postId),
+    return await this.commandBus.execute<DeletePostCommand, void>(
+      new DeletePostCommand(req.user.userId, postId),
     );
   }
 }

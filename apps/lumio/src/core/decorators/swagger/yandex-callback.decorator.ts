@@ -5,7 +5,7 @@ export function ApiYandexCallback() {
   return applyDecorators(
     ApiOperation({
       summary: 'Yandex callback',
-      description: 'Endpoint for yandex callback',
+      description: 'Endpoint for yandex callback and login user wtith redirect',
       operationId: 'yandexCallback',
     }),
 

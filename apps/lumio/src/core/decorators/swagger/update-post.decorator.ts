@@ -1,0 +1,82 @@
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
+
+export function ApiUpdatePost() {
+  return applyDecorators(
+    ApiSecurity('bearer'),
+    ApiOperation({
+      summary: 'Update post',
+      description: 'Endpoint for update post',
+      operationId: 'updatePost',
+    }),
+
+    ApiResponse({
+      status: 200,
+      description: 'Post successfully updated',
+    }),
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorMessages: [
+              {
+                message: 'User does not exist',
+                field: 'userId',
+              },
+            ],
+          },
+        },
+        post_not_found: {
+          summary: 'Post does not exist',
+          value: {
+            errorMessages: [
+              {
+                message: 'Post does not exist',
+                field: 'postId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized',
+      examples: {
+        expired_token_version: {
+          summary: 'Token version is expired',
+          value: {
+            errorMessages: [
+              {
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 403,
+      description: 'Forbidden',
+      examples: {
+        user_doesnt_own_post: {
+          summary: 'Post does not belong to the user',
+          value: {
+            errorMessages: [
+              {
+                message: 'Post does not belong to the user',
+                field: 'post',
+              },
+            ],
+          },
+        },
+      },
+    }),
+  );
+}

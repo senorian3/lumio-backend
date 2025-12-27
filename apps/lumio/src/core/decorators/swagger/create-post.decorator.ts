@@ -4,10 +4,12 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiBody,
+  ApiSecurity,
 } from '@nestjs/swagger';
 
 export function ApiCreatePost() {
   return applyDecorators(
+    ApiSecurity('bearer'),
     ApiOperation({
       summary: 'Create new post',
       description:
@@ -16,24 +18,51 @@ export function ApiCreatePost() {
     }),
 
     ApiConsumes('multipart/form-data'),
-
     ApiBody({
-      description: 'Post creation payload',
+      description:
+        'Post creation payload. Use JSON for text-only or FormData for text with files',
       schema: {
-        type: 'object',
-        properties: {
-          description: {
-            type: 'string',
-            example: 'Мой первый пост',
-          },
-          files: {
-            type: 'array',
-            items: {
-              type: 'string',
-              format: 'binary',
+        oneOf: [
+          {
+            type: 'object',
+            properties: {
+              description: {
+                type: 'string',
+                description: 'Post description',
+                example: 'My first post',
+                minLength: 0,
+                maxLength: 500,
+              },
             },
+            required: ['description'],
+            title: 'JSON Payload (text only)',
           },
-        },
+          {
+            type: 'object',
+            properties: {
+              description: {
+                type: 'string',
+                description: 'Post description',
+                example: 'My first post',
+                minLength: 0,
+                maxLength: 500,
+              },
+              files: {
+                type: 'array',
+                description:
+                  'Array of image files (JPEG/PNG, max 10 files, max 20MB each)',
+                items: {
+                  type: 'string',
+                  format: 'binary',
+                },
+                minItems: 0,
+                maxItems: 10,
+              },
+            },
+            required: ['description'],
+            title: 'FormData Payload (text + files)',
+          },
+        ],
       },
     }),
 
@@ -59,29 +88,35 @@ export function ApiCreatePost() {
       status: 400,
       description: 'Validation error',
       examples: {
-        user_not_exist: {
+        user_does_not_exist: {
           summary: 'User does not exist',
           value: {
             errorMessages: [{ message: 'User does not exist', field: 'user' }],
           },
         },
-        no_files_uploaded: {
+        post_does_not_exist: {
+          summary: 'Post does not exist',
+          value: {
+            errorMessages: [{ message: 'Post does not exist', field: 'post' }],
+          },
+        },
+        files_not_uploaded: {
           summary: 'No files uploaded',
           value: {
             errorMessages: [
               {
-                message: 'No files uploaded',
+                message: 'Failed to upload files',
                 field: 'file',
               },
             ],
           },
         },
-        too_many_files: {
+        files_too_many: {
           summary: 'Too many files',
           value: {
             errorMessages: [
               {
-                message: 'Maximum 10 files allowed, but received 12',
+                message: 'Maximum 10 files allowed, but received {count}',
                 field: 'file',
               },
             ],
@@ -92,42 +127,43 @@ export function ApiCreatePost() {
           value: {
             errorMessages: [
               {
-                message: 'File 1 (big.png) exceeds maximum size of 20MB',
+                message:
+                  'File {index} filename}.{extension} exceeds maximum size of 20MB',
                 field: 'file',
               },
             ],
           },
         },
-        invalid_file_type: {
+        files_invalid_type: {
           summary: 'File type not supported',
           value: {
             errorMessages: [
               {
                 message:
-                  'File 1 (doc.pdf) has invalid type. Only JPEG and PNG files are allowed',
+                  'File {index} filename}.{extension} has invalid type. Only JPEG and PNG files are allowed',
                 field: 'file',
               },
             ],
           },
         },
-        invalid_file_extension: {
+        files_invalid_extension: {
           summary: 'File extension not supported',
           value: {
             errorMessages: [
               {
                 message:
-                  'File 1 (image.gif) has invalid extension. Only .jpg, .jpeg, and .png are allowed',
+                  'File {index} {filename}.{extension} has invalid extension. Only .jpg, .jpeg, and .png are allowed',
                 field: 'file',
               },
             ],
           },
         },
-        description_too_short: {
-          summary: 'Description too short',
+        description_too_long: {
+          summary: 'Description too long',
           value: {
             errorMessages: [
               {
-                message: 'Minimum number of characters 3',
+                message: 'Maximum number of characters 500',
                 field: 'description',
               },
             ],
@@ -139,13 +175,18 @@ export function ApiCreatePost() {
     ApiResponse({
       status: 401,
       description: 'Unauthorized',
-      example: {
-        errorMessages: [
-          {
-            message: 'Access token is missing or invalid',
-            field: 'Authorization',
+      examples: {
+        expired_token_version: {
+          summary: 'Token version is expired',
+          value: {
+            errorMessages: [
+              {
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
+              },
+            ],
           },
-        ],
+        },
       },
     }),
   );

@@ -7,19 +7,17 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
-import { InputUploadFilesType } from './dto/upload-files.input.dto';
+import { InputUploadFilesType } from './dto/input/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetAllFilesByPostUserQuery } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { UploadFilesCreatedPostCommand } from '@files/modules/application/use-cases/upload-post-file.usecase';
 import { DeletedPostFileCommand } from '@files/modules/application/use-cases/deleted-post-file.usecase';
-import { GetUserPostsDto } from '@files/api/dto/input/get-user-post.input-dto';
+import { GetUserPostsDto } from '@files/modules/api/dto/input/get-user-post.input.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Controller('files')
@@ -33,7 +31,6 @@ export class FilesController {
 
   @Post('upload-post-files')
   @UseInterceptors(FilesInterceptor('files'))
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async uploadPostFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() dto: InputUploadFilesType,

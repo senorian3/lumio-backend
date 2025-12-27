@@ -60,7 +60,7 @@ export class DeletePostUseCase implements ICommandHandler<
         error?.stack,
         DeletePostUseCase.name,
       );
-      throw NotFoundDomainException.create('Failed to delete files', 'files');
+      throw BadRequestDomainException.create('Failed to delete files', 'files');
     }
   }
 }

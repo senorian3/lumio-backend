@@ -14,6 +14,29 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
     const builder = new DocumentBuilder()
       .setTitle('LUMIO API')
       .addBearerAuth()
+      .addCookieAuth(
+        'refreshToken',
+        {
+          type: 'apiKey',
+          name: 'refreshToken',
+          in: 'cookie',
+        },
+        'refreshToken',
+      )
+      .addOAuth2({
+        type: 'oauth2',
+        flows: {
+          authorizationCode: {
+            authorizationUrl: 'https://oauth.yandex.ru/authorize',
+            tokenUrl: 'https://oauth.yandex.ru/token',
+            scopes: {
+              openid: 'OpenID Connect',
+              email: 'Access to email',
+              profile: 'Access to profile',
+            },
+          },
+        },
+      })
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
       .addServer('https://lumio.su', 'Lumio (Testing)')

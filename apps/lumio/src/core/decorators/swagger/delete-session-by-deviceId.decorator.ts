@@ -1,8 +1,14 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiSecurity,
+} from '@nestjs/swagger';
 
 export function ApiDeleteSessionByDeviceId() {
   return applyDecorators(
+    ApiSecurity('refreshToken'),
     ApiOperation({
       summary: 'Delete user session by deviceId',
       description:

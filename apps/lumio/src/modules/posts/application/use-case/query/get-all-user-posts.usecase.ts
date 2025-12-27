@@ -8,7 +8,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PostView } from '../../../api/dto/output/create-post.output.dto';
 import { HttpService } from '../../http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class GetAllUserPostsCommand {
   constructor(
@@ -52,7 +52,7 @@ export class GetAllUserPostsUseCase implements IQueryHandler<
         error?.stack,
         GetAllUserPostsUseCase.name,
       );
-      throw NotFoundDomainException.create('Failed to fetch files', 'files');
+      throw BadRequestDomainException.create('Failed to fetch files', 'files');
     }
 
     const view: PostView[] = paginatedPosts.items.map((post) =>
