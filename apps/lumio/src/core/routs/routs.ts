@@ -14,3 +14,9 @@ export const AUTH_ROUTES = {
 } as const;
 
 export const SECURITY_BASE = 'security/devices';
+
+export const POSTS_BASE = 'posts';
+
+export const POSTS_ROUTES = {
+  GET_MY_POSTS: 'my',
+} as const;

@@ -31,15 +31,16 @@ import { GetCreatePostUserCommand } from '../application/use-case/query/get-by-i
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
+import { POSTS_BASE, POSTS_ROUTES } from '@lumio/core/routs/routs';
 
-@Controller('posts')
+@Controller(POSTS_BASE)
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get('my')
+  @Get(POSTS_ROUTES.GET_MY_POSTS)
   @ApiGetMyPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
