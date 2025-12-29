@@ -6,9 +6,21 @@ export function enableCorsSetup(app: INestApplication) {
       'http://localhost:3000',
       'http://localhost:4121',
       'https://lumio.su',
+      'http://api-dev.lumio.local',
+      'http://api-dev.lumio.local:3000',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+      'Origin',
+      'Access-Control-Request-Method',
+      'Access-Control-Request-Headers',
+    ],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200,
   });
 }

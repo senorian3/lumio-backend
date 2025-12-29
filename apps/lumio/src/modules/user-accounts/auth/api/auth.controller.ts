@@ -41,7 +41,6 @@ import {
   getClearCookieOptions,
   getStrictCookieOptions,
 } from '../../config/cookie.helper';
-import { CoreConfig } from '@lumio/core/core.config';
 import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output-dto';
@@ -53,7 +52,6 @@ import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 export class AuthController {
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly coreConfig: CoreConfig,
     private readonly queryBus: QueryBus,
   ) {}
 
@@ -82,7 +80,13 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     return { accessToken };
   }
@@ -144,11 +148,23 @@ export class AuthController {
       { refreshToken: string; accessToken: string }
     >(new LoginUserYandexCommand(req.user, deviceName, ip));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
-    res.redirect(
-      `${this.coreConfig.frontendUrl}/auth/oauth-success?accessToken=${accessToken}`,
-    );
+    // Determine redirect URL based on origin
+    const origin = req.get('origin') || '';
+    let redirectUrl = `http://localhost:3000/auth/oauth-success&code=${accessToken}`;
+
+    if (origin.includes('lumio.su')) {
+      redirectUrl = `https://lumio.su/auth/oauth-success&code=${accessToken}`;
+    }
+
+    res.redirect(redirectUrl);
   }
 
   @Post(AUTH_ROUTES.REGISTRATION_CONFIRMATION)
@@ -179,7 +195,13 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
 
-    res.cookie('refreshToken', refreshToken, getStrictCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     return { accessToken };
   }
