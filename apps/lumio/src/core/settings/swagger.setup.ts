@@ -23,23 +23,10 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
         },
         'refreshToken',
       )
-      .addOAuth2({
-        type: 'oauth2',
-        flows: {
-          authorizationCode: {
-            authorizationUrl: 'https://oauth.yandex.ru/authorize',
-            tokenUrl: 'https://oauth.yandex.ru/token',
-            scopes: {
-              openid: 'OpenID Connect',
-              email: 'Access to email',
-              profile: 'Access to profile',
-            },
-          },
-        },
-      })
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
-      .addServer('https://lumio.su', 'Lumio (Testing)')
+      .addServer('https://lumio.su', 'Production')
+      .addServer('http://localhost:3000', 'Local development')
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',
