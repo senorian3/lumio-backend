@@ -40,7 +40,6 @@ import { ApiRefreshToken } from '@lumio/core/decorators/swagger/refresh-token.de
 import {
   getClearCookieOptions,
   getStrictCookieOptions,
-  getNoneCookieOptions,
 } from '../../config/cookie.helper';
 import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
@@ -81,8 +80,14 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new LoginUserCommand(dto, userAgent, ip));
 
-    // Use dynamic cookie settings based on origin
-    res.cookie('refreshToken', refreshToken, getNoneCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: 'localhost',
+      path: '/',
+    });
 
     return { accessToken };
   }
@@ -192,8 +197,14 @@ export class AuthController {
       { accessToken: string; refreshToken: string }
     >(new RefreshTokenCommand(deviceName, ip, userId, deviceId));
 
-    // Use dynamic cookie settings based on origin
-    res.cookie('refreshToken', refreshToken, getNoneCookieOptions(req));
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: 'localhost',
+      path: '/',
+    });
 
     return { accessToken };
   }

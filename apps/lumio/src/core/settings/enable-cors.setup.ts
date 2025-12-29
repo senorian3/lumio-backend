@@ -6,7 +6,7 @@ export function enableCorsSetup(app: INestApplication) {
       'http://localhost:3000',
       'http://localhost:4121',
       'https://lumio.su',
-      'http://dev.lumio.su',
+      'http://frontlumio.su',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
