@@ -64,11 +64,34 @@ pipeline {
                        
                        # Генерируем Prisma клиент для сборки (без env переменных)
                        echo "Generating Prisma client for build..."
-                       npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+                       npx prisma generate --schema apps/files/src/prisma/schema.prisma
                     '''
                 }
             }
         }
+
+        stage('Run Unit Tests') {
+            steps {
+                script {
+                    sh '''
+                       # Запускаем unit тесты напрямую через Jest
+                       # Только spec файлы для сервиса lumio
+                       echo "Running unit tests for files service..."
+                       
+                       # Запускаем Jest напрямую с правильной конфигурацией
+                         npx jest apps/files \
+                           --testPathPattern=".*\\\\.spec\\\\.ts$" \
+                           --passWithNoTests \
+                           --verbose \
+                           --coverage \
+                           --coverageDirectory=./coverage/files
+                       
+                       echo "Unit tests completed!"
+                    '''
+                }
+            }
+        }
+        
         
         stage('Build docker image') {
             steps {
