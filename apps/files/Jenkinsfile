@@ -74,18 +74,13 @@ pipeline {
             steps {
                 script {
                     sh '''
-                       # Запускаем unit тесты напрямую через Jest
+                       # Запускаем unit тесты через package.json script
                        # Только spec файлы для сервиса files
                        echo "Running unit tests for files service..."
-                       
-                       # Запускаем Jest напрямую с правильной конфигурацией
-                         npx jest --roots apps/files \
-                           --testPathPattern=".*\\\\.spec\\\\.ts$" \
-                           --passWithNoTests \
-                           --verbose \
-                           --coverage \
-                           --coverageDirectory=./coverage/files
-                       
+
+                       # Используем npx для запуска скрипта из package.json
+                       npx run test:unit:files
+
                        echo "Unit tests completed!"
                     '''
                 }
