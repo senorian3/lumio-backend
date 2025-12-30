@@ -79,13 +79,7 @@ pipeline {
                        echo "Running unit tests for files service..."
                        
                        # Запускаем Jest напрямую с правильной конфигурацией
-                          npx jest --selectProjects files \
-                    --passWithNoTests \
-                    --verbose \
-                    --coverage \
-                    --coverageDirectory=./coverage/files \
-                    --testNamePattern=".*" \
-                    --runInBand
+                        yarn test:unit:files
                        
                        echo "Unit tests completed!"
                     '''

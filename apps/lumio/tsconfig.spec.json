@@ -5,7 +5,8 @@
     "paths": {
       "@libs/*": ["../../libs/*"],
       "@lumio/*": ["src/*"],
-      "@files/*": ["../../apps/files/src/*"]
+      "@files/*": ["../../apps/files/src/*"],
+      "generated/*": ["../../generated/*"]
     },
     "types": ["jest", "node"],
     "module": "commonjs"

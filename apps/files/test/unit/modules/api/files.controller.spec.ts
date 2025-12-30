@@ -22,6 +22,10 @@ describe('FilesController', () => {
       mimetype: 'image/jpeg',
       buffer: Buffer.from('test buffer 1'),
       size: 1024,
+      stream: null,
+      destination: '',
+      filename: 'test1.jpg',
+      path: '/tmp/test1.jpg',
     },
     {
       fieldname: 'files',
@@ -30,8 +34,12 @@ describe('FilesController', () => {
       mimetype: 'image/png',
       buffer: Buffer.from('test buffer 2'),
       size: 2048,
+      stream: null,
+      destination: '',
+      filename: 'test2.png',
+      path: '/tmp/test2.png',
     },
-  ] as Express.Multer.File[];
+  ];
 
   const mockOutputFiles: OutputFileType[] = [
     { id: 1, url: 'https://example.com/file1.jpg', postId: 123 },
