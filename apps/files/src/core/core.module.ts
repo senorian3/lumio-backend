@@ -6,7 +6,7 @@ import { CoreConfig } from './core.config';
 @Global()
 @Module({
   imports: [CqrsModule],
-  exports: [CoreConfig, CqrsModule],
   providers: [CoreConfig, ConfigService],
+  exports: [CoreConfig, CqrsModule],
 })
 export class CoreModule {}

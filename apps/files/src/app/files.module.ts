@@ -1,35 +1,59 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { FilesController } from './files.controller';
-import { MessagingModule } from '@libs/messaging/messaging.module';
-import { configModule } from '@libs/core/config-dynamic.module';
+import { ConfigModule } from '@nestjs/config';
+import { FilesController } from '../modules/api/files.controller';
+import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
 import { PrismaModule } from '@files/prisma/prisma.module';
-import { CoreConfig } from '@files/core/core.config';
 import { CoreModule } from '@files/core/core.module';
-import { UserEventsConsumer } from '@files/features/messaging/user-events.consumer';
-import { TestingModule } from '@nestjs/testing';
+import { CoreConfig } from '@files/core/core.config';
+import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
+import { FilesService } from '@files/modules/application/s3.service';
+import { DeletedPostFilePostUseCase } from '@files/modules/application/use-cases/deleted-post-file.usecase';
+import { GetAllFilesByPostUserQueryHandler } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
+import { UploadFilesCreatedPostUseCase } from '@files/modules/application/use-cases/upload-post-file.usecase';
+import { LoggerModule } from '@libs/logger/logger.module';
+
+const services = [FilesService];
+
+const useCases = [UploadFilesCreatedPostUseCase, DeletedPostFilePostUseCase];
+
+const queryHandler = [GetAllFilesByPostUserQueryHandler];
+
+const repository = [FileRepository];
+
+const queryFileRepository = [QueryFileRepository];
 
 @Module({
   imports: [
-    configModule,
-    PrismaModule.forRootAsync({
-      useFactory: (coreConfig: CoreConfig) => {
-        const uri = coreConfig.dbUrl;
-        console.log('DB_URL', uri);
-        return { url: uri };
-      },
-      inject: [CoreConfig],
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
     CoreModule,
-    MessagingModule,
+    LoggerModule,
+    PrismaModule.forRootAsync({
+      useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),
+      inject: [CoreConfig],
+    }),
   ],
+
   controllers: [FilesController],
-  providers: [UserEventsConsumer],
+  providers: [
+    ...services,
+    ...useCases,
+    ...queryHandler,
+    ...repository,
+    ...queryFileRepository,
+  ],
 })
 export class FilesModule {
-  static async forRoot(coreConfig: CoreConfig): Promise<DynamicModule> {
+  static forRoot(coreConfig: CoreConfig): DynamicModule {
     return {
       module: FilesModule,
-      imports: [...(coreConfig.includeTestingModule ? [TestingModule] : [])],
+      providers: [
+        {
+          provide: CoreConfig,
+          useValue: coreConfig,
+        },
+      ],
     };
   }
 }

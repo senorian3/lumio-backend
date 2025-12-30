@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '@lumio/core/core.config';
 
 class RecaptchaResponse {
   success: boolean;
@@ -12,18 +13,23 @@ class RecaptchaResponse {
 
 @Injectable()
 export class RecaptchaService {
-  private readonly secretKey: string;
   private readonly verifyUrl =
     'https://www.google.com/recaptcha/api/siteverify';
   private readonly scoreThreshold = 0.5;
 
-  constructor(private readonly configService: ConfigService) {
-    this.secretKey =
-      this.configService.get<string>('RECAPTCHA_SECRET_KEY') || '';
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly loggerService: AppLoggerService,
+  ) {}
+
+  private getSecretKey(): string {
+    return this.coreConfig.recaptchaSecretKey || '';
   }
 
   async verify(token: string): Promise<boolean> {
-    if (!this.secretKey) {
+    const secretKey = this.getSecretKey();
+
+    if (!secretKey) {
       return true;
     }
 
@@ -31,28 +37,37 @@ export class RecaptchaService {
       return false;
     }
 
-    const formData = new URLSearchParams();
-    formData.append('secret', this.secretKey);
-    formData.append('response', token);
+    try {
+      const formData = new URLSearchParams();
+      formData.append('secret', secretKey);
+      formData.append('response', token);
 
-    const response = await fetch(this.verifyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
+      const response = await fetch(this.verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        return false;
+      }
+
+      const data: RecaptchaResponse = await response.json();
+
+      if (!data.success || data.score < this.scoreThreshold) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.loggerService.error(
+        `Ошибка проверки reCAPTCHA: ${error.message}`,
+        error.stack,
+        RecaptchaService.name,
+      );
       return false;
     }
-
-    const data: RecaptchaResponse = await response.json();
-
-    if (!data.success || data.score < this.scoreThreshold) {
-      return false;
-    }
-
-    return true;
   }
 }

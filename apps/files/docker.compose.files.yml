@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:15
-    container_name: files_postgres
+    container_name: lumio_files_postgres
     environment:
       POSTGRES_DB: files
       POSTGRES_USER: postgres
@@ -9,28 +9,7 @@ services:
     ports:
       - '5433:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - lumio_network
-
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: files_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - '5672:5672'
-      - '15672:15672'
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - lumio_network
+      - postgres_data_files:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
-  rabbitmq_data:
-
-networks:
-  lumio_network:
-    external: true
+  postgres_data_files:

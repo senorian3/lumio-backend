@@ -15,20 +15,22 @@ import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecas
 import { AuthService } from './auth/application/auth.service';
 import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
 import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
-import { GithubStrategy } from '../../core/guards/oauth2-github/oauth2-github.guard';
 import { PassportModule } from '@nestjs/passport';
-import { LoginUserGitHubUseCase } from './auth/application/use-cases/login-user-github.usecase';
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UserRepository } from './users/domain/infrastructure/user.repository';
-import { GoogleStrategy } from '@lumio/core/guards/oauth2-google/oauth2-google.guard';
-import { LoginUserGoogleUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-google.usecase';
 import { LogoutUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
 import { RegistrationConfirmationUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserSchedulerService } from './scheduler/users-scheduler';
+import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
+import { LoginUserYandexUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
+import { LoggerModule } from '@libs/logger/logger.module';
+import { RefreshTokenUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
+import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -66,10 +68,10 @@ const useCases = [
   LoginUserUseCase,
   PasswordRecoveryUseCase,
   NewPasswordUseCase,
-  LoginUserGitHubUseCase,
-  LoginUserGoogleUseCase,
   LogoutUserUseCase,
   RegistrationConfirmationUserUseCase,
+  LoginUserYandexUseCase,
+  RefreshTokenUseCase,
 ];
 
 const services = [
@@ -80,7 +82,7 @@ const services = [
   AuthService,
 ];
 
-const strategies = [GithubStrategy, JwtStrategy, GoogleStrategy];
+const strategies = [JwtStrategy, YandexStrategy];
 
 @Module({
   imports: [
@@ -88,16 +90,20 @@ const strategies = [GithubStrategy, JwtStrategy, GoogleStrategy];
     SessionsModule,
     JwtModule,
     ScheduleModule.forRoot(),
+    LoggerModule,
   ],
   controllers: [AuthController],
   providers: [
     UserAccountsConfig,
     UserRepository,
     UserSchedulerService,
+    AboutUserQueryHandler,
+    UserQueryRepository,
     ...useCases,
     ...services,
     ...strategies,
     ...jwtProviders,
   ],
+  exports: [UserRepository, UserAccountsConfig],
 })
 export class UserAccountsModule {}

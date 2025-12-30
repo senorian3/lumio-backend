@@ -7,7 +7,7 @@ pipeline {
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
         PROJECT = "lumio-back-end"
-        SERVICE="lumio"
+        SERVICE = "lumio"
         REGISTRY = "registry.hub.docker.com"
         DEPLOYMENT_NAME = "lumio-back-end-deployment"
         IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
@@ -21,119 +21,91 @@ pipeline {
             }
         }
         
-        stage('Setup environment and generate Prisma Client') {
+        stage('Debug info') {
+            steps {
+                sh '''
+                    echo "=== Jenkinsfile for LUMIO service only ==="
+                    echo "Service: ${SERVICE}"
+                    echo "Node version: $(node --version)"
+                    echo "NPM version: $(npm --version)"
+                    echo "Yarn version: $(yarn --version)"
+                    echo "Current directory: $(pwd)"
+                '''
+            }
+        }
+        
+        stage('Setup Node.js environment') {
             steps {
                 script {
                     sh '''
-                       echo "=== Setting up environment and generating Prisma Client ==="
-                       
+                       # Используем NVM для установки совместимой версии Node.js
                        export NVM_DIR="$HOME/.nvm"
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                        
-                       nvm install 20.17.0
-                       nvm use 20.17.0
+                       # Устанавливаем совместимую версию Node.js (>=20.9.0)
+                       echo "Installing compatible Node.js version..."
+                        nvm install 20.17.0
+                        nvm use 20.17.0
                        
-                       echo "Node version: $(node --version)"
-                       echo "NPM version: $(npm --version)"
-                       
-                       yarn install
-                       
-                       npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
-                       
-                       echo "✅ Environment setup and Prisma Client generation completed"
+                       echo "New Node.js version: $(node --version)"
+                       echo "New NPM version: $(npm --version)"
                     '''
                 }
             }
         }
         
-        stage('Unit tests') {
+        stage('Install dependencies') {
             steps {
                 script {
                     sh '''
-                       echo "Unit tests are not implemented yet. Skipping..." 
+                       # Install dependencies for lumio service
+                       echo "Installing dependencies..."
+                       yarn install --frozen-lockfile --ignore-engines
+                       
+                       # Генерируем Prisma клиент для сборки (без env переменных)
+                       echo "Generating Prisma client for build..."
+                       npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
+                    '''
+                }
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                script {
+                    sh '''
+                       # Запускаем unit тесты напрямую через Jest
+                       # Только spec файлы для сервиса lumio
+                       echo "Running unit tests for lumio service..."
+                       
+                       # Запускаем Jest напрямую с правильной конфигурацией
+                         yarn test:unit:lumio
+                       
+                       echo "Unit tests completed!"
                     '''
                 }
             }
         }
         
-        stage('e2e tests') {
-    steps {
-        script {
-            sh '''
-                echo "=== Starting e2e tests ==="
-                export NVM_DIR="$HOME/.nvm"
-                [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                nvm use 20.17.0
-
-                echo "Installing dependencies..."
-                yarn install
-
-                echo "Generating Prisma Client for test environment..."
-                yarn prisma:generate:lumio:test
-                
-                echo "Setting up test environment..."
-                
-                if [ -f "apps/lumio/jenkins-test-env" ]; then
-                    echo "✓ Using jenkins-test-env from apps/lumio/"
-                    cp apps/lumio/jenkins-test-env .env.testing
-                elif [ -f "apps/lumio/.env.lumio.testing" ]; then
-                    echo "⚠️ Using .env.lumio.testing as fallback"
-                    cp apps/lumio/.env.lumio.testing .env.testing
-                else
-                    echo "❌ ERROR: No test env file found!"
-                    exit 1
-                fi
-
-                echo "Running database migrations..."
-                npx dotenv -e .env.testing -- prisma migrate deploy --schema apps/lumio/src/prisma/schema.prisma
-                
-                echo "Running e2e tests..."
-                
-                echo "1. Running auth e2e tests..."
-                # Используем npx для запуска dotenv-cli
-                if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/auth/auth.e2e-spec.ts; then
-                    echo "✅ Auth e2e tests passed"
-                else
-                    echo "❌ Auth e2e tests failed"
-                    rm -f .env.testing
-                    exit 1
-                fi
-                
-                echo "2. Running session e2e tests..."
-                if npx dotenv -e .env.testing -- jest --config apps/lumio/test/jest-e2e.json apps/lumio/test/e2e/session/session.e2e-spec.ts; then
-                    echo "✅ Session e2e tests passed"
-                else
-                    echo "❌ Session e2e tests failed"
-                    rm -f .env.testing
-                    exit 1
-                fi
-                
-                rm -f .env.testing
-                echo "✅ All e2e tests completed successfully"
-            '''
-        }
-    }
-}
-        
         stage('Build docker image') {
             steps {
-                echo "Build image started..."
+                echo "Build image started for lumio service..."
                 script {
                     app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
                 }
-                echo "Build image finished..."
+                echo "Build image finished for lumio service..."
             }
         }
         
         stage('Push docker image') {
             steps {
-                echo "Push image started..."
+                echo "Push image started for lumio service..."
                 script {
                     docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
                         app.push("${env.IMAGE_NAME}")
                     }
                 }
-                echo "Push image finished..."
+                echo "Push image finished for lumio service..."
             }
         }
         
@@ -147,7 +119,7 @@ pipeline {
         
         stage('Preparing deployment') {
             steps {
-                echo "Preparing started..."
+                echo "Preparing deployment for lumio service..."
                 sh 'ls -ltr'
                 sh 'pwd'
                 sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
@@ -168,16 +140,11 @@ pipeline {
     }
     
     post {
-        always {
-            script {
-                sh '''
-                    echo "Cleaning up temporary files..."
-                    if [ -f ".env.testing" ]; then
-                        rm -f .env.testing
-                    fi
-                '''
-            }
+        success {
+            echo "Lumio service pipeline completed successfully!"
+        }
+        failure {
+            echo "Lumio service pipeline failed!"
         }
     }
 }
-

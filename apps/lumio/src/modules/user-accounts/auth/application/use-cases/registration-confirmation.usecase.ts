@@ -7,10 +7,11 @@ export class RegistrationConfirmationUserCommand {
 }
 
 @CommandHandler(RegistrationConfirmationUserCommand)
-export class RegistrationConfirmationUserUseCase
-  implements ICommandHandler<RegistrationConfirmationUserCommand, void>
-{
-  constructor(private userRepository: UserRepository) {}
+export class RegistrationConfirmationUserUseCase implements ICommandHandler<
+  RegistrationConfirmationUserCommand,
+  void
+> {
+  constructor(private readonly userRepository: UserRepository) {}
   async execute({
     confirmCode,
   }: RegistrationConfirmationUserCommand): Promise<void> {
@@ -39,5 +40,7 @@ export class RegistrationConfirmationUserUseCase
     }
 
     await this.userRepository.confirmEmail(userEmailConfirmation.userId);
+
+    return;
   }
 }

@@ -11,12 +11,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Add your file-related models here in the future
-// Example:
-// model File {
-//   id        Int      @id @default(autoincrement())
-//   filename  String
-//   path      String
-//   size      Int
-//   createdAt DateTime @default(now())
-// }
+model PostFile {
+    id         Int   @id @default(autoincrement())
+    key         String   @unique
+    url         String
+    mimetype    String
+    size        Int
+    createdAt   DateTime @default(now())
+    deletedAt   DateTime?
+    postId      Int?
+}

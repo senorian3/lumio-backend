@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@libs/*": ["../../libs/*"],
+      "@files/*": ["src/*"],
+      "@lumio/*": ["../../apps/lumio/src/*"],
+      "generated/*": ["../../generated/*"]
+    },
+    "types": ["jest", "node", "multer"],
+    "module": "commonjs"
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.d.ts"]
+}

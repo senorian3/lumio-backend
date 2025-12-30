@@ -5,9 +5,7 @@ import { configValidationUtility } from '@libs/settings/config-valdation.utility
 
 export enum Environments {
   DEVELOPMENT = 'development',
-  STAGING = 'staging',
   PRODUCTION = 'production',
-  TESTING = 'testing',
 }
 
 @Injectable()
@@ -15,7 +13,7 @@ export class CoreConfig {
   @IsNumber(
     {},
     {
-      message: 'Set Env variable PORT, example: 3000',
+      message: 'Set Env variable PORT, example: 3001',
     },
   )
   port: number = Number(this.configService.get('PORT'));
@@ -41,13 +39,26 @@ export class CoreConfig {
     this.configService.get('IS_SWAGGER_ENABLED'),
   ) as boolean;
 
-  @IsBoolean({
-    message:
-      'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
-  })
-  includeTestingModule: boolean = configValidationUtility.convertToBoolean(
-    this.configService.get('INCLUDE_TESTING_MODULE'),
-  ) as boolean;
+  @IsNotEmpty({ message: 'Set Env variable S3_ENDPOINT' })
+  s3Endpoint: string = this.configService.get('S3_ENDPOINT');
+
+  @IsNotEmpty({ message: 'Set Env variable S3_REGION' })
+  s3Region: string = this.configService.get('S3_REGION');
+
+  @IsNotEmpty({ message: 'Set Env variable S3_ACCESS_KEY_ID' })
+  s3AccessKeyId: string = this.configService.get('S3_ACCESS_KEY_ID');
+
+  @IsNotEmpty({ message: 'Set Env variable S3_KMS_KEY_ID' })
+  s3KmsKeyId: string = this.configService.get('S3_KMS_KEY_ID');
+
+  @IsNotEmpty({ message: 'Set Env variable S3_SECRET_ACCESS_KEY' })
+  s3SecretAccessKey: string = this.configService.get('S3_SECRET_ACCESS_KEY');
+
+  @IsNotEmpty({ message: 'Set Env variable S3_BUCKET_NAME' })
+  s3BucketName: string = this.configService.get('S3_BUCKET_NAME');
+
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
+  internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);

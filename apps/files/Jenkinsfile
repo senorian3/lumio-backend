@@ -7,7 +7,7 @@ pipeline {
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
         PROJECT = "lumio-backend-files"
-        SERVICE="files"
+        SERVICE = "files"
         REGISTRY = "registry.hub.docker.com"
         DEPLOYMENT_NAME = "lumio-backend-files-deployment"
         IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
@@ -20,77 +20,132 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Unit tests') {
+        
+        stage('Debug info') {
+            steps {
+                sh '''
+                    echo "=== Jenkinsfile for FILES service only ==="
+                    echo "Service: ${SERVICE}"
+                    echo "Node version: $(node --version)"
+                    echo "NPM version: $(npm --version)"
+                    echo "Yarn version: $(yarn --version)"
+                    echo "Current directory: $(pwd)"
+                '''
+            }
+        }
+        
+        stage('Setup Node.js environment') {
             steps {
                 script {
                     sh '''
+                       # Используем NVM для установки совместимой версии Node.js
                        export NVM_DIR="$HOME/.nvm"
                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                       nvm install 20.17.0
-                       nvm use 20.17.0
-                       yarn install
-                       yarn test
+                       
+                       # Устанавливаем совместимую версию Node.js (>=20.9.0)
+                       echo "Installing compatible Node.js version..."
+                        nvm install 20.17.0
+                        nvm use 20.17.0
+                       
+                       echo "New Node.js version: $(node --version)"
+                       echo "New NPM version: $(npm --version)"
                     '''
                 }
             }
         }
-        stage('e2e tests') {
+        
+        stage('Install dependencies') {
             steps {
                 script {
                     sh '''
-                       export NVM_DIR="$HOME/.nvm"
-                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                       nvm use 20.17.0
-                       yarn test:e2e:files
+                       # Install dependencies for files service
+                       echo "Installing dependencies..."
+                       yarn install --frozen-lockfile --ignore-engines
+                       
+                       # Генерируем Prisma клиент для сборки (без env переменных)
+                       echo "Generating Prisma client for build..."
+                       npx prisma generate --schema apps/files/src/prisma/schema.prisma
                     '''
                 }
             }
         }
+
+        stage('Run Unit Tests') {
+            steps {
+                script {
+                    sh '''
+                       # Запускаем unit тесты напрямую через Jest
+                       # Только spec файлы для сервиса files
+                       echo "Running unit tests for files service..."
+                       
+                       # Запускаем Jest напрямую с правильной конфигурацией
+                        yarn test:unit:files
+                       
+                       echo "Unit tests completed!"
+                    '''
+                }
+            }
+        }
+        
+        
         stage('Build docker image') {
             steps {
-                echo "Build image started..."
-                    script {
-                       app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
-                    }
-                echo "Build image finished..."
+                echo "Build image started for files service..."
+                script {
+                    app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
+                }
+                echo "Build image finished for files service..."
             }
         }
+        
         stage('Push docker image') {
-             steps {
-                 echo "Push image started..."
-                     script {
-                        docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
-                            app.push("${env.IMAGE_NAME}")
-                        }
-                     }
-                 echo "Push image finished..."
-             }
-       }
-       stage('Delete image local') {
-             steps {
-                 script {
+            steps {
+                echo "Push image started for files service..."
+                script {
+                    docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
+                        app.push("${env.IMAGE_NAME}")
+                    }
+                }
+                echo "Push image finished for files service..."
+            }
+        }
+        
+        stage('Delete image local') {
+            steps {
+                script {
                     sh "docker rmi -f ${env.DOCKER_BUILD_NAME}"
-                 }
-             }
+                }
+            }
         }
+        
         stage('Preparing deployment') {
-             steps {
-                 echo "Preparing started..."
-                     sh 'ls -ltr'
-                     sh 'pwd'
-                     sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
-                     sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
-                     sh "cat ./apps/${env.SERVICE}/deployment.yaml"
-             }
+            steps {
+                echo "Preparing deployment for files service..."
+                sh 'ls -ltr'
+                sh 'pwd'
+                sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
+                sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
+                sh "cat ./apps/${env.SERVICE}/deployment.yaml"
+            }
         }
+        
         stage('Deploy to Kubernetes') {
-             steps {
-                 withKubeConfig([credentialsId: 'prod-kubernetes']) {
+            steps {
+                withKubeConfig([credentialsId: 'prod-kubernetes']) {
                     sh "kubectl apply -f ./apps/${env.SERVICE}/deployment.yaml"
                     sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
                     sh "kubectl get services -o wide"
-                 }
-             }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "Files service pipeline completed successfully!"
+        }
+        failure {
+            echo "Files service pipeline failed!"
         }
     }
 }

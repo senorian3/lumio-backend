@@ -1,7 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { initAppModule } from './init-app-module';
-import { appSetup } from './settings';
+import { Logger } from '@nestjs/common';
 import { CoreConfig } from '@files/core/core.config';
+import { initAppModule } from './init-app-module';
+import { appSetup } from './app-setup';
 
 async function bootstrap() {
   const DynamicAppModule = await initAppModule();
@@ -15,8 +16,8 @@ async function bootstrap() {
   const port = coreConfig.port;
 
   await app.listen(port, () => {
-    console.log('App starting listen port: ', port);
-    console.log('NODE_ENV: ', coreConfig.env);
+    Logger.log(`Files starting listen port: ${port}`);
+    Logger.log(`NODE_ENV: ${coreConfig.env}`);
   });
 }
 bootstrap();

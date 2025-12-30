@@ -5,7 +5,6 @@ import { configValidationUtility } from '@libs/settings/config-valdation.utility
 
 export enum Environments {
   DEVELOPMENT = 'development',
-  STAGING = 'staging',
   PRODUCTION = 'production',
   TESTING = 'testing',
 }
@@ -14,6 +13,11 @@ export enum Environments {
 export class CoreConfig {
   @IsNumber({}, { message: 'Set Env variable PORT, example: 3000' })
   port: number = Number(this.configService.get('PORT'));
+
+  @IsNotEmpty({
+    message: 'Set Env variable FRONTEND_URL',
+  })
+  frontendUrl: string = this.configService.get('FRONTEND_URL');
 
   @IsNotEmpty({
     message:
@@ -44,23 +48,23 @@ export class CoreConfig {
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
 
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_ID' })
-  githubClientId: string = this.configService.get('GITHUB_CLIENT_ID');
+  @IsNotEmpty({ message: 'Set Env variable RECAPTCHA_SECRET_KEY' })
+  recaptchaSecretKey: string = this.configService.get('RECAPTCHA_SECRET_KEY');
 
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CLIENT_SECRET' })
-  githubClientSecret: string = this.configService.get('GITHUB_CLIENT_SECRET');
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_ID' })
+  yandexClientId: string = this.configService.get('YANDEX_CLIENT_ID');
 
-  @IsNotEmpty({ message: 'Set Env variable GITHUB_CALLBACK_URL' })
-  githubCallbackUrl: string = this.configService.get('GITHUB_CALLBACK_URL');
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CLIENT_SECRET' })
+  yandexClientSecret: string = this.configService.get('YANDEX_CLIENT_SECRET');
 
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_ID' })
-  googleClientId: string = this.configService.get('GOOGLE_CLIENT_ID');
+  @IsNotEmpty({ message: 'Set Env variable YANDEX_CALLBACK_URL' })
+  yandexCallbackUrl: string = this.configService.get('YANDEX_CALLBACK_URL');
 
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CLIENT_SECRET' })
-  googleClientSecret: string = this.configService.get('GOOGLE_CLIENT_SECRET');
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
+  internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
-  @IsNotEmpty({ message: 'Set Env variable GOOGLE_CALLBACK_URL' })
-  googleCallbackUrl: string = this.configService.get('GOOGLE_CALLBACK_URL');
+  @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
+  filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
 
   @IsNumber(
     {},
@@ -73,7 +77,7 @@ export class CoreConfig {
   @IsNumber({}, { message: 'Set Env variable THROTTLER_LIMIT, example: 5' })
   throttlerLimit: number = Number(this.configService.get('THROTTLER_LIMIT'));
 
-  constructor(private configService: ConfigService<any, true>) {
+  constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
 }
