@@ -79,7 +79,7 @@ pipeline {
                        echo "Running unit tests for lumio service..."
                        
                        # Запускаем Jest напрямую с правильной конфигурацией
-                         npx jest apps/lumio \
+                         npx jest --roots apps/lumio \
                            --testPathPattern=".*\\\\.spec\\\\.ts$" \
                            --passWithNoTests \
                            --verbose \
