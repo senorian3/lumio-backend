@@ -32,8 +32,11 @@
     "format": "prettier --write \"{apps,libs}/**/*.{ts,js,json,md}\" \"*.{js,json,md}\"",
     "prepare": "husky",
     "test:unit:lumio": "jest apps/lumio --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
-    "test:unit": "jest --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
+    "test:unit:files": "jest apps/files --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
     "test:coverage:lumio": "jest apps/lumio --coverage --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
+    "test:coverage:files": "jest apps/files --coverage --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
+    "test:unit:all": "jest apps --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
+    "test:coverage:all": "jest apps --coverage --testPathPattern=\".*\\\\.spec\\\\.ts$\"",
     "test": "jest --testPathPattern=\".*\\\\.spec\\\\.ts$\""
   },
   "dependencies": {
