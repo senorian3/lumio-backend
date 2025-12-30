@@ -75,16 +75,17 @@ pipeline {
                 script {
                     sh '''
                        # Запускаем unit тесты напрямую через Jest
-                       # Только spec файлы для сервиса lumio
+                       # Только spec файлы для сервиса files
                        echo "Running unit tests for files service..."
                        
                        # Запускаем Jest напрямую с правильной конфигурацией
-                         npx jest apps/files \
-                           --testPathPattern=".*\\\\.spec\\\\.ts$" \
-                           --passWithNoTests \
-                           --verbose \
-                           --coverage \
-                           --coverageDirectory=./coverage/files
+                          npx jest --selectProjects files \
+                    --passWithNoTests \
+                    --verbose \
+                    --coverage \
+                    --coverageDirectory=./coverage/files \
+                    --testNamePattern=".*" \
+                    --runInBand
                        
                        echo "Unit tests completed!"
                     '''

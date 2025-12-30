@@ -79,12 +79,13 @@ pipeline {
                        echo "Running unit tests for lumio service..."
                        
                        # Запускаем Jest напрямую с правильной конфигурацией
-                         npx jest apps/lumio \
-                           --testPathPattern=".*\\\\.spec\\\\.ts$" \
-                           --passWithNoTests \
-                           --verbose \
-                           --coverage \
-                           --coverageDirectory=./coverage/lumio
+                         npx jest --selectProjects lumio \
+                    --passWithNoTests \
+                    --verbose \
+                    --coverage \
+                    --coverageDirectory=./coverage/lumio \
+                    --testNamePattern=".*" \
+                    --runInBand
                        
                        echo "Unit tests completed!"
                     '''

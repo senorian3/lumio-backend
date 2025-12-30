@@ -4,8 +4,8 @@
     "baseUrl": "./",
     "paths": {
       "@libs/*": ["../../libs/*"],
-      "@lumio/*": ["src/*"],
-      "@files/*": ["../../apps/files/src/*"]
+      "@files/*": ["src/*"],
+      "@lumio/*": ["../../apps/lumio/src/*"]
     },
     "types": ["jest", "node"],
     "module": "commonjs"
