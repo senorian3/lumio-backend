@@ -29,17 +29,7 @@ export function ApiDeletePost() {
             ],
           },
         },
-        post_not_found: {
-          summary: 'Post does not exist',
-          value: {
-            errorMessages: [
-              {
-                message: 'Post does not exist',
-                field: 'postId',
-              },
-            ],
-          },
-        },
+
         file_not_deleted: {
           summary: 'Failed to delete files',
           value: {
@@ -83,6 +73,24 @@ export function ApiDeletePost() {
               {
                 message: 'Post does not belong to the user',
                 field: 'post',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 404,
+      description: 'Not found',
+      examples: {
+        post_not_found: {
+          summary: 'Post does not exist',
+          value: {
+            errorMessages: [
+              {
+                message: 'Post does not exist',
+                field: 'postId',
               },
             ],
           },
