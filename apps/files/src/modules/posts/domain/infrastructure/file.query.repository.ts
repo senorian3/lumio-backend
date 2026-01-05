@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
 import { PrismaService } from '@files/prisma/prisma.service';
+import { PostFileEntity } from '../entities/post-file.entity';
 
 @Injectable()
 export class QueryFileRepository {

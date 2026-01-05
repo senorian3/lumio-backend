@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
-import { FilesService } from '../s3.service';
+import { FilesService } from '../../../../core/services/s3.service';
+import { FileRepository } from '../../domain/infrastructure/file.repository';
 
 export class DeletedPostFileCommand {
   constructor(public readonly postId: number) {}

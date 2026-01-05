@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { QueryFileRepository } from '../../domain/infrastructure/file.query.repository';
 
 export class GetAllFilesByPostUserQuery {
   constructor(public readonly postId: number) {}

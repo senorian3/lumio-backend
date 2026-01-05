@@ -9,9 +9,9 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
-import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { PostFileEntity } from '../../modules/posts/domain/entities/post-file.entity';
 
 @Injectable()
 export class FilesService {
@@ -19,7 +19,7 @@ export class FilesService {
   private readonly bucketName: string;
   private readonly region: string;
   private readonly endpoint: string;
-  private readonly urlExpirationTime: number = 60 * 60 * 24 * 7; // 1 weak
+  private readonly urlExpirationTime: number = 60 * 60 * 24 * 7; // 1 week
   private readonly kmsKeyId: string;
   private readonly accessKeyId: string;
   private readonly secretAccessKey: string;
@@ -47,7 +47,8 @@ export class FilesService {
   }
 
   async uploadFiles(
-    postId: number,
+    type: 'users' | 'posts',
+    id: number,
     files: Array<{ buffer: any; originalname: string }>,
   ): Promise<PostFileEntity[]> {
     const uploadedFiles = [];
@@ -75,8 +76,8 @@ export class FilesService {
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
       const uniqueId = randomUUID().split('-')[0];
-      const fileName = `${postId}_image_${i + 1}_${uniqueId}.${fileExtension}`;
-      const fileKey = `content/posts/${postId}/${fileName}`;
+      const fileName = `${id}_image_${i + 1}_${uniqueId}.${fileExtension}`;
+      const fileKey = `content/${type}/${id}/${fileName}`;
 
       try {
         const uploadCommand = new PutObjectCommand({

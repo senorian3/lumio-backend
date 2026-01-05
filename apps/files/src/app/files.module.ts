@@ -1,16 +1,16 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { FilesController } from '../modules/api/files.controller';
-import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
 import { PrismaModule } from '@files/prisma/prisma.module';
 import { CoreModule } from '@files/core/core.module';
 import { CoreConfig } from '@files/core/core.config';
-import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
-import { FilesService } from '@files/modules/application/s3.service';
-import { DeletedPostFilePostUseCase } from '@files/modules/application/use-cases/deleted-post-file.usecase';
-import { GetAllFilesByPostUserQueryHandler } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
-import { UploadFilesCreatedPostUseCase } from '@files/modules/application/use-cases/upload-post-file.usecase';
 import { LoggerModule } from '@libs/logger/logger.module';
+import { FilesController } from '@files/modules/posts/api/files.controller';
+import { GetAllFilesByPostUserQueryHandler } from '@files/modules/posts/application/queries/get-all-files-by-post.query-handler';
+import { FilesService } from '@files/core/services/s3.service';
+import { DeletedPostFilePostUseCase } from '@files/modules/posts/application/use-cases/deleted-post-file.usecase';
+import { UploadFilesCreatedPostUseCase } from '@files/modules/posts/application/use-cases/upload-post-file.usecase';
+import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
+import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
 
 const services = [FilesService];
 
