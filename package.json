@@ -36,7 +36,7 @@
     "test:coverage:lumio": "jest --selectProjects lumio --coverage",
     "test:coverage:files": "jest --selectProjects files --coverage",
     "test:unit:all": "jest --selectProjects lumio files --runInBand",
-    "test:coverage:all": "jest --selectProjects --coverage",
+    "test:coverage:all": "jest --selectProjects lumio files --runInBand --coverage",
     "test": "jest"
   },
   "dependencies": {
