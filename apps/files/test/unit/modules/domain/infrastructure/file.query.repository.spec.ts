@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { QueryFileRepository } from '@files/modules/domain/infrastructure/file.query.repository';
+import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
+import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
 import { PrismaService } from '@files/prisma/prisma.service';
-import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('QueryFileRepository', () => {
   let repository: QueryFileRepository;
