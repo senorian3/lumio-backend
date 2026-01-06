@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  RegistrationConfirmationUserUseCase,
+  RegistrationConfirmationUserCommandHandler,
   RegistrationConfirmationUserCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/registration-confirmation.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 
-describe('RegistrationConfirmationUserUseCase', () => {
-  let useCase: RegistrationConfirmationUserUseCase;
+describe('RegistrationConfirmationUserCommandHandler', () => {
+  let useCase: RegistrationConfirmationUserCommandHandler;
   let mockUserRepository: UserRepository;
 
   const mockConfirmCode = 'abc123';
@@ -30,7 +30,7 @@ describe('RegistrationConfirmationUserUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RegistrationConfirmationUserUseCase,
+        RegistrationConfirmationUserCommandHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -41,8 +41,8 @@ describe('RegistrationConfirmationUserUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<RegistrationConfirmationUserUseCase>(
-      RegistrationConfirmationUserUseCase,
+    useCase = module.get<RegistrationConfirmationUserCommandHandler>(
+      RegistrationConfirmationUserCommandHandler,
     );
     mockUserRepository = module.get<UserRepository>(UserRepository);
   });

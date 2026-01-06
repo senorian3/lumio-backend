@@ -17,7 +17,7 @@ export class UpdatePostCommand {
 }
 
 @CommandHandler(UpdatePostCommand)
-export class UpdatePostUseCase implements ICommandHandler<
+export class UpdatePostCommandHandler implements ICommandHandler<
   UpdatePostCommand,
   PostView
 > {

@@ -2,7 +2,7 @@ import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
-import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
+import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/commands/create-user.command-handler';
 import { RegistrationTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/registration.transfer.dto';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -12,7 +12,7 @@ export class RegisterUserCommand {
 }
 
 @CommandHandler(RegisterUserCommand)
-export class RegisterUserUseCase implements ICommandHandler<
+export class RegisterUserCommandHandler implements ICommandHandler<
   RegisterUserCommand,
   void
 > {
@@ -68,7 +68,7 @@ export class RegisterUserUseCase implements ICommandHandler<
         this.loggerService.error(
           `Ошибка отправки email: ${error.message}`,
           error.stack,
-          RegisterUserUseCase.name,
+          RegisterUserCommandHandler.name,
         );
       });
 

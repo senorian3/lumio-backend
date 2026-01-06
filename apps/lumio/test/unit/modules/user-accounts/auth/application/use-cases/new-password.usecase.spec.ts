@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  NewPasswordUseCase,
+  NewPasswordCommandHandler,
   NewPasswordCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/new-password.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/new-password.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 
 describe('NewPasswordUseCase', () => {
-  let useCase: NewPasswordUseCase;
+  let useCase: NewPasswordCommandHandler;
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
   let mockSessionRepository: SessionRepository;
@@ -30,7 +30,7 @@ describe('NewPasswordUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        NewPasswordUseCase,
+        NewPasswordCommandHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -53,7 +53,7 @@ describe('NewPasswordUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<NewPasswordUseCase>(NewPasswordUseCase);
+    useCase = module.get<NewPasswordCommandHandler>(NewPasswordCommandHandler);
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockCryptoService = module.get<CryptoService>(CryptoService);
     mockSessionRepository = module.get<SessionRepository>(SessionRepository);

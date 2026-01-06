@@ -16,8 +16,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { GetAllFilesByPostUserQuery } from '../application/queries/get-all-files-by-post.query-handler';
-import { DeletedPostFileCommand } from '../application/use-cases/deleted-post-file.usecase';
-import { UploadFilesCreatedPostCommand } from '../application/use-cases/upload-post-file.usecase';
+import { DeletedPostFileCommand } from '../application/commands/deleted-post-file.command-handler';
+import { UploadFilesCreatedPostCommand } from '../application/commands/upload-post-file.command-handler';
 import { GetUserPostsDto } from './dto/input/get-user-post.input.dto';
 
 @Controller('files')

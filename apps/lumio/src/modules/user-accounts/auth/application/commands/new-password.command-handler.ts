@@ -10,7 +10,7 @@ export class NewPasswordCommand {
 }
 
 @CommandHandler(NewPasswordCommand)
-export class NewPasswordUseCase implements ICommandHandler<
+export class NewPasswordCommandHandler implements ICommandHandler<
   NewPasswordCommand,
   void
 > {

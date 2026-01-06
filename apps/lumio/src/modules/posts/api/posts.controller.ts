@@ -15,19 +15,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/command/create-post.usecase';
-import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/command/update-post.usecase';
+import { CreatePostCommand } from '@lumio/modules/posts/application/commands/create-post.command-handler';
+import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/command/delete-post.usecase';
+import { DeletePostCommand } from '@lumio/modules/posts/application/commands/delete-post.command-handler';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { ApiCreatePost } from '@lumio/core/decorators/swagger/posts/create-post.decorator';
 import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
 import { PostView } from './dto/output/create-post.output.dto';
-import { GetAllUserPostsCommand } from '../application/use-case/query/get-all-user-posts.usecase';
-import { GetCreatePostUserCommand } from '../application/use-case/query/get-by-id-create-post.usecase';
+import { GetAllUserPostsCommand } from '../application/queries/get-all-user-posts.query-handler';
+import { GetCreatePostUserCommand } from '../application/queries/get-by-id-create-post.query-handler';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';

@@ -1,14 +1,14 @@
 import { FilesService } from '@files/core/services/s3.service';
 import {
-  UploadFilesCreatedPostUseCase,
+  UploadFilesCreatedPostCommandHandler,
   UploadFilesCreatedPostCommand,
-} from '@files/modules/posts/application/use-cases/upload-post-file.usecase';
+} from '@files/modules/posts/application/commands/upload-post-file.command-handler';
 import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
 import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
 import { Test, TestingModule } from '@nestjs/testing';
 
-describe('UploadFilesCreatedPostUseCase', () => {
-  let useCase: UploadFilesCreatedPostUseCase;
+describe('UploadFilesCreatedPostCommandHandler', () => {
+  let useCase: UploadFilesCreatedPostCommandHandler;
   let mockFilesService: FilesService;
   let mockFileRepository: FileRepository;
 
@@ -49,7 +49,7 @@ describe('UploadFilesCreatedPostUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UploadFilesCreatedPostUseCase,
+        UploadFilesCreatedPostCommandHandler,
         {
           provide: FilesService,
           useValue: {
@@ -65,8 +65,8 @@ describe('UploadFilesCreatedPostUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<UploadFilesCreatedPostUseCase>(
-      UploadFilesCreatedPostUseCase,
+    useCase = module.get<UploadFilesCreatedPostCommandHandler>(
+      UploadFilesCreatedPostCommandHandler,
     );
     mockFilesService = module.get<FilesService>(FilesService);
     mockFileRepository = module.get<FileRepository>(FileRepository);

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
-import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
+import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';

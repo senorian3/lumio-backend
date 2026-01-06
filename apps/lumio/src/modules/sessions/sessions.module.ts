@@ -4,14 +4,14 @@ import { QuerySessionsRepository } from './domain/infrastructure/session.query.r
 import { SessionRepository } from './domain/infrastructure/session.repository';
 import { SessionsController } from './api/sessions.controller';
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
-import { DeleteAllSessionsUseCase } from './application/use-cases/command/delete-all-sessions.usecase';
-import { DeleteSessionUseCase } from './application/use-cases/command/delete-session.usecase';
-import { GetAllSessionsUseCase } from './application/use-cases/query/get-all-sessions.usecase';
+import { DeleteAllSessionsCommandHandler } from './application/commands/delete-all-sessions.command-handler';
+import { DeleteSessionCommandHandler } from './application/commands/delete-session.command-handler';
+import { GetAllSessionsQueryHandler } from './application/queries/get-all-sessions.query-handler';
 
 const useCases = [
-  DeleteAllSessionsUseCase,
-  GetAllSessionsUseCase,
-  DeleteSessionUseCase,
+  DeleteAllSessionsCommandHandler,
+  GetAllSessionsQueryHandler,
+  DeleteSessionCommandHandler,
 ];
 
 const repositories = [SessionRepository, QuerySessionsRepository];

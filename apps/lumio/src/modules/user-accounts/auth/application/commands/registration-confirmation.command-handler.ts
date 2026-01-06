@@ -7,7 +7,7 @@ export class RegistrationConfirmationUserCommand {
 }
 
 @CommandHandler(RegistrationConfirmationUserCommand)
-export class RegistrationConfirmationUserUseCase implements ICommandHandler<
+export class RegistrationConfirmationUserCommandHandler implements ICommandHandler<
   RegistrationConfirmationUserCommand,
   void
 > {

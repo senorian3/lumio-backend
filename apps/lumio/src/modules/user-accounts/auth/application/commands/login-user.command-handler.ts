@@ -22,7 +22,7 @@ export class LoginUserCommand {
 }
 
 @CommandHandler(LoginUserCommand)
-export class LoginUserUseCase implements ICommandHandler<
+export class LoginUserCommandHandler implements ICommandHandler<
   LoginUserCommand,
   { accessToken: string; refreshToken: string }
 > {

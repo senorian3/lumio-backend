@@ -8,7 +8,7 @@ export class CreateUserCommand {
 }
 
 @CommandHandler(CreateUserCommand)
-export class CreateUserUseCase implements ICommandHandler<
+export class CreateUserCommandHandler implements ICommandHandler<
   CreateUserCommand,
   number
 > {

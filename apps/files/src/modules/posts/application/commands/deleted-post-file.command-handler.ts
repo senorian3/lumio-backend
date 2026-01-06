@@ -7,7 +7,7 @@ export class DeletedPostFileCommand {
 }
 
 @CommandHandler(DeletedPostFileCommand)
-export class DeletedPostFilePostUseCase implements ICommandHandler<
+export class DeletedPostFileCommandHandler implements ICommandHandler<
   DeletedPostFileCommand,
   void
 > {

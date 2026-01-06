@@ -24,7 +24,7 @@ export class LoginUserYandexCommand {
 }
 
 @CommandHandler(LoginUserYandexCommand)
-export class LoginUserYandexUseCase implements ICommandHandler<
+export class LoginUserYandexCommandHandler implements ICommandHandler<
   LoginUserYandexCommand,
   { accessToken: string; refreshToken: string }
 > {

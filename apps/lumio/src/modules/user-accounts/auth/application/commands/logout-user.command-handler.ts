@@ -10,7 +10,7 @@ export class LogoutUserCommand {
 }
 
 @CommandHandler(LogoutUserCommand)
-export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand> {
+export class LogoutUserCommandHandler implements ICommandHandler<LogoutUserCommand> {
   constructor(private readonly sessionRepository: SessionRepository) {}
   async execute({ userId, deviceId }: LogoutUserCommand): Promise<void> {
     if (!userId || !deviceId) return;

@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  LoginUserYandexUseCase,
+  LoginUserYandexCommandHandler,
   LoginUserYandexCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/login-user-yandex.command-handler';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
@@ -14,7 +14,7 @@ import {
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 
 describe('LoginUserYandexUseCase', () => {
-  let useCase: LoginUserYandexUseCase;
+  let useCase: LoginUserYandexCommandHandler;
   let mockSessionRepository: SessionRepository;
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
@@ -56,7 +56,7 @@ describe('LoginUserYandexUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LoginUserYandexUseCase,
+        LoginUserYandexCommandHandler,
         {
           provide: SessionRepository,
           useValue: {
@@ -98,7 +98,9 @@ describe('LoginUserYandexUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<LoginUserYandexUseCase>(LoginUserYandexUseCase);
+    useCase = module.get<LoginUserYandexCommandHandler>(
+      LoginUserYandexCommandHandler,
+    );
     mockSessionRepository = module.get<SessionRepository>(SessionRepository);
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockCryptoService = module.get<CryptoService>(CryptoService);

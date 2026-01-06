@@ -12,13 +12,13 @@ import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/
 import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input.dto';
 import { InputNewPasswordDto } from '@lumio/modules/user-accounts/users/api/dto/input/new-password.input.dto';
 import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
-import { RegisterUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/register-user.usecase';
-import { LoginUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user.usecase';
-import { LogoutUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
-import { PasswordRecoveryCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/password-recovery.usecase';
-import { NewPasswordCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/new-password.usecase';
-import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
-import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { RegisterUserCommand } from '@lumio/modules/user-accounts/auth/application/commands/register-user.command-handler';
+import { LoginUserCommand } from '@lumio/modules/user-accounts/auth/application/commands/login-user.command-handler';
+import { LogoutUserCommand } from '@lumio/modules/user-accounts/auth/application/commands/logout-user.command-handler';
+import { PasswordRecoveryCommand } from '@lumio/modules/user-accounts/auth/application/commands/password-recovery.command-handler';
+import { NewPasswordCommand } from '@lumio/modules/user-accounts/auth/application/commands/new-password.command-handler';
+import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/commands/registration-confirmation.command-handler';
+import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
 
 describe('AuthController', () => {

@@ -17,7 +17,7 @@ export class RefreshTokenCommand {
 }
 
 @CommandHandler(RefreshTokenCommand)
-export class RefreshTokenUseCase implements ICommandHandler<
+export class RefreshTokenCommandHandler implements ICommandHandler<
   RefreshTokenCommand,
   { accessToken: string; refreshToken: string }
 > {

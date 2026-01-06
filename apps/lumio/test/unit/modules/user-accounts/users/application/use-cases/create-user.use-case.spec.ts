@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  CreateUserUseCase,
+  CreateUserCommandHandler,
   CreateUserCommand,
-} from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
+} from '@lumio/modules/user-accounts/users/application/commands/create-user.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { CreateUserTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/create-user.transfer.dto';
 
 describe('CreateUserUseCase', () => {
-  let useCase: CreateUserUseCase;
+  let useCase: CreateUserCommandHandler;
   let mockUserRepository: UserRepository;
   let mockCryptoService: CryptoService;
 
@@ -38,7 +38,7 @@ describe('CreateUserUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CreateUserUseCase,
+        CreateUserCommandHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -54,7 +54,7 @@ describe('CreateUserUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<CreateUserUseCase>(CreateUserUseCase);
+    useCase = module.get<CreateUserCommandHandler>(CreateUserCommandHandler);
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockCryptoService = module.get<CryptoService>(CryptoService);
   });

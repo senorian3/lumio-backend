@@ -4,19 +4,17 @@ import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session
 import { QuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.query.repository';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 
-export class GetAllSessionsCommand {
+export class GetAllSessionsQuery {
   constructor(public userId: number) {}
 }
 
-@QueryHandler(GetAllSessionsCommand)
-export class GetAllSessionsUseCase implements IQueryHandler<GetAllSessionsCommand> {
+@QueryHandler(GetAllSessionsQuery)
+export class GetAllSessionsQueryHandler implements IQueryHandler<GetAllSessionsQuery> {
   constructor(
     private readonly querySessionsRepository: QuerySessionsRepository,
   ) {}
 
-  async execute({
-    userId,
-  }: GetAllSessionsCommand): Promise<OutputSessionDto[]> {
+  async execute({ userId }: GetAllSessionsQuery): Promise<OutputSessionDto[]> {
     const allSessions: SessionEntity[] =
       await this.querySessionsRepository.getAllSessions(userId);
 

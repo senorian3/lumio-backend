@@ -14,7 +14,7 @@ export class PasswordRecoveryCommand {
 }
 
 @CommandHandler(PasswordRecoveryCommand)
-export class PasswordRecoveryUseCase implements ICommandHandler<
+export class PasswordRecoveryCommandHandler implements ICommandHandler<
   PasswordRecoveryCommand,
   void
 > {

@@ -2,10 +2,10 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { PostEntity } from '../../../domain/entities/post.entity';
+import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { HttpService } from '../../http.service';
+import { HttpService } from '../http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 export class CreatePostCommand {
@@ -17,7 +17,7 @@ export class CreatePostCommand {
 }
 
 @CommandHandler(CreatePostCommand)
-export class CreatePostUseCase implements ICommandHandler<
+export class CreatePostCommandHandler implements ICommandHandler<
   CreatePostCommand,
   { file: OutputFileType[]; postId: number }
 > {
@@ -54,7 +54,7 @@ export class CreatePostUseCase implements ICommandHandler<
       this.logger.error(
         `Failed to upload files for postId=${newPost.id}: ${error.message}`,
         error?.stack,
-        CreatePostUseCase.name,
+        CommandHandler.name,
       );
       throw BadRequestDomainException.create('Failed to upload files', 'files');
     }

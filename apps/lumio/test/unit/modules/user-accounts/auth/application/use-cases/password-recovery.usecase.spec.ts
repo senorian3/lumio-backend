@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  PasswordRecoveryUseCase,
+  PasswordRecoveryCommandHandler,
   PasswordRecoveryCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/password-recovery.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/password-recovery.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
@@ -11,7 +11,7 @@ import { RecaptchaService } from '@lumio/modules/user-accounts/adapters/recaptch
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 describe('PasswordRecoveryUseCase', () => {
-  let useCase: PasswordRecoveryUseCase;
+  let useCase: PasswordRecoveryCommandHandler;
   let mockUserRepository: UserRepository;
   let mockNodemailerService: NodemailerService;
   let mockRecaptchaService: RecaptchaService;
@@ -30,7 +30,7 @@ describe('PasswordRecoveryUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        PasswordRecoveryUseCase,
+        PasswordRecoveryCommandHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -65,7 +65,9 @@ describe('PasswordRecoveryUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<PasswordRecoveryUseCase>(PasswordRecoveryUseCase);
+    useCase = module.get<PasswordRecoveryCommandHandler>(
+      PasswordRecoveryCommandHandler,
+    );
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockNodemailerService = module.get<NodemailerService>(NodemailerService);
     mockRecaptchaService = module.get<RecaptchaService>(RecaptchaService);

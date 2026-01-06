@@ -6,7 +6,7 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { HttpService } from '../../http.service';
+import { HttpService } from '../http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
@@ -18,7 +18,7 @@ export class DeletePostCommand {
 }
 
 @CommandHandler(DeletePostCommand)
-export class DeletePostUseCase implements ICommandHandler<
+export class DeletePostCommandHandler implements ICommandHandler<
   DeletePostCommand,
   void
 > {
@@ -58,7 +58,7 @@ export class DeletePostUseCase implements ICommandHandler<
       this.logger.error(
         `Failed to delete files for postId=${command.postId}: ${error.message}`,
         error?.stack,
-        DeletePostUseCase.name,
+        CommandHandler.name,
       );
       throw BadRequestDomainException.create('Failed to delete files', 'files');
     }

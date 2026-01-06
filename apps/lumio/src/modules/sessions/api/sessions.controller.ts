@@ -15,9 +15,9 @@ import { SECURITY_BASE } from '@lumio/core/routs/routs';
 import { ApiGetAllSessions } from '@lumio/core/decorators/swagger/sessions/get-all-sessions.decorator';
 import { ApiDeleteSessionByDeviceId } from '@lumio/core/decorators/swagger/sessions/delete-session-by-deviceId.decorator';
 import { ApiDeleteAllSessionsExceptCurrent } from '@lumio/core/decorators/swagger/sessions/delete-all-sessions.decorator';
-import { GetAllSessionsCommand } from '../application/use-cases/query/get-all-sessions.usecase';
-import { DeleteSessionCommand } from '../application/use-cases/command/delete-session.usecase';
-import { DeleteAllSessionsCommand } from '../application/use-cases/command/delete-all-sessions.usecase';
+import { GetAllSessionsQuery } from '../application/queries/get-all-sessions.query-handler';
+import { DeleteSessionCommand } from '../application/commands/delete-session.command-handler';
+import { DeleteAllSessionsCommand } from '../application/commands/delete-all-sessions.command-handler';
 
 @UseGuards(RefreshTokenGuard)
 @Controller(SECURITY_BASE)
@@ -30,10 +30,9 @@ export class SessionsController {
   @Get()
   @ApiGetAllSessions()
   async getAllSessions(@Req() req: any): Promise<OutputSessionDto[]> {
-    return await this.queryBus.execute<
-      GetAllSessionsCommand,
-      OutputSessionDto[]
-    >(new GetAllSessionsCommand(req.user.userId));
+    return await this.queryBus.execute<GetAllSessionsQuery, OutputSessionDto[]>(
+      new GetAllSessionsQuery(req.user.userId),
+    );
   }
 
   @Delete(':deviceId')

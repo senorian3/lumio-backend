@@ -3,13 +3,13 @@ import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  DeleteAllSessionsUseCase,
+  DeleteAllSessionsCommandHandler,
   DeleteAllSessionsCommand,
-} from '@lumio/modules/sessions/application/use-cases/command/delete-all-sessions.usecase';
+} from '@lumio/modules/sessions/application/commands/delete-all-sessions.command-handler';
 import { DeleteAllSessionsTransferDto } from '@lumio/modules/sessions/api/dto/transfer/delete-all-sessions.transfer.dto';
 
 describe('DeleteAllSessionssUseCase', () => {
-  let useCase: DeleteAllSessionsUseCase;
+  let useCase: DeleteAllSessionsCommandHandler;
   let mockRepository: SessionRepository;
 
   const mockDeleteAllSessionsDto: DeleteAllSessionsTransferDto = {
@@ -33,7 +33,7 @@ describe('DeleteAllSessionssUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DeleteAllSessionsUseCase,
+        DeleteAllSessionsCommandHandler,
         {
           provide: SessionRepository,
           useValue: {
@@ -44,7 +44,9 @@ describe('DeleteAllSessionssUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<DeleteAllSessionsUseCase>(DeleteAllSessionsUseCase);
+    useCase = module.get<DeleteAllSessionsCommandHandler>(
+      DeleteAllSessionsCommandHandler,
+    );
     mockRepository = module.get<SessionRepository>(SessionRepository);
   });
 

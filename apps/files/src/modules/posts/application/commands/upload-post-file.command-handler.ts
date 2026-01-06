@@ -11,7 +11,7 @@ export class UploadFilesCreatedPostCommand {
 }
 
 @CommandHandler(UploadFilesCreatedPostCommand)
-export class UploadFilesCreatedPostUseCase implements ICommandHandler<
+export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
   UploadFilesCreatedPostCommand,
   void
 > {
