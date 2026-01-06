@@ -10,8 +10,8 @@ import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostFileEntity } from '../../modules/posts/domain/entities/post-file.entity';
+import { validateAndConvertBuffer } from '../utils/buffer-validation.utils';
 
 @Injectable()
 export class FilesService {
@@ -56,22 +56,11 @@ export class FilesService {
     for (let i = 0; i < files.length; i++) {
       const { buffer, originalname } = files[i];
 
-      let fileBuffer: Buffer;
-      if (Buffer.isBuffer(buffer)) {
-        fileBuffer = buffer;
-      } else if (buffer instanceof Uint8Array) {
-        fileBuffer = Buffer.from(buffer);
-      } else if (Array.isArray(buffer)) {
-        fileBuffer = Buffer.from(buffer);
-      } else {
-        this.logger.error(
-          `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
-        );
-        throw BadRequestDomainException.create(
-          'File cannot be uploaded. Unsupported buffer type',
-          'file',
-        );
-      }
+      const fileBuffer = validateAndConvertBuffer(
+        buffer,
+        originalname,
+        this.logger,
+      );
 
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
