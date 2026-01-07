@@ -16,6 +16,7 @@ export class QueryPostRepository {
       where: { id: postId },
       include: {
         user: true,
+        files: true,
       },
     });
   }
@@ -37,6 +38,7 @@ export class QueryPostRepository {
         orderBy: orderOptions,
         include: {
           user: true,
+          files: true,
         },
       }),
 

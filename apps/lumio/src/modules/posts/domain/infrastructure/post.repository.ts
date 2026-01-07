@@ -11,6 +11,7 @@ export class PostRepository {
       data: { userId, description },
       include: {
         user: true,
+        files: true,
       },
     });
 
@@ -22,6 +23,7 @@ export class PostRepository {
       where: { id: postId },
       include: {
         user: true,
+        files: true,
       },
     });
   }
@@ -35,6 +37,7 @@ export class PostRepository {
       data: { description },
       include: {
         user: true,
+        files: true,
       },
     });
   }
@@ -53,6 +56,7 @@ export class PostRepository {
       take,
       include: {
         user: true,
+        files: true,
       },
     });
   }

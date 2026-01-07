@@ -26,13 +26,13 @@ import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-
 import { ApiCreatePost } from '@lumio/core/decorators/swagger/posts/create-post.decorator';
 import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
 import { PostView } from './dto/output/create-post.output.dto';
-import { GetAllUserPostsCommand } from '../application/queries/get-all-user-posts.query-handler';
-import { GetCreatePostUserCommand } from '../application/queries/get-by-id-create-post.query-handler';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
 import { POSTS_BASE, POSTS_ROUTES } from '@lumio/core/routs/routs';
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
+import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
+import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
 
 @Controller(POSTS_BASE)
 export class PostsController {
@@ -50,8 +50,8 @@ export class PostsController {
     query: GetPostsQueryParams,
     @Req() req: any,
   ): Promise<number> {
-    return await this.queryBus.execute<GetAllUserPostsCommand, number>(
-      new GetAllUserPostsCommand(req.user.userId, query),
+    return await this.queryBus.execute<GetAllUserPostsQuery, number>(
+      new GetAllUserPostsQuery(req.user.userId, query),
     );
   }
 
@@ -70,10 +70,9 @@ export class PostsController {
       { file: OutputFileType[]; postId: number }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
-    const post = await this.queryBus.execute<
-      GetCreatePostUserCommand,
-      PostView
-    >(new GetCreatePostUserCommand(postFile.postId, postFile.file));
+    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
+      new GetCreatePostUserQuery(postFile.postId, postFile.file),
+    );
 
     return post;
   }
