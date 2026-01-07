@@ -49,6 +49,9 @@ export class CreatePostCommandHandler implements ICommandHandler<
         command.files,
       );
 
+      console.log(mappedFile);
+      await this.postRepository.createPostFiles(newPost.id, mappedFile);
+
       return { file: mappedFile, postId: newPost.id };
     } catch (error) {
       this.logger.error(

@@ -60,4 +60,13 @@ export class PostRepository {
       },
     });
   }
+
+  async createPostFiles(
+    postId: number,
+    files: Array<{ url: string }>,
+  ): Promise<void> {
+    await this.prisma.postFile.createMany({
+      data: files.map((file) => ({ postId, url: file.url })),
+    });
+  }
 }
