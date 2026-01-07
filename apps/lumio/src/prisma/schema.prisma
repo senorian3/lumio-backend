@@ -59,12 +59,24 @@ model Yandex {
 }
 
 model Post {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   description String?
 
-  createdAt   DateTime @default(now())
+  createdAt   DateTime   @default(now())
   deletedAt   DateTime?
 
   userId      Int
-  user        User     @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+
+  files       PostFile[]
+}
+
+model PostFile {
+  id      Int    @id @default(autoincrement())
+  postId  Int
+  url     String
+  createdAt   DateTime   @default(now())
+  deletedAt   DateTime?
+
+  post    Post   @relation(fields: [postId], references: [id])
 }
