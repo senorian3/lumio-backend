@@ -69,4 +69,12 @@ export class PostRepository {
       data: files.map((file) => ({ postId, url: file.url })),
     });
   }
+
+  async deletePostFilesByPostId(postId: number): Promise<void> {
+    await this.prisma.postFile.deleteMany({ where: { postId } });
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    await this.prisma.post.delete({ where: { id: postId } });
+  }
 }

@@ -49,7 +49,6 @@ export class CreatePostCommandHandler implements ICommandHandler<
         command.files,
       );
 
-      console.log(mappedFile);
       await this.postRepository.createPostFiles(newPost.id, mappedFile);
 
       return { file: mappedFile, postId: newPost.id };
@@ -59,6 +58,18 @@ export class CreatePostCommandHandler implements ICommandHandler<
         error?.stack,
         CommandHandler.name,
       );
+
+      try {
+        await this.postRepository.deletePostFilesByPostId(newPost.id);
+        await this.postRepository.deletePost(newPost.id);
+      } catch (cleanupError) {
+        this.logger.error(
+          `Cleanup failed for postId=${newPost.id}: ${cleanupError.message}`,
+          cleanupError?.stack,
+          CommandHandler.name,
+        );
+      }
+
       throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
   }
