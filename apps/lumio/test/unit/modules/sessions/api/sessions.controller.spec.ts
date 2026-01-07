@@ -3,9 +3,9 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { SessionsController } from '@lumio/modules/sessions/api/sessions.controller';
 import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session.output.dto';
-import { DeleteAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/command/delete-all-sessions.usecase';
-import { DeleteSessionCommand } from '@lumio/modules/sessions/application/use-cases/command/delete-session.usecase';
-import { GetAllSessionsCommand } from '@lumio/modules/sessions/application/use-cases/query/get-all-sessions.usecase';
+import { DeleteAllSessionsCommand } from '@lumio/modules/sessions/application/commands/delete-all-sessions.command-handler';
+import { DeleteSessionCommand } from '@lumio/modules/sessions/application/commands/delete-session.command-handler';
+import { GetAllSessionsQuery } from '@lumio/modules/sessions/application/queries/get-all-sessions.query-handler';
 
 describe('SessionsController', () => {
   let controller: SessionsController;
@@ -72,7 +72,7 @@ describe('SessionsController', () => {
 
       // Assert
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        new GetAllSessionsCommand(mockRequest.user.userId),
+        new GetAllSessionsQuery(mockRequest.user.userId),
       );
       expect(result).toEqual(mockSessions);
     });

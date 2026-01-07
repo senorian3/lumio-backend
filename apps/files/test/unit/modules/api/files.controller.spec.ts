@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { FilesController } from '@files/modules/api/files.controller';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { UploadFilesCreatedPostCommand } from '@files/modules/application/use-cases/upload-post-file.usecase';
-import { DeletedPostFileCommand } from '@files/modules/application/use-cases/deleted-post-file.usecase';
-import { GetAllFilesByPostUserQuery } from '@files/modules/application/queries/get-all-files-by-post.query-handler';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { FilesController } from '@files/modules/posts/api/files.controller';
+import { GetAllFilesByPostUserQuery } from '@files/modules/posts/application/queries/get-all-files-by-post.query-handler';
+import { DeletedPostFileCommand } from '@files/modules/posts/application/commands/deleted-post-file.command-handler';
+import { UploadFilesCreatedPostCommand } from '@files/modules/posts/application/commands/upload-post-file.command-handler';
 
 describe('FilesController', () => {
   let controller: FilesController;

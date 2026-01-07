@@ -1,28 +1,28 @@
 import { Module } from '@nestjs/common';
 import { PostsController } from './api/posts.controller';
-import { CreatePostUseCase } from '@lumio/modules/posts/application/use-case/command/create-post.usecase';
+import { CreatePostCommandHandler } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { UpdatePostUseCase } from '@lumio/modules/posts/application/use-case/command/update-post.usecase';
+import { UpdatePostCommandHandler } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
-import { DeletePostUseCase } from '@lumio/modules/posts/application/use-case/command/delete-post.usecase';
-import { GetCreatePostUseCase } from './application/use-case/query/get-by-id-create-post.usecase';
+import { DeletePostCommandHandler } from '@lumio/modules/posts/application/commands/delete-post.command-handler';
+import { GetCreatePostQueryHandler } from './application/queries/get-by-id-create-post.query-handler';
 import { JwtModule } from '@nestjs/jwt';
 import { SessionsModule } from '../sessions/sessions.module';
 import { MainController } from './api/main.controller';
-import { GetAllUserPostsUseCase } from './application/use-case/query/get-all-user-posts.usecase';
+import { GetAllUserPostsQueryHandler } from './application/queries/get-all-user-posts.query-handler';
 import { LoggerModule } from '@libs/logger/logger.module';
-import { GetMainPageUseCase } from './application/use-case/query/get-main-page.usecase';
+import { GetMainPageQueryHandler } from './application/queries/get-main-page.query-handler';
 import { HttpService } from './application/http.service';
 
 const useCases = [
-  CreatePostUseCase,
-  UpdatePostUseCase,
-  DeletePostUseCase,
-  GetCreatePostUseCase,
-  GetMainPageUseCase,
-  GetCreatePostUseCase,
-  GetAllUserPostsUseCase,
+  CreatePostCommandHandler,
+  UpdatePostCommandHandler,
+  DeletePostCommandHandler,
+  GetCreatePostQueryHandler,
+  GetMainPageQueryHandler,
+  GetCreatePostQueryHandler,
+  GetAllUserPostsQueryHandler,
 ];
 
 const services = [HttpService];

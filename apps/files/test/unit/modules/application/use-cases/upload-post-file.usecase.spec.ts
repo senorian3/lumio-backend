@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { FilesService } from '@files/core/services/s3.service';
 import {
-  UploadFilesCreatedPostUseCase,
+  UploadFilesCreatedPostCommandHandler,
   UploadFilesCreatedPostCommand,
-} from '@files/modules/application/use-cases/upload-post-file.usecase';
-import { FilesService } from '@files/modules/application/s3.service';
-import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
-import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
+} from '@files/modules/posts/application/commands/upload-post-file.command-handler';
+import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
+import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
+import { Test, TestingModule } from '@nestjs/testing';
 
-describe('UploadFilesCreatedPostUseCase', () => {
-  let useCase: UploadFilesCreatedPostUseCase;
+describe('UploadFilesCreatedPostCommandHandler', () => {
+  let useCase: UploadFilesCreatedPostCommandHandler;
   let mockFilesService: FilesService;
   let mockFileRepository: FileRepository;
 
@@ -49,7 +49,7 @@ describe('UploadFilesCreatedPostUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UploadFilesCreatedPostUseCase,
+        UploadFilesCreatedPostCommandHandler,
         {
           provide: FilesService,
           useValue: {
@@ -65,8 +65,8 @@ describe('UploadFilesCreatedPostUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<UploadFilesCreatedPostUseCase>(
-      UploadFilesCreatedPostUseCase,
+    useCase = module.get<UploadFilesCreatedPostCommandHandler>(
+      UploadFilesCreatedPostCommandHandler,
     );
     mockFilesService = module.get<FilesService>(FilesService);
     mockFileRepository = module.get<FileRepository>(FileRepository);
@@ -91,7 +91,11 @@ describe('UploadFilesCreatedPostUseCase', () => {
       await useCase.execute(command);
 
       // Assert
-      expect(mockFilesService.uploadFiles).toHaveBeenCalledWith(123, mockFiles);
+      expect(mockFilesService.uploadFiles).toHaveBeenCalledWith(
+        'posts',
+        123,
+        mockFiles,
+      );
       expect(mockFileRepository.createFile).toHaveBeenCalledTimes(2);
       expect(mockFileRepository.createFile).toHaveBeenCalledWith({
         key: mockUploadedFiles[0].key,
@@ -118,7 +122,11 @@ describe('UploadFilesCreatedPostUseCase', () => {
       await useCase.execute(command);
 
       // Assert
-      expect(mockFilesService.uploadFiles).toHaveBeenCalledWith(123, []);
+      expect(mockFilesService.uploadFiles).toHaveBeenCalledWith(
+        'posts',
+        123,
+        [],
+      );
       expect(mockFileRepository.createFile).not.toHaveBeenCalled();
     });
 

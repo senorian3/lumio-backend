@@ -4,12 +4,12 @@ import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  GetAllSessionsUseCase,
-  GetAllSessionsCommand,
-} from '@lumio/modules/sessions/application/use-cases/query/get-all-sessions.usecase';
+  GetAllSessionsQuery,
+  GetAllSessionsQueryHandler,
+} from '@lumio/modules/sessions/application/queries/get-all-sessions.query-handler';
 
 describe('GetAllSessionsUseCase', () => {
-  let useCase: GetAllSessionsUseCase;
+  let useCase: GetAllSessionsQueryHandler;
   let mockRepository: QuerySessionsRepository;
 
   const mockSessions: SessionEntity[] = [
@@ -55,7 +55,8 @@ describe('GetAllSessionsUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GetAllSessionsUseCase,
+        GetAllSessionsQueryHandler,
+
         {
           provide: QuerySessionsRepository,
           useValue: {
@@ -65,7 +66,9 @@ describe('GetAllSessionsUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<GetAllSessionsUseCase>(GetAllSessionsUseCase);
+    useCase = module.get<GetAllSessionsQueryHandler>(
+      GetAllSessionsQueryHandler,
+    );
     mockRepository = module.get<QuerySessionsRepository>(
       QuerySessionsRepository,
     );
@@ -79,7 +82,7 @@ describe('GetAllSessionsUseCase', () => {
     it('should return mapped sessions for given user id', async () => {
       // Arrange
       const userId = 1;
-      const command = new GetAllSessionsCommand(userId);
+      const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue(
         mockSessions,
       );
@@ -95,7 +98,7 @@ describe('GetAllSessionsUseCase', () => {
     it('should throw BadRequestDomainException when repository returns null', async () => {
       // Arrange
       const userId = 999;
-      const command = new GetAllSessionsCommand(userId);
+      const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
@@ -118,7 +121,7 @@ describe('GetAllSessionsUseCase', () => {
     it('should throw BadRequestDomainException when repository returns undefined', async () => {
       // Arrange
       const userId = 999;
-      const command = new GetAllSessionsCommand(userId);
+      const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue(undefined);
 
       // Act & Assert
@@ -139,7 +142,7 @@ describe('GetAllSessionsUseCase', () => {
     it('should return empty array when user has no sessions', async () => {
       // Arrange
       const userId = 2;
-      const command = new GetAllSessionsCommand(userId);
+      const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue([]);
 
       // Act

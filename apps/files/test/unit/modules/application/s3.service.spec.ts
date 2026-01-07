@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FilesService } from '@files/modules/application/s3.service';
 import { CoreConfig } from '@files/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { FilesService } from '@files/core/services/s3.service';
 
 describe('FilesService', () => {
   let service: FilesService;
@@ -54,9 +54,9 @@ describe('FilesService', () => {
       ];
 
       // Act & Assert
-      await expect(service.uploadFiles(postId, invalidFiles)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(
+        service.uploadFiles('posts', postId, invalidFiles),
+      ).rejects.toThrow(BadRequestDomainException);
       expect(mockLogger.error).toHaveBeenCalled();
     });
 
@@ -71,7 +71,9 @@ describe('FilesService', () => {
       ];
 
       // Act & Assert - This will fail due to real S3 calls, but tests the buffer conversion logic
-      await expect(service.uploadFiles(postId, uint8Files)).rejects.toThrow();
+      await expect(
+        service.uploadFiles('posts', postId, uint8Files),
+      ).rejects.toThrow();
       // The important thing is it doesn't throw due to buffer type validation
     });
 
@@ -86,7 +88,9 @@ describe('FilesService', () => {
       ];
 
       // Act & Assert - This will fail due to real S3 calls, but tests the buffer conversion logic
-      await expect(service.uploadFiles(postId, arrayFiles)).rejects.toThrow();
+      await expect(
+        service.uploadFiles('posts', postId, arrayFiles),
+      ).rejects.toThrow();
       // The important thing is it doesn't throw due to buffer type validation
     });
   });

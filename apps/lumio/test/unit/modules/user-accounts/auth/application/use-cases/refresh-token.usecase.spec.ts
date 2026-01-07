@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import {
-  RefreshTokenUseCase,
+  RefreshTokenCommandHandler,
   RefreshTokenCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/refresh-token.command-handler';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
@@ -12,7 +12,7 @@ import {
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 
 describe('RefreshTokenUseCase', () => {
-  let useCase: RefreshTokenUseCase;
+  let useCase: RefreshTokenCommandHandler;
   let mockSessionRepository: SessionRepository;
   let mockAccessTokenJwtService: JwtService;
   let mockRefreshTokenJwtService: JwtService;
@@ -40,7 +40,7 @@ describe('RefreshTokenUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RefreshTokenUseCase,
+        RefreshTokenCommandHandler,
         {
           provide: SessionRepository,
           useValue: {
@@ -64,7 +64,9 @@ describe('RefreshTokenUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<RefreshTokenUseCase>(RefreshTokenUseCase);
+    useCase = module.get<RefreshTokenCommandHandler>(
+      RefreshTokenCommandHandler,
+    );
     mockSessionRepository = module.get<SessionRepository>(SessionRepository);
     mockAccessTokenJwtService = module.get(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN);
     mockRefreshTokenJwtService = module.get(

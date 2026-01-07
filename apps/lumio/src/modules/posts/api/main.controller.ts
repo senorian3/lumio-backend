@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { GetMainPageCommand } from '../application/use-case/query/get-main-page.usecase';
+import { GetMainPageCommand } from '../application/queries/get-main-page.query-handler';
 import { ApiGetMainPage } from '@lumio/core/decorators/swagger/main/get-main-page.decorator';
 
 @UseGuards(ThrottlerGuard)

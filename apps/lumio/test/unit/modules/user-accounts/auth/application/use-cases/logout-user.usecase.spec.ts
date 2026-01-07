@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  LogoutUserUseCase,
+  LogoutUserCommandHandler,
   LogoutUserCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/logout-user.command-handler';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 
 describe('LogoutUserUseCase', () => {
-  let useCase: LogoutUserUseCase;
+  let useCase: LogoutUserCommandHandler;
   let mockRepository: SessionRepository;
 
   const userId = 1;
@@ -28,7 +28,7 @@ describe('LogoutUserUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LogoutUserUseCase,
+        LogoutUserCommandHandler,
         {
           provide: SessionRepository,
           useValue: {
@@ -39,7 +39,7 @@ describe('LogoutUserUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<LogoutUserUseCase>(LogoutUserUseCase);
+    useCase = module.get<LogoutUserCommandHandler>(LogoutUserCommandHandler);
     mockRepository = module.get<SessionRepository>(SessionRepository);
   });
 

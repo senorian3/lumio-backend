@@ -2,17 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CommandBus } from '@nestjs/cqrs';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  RegisterUserUseCase,
+  RegisterUserCommandHandler,
   RegisterUserCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/register-user.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/register-user.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
-import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/use-cases/create-user.use-case';
+import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/commands/create-user.command-handler';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
-describe('RegisterUserUseCase', () => {
-  let useCase: RegisterUserUseCase;
+describe('RegisterUserCommandHandler', () => {
+  let useCase: RegisterUserCommandHandler;
   let mockUserRepository: UserRepository;
   let mockNodemailerService: NodemailerService;
   let mockCommandBus: CommandBus;
@@ -40,7 +40,7 @@ describe('RegisterUserUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RegisterUserUseCase,
+        RegisterUserCommandHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -79,7 +79,9 @@ describe('RegisterUserUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<RegisterUserUseCase>(RegisterUserUseCase);
+    useCase = module.get<RegisterUserCommandHandler>(
+      RegisterUserCommandHandler,
+    );
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockNodemailerService = module.get<NodemailerService>(NodemailerService);
     mockCommandBus = module.get<CommandBus>(CommandBus);
@@ -235,7 +237,7 @@ describe('RegisterUserUseCase', () => {
       expect(mockLoggerService.error).toHaveBeenCalledWith(
         `Ошибка отправки email: SMTP error`,
         expect.any(String),
-        'RegisterUserUseCase',
+        'RegisterUserCommandHandler',
       );
     });
 

@@ -3,9 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
-  LoginUserUseCase,
+  LoginUserCommandHandler,
   LoginUserCommand,
-} from '@lumio/modules/user-accounts/auth/application/use-cases/login-user.usecase';
+} from '@lumio/modules/user-accounts/auth/application/commands/login-user.command-handler';
 import { AuthService } from '@lumio/modules/user-accounts/auth/application/auth.service';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import {
@@ -14,7 +14,7 @@ import {
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 
 describe('LoginUserUseCase', () => {
-  let useCase: LoginUserUseCase;
+  let useCase: LoginUserCommandHandler;
   let mockAuthService: AuthService;
   let mockSessionRepository: SessionRepository;
   let mockAccessTokenJwtService: JwtService;
@@ -55,7 +55,7 @@ describe('LoginUserUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        LoginUserUseCase,
+        LoginUserCommandHandler,
         {
           provide: AuthService,
           useValue: {
@@ -86,7 +86,7 @@ describe('LoginUserUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<LoginUserUseCase>(LoginUserUseCase);
+    useCase = module.get<LoginUserCommandHandler>(LoginUserCommandHandler);
     mockAuthService = module.get<AuthService>(AuthService);
     mockSessionRepository = module.get<SessionRepository>(SessionRepository);
     mockAccessTokenJwtService = module.get(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN);
