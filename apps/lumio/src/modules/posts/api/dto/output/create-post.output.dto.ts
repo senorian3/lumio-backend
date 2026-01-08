@@ -1,5 +1,6 @@
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
+import { Post } from 'generated/prisma-lumio';
 
 export class PostView {
   id: number;
@@ -27,6 +28,22 @@ export class PostView {
           )
           .map((f) => new OutputFileType(f.id, f.url, f.postId || post.id))
       : [];
+
+    return view;
+  }
+
+  static fromPrisma(post: Post & { files: any[] }): PostView {
+    const view = new PostView();
+
+    view.id = post.id;
+    view.description = post.description;
+    view.createdAt = post.createdAt;
+    view.userId = post.userId;
+
+    view.postFiles =
+      post.files?.map(
+        (file) => new OutputFileType(file.id, file.url, file.postId),
+      ) || [];
 
     return view;
   }

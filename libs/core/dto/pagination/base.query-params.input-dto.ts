@@ -4,7 +4,7 @@ import { Transform, Type } from 'class-transformer';
 const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
 
-class PaginationParams {
+export class PaginationParams {
   @IsOptional()
   @Type(() => Number)
   @IsInt()

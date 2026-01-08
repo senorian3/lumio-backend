@@ -50,15 +50,26 @@ export class PostRepository {
     });
   }
 
-  async getLastPosts(take: number): Promise<Post[]> {
-    return this.prisma.post.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-      take,
-      include: {
-        files: true,
-      },
-    });
+  async getPostsWithPagination(
+    skip: number,
+    take: number,
+  ): Promise<{ posts: (Post & { files: any[] })[]; totalCount: number }> {
+    const [posts, totalCount] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          files: true,
+        },
+      }),
+      this.prisma.post.count({
+        where: { deletedAt: null },
+      }),
+    ]);
+
+    return { posts, totalCount };
   }
 
   async createPostFiles(

@@ -43,7 +43,6 @@ export function ApiGetMyPosts() {
                     createdAt: '2026-01-08T07:16:04.603Z',
                     deletedAt: null,
                   },
-                  // остальные файлы...
                 ],
               },
             ],
