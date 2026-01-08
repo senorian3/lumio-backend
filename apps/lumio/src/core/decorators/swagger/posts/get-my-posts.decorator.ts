@@ -13,7 +13,45 @@ export function ApiGetMyPosts() {
     ApiResponse({
       status: 200,
       description: 'User posts successfully fetched',
+      examples: {
+        success: {
+          summary: 'Example response',
+          value: {
+            page: 1,
+            pageSize: 10,
+            pagesCount: 1,
+            totalCount: 5,
+            items: [
+              {
+                id: 65,
+                description: 'Мой первый пост',
+                createdAt: '2026-01-08T07:16:03.016Z',
+                deletedAt: null,
+                userId: 46,
+                files: [
+                  {
+                    id: 6,
+                    postId: 65,
+                    url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_1_b8ab8ba8.png?...',
+                    createdAt: '2026-01-08T07:16:04.603Z',
+                    deletedAt: null,
+                  },
+                  {
+                    id: 7,
+                    postId: 65,
+                    url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_2_2d5cd9ee.png?...',
+                    createdAt: '2026-01-08T07:16:04.603Z',
+                    deletedAt: null,
+                  },
+                  // остальные файлы...
+                ],
+              },
+            ],
+          },
+        },
+      },
     }),
+
     ApiResponse({
       status: 400,
       description: 'Validation error',

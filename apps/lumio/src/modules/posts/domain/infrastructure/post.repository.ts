@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
+import { Post } from 'generated/prisma-lumio';
 
 @Injectable()
 export class PostRepository {
@@ -49,13 +50,12 @@ export class PostRepository {
     });
   }
 
-  async getLastPosts(take: number): Promise<PostEntity[]> {
+  async getLastPosts(take: number): Promise<Post[]> {
     return this.prisma.post.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
       take,
       include: {
-        user: true,
         files: true,
       },
     });

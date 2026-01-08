@@ -24,7 +24,7 @@ export class QueryPostRepository {
   async findUserPosts(
     userId: number,
     query: GetPostsQueryParams,
-  ): Promise<PaginatedViewDto<PostEntity[]>> {
+  ): Promise<any> {
     const whereOptions = { userId, deletedAt: null };
     const sortDirection = query.sortDirection === 'asc' ? 'asc' : 'desc';
     const sortBy = query.sortBy === PostsSortBy.CREATED_AT ? 'createdAt' : '';
@@ -37,7 +37,6 @@ export class QueryPostRepository {
         take: query.pageSize,
         orderBy: orderOptions,
         include: {
-          user: true,
           files: true,
         },
       }),
