@@ -3,7 +3,7 @@ import { GetPostsQueryParams } from '../../api/dto/input/get-all-user-posts.quer
 import { PostEntity } from '../../domain/entities/post.entity';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
-import { PostView } from '../../api/dto/output/create-post.output.dto';
+import { PostView } from '../../api/dto/output/post.output.dto';
 
 export class GetAllUserPostsQuery {
   constructor(

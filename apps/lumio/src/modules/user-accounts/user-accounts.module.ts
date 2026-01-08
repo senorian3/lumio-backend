@@ -21,7 +21,7 @@ import { UserSchedulerService } from './scheduler/users-scheduler';
 import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
-import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
+import { QueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 import { LoginUserYandexCommandHandler } from './auth/application/commands/login-user-yandex.command-handler';
 import { LoginUserCommandHandler } from './auth/application/commands/login-user.command-handler';
 import { LogoutUserCommandHandler } from './auth/application/commands/logout-user.command-handler';
@@ -33,6 +33,7 @@ import { RegistrationConfirmationUserCommandHandler } from './auth/application/c
 import { CreateUserCommandHandler } from './users/application/commands/create-user.command-handler';
 import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
 import { UpdateUserProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
+import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -75,6 +76,7 @@ const useCases = [
   LoginUserYandexCommandHandler,
   RefreshTokenCommandHandler,
   UpdateUserProfileCommandHandler,
+  GetProfileQueryHandler,
 ];
 
 const services = [
@@ -101,7 +103,7 @@ const strategies = [JwtStrategy, YandexStrategy];
     UserRepository,
     UserSchedulerService,
     AboutUserQueryHandler,
-    UserQueryRepository,
+    QueryUserRepository,
     ...useCases,
     ...services,
     ...strategies,

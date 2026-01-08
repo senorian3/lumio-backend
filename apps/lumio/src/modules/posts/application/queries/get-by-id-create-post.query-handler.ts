@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
-import { PostView } from '../../api/dto/output/create-post.output.dto';
+import { PostView } from '../../api/dto/output/post.output.dto';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class GetCreatePostUserQuery {

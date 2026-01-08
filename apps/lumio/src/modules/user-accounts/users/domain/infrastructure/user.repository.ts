@@ -6,7 +6,7 @@ import { EmailConfirmation, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
-import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer-dto';
+import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -92,6 +92,8 @@ export class UserRepository {
         isConfirmed: false,
       },
     });
+
+    return;
   }
 
   async updatePassword(userId: number, newPasswordHash: string): Promise<void> {
@@ -101,6 +103,8 @@ export class UserRepository {
         password: newPasswordHash,
       },
     });
+
+    return;
   }
 
   async findUserById(id: number): Promise<User | null> {
@@ -120,6 +124,8 @@ export class UserRepository {
         isConfirmed: true,
       },
     });
+
+    return;
   }
 
   async deleteExpiredUserRegistration(date: Date): Promise<void> {
@@ -141,6 +147,8 @@ export class UserRepository {
         where: { id: { in: userIds } },
       });
     });
+
+    return;
   }
 
   async findYandexByYandexId(yandexId: string): Promise<YandexEntity | null> {
@@ -180,6 +188,8 @@ export class UserRepository {
       where: { id },
       data,
     });
+
+    return;
   }
 
   async getRegisteredUsersCount(): Promise<number> {
@@ -189,8 +199,8 @@ export class UserRepository {
   async updateUserProfile(
     userId: number,
     dto: EditProfileTransferDto,
-  ): Promise<void> {
-    await this.prisma.user.update({
+  ): Promise<UserEntity> {
+    return await this.prisma.user.update({
       where: { id: userId },
       data: {
         firstName: dto.firstName,

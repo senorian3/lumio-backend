@@ -8,7 +8,7 @@ import {
 import { Trim } from '@libs/core/decorators/transform/trim';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class EditProfileInputDto {
+export class InputEditProfileDto {
   @ApiProperty({
     description: 'First name of the user',
     example: 'John',

@@ -25,7 +25,7 @@ import { DeletePostCommand } from '@lumio/modules/posts/application/commands/del
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { ApiCreatePost } from '@lumio/core/decorators/swagger/posts/create-post.decorator';
 import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
-import { PostView } from './dto/output/create-post.output.dto';
+import { PostView } from './dto/output/post.output.dto';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
