@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PostsController } from './api/posts.controller';
 import { CreatePostCommandHandler } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
@@ -32,7 +32,12 @@ const repository = [PostRepository];
 const queryRepository = [QueryPostRepository];
 
 @Module({
-  imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
+  imports: [
+    forwardRef(() => UserAccountsModule),
+    JwtModule,
+    SessionsModule,
+    LoggerModule,
+  ],
 
   controllers: [PostsController, MainController],
   providers: [
@@ -42,5 +47,7 @@ const queryRepository = [QueryPostRepository];
     ...queryRepository,
     QueryPostRepository,
   ],
+
+  exports: [PostRepository],
 })
 export class PostsModule {}

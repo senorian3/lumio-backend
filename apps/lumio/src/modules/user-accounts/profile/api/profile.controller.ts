@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { InputEditProfileDto } from '@lumio/modules/user-accounts/profile/api/dt
 import { UpdateUserProfileCommand } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
 import { ProfileView } from './dto/output/profile.output.dto';
 import { GetProfileQuery } from '../application/queries/get-profile.query-handler';
+import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -26,9 +28,12 @@ export class ProfileController {
 
   @Get(':userId')
   @HttpCode(HttpStatus.OK)
-  async getProfile(@Param('userId') userId: number): Promise<ProfileView> {
+  async getProfile(
+    @Param('userId') userId: number,
+    @Query('postId') postId?: number,
+  ): Promise<ProfileView | PostView> {
     const profile = await this.queryBus.execute<GetProfileQuery, ProfileView>(
-      new GetProfileQuery(userId),
+      new GetProfileQuery(userId, postId),
     );
 
     return profile;

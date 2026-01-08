@@ -1,24 +1,42 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ProfileView } from '../../api/dto/output/profile.output.dto';
+import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 
 export class GetProfileQuery {
-  constructor(public userId: number) {}
+  constructor(
+    public userId: number,
+    public postId?: number,
+  ) {}
 }
 
 @QueryHandler(GetProfileQuery)
 export class GetProfileQueryHandler implements IQueryHandler<
   GetProfileQuery,
-  ProfileView
+  ProfileView | PostView
 > {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository,
+  ) {}
 
-  async execute(query: GetProfileQuery): Promise<ProfileView> {
+  async execute(query: GetProfileQuery): Promise<ProfileView | PostView> {
     const user = await this.userRepository.findUserById(query.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User not found', 'User');
+      throw NotFoundDomainException.create('User not found', 'userId');
+    }
+
+    if (query.postId) {
+      const post = await this.postRepository.findById(query.postId);
+
+      if (!post) {
+        throw NotFoundDomainException.create('Post does not exist', 'postId');
+      }
+
+      return PostView.fromPrisma(post);
     }
 
     return ProfileView.fromEntity(user);

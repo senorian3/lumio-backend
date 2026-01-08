@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { NodemailerService } from './adapters/nodemailer/nodemailer.service';
 import { CryptoService } from './adapters/crypto.service';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
@@ -34,6 +34,7 @@ import { CreateUserCommandHandler } from './users/application/commands/create-us
 import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
 import { UpdateUserProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
 import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
+import { PostsModule } from '../posts/posts.module';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -96,6 +97,7 @@ const strategies = [JwtStrategy, YandexStrategy];
     JwtModule,
     ScheduleModule.forRoot(),
     LoggerModule,
+    forwardRef(() => PostsModule),
   ],
   controllers: [AuthController, ProfileController],
   providers: [
