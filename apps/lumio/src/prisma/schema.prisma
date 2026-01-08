@@ -12,39 +12,38 @@ datasource db {
 }
 
 model User {
-  id                 Int                  @id @default(autoincrement())
-  username           String               @unique @db.VarChar(40)
-  email              String               @unique @db.VarChar(255)
-  password           String               @db.VarChar(200)
-  createdAt          DateTime             @default(now())
-  deletedAt          DateTime?
+  id        Int       @id @default(autoincrement())
+  username  String    @unique @db.VarChar(40)
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(200)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
-  // новые поля для формы профиля
-  firstName          String?              @db.VarChar(100)
-  lastName           String?              @db.VarChar(100)
-  dateOfBirth        DateTime?
-  country            String?              @db.VarChar(100)
-  city               String?              @db.VarChar(100)
-  aboutMe            String?              @db.VarChar(200)
+  firstName   String?   @db.VarChar(100)
+  lastName    String?   @db.VarChar(100)
+  dateOfBirth DateTime?
+  country     String?   @db.VarChar(100)
+  city        String?   @db.VarChar(100)
+  aboutMe     String?   @db.VarChar(200)
+  avatarUrl   String?   
 
-  emailConfirmation  EmailConfirmation?
-  sessions           Session[]
-  yandex             Yandex?
-  posts              Post[]
+  emailConfirmation EmailConfirmation?
+  sessions          Session[]
+  yandex            Yandex?
+  posts             Post[]
 }
 
-
 model Session {
-  id         Int      @id @default(autoincrement())
-  deletedAt  DateTime? @db.Timestamp(6)
-  createdAt  DateTime  @default(now()) @db.Timestamp(6)
-  expiresAt  DateTime  @db.Timestamp(6)
-  deviceId   String    @db.VarChar(255)
-  deviceName String    @db.VarChar(255)
-  ip         String    @db.VarChar(50)
-  tokenVersion Int     @default(1)
-  userId     Int
-  user       User      @relation(fields: [userId], references: [id])
+  id           Int       @id @default(autoincrement())
+  deletedAt    DateTime? @db.Timestamp(6)
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  expiresAt    DateTime  @db.Timestamp(6)
+  deviceId     String    @db.VarChar(255)
+  deviceName   String    @db.VarChar(255)
+  ip           String    @db.VarChar(50)
+  tokenVersion Int       @default(1)
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id])
 }
 
 model EmailConfirmation {
@@ -58,34 +57,34 @@ model EmailConfirmation {
 }
 
 model Yandex {
-  id        Int    @id @default(autoincrement())
-  email     String @db.VarChar(255)
-  username  String @db.VarChar(40)
-  yandexId  String @unique @db.VarChar(100)
+  id       Int    @id @default(autoincrement())
+  email    String @db.VarChar(255)
+  username String @db.VarChar(40)
+  yandexId String @unique @db.VarChar(100)
 
-  userId    Int    @unique
-  user      User   @relation(fields: [userId], references: [id])
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
 }
 
 model Post {
-  id          Int        @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   description String?
 
-  createdAt   DateTime   @default(now())
-  deletedAt   DateTime?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
-  userId      Int
-  user        User       @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  files       PostFile[]
+  files PostFile[]
 }
 
 model PostFile {
-  id      Int    @id @default(autoincrement())
-  postId  Int
-  url     String
-  createdAt   DateTime   @default(now())
-  deletedAt   DateTime?
+  id        Int       @id @default(autoincrement())
+  postId    Int
+  url       String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
-  post    Post   @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
 }
