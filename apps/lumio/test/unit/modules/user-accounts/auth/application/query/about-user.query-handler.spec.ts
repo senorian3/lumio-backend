@@ -17,6 +17,12 @@ describe('AboutUserQueryHandler', () => {
     password: 'hashedPassword123',
     createdAt: new Date('2025-01-01T10:00:00Z'),
     deletedAt: null,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'New York',
+    aboutMe: 'Test user',
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',

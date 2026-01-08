@@ -17,6 +17,12 @@ describe('AuthService', () => {
     password: 'hashedPassword123',
     createdAt: new Date(),
     deletedAt: null,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'New York',
+    aboutMe: 'Test user',
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',
