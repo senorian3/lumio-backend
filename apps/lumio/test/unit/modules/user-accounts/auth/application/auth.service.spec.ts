@@ -23,6 +23,7 @@ describe('AuthService', () => {
     country: 'USA',
     city: 'New York',
     aboutMe: 'Test user',
+    avatarUrl: null,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',

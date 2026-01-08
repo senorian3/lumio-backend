@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
-import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
+import { QueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 
 describe('AboutUserQueryHandler', () => {
   let handler: AboutUserQueryHandler;
-  let mockUserQueryRepository: UserQueryRepository;
+  let mockUserQueryRepository: QueryUserRepository;
 
   const mockUserId = 1;
   const mockUser: UserEntity = {
@@ -23,6 +23,7 @@ describe('AboutUserQueryHandler', () => {
     country: 'USA',
     city: 'New York',
     aboutMe: 'Test user',
+    avatarUrl: null,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',
@@ -44,7 +45,7 @@ describe('AboutUserQueryHandler', () => {
       providers: [
         AboutUserQueryHandler,
         {
-          provide: UserQueryRepository,
+          provide: QueryUserRepository,
           useValue: {
             findById: jest.fn(),
           },
@@ -54,7 +55,7 @@ describe('AboutUserQueryHandler', () => {
 
     handler = module.get<AboutUserQueryHandler>(AboutUserQueryHandler);
     mockUserQueryRepository =
-      module.get<UserQueryRepository>(UserQueryRepository);
+      module.get<QueryUserRepository>(QueryUserRepository);
   });
 
   it('should be defined', () => {

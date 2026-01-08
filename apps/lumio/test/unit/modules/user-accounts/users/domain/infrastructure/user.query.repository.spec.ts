@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
+import { QueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 
-describe('UserQueryRepository', () => {
-  let repository: UserQueryRepository;
+describe('QueryUserRepository', () => {
+  let repository: QueryUserRepository;
   let mockPrismaService: jest.Mocked<PrismaService>;
 
   const mockUser: UserEntity = {
@@ -20,6 +20,7 @@ describe('UserQueryRepository', () => {
     country: 'USA',
     city: 'New York',
     aboutMe: 'Test user',
+    avatarUrl: null,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',
@@ -33,7 +34,7 @@ describe('UserQueryRepository', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UserQueryRepository,
+        QueryUserRepository,
         {
           provide: PrismaService,
           useValue: {
@@ -45,7 +46,7 @@ describe('UserQueryRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<UserQueryRepository>(UserQueryRepository);
+    repository = module.get<QueryUserRepository>(QueryUserRepository);
     mockPrismaService = module.get(PrismaService);
   });
 
