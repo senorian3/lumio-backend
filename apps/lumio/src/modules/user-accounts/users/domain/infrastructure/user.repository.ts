@@ -6,6 +6,7 @@ import { EmailConfirmation, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
+import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer-dto';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -183,5 +184,22 @@ export class UserRepository {
 
   async getRegisteredUsersCount(): Promise<number> {
     return this.prisma.user.count();
+  }
+
+  async updateUserProfile(
+    userId: number,
+    dto: EditProfileTransferDto,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        country: dto.country,
+        city: dto.city,
+        aboutMe: dto.aboutMe,
+      },
+    });
   }
 }

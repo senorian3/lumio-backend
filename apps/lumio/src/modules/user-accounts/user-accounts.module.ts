@@ -31,6 +31,8 @@ import { RefreshTokenCommandHandler } from './auth/application/commands/refresh-
 import { RegisterUserCommandHandler } from './auth/application/commands/register-user.command-handler';
 import { RegistrationConfirmationUserCommandHandler } from './auth/application/commands/registration-confirmation.command-handler';
 import { CreateUserCommandHandler } from './users/application/commands/create-user.command-handler';
+import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
+import { UpdateUserProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -72,6 +74,7 @@ const useCases = [
   RegistrationConfirmationUserCommandHandler,
   LoginUserYandexCommandHandler,
   RefreshTokenCommandHandler,
+  UpdateUserProfileCommandHandler,
 ];
 
 const services = [
@@ -92,7 +95,7 @@ const strategies = [JwtStrategy, YandexStrategy];
     ScheduleModule.forRoot(),
     LoggerModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, ProfileController],
   providers: [
     UserAccountsConfig,
     UserRepository,
