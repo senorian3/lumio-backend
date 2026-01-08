@@ -22,6 +22,13 @@ export class UserEntity implements User {
   createdAt: Date;
   deletedAt: Date | null;
 
+  firstName: string | null;
+  lastName: string | null;
+  dateOfBirth: Date | null;
+  country: string | null;
+  city: string | null;
+  aboutMe: string | null;
+
   emailConfirmation?: EmailConfirmationEntity | null;
 
   sessions?: SessionEntity[];

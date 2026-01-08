@@ -18,10 +18,19 @@ model User {
   password           String               @db.VarChar(200)
   createdAt          DateTime             @default(now())
   deletedAt          DateTime?
+
+  // новые поля для формы профиля
+  firstName          String?              @db.VarChar(100)
+  lastName           String?              @db.VarChar(100)
+  dateOfBirth        DateTime?
+  country            String?              @db.VarChar(100)
+  city               String?              @db.VarChar(100)
+  aboutMe            String?              @db.VarChar(200)
+
   emailConfirmation  EmailConfirmation?
   sessions           Session[]
   yandex             Yandex?
-   posts              Post[]
+  posts              Post[]
 }
 
 
