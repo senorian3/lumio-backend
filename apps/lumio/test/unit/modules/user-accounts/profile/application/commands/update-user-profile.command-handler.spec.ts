@@ -1,0 +1,259 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  UpdateUserProfileCommandHandler,
+  UpdateUserProfileCommand,
+} from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
+import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
+import { ProfileView } from '@lumio/modules/user-accounts/profile/api/dto/output/profile.output.dto';
+import {
+  BadRequestDomainException,
+  ForbiddenDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
+
+describe('UpdateUserProfileCommandHandler', () => {
+  let handler: UpdateUserProfileCommandHandler;
+  let mockUserRepository: UserRepository;
+
+  const mockEditProfileDto = new EditProfileTransferDto();
+  mockEditProfileDto.firstName = 'John';
+  mockEditProfileDto.lastName = 'Doe';
+  mockEditProfileDto.dateOfBirth = '1990-01-01';
+  mockEditProfileDto.country = 'USA';
+  mockEditProfileDto.city = 'New York';
+  mockEditProfileDto.aboutMe = 'About me';
+
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'New York',
+    aboutMe: 'About me',
+    avatarUrl: 'avatar.jpg',
+    password: 'hashedpassword',
+    createdAt: new Date(),
+    deletedAt: null,
+  };
+
+  const mockUpdatedUser = {
+    ...mockUser,
+    firstName: 'Jane',
+    lastName: 'Smith',
+  };
+
+  const mockProfileView = ProfileView.fromEntity(mockUpdatedUser);
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UpdateUserProfileCommandHandler,
+        {
+          provide: UserRepository,
+          useValue: {
+            findUserById: jest.fn(),
+            updateUserProfile: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    handler = module.get<UpdateUserProfileCommandHandler>(
+      UpdateUserProfileCommandHandler,
+    );
+    mockUserRepository = module.get<UserRepository>(UserRepository);
+  });
+
+  it('should be defined', () => {
+    expect(handler).toBeDefined();
+  });
+
+  describe('execute', () => {
+    it('should update user profile successfully', async () => {
+      // Arrange
+      const userId = 1;
+      const requestUserId = 1;
+      const command = new UpdateUserProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
+      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+        mockUpdatedUser,
+      );
+      jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
+
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
+        userId,
+        mockEditProfileDto,
+      );
+      expect(ProfileView.fromEntity).toHaveBeenCalledWith(mockUpdatedUser);
+      expect(result).toEqual(mockProfileView);
+    });
+
+    it('should throw BadRequestDomainException when user not found', async () => {
+      // Arrange
+      const userId = 999;
+      const requestUserId = 999;
+      const command = new UpdateUserProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(
+        BadRequestDomainException,
+      );
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+    });
+
+    it('should throw ForbiddenDomainException when user tries to update another user profile', async () => {
+      // Arrange
+      const userId = 1;
+      const requestUserId = 2; // Different user
+      const command = new UpdateUserProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(
+        ForbiddenDomainException,
+      );
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+    });
+
+    it('should handle repository findUserById error', async () => {
+      // Arrange
+      const userId = 1;
+      const requestUserId = 1;
+      const command = new UpdateUserProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+      const dbError = new Error('Database connection failed');
+
+      (mockUserRepository.findUserById as jest.Mock).mockRejectedValue(dbError);
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+    });
+
+    it('should handle repository updateUserProfile error', async () => {
+      // Arrange
+      const userId = 1;
+      const requestUserId = 1;
+      const command = new UpdateUserProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+      const updateError = new Error('Update failed');
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
+      (mockUserRepository.updateUserProfile as jest.Mock).mockRejectedValue(
+        updateError,
+      );
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(updateError);
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
+        userId,
+        mockEditProfileDto,
+      );
+    });
+
+    it('should handle partial profile update', async () => {
+      // Arrange
+      const partialDto = new EditProfileTransferDto();
+      partialDto.firstName = 'NewName';
+      // Other fields remain undefined
+
+      const userId = 1;
+      const requestUserId = 1;
+      const command = new UpdateUserProfileCommand(
+        partialDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
+      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+        mockUpdatedUser,
+      );
+      jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
+
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
+        userId,
+        partialDto,
+      );
+      expect(result).toEqual(mockProfileView);
+    });
+
+    it('should handle empty profile data', async () => {
+      // Arrange
+      const emptyDto = new EditProfileTransferDto();
+      // All fields remain undefined
+
+      const userId = 1;
+      const requestUserId = 1;
+      const command = new UpdateUserProfileCommand(
+        emptyDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        mockUser,
+      );
+      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+        mockUpdatedUser,
+      );
+      jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
+
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
+        userId,
+        emptyDto,
+      );
+      expect(result).toEqual(mockProfileView);
+    });
+  });
+});
