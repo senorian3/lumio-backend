@@ -20,3 +20,5 @@ export const POSTS_BASE = 'posts';
 export const POSTS_ROUTES = {
   GET_MY_POSTS: 'my',
 } as const;
+
+export const PROFILE_BASE = 'profile';
