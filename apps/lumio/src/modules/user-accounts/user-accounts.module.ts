@@ -35,6 +35,8 @@ import { ProfileController } from '@lumio/modules/user-accounts/profile/api/prof
 import { UpdateUserProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
 import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
 import { PostsModule } from '../posts/posts.module';
+import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-user-avatar.command-handler';
+import { HttpService } from '@lumio/modules/posts/application/http.service';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -78,6 +80,7 @@ const useCases = [
   RefreshTokenCommandHandler,
   UpdateUserProfileCommandHandler,
   GetProfileQueryHandler,
+  UploadUserAvatarCommandHandler,
 ];
 
 const services = [
@@ -86,6 +89,7 @@ const services = [
   EmailService,
   RecaptchaService,
   AuthService,
+  HttpService,
 ];
 
 const strategies = [JwtStrategy, YandexStrategy];

@@ -5,10 +5,13 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PROFILE_BASE } from '@lumio/core/routs/routs';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
@@ -18,6 +21,8 @@ import { UpdateUserProfileCommand } from '@lumio/modules/user-accounts/profile/a
 import { ProfileView } from './dto/output/profile.output.dto';
 import { GetProfileQuery } from '../application/queries/get-profile.query-handler';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -54,4 +59,12 @@ export class ProfileController {
 
     return updatedProfile;
   }
+
+  @Post('/avatar')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FilesInterceptor('avatar'))
+  async uploadUserAvatar(
+    @Req() req: any,
+    @UploadedFiles(FileValidationPipe) avatar: Array<Express.Multer.File>,
+  ): Promise<void> {}
 }

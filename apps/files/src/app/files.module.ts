@@ -11,17 +11,21 @@ import { DeletedPostFileCommandHandler } from '@files/modules/posts/application/
 import { UploadFilesCreatedPostCommandHandler } from '@files/modules/posts/application/commands/upload-post-file.command-handler';
 import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
 import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
+import { ProfileRepository } from '@files/modules/profile/domain/infrastructure/profile.repository';
+import { UploadUserAvatarCommandHandler } from '@files/modules/profile/application/commands/upload-user-avatar.command-handler';
+import { ProfileController } from '@files/modules/profile/api/profile.controller';
 
 const services = [FilesService];
 
 const useCases = [
   UploadFilesCreatedPostCommandHandler,
   DeletedPostFileCommandHandler,
+  UploadUserAvatarCommandHandler,
 ];
 
 const queryHandler = [GetAllFilesByPostUserQueryHandler];
 
-const repository = [FileRepository];
+const repository = [FileRepository, ProfileRepository];
 
 const queryFileRepository = [QueryFileRepository];
 
@@ -38,7 +42,7 @@ const queryFileRepository = [QueryFileRepository];
     }),
   ],
 
-  controllers: [FilesController],
+  controllers: [FilesController, ProfileController],
   providers: [
     ...services,
     ...useCases,
