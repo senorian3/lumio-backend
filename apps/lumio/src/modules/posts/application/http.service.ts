@@ -95,4 +95,36 @@ export class HttpService {
       throw error;
     }
   }
+
+  async uploadUserAvatar<T>(
+    endpoint: string,
+    userId: number,
+    avatar: Express.Multer.File,
+  ): Promise<T> {
+    const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
+    const formData = new FormData();
+
+    formData.append('userId', userId.toString());
+    formData.append('avatar', avatar.buffer, {
+      filename: avatar.originalname,
+      contentType: avatar.mimetype,
+    });
+
+    const headers = {
+      'X-Internal-API-Key': this.coreConfig.internalApiKey,
+      ...formData.getHeaders(),
+    };
+
+    try {
+      const response = await axios.post<T>(url, formData, { headers });
+      return response.data;
+    } catch (error) {
+      this.loggerService.error(
+        `Failed to upload avatar to ${url}:`,
+        error?.stack,
+        HttpService.name,
+      );
+      throw error;
+    }
+  }
 }

@@ -212,4 +212,13 @@ export class UserRepository {
       },
     });
   }
+
+  async updateAvatarUrl(userId: number, avatarUrl: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        avatarUrl: avatarUrl,
+      },
+    });
+  }
 }

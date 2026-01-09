@@ -9,7 +9,7 @@ import {
   Put,
   Query,
   Req,
-  UploadedFiles,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,8 +21,8 @@ import { UpdateUserProfileCommand } from '@lumio/modules/user-accounts/profile/a
 import { ProfileView } from './dto/output/profile.output.dto';
 import { GetProfileQuery } from '../application/queries/get-profile.query-handler';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UploadUserAvatarCommand } from '@lumio/modules/user-accounts/profile/application/commands/upload-user-avatar.command-handler';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -62,9 +62,15 @@ export class ProfileController {
 
   @Post('/avatar')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('avatar'))
+  @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(
     @Req() req: any,
-    @UploadedFiles(FileValidationPipe) avatar: Array<Express.Multer.File>,
-  ): Promise<void> {}
+    @UploadedFile() avatar: Express.Multer.File,
+  ): Promise<void> {
+    await this.commandBus.execute<UploadUserAvatarCommand, void>(
+      new UploadUserAvatarCommand(req.user.userId, avatar),
+    );
+
+    return;
+  }
 }

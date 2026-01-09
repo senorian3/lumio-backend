@@ -34,10 +34,23 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       const formData = new FormData();
       formData.append('userId', command.userId.toString());
 
-      const avatarUrl = await this.httpService.post<string>(
+      const response = await this.httpService.uploadUserAvatar<any>(
         `${GLOBAL_PREFIX}/profile/upload-user-avatar`,
+        command.userId,
+        command.avatar,
       );
+
+      const avatarUrl = response.url;
+
+      await this.userRepository.updateAvatarUrl(command.userId, avatarUrl);
+      return;
     } catch (error) {
+      this.logger.error(
+        `Avatar upload failed for user ${command.userId}`,
+        error.stack || JSON.stringify(error),
+        'UploadUserAvatarCommandHandler',
+      );
+
       throw BadRequestDomainException.create('Failed to upload avatar', 'user');
     }
   }
