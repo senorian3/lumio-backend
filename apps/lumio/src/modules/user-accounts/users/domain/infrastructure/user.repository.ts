@@ -6,7 +6,8 @@ import { EmailConfirmation, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
-import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
+import { EditProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/edit-profile.domain.dto';
+import { FillProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/fill-profile.domain.dto';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -196,20 +197,23 @@ export class UserRepository {
     return this.prisma.user.count();
   }
 
-  async updateUserProfile(
+  async fillProfile(
     userId: number,
-    dto: EditProfileTransferDto,
+    data: FillProfileDomainDto,
   ): Promise<UserEntity> {
     return await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-        country: dto.country,
-        city: dto.city,
-        aboutMe: dto.aboutMe,
-      },
+      data,
+    });
+  }
+
+  async updateProfile(
+    userId: number,
+    data: EditProfileDomainDto,
+  ): Promise<UserEntity> {
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data,
     });
   }
 

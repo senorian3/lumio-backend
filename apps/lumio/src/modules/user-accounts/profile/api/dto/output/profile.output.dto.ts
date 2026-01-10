@@ -5,7 +5,7 @@ export class ProfileView {
   username: string;
   firstName?: string;
   lastName?: string;
-  dateOfBirth?: Date;
+  dateOfBirth?: string | null;
   country?: string;
   city?: string;
   aboutMe?: string;
@@ -18,7 +18,15 @@ export class ProfileView {
     view.username = user.username;
     view.firstName = user.firstName || null;
     view.lastName = user.lastName || null;
-    view.dateOfBirth = user.dateOfBirth || null;
+    if (user.dateOfBirth) {
+      const date = user.dateOfBirth;
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      view.dateOfBirth = `${day}.${month}.${year}`;
+    } else {
+      view.dateOfBirth = null;
+    }
     view.country = user.country || null;
     view.city = user.city || null;
     view.aboutMe = user.aboutMe || null;

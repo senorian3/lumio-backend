@@ -32,11 +32,12 @@ import { RegisterUserCommandHandler } from './auth/application/commands/register
 import { RegistrationConfirmationUserCommandHandler } from './auth/application/commands/registration-confirmation.command-handler';
 import { CreateUserCommandHandler } from './users/application/commands/create-user.command-handler';
 import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
-import { UpdateUserProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
-import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
+import { UpdateProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
+import { GetProfileOrPostQueryHandler } from './profile/application/queries/get-profile-or-post.query-handler';
 import { PostsModule } from '../posts/posts.module';
-import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-user-avatar.command-handler';
+import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
 import { HttpService } from '@lumio/modules/posts/application/http.service';
+import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -78,8 +79,9 @@ const useCases = [
   RegistrationConfirmationUserCommandHandler,
   LoginUserYandexCommandHandler,
   RefreshTokenCommandHandler,
-  UpdateUserProfileCommandHandler,
-  GetProfileQueryHandler,
+  UpdateProfileCommandHandler,
+  FillProfileCommandHandler,
+  GetProfileOrPostQueryHandler,
   UploadUserAvatarCommandHandler,
 ];
 

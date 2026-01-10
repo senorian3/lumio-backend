@@ -3,16 +3,18 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  IsDateString,
+  IsDate,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Trim } from '@libs/core/decorators/transform/trim';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsAtLeastYearsOld } from '@lumio/core/decorators/min-age.decorator';
 
 export class InputEditProfileDto {
   @ApiProperty({
     description: 'First name of the user',
     example: 'John',
-    required: true,
+    required: false,
     nullable: false,
     maxLength: 100,
     minLength: 1,
@@ -21,12 +23,12 @@ export class InputEditProfileDto {
   @MinLength(1, { message: 'Minimum number of characters 1' })
   @MaxLength(100, { message: 'Maximum number of characters 100' })
   @Trim()
-  firstName: string;
+  firstName?: string;
 
   @ApiProperty({
     description: 'Last name of the user',
     example: 'Doe',
-    required: true,
+    required: false,
     nullable: false,
     maxLength: 100,
     minLength: 1,
@@ -35,7 +37,7 @@ export class InputEditProfileDto {
   @MinLength(1, { message: 'Minimum number of characters 1' })
   @MaxLength(100, { message: 'Maximum number of characters 100' })
   @Trim()
-  lastName: string;
+  lastName?: string;
 
   @ApiProperty({
     description: 'Date of birth of the user',
@@ -45,8 +47,12 @@ export class InputEditProfileDto {
     format: 'date',
   })
   @IsOptional()
-  @IsDateString({}, { message: 'Date of birth must be a valid date string' })
-  dateOfBirth?: string;
+  @Type(() => Date)
+  @IsDate({ message: 'Date of birth must be a valid date' })
+  @IsAtLeastYearsOld(13, {
+    message: 'A user under 13 cannot create a profile. <u>Privacy Policy</u>',
+  })
+  dateOfBirth?: Date;
 
   @ApiProperty({
     description: 'Country of the user',

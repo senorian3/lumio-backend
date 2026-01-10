@@ -13,16 +13,21 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PROFILE_BASE } from '@lumio/core/routs/routs';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { InputEditProfileDto } from '@lumio/modules/user-accounts/profile/api/dto/input/edit-profile.input.dto';
-import { UpdateUserProfileCommand } from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
+import { UpdateProfileCommand } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
 import { ProfileView } from './dto/output/profile.output.dto';
-import { GetProfileQuery } from '../application/queries/get-profile.query-handler';
+import { GetProfileOrPostQuery } from '../application/queries/get-profile-or-post.query-handler';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadUserAvatarCommand } from '@lumio/modules/user-accounts/profile/application/commands/upload-user-avatar.command-handler';
+import { UploadUserAvatarCommand } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
+import { InputFillProfileDto } from './dto/input/fill-profile.input.dto';
+import { FillProfileCommand } from '../application/commands/fill-profile.command-handler';
+import {
+  PROFILE_BASE,
+  PROFILE_ROUTES,
+} from '@lumio/core/routes/profile-routes';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -37,15 +42,32 @@ export class ProfileController {
     @Param('userId') userId: number,
     @Query('postId') postId?: number,
   ): Promise<ProfileView | PostView> {
-    const profile = await this.queryBus.execute<GetProfileQuery, ProfileView>(
-      new GetProfileQuery(userId, postId),
-    );
+    const profileOrPost = await this.queryBus.execute<
+      GetProfileOrPostQuery,
+      ProfileView | PostView
+    >(new GetProfileOrPostQuery(userId, postId));
 
-    return profile;
+    return profileOrPost;
+  }
+
+  @Put(PROFILE_ROUTES.FILL_PROFILE)
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async fillProfile(
+    @Param('userId') userId: number,
+    @Body() dto: InputFillProfileDto,
+    @Req() req: any,
+  ): Promise<ProfileView> {
+    const filledProfile = await this.commandBus.execute<
+      FillProfileCommand,
+      ProfileView
+    >(new FillProfileCommand(dto, userId, req.user.userId));
+
+    return filledProfile;
   }
 
   @Put(':userId')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async editProfile(
     @Param('userId') userId: number,
@@ -53,14 +75,15 @@ export class ProfileController {
     @Req() req: any,
   ): Promise<ProfileView> {
     const updatedProfile = await this.commandBus.execute<
-      UpdateUserProfileCommand,
+      UpdateProfileCommand,
       ProfileView
-    >(new UpdateUserProfileCommand(dto, userId, req.user.userId));
+    >(new UpdateProfileCommand(dto, userId, req.user.userId));
 
     return updatedProfile;
   }
 
-  @Post('/avatar')
+  @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(

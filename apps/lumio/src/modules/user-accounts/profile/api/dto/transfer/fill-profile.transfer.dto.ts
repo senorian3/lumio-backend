@@ -1,6 +1,6 @@
-export class EditProfileTransferDto {
-  firstName?: string;
-  lastName?: string;
+export class FillProfileTransferDto {
+  firstName: string;
+  lastName: string;
   dateOfBirth?: Date;
   country?: string;
   city?: string;

@@ -28,6 +28,9 @@ export class UserEntity implements User {
   country: string | null;
   city: string | null;
   aboutMe: string | null;
+  profileFilled: boolean;
+  profileFilledAt: Date | null;
+  profileUpdatedAt: Date | null;
   avatarUrl: string | null;
 
   emailConfirmation?: EmailConfirmationEntity | null;

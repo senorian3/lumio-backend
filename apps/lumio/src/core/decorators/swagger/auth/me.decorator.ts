@@ -8,7 +8,7 @@ export function ApiGetCurrentUser() {
       summary: 'Get the profile of the current user',
       description:
         'Returns basic information about the current authorized user',
-      operationId: 'getCurrentUserProfile',
+      operationId: 'getCurrentProfile',
     }),
     ApiResponse({
       status: 200,

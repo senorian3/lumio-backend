@@ -5,16 +5,16 @@ import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions
 import { ProfileView } from '../../api/dto/output/profile.output.dto';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 
-export class GetProfileQuery {
+export class GetProfileOrPostQuery {
   constructor(
     public userId: number,
     public postId?: number,
   ) {}
 }
 
-@QueryHandler(GetProfileQuery)
-export class GetProfileQueryHandler implements IQueryHandler<
-  GetProfileQuery,
+@QueryHandler(GetProfileOrPostQuery)
+export class GetProfileOrPostQueryHandler implements IQueryHandler<
+  GetProfileOrPostQuery,
   ProfileView | PostView
 > {
   constructor(
@@ -22,7 +22,7 @@ export class GetProfileQueryHandler implements IQueryHandler<
     private readonly postRepository: PostRepository,
   ) {}
 
-  async execute(query: GetProfileQuery): Promise<ProfileView | PostView> {
+  async execute(query: GetProfileOrPostQuery): Promise<ProfileView | PostView> {
     const user = await this.userRepository.findUserById(query.userId);
 
     if (!user) {

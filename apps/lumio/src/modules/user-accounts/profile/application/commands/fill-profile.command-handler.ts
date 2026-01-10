@@ -1,46 +1,54 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { ProfileView } from '../../api/dto/output/profile.output.dto';
+import { FillProfileTransferDto } from '../../api/dto/transfer/fill-profile.transfer.dto';
 
-export class UpdateUserProfileCommand {
+export class FillProfileCommand {
   constructor(
-    public userProfileInformation: EditProfileTransferDto,
+    public profileInformation: FillProfileTransferDto,
     public userId: number,
     public requestUserId: number,
   ) {}
 }
 
-@CommandHandler(UpdateUserProfileCommand)
-export class UpdateUserProfileCommandHandler implements ICommandHandler<
-  UpdateUserProfileCommand,
+@CommandHandler(FillProfileCommand)
+export class FillProfileCommandHandler implements ICommandHandler<
+  FillProfileCommand,
   ProfileView
 > {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(command: UpdateUserProfileCommand): Promise<ProfileView> {
+  async execute(command: FillProfileCommand): Promise<ProfileView> {
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
       throw BadRequestDomainException.create('User not found', 'User');
     }
 
+    if (user.profileFilled) {
+      throw BadRequestDomainException.create(
+        'Profile already filled',
+        'profileFilled',
+      );
+    }
+
     if (user.id !== command.requestUserId) {
       throw ForbiddenDomainException.create(
-        'User cannot update another user',
+        'User cannot fill profile for another user',
         'userId',
       );
     }
 
-    const updatedUser = await this.userRepository.updateUserProfile(
-      command.userId,
-      command.userProfileInformation,
-    );
+    const filleProfile = await this.userRepository.fillProfile(command.userId, {
+      ...command.profileInformation,
+      profileFilledAt: new Date(),
+      profileFilled: true,
+    });
 
-    return ProfileView.fromEntity(updatedUser);
+    return ProfileView.fromEntity(filleProfile);
   }
 }
