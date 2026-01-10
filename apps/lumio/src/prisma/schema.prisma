@@ -21,11 +21,14 @@ model User {
 
   firstName   String?   @db.VarChar(100)
   lastName    String?   @db.VarChar(100)
-  dateOfBirth DateTime?
+  dateOfBirth DateTime? @db.Timestamp(0)
   country     String?   @db.VarChar(100)
   city        String?   @db.VarChar(100)
   aboutMe     String?   @db.VarChar(200)
   avatarUrl   String?   
+  profileFilled Boolean @default(false)
+  profileFilledAt DateTime?
+  profileUpdatedAt DateTime? @db.Timestamp(0)
 
   emailConfirmation EmailConfirmation?
   sessions          Session[]
