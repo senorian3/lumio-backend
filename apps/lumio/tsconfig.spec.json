@@ -8,7 +8,7 @@
       "@files/*": ["../../apps/files/src/*"],
       "generated/*": ["../../generated/*"]
     },
-    "types": ["jest", "node"],
+    "types": ["jest", "node", "@types/multer"],
     "module": "commonjs"
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
