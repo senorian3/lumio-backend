@@ -29,19 +29,19 @@ import { PostView } from './dto/output/post.output.dto';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
-import { POSTS_BASE, POSTS_ROUTES } from '@lumio/core/routs/routs';
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
+import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 
-@Controller(POSTS_BASE)
+@Controller(POST_BASE)
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get(POSTS_ROUTES.GET_MY_POSTS)
+  @Get(POST_ROUTES.GET_MY_POSTS)
   @ApiGetMyPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

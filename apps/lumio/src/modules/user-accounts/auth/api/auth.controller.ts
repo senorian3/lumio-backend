@@ -23,7 +23,6 @@ import { InputLoginDto } from '../../users/api/dto/input/login.input.dto';
 import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input.dto';
 import { InputRegistrationDto } from '../../users/api/dto/input/registration.input.dto';
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input.dto';
-import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
 import { ApiRegistration } from '@lumio/core/decorators/swagger/auth/registration.decorator';
 import { ApiLogin } from '@lumio/core/decorators/swagger/auth/login.decorator';
 import { ApiLogout } from '@lumio/core/decorators/swagger/auth/logout.decorator';
@@ -47,6 +46,7 @@ import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/applicatio
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/auth/me.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routes/auth-routes';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)

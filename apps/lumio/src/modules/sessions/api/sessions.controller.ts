@@ -11,13 +11,13 @@ import {
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { OutputSessionDto } from './dto/output/session.output.dto';
-import { SECURITY_BASE } from '@lumio/core/routs/routs';
 import { ApiGetAllSessions } from '@lumio/core/decorators/swagger/sessions/get-all-sessions.decorator';
 import { ApiDeleteSessionByDeviceId } from '@lumio/core/decorators/swagger/sessions/delete-session-by-deviceId.decorator';
 import { ApiDeleteAllSessionsExceptCurrent } from '@lumio/core/decorators/swagger/sessions/delete-all-sessions.decorator';
 import { GetAllSessionsQuery } from '../application/queries/get-all-sessions.query-handler';
 import { DeleteSessionCommand } from '../application/commands/delete-session.command-handler';
 import { DeleteAllSessionsCommand } from '../application/commands/delete-all-sessions.command-handler';
+import { SECURITY_BASE } from '@lumio/core/routes/security-routes';
 
 @UseGuards(RefreshTokenGuard)
 @Controller(SECURITY_BASE)
