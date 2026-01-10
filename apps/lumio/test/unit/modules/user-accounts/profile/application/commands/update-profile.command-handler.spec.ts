@@ -37,8 +37,8 @@ describe('UpdateProfileCommandHandler', () => {
     password: 'hashedpassword',
     createdAt: new Date(),
     deletedAt: null,
-    profileFilled: false,
-    profileFilledAt: null,
+    profileFilled: true,
+    profileFilledAt: new Date(),
     profileUpdatedAt: null,
   };
 
@@ -117,6 +117,29 @@ describe('UpdateProfileCommandHandler', () => {
       );
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(
+        BadRequestDomainException,
+      );
+      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestDomainException when profile not filled', async () => {
+      // Arrange
+      const userId = 1;
+      const requestUserId = 1;
+      const notFilledUser = { ...mockUser, profileFilled: false };
+      const command = new UpdateProfileCommand(
+        mockEditProfileDto,
+        userId,
+        requestUserId,
+      );
+
+      (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
+        notFilledUser,
+      );
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(

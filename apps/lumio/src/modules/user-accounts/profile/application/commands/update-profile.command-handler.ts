@@ -29,6 +29,13 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
       throw BadRequestDomainException.create('User not found', 'User');
     }
 
+    if (!user.profileFilled) {
+      throw BadRequestDomainException.create(
+        'Profile not filled',
+        'profileFilled',
+      );
+    }
+
     if (user.id !== command.requestUserId) {
       throw ForbiddenDomainException.create(
         'User cannot update another user',
