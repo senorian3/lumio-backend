@@ -36,6 +36,9 @@ describe('UpdatePostCommandHandler', () => {
     city: 'New York',
     aboutMe: 'Test user',
     avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
   };
 
   const mockPost: PostEntity = {

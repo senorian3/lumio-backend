@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Readable } from 'stream';
 import axios from 'axios';
 import { HttpService } from '@lumio/modules/posts/application/http.service';
 import { CoreConfig } from '@lumio/core/core.config';
@@ -195,16 +196,30 @@ describe('HttpService', () => {
       // Arrange
       const endpoint = 'upload-endpoint';
       const postId = 123;
-      const mockFiles: Array<any> = [
+      const mockFiles: Array<Express.Multer.File> = [
         {
           buffer: Buffer.from('file1 content'),
           originalname: 'file1.jpg',
           mimetype: 'image/jpeg',
+          fieldname: 'files',
+          encoding: '7bit',
+          size: 1024,
+          destination: '/tmp',
+          filename: 'file1.jpg',
+          path: '/tmp/file1.jpg',
+          stream: Readable.from(Buffer.from('file1 content')),
         },
         {
           buffer: Buffer.from('file2 content'),
           originalname: 'file2.png',
           mimetype: 'image/png',
+          fieldname: 'files',
+          encoding: '7bit',
+          size: 1024,
+          destination: '/tmp',
+          filename: 'file2.png',
+          path: '/tmp/file2.png',
+          stream: Readable.from(Buffer.from('file2 content')),
         },
       ];
       const expectedResponse = { uploaded: true };
@@ -232,7 +247,7 @@ describe('HttpService', () => {
       // Arrange
       const endpoint = 'upload-endpoint';
       const postId = 123;
-      const mockFiles: Array<any> = [];
+      const mockFiles: Array<Express.Multer.File> = [];
       const expectedResponse = { uploaded: true };
       const mockResponse = { data: expectedResponse };
 
@@ -258,11 +273,18 @@ describe('HttpService', () => {
       // Arrange
       const endpoint = 'upload-endpoint';
       const postId = 123;
-      const mockFiles: Array<any> = [
+      const mockFiles: Array<Express.Multer.File> = [
         {
           buffer: Buffer.from('file content'),
           originalname: 'file.jpg',
           mimetype: 'image/jpeg',
+          fieldname: 'files',
+          encoding: '7bit',
+          size: 1024,
+          destination: '/tmp',
+          filename: 'file.jpg',
+          path: '/tmp/file.jpg',
+          stream: Readable.from(Buffer.from('file content')),
         },
       ];
       const axiosError = new Error('Upload failed');

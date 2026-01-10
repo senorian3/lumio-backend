@@ -39,6 +39,9 @@ describe('GetCreatePostQueryHandler', () => {
       city: 'NY',
       aboutMe: 'Test user',
       avatarUrl: null,
+      profileFilled: false,
+      profileFilledAt: null,
+      profileUpdatedAt: null,
     },
     files: [],
   };

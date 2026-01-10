@@ -24,6 +24,9 @@ describe('AboutUserQueryHandler', () => {
     city: 'New York',
     aboutMe: 'Test user',
     avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',

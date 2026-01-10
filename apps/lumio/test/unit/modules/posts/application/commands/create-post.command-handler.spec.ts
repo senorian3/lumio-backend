@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Readable } from 'stream';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
@@ -28,7 +29,11 @@ describe('CreatePostCommandHandler', () => {
       mimetype: 'image/jpeg',
       buffer: Buffer.from('test-image-content'),
       size: 1024,
-    } as Express.Multer.File,
+      destination: '/tmp',
+      filename: 'test-image.jpg',
+      path: '/tmp/test-image.jpg',
+      stream: Readable.from(Buffer.from('test-image-content')),
+    },
   ];
 
   const mockUser = {
@@ -45,6 +50,9 @@ describe('CreatePostCommandHandler', () => {
     city: 'New York',
     aboutMe: 'Test user',
     avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
   };
 
   const mockPost: PostEntity = {

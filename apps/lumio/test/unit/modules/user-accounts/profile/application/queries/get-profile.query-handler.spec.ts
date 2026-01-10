@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  GetProfileQueryHandler,
-  GetProfileQuery,
-} from '@lumio/modules/user-accounts/profile/application/queries/get-profile.query-handler';
+  GetProfileOrPostQueryHandler,
+  GetProfileOrPostQuery,
+} from '@lumio/modules/user-accounts/profile/application/queries/get-profile-or-post.query-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { ProfileView } from '@lumio/modules/user-accounts/profile/api/dto/output/profile.output.dto';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 
-describe('GetProfileQueryHandler', () => {
-  let handler: GetProfileQueryHandler;
+describe('GetProfileOrPostQueryHandler', () => {
+  let handler: GetProfileOrPostQueryHandler;
   let mockUserRepository: UserRepository;
   let mockPostRepository: PostRepository;
 
@@ -28,6 +28,9 @@ describe('GetProfileQueryHandler', () => {
     password: 'hashedpassword',
     createdAt: new Date(),
     deletedAt: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
   };
 
   const mockPost = {
@@ -46,7 +49,7 @@ describe('GetProfileQueryHandler', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GetProfileQueryHandler,
+        GetProfileOrPostQueryHandler,
         {
           provide: UserRepository,
           useValue: {
@@ -62,7 +65,9 @@ describe('GetProfileQueryHandler', () => {
       ],
     }).compile();
 
-    handler = module.get<GetProfileQueryHandler>(GetProfileQueryHandler);
+    handler = module.get<GetProfileOrPostQueryHandler>(
+      GetProfileOrPostQueryHandler,
+    );
     mockUserRepository = module.get<UserRepository>(UserRepository);
     mockPostRepository = module.get<PostRepository>(PostRepository);
   });
@@ -75,7 +80,7 @@ describe('GetProfileQueryHandler', () => {
     it('should return profile view when no postId provided', async () => {
       // Arrange
       const userId = 1;
-      const query = new GetProfileQuery(userId);
+      const query = new GetProfileOrPostQuery(userId);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
@@ -96,7 +101,7 @@ describe('GetProfileQueryHandler', () => {
       // Arrange
       const userId = 1;
       const postId = 1;
-      const query = new GetProfileQuery(userId, postId);
+      const query = new GetProfileOrPostQuery(userId, postId);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
@@ -117,7 +122,7 @@ describe('GetProfileQueryHandler', () => {
     it('should throw NotFoundDomainException when user not found', async () => {
       // Arrange
       const userId = 999;
-      const query = new GetProfileQuery(userId);
+      const query = new GetProfileOrPostQuery(userId);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(null);
 
@@ -133,7 +138,7 @@ describe('GetProfileQueryHandler', () => {
       // Arrange
       const userId = 1;
       const postId = 999;
-      const query = new GetProfileQuery(userId, postId);
+      const query = new GetProfileOrPostQuery(userId, postId);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
@@ -151,7 +156,7 @@ describe('GetProfileQueryHandler', () => {
     it('should handle repository findUserById error', async () => {
       // Arrange
       const userId = 1;
-      const query = new GetProfileQuery(userId);
+      const query = new GetProfileOrPostQuery(userId);
       const dbError = new Error('Database connection failed');
 
       (mockUserRepository.findUserById as jest.Mock).mockRejectedValue(dbError);
@@ -166,7 +171,7 @@ describe('GetProfileQueryHandler', () => {
       // Arrange
       const userId = 1;
       const postId = 1;
-      const query = new GetProfileQuery(userId, postId);
+      const query = new GetProfileOrPostQuery(userId, postId);
       const dbError = new Error('Database connection failed');
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
@@ -183,7 +188,7 @@ describe('GetProfileQueryHandler', () => {
     it('should handle undefined postId (same as no postId)', async () => {
       // Arrange
       const userId = 1;
-      const query = new GetProfileQuery(userId, undefined);
+      const query = new GetProfileOrPostQuery(userId, undefined);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
@@ -203,7 +208,7 @@ describe('GetProfileQueryHandler', () => {
     it('should handle null postId (same as no postId)', async () => {
       // Arrange
       const userId = 1;
-      const query = new GetProfileQuery(userId, null);
+      const query = new GetProfileOrPostQuery(userId, null);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,

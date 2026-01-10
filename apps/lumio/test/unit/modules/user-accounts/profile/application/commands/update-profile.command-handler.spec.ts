@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  UpdateUserProfileCommandHandler,
-  UpdateUserProfileCommand,
-} from '@lumio/modules/user-accounts/profile/application/commands/update-user-profile.command-handler';
+  UpdateProfileCommandHandler,
+  UpdateProfileCommand,
+} from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
 import { ProfileView } from '@lumio/modules/user-accounts/profile/api/dto/output/profile.output.dto';
@@ -11,14 +11,14 @@ import {
   ForbiddenDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 
-describe('UpdateUserProfileCommandHandler', () => {
-  let handler: UpdateUserProfileCommandHandler;
+describe('UpdateProfileCommandHandler', () => {
+  let handler: UpdateProfileCommandHandler;
   let mockUserRepository: UserRepository;
 
   const mockEditProfileDto = new EditProfileTransferDto();
   mockEditProfileDto.firstName = 'John';
   mockEditProfileDto.lastName = 'Doe';
-  mockEditProfileDto.dateOfBirth = '1990-01-01';
+  mockEditProfileDto.dateOfBirth = new Date('1990-01-01');
   mockEditProfileDto.country = 'USA';
   mockEditProfileDto.city = 'New York';
   mockEditProfileDto.aboutMe = 'About me';
@@ -37,6 +37,9 @@ describe('UpdateUserProfileCommandHandler', () => {
     password: 'hashedpassword',
     createdAt: new Date(),
     deletedAt: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
   };
 
   const mockUpdatedUser = {
@@ -50,19 +53,19 @@ describe('UpdateUserProfileCommandHandler', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        UpdateUserProfileCommandHandler,
+        UpdateProfileCommandHandler,
         {
           provide: UserRepository,
           useValue: {
             findUserById: jest.fn(),
-            updateUserProfile: jest.fn(),
+            updateProfile: jest.fn(),
           },
         },
       ],
     }).compile();
 
-    handler = module.get<UpdateUserProfileCommandHandler>(
-      UpdateUserProfileCommandHandler,
+    handler = module.get<UpdateProfileCommandHandler>(
+      UpdateProfileCommandHandler,
     );
     mockUserRepository = module.get<UserRepository>(UserRepository);
   });
@@ -76,7 +79,7 @@ describe('UpdateUserProfileCommandHandler', () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
         requestUserId,
@@ -85,7 +88,7 @@ describe('UpdateUserProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
-      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+      (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
         mockUpdatedUser,
       );
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
@@ -95,10 +98,10 @@ describe('UpdateUserProfileCommandHandler', () => {
 
       // Assert
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
-        userId,
-        mockEditProfileDto,
-      );
+      expect(mockUserRepository.updateProfile).toHaveBeenCalledWith(userId, {
+        ...mockEditProfileDto,
+        profileUpdatedAt: expect.any(Date),
+      });
       expect(ProfileView.fromEntity).toHaveBeenCalledWith(mockUpdatedUser);
       expect(result).toEqual(mockProfileView);
     });
@@ -107,7 +110,7 @@ describe('UpdateUserProfileCommandHandler', () => {
       // Arrange
       const userId = 999;
       const requestUserId = 999;
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
         requestUserId,
@@ -120,14 +123,14 @@ describe('UpdateUserProfileCommandHandler', () => {
         BadRequestDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+      expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
     it('should throw ForbiddenDomainException when user tries to update another user profile', async () => {
       // Arrange
       const userId = 1;
       const requestUserId = 2; // Different user
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
         requestUserId,
@@ -142,14 +145,14 @@ describe('UpdateUserProfileCommandHandler', () => {
         ForbiddenDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+      expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
     it('should handle repository findUserById error', async () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
         requestUserId,
@@ -161,14 +164,14 @@ describe('UpdateUserProfileCommandHandler', () => {
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(mockUserRepository.updateUserProfile).not.toHaveBeenCalled();
+      expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should handle repository updateUserProfile error', async () => {
+    it('should handle repository updateProfile error', async () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
         requestUserId,
@@ -178,17 +181,17 @@ describe('UpdateUserProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
-      (mockUserRepository.updateUserProfile as jest.Mock).mockRejectedValue(
+      (mockUserRepository.updateProfile as jest.Mock).mockRejectedValue(
         updateError,
       );
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(updateError);
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
-        userId,
-        mockEditProfileDto,
-      );
+      expect(mockUserRepository.updateProfile).toHaveBeenCalledWith(userId, {
+        ...mockEditProfileDto,
+        profileUpdatedAt: expect.any(Date),
+      });
     });
 
     it('should handle partial profile update', async () => {
@@ -199,7 +202,7 @@ describe('UpdateUserProfileCommandHandler', () => {
 
       const userId = 1;
       const requestUserId = 1;
-      const command = new UpdateUserProfileCommand(
+      const command = new UpdateProfileCommand(
         partialDto,
         userId,
         requestUserId,
@@ -208,7 +211,7 @@ describe('UpdateUserProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
-      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+      (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
         mockUpdatedUser,
       );
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
@@ -217,10 +220,10 @@ describe('UpdateUserProfileCommandHandler', () => {
       const result = await handler.execute(command);
 
       // Assert
-      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
-        userId,
-        partialDto,
-      );
+      expect(mockUserRepository.updateProfile).toHaveBeenCalledWith(userId, {
+        ...partialDto,
+        profileUpdatedAt: expect.any(Date),
+      });
       expect(result).toEqual(mockProfileView);
     });
 
@@ -231,16 +234,12 @@ describe('UpdateUserProfileCommandHandler', () => {
 
       const userId = 1;
       const requestUserId = 1;
-      const command = new UpdateUserProfileCommand(
-        emptyDto,
-        userId,
-        requestUserId,
-      );
+      const command = new UpdateProfileCommand(emptyDto, userId, requestUserId);
 
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
-      (mockUserRepository.updateUserProfile as jest.Mock).mockResolvedValue(
+      (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
         mockUpdatedUser,
       );
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
@@ -249,10 +248,10 @@ describe('UpdateUserProfileCommandHandler', () => {
       const result = await handler.execute(command);
 
       // Assert
-      expect(mockUserRepository.updateUserProfile).toHaveBeenCalledWith(
-        userId,
-        emptyDto,
-      );
+      expect(mockUserRepository.updateProfile).toHaveBeenCalledWith(userId, {
+        ...emptyDto,
+        profileUpdatedAt: expect.any(Date),
+      });
       expect(result).toEqual(mockProfileView);
     });
   });

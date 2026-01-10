@@ -41,6 +41,9 @@ describe('LoginUserUseCase', () => {
     city: 'New York',
     aboutMe: 'Test user',
     avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
   };
   const deviceId = randomUUID();
   const mockExistSession = {
