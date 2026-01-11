@@ -26,14 +26,14 @@ export class GetProfileOrPostQueryHandler implements IQueryHandler<
     const user = await this.userRepository.findUserById(query.userId);
 
     if (!user) {
-      throw NotFoundDomainException.create('User not found', 'userId');
+      throw NotFoundDomainException.create('Profile is not found', 'userId');
     }
 
     if (query.postId) {
       const post = await this.postRepository.findById(query.postId);
 
-      if (!post) {
-        throw NotFoundDomainException.create('Post does not exist', 'postId');
+      if (!post || post.userId !== query.userId) {
+        throw NotFoundDomainException.create('Post is not found', 'postId');
       }
 
       return PostView.fromPrisma(post);
