@@ -26,19 +26,19 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User not found', 'User');
+      throw BadRequestDomainException.create('User is not found', 'userId');
     }
 
     if (!user.profileFilled) {
       throw BadRequestDomainException.create(
-        'Profile not filled',
+        'Profile is not filled',
         'profileFilled',
       );
     }
 
     if (user.id !== command.requestUserId) {
       throw ForbiddenDomainException.create(
-        'User cannot update another user',
+        'User cannot update another user profile',
         'userId',
       );
     }

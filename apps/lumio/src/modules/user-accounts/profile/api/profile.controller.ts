@@ -28,6 +28,9 @@ import {
   PROFILE_BASE,
   PROFILE_ROUTES,
 } from '@lumio/core/routes/profile-routes';
+import { ApiGetProfileOrPost } from '@lumio/core/decorators/swagger/profile/get-profile-or-post.decorator';
+import { ApiFillProfile } from '@lumio/core/decorators/swagger/profile/fill-profile.decorator';
+import { ApiUpdateProfile } from '@lumio/core/decorators/swagger/profile/edit-profile.decorator';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -37,6 +40,7 @@ export class ProfileController {
   ) {}
 
   @Get(':userId')
+  @ApiGetProfileOrPost()
   @HttpCode(HttpStatus.OK)
   async getProfile(
     @Param('userId') userId: number,
@@ -51,6 +55,7 @@ export class ProfileController {
   }
 
   @Put(PROFILE_ROUTES.FILL_PROFILE)
+  @ApiFillProfile()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async fillProfile(
@@ -67,9 +72,10 @@ export class ProfileController {
   }
 
   @Put(':userId')
+  @ApiUpdateProfile()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async editProfile(
+  async updateProfile(
     @Param('userId') userId: number,
     @Body() dto: InputEditProfileDto,
     @Req() req: any,

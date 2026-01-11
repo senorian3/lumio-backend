@@ -26,7 +26,7 @@ export class FillProfileCommandHandler implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User not found', 'User');
+      throw BadRequestDomainException.create('User is not found', 'userId');
     }
 
     if (user.profileFilled) {

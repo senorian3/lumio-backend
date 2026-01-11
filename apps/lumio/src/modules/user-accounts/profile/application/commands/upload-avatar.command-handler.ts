@@ -48,7 +48,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       this.logger.error(
         `Avatar upload failed for user ${command.userId}`,
         error.stack || JSON.stringify(error),
-        'UploadUserAvatarCommandHandler',
+        CommandHandler.name,
       );
 
       throw BadRequestDomainException.create('Failed to upload avatar', 'user');
