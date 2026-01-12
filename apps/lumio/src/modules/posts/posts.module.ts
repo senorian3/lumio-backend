@@ -13,8 +13,8 @@ import { GetAllUserPostsQueryHandler } from './application/queries/get-all-user-
 import { LoggerModule } from '@libs/logger/logger.module';
 import { GetMainPageQueryHandler } from './application/queries/get-main-page.query-handler';
 import { SharedModule } from '@libs/shared/shared.module';
-import { UserQueryModule } from '../user-accounts/user-query.module';
 import { GetProfilePostQueryHandler } from './application/queries/get-profile-post.query-handler';
+import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -33,8 +33,8 @@ const queryRepository = [QueryPostRepository];
 
 @Module({
   imports: [
+    UserAccountsModule,
     SharedModule,
-    UserQueryModule,
     JwtModule,
     SessionsModule,
     LoggerModule,

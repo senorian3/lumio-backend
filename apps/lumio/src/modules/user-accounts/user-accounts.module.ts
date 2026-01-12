@@ -118,6 +118,6 @@ const strategies = [JwtStrategy, YandexStrategy];
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserAccountsConfig],
+  exports: [UserAccountsConfig, ExternalQueryUserRepository],
 })
 export class UserAccountsModule {}

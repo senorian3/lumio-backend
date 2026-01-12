@@ -5,12 +5,16 @@ import { Injectable } from '@nestjs/common';
 export class ExternalQueryUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(userId: number): Promise<number | null> {
+  async findById(id: number): Promise<number | null> {
     const user = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id,
       },
     });
+
+    if (!user) {
+      return null;
+    }
 
     return user.id;
   }
