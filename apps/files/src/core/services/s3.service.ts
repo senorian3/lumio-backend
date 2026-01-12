@@ -3,9 +3,7 @@ import {
   DeleteObjectCommand,
   PutObjectCommand,
   S3Client,
-  GetObjectCommand,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
@@ -19,8 +17,6 @@ export class FilesService {
   private readonly bucketName: string;
   private readonly region: string;
   private readonly endpoint: string;
-  private readonly urlExpirationTime: number = 60 * 60 * 24 * 7; // 1 week
-  private readonly kmsKeyId: string;
   private readonly accessKeyId: string;
   private readonly secretAccessKey: string;
 
@@ -31,7 +27,6 @@ export class FilesService {
     this.bucketName = this.coreConfig.s3BucketName;
     this.region = this.coreConfig.s3Region;
     this.endpoint = this.coreConfig.s3Endpoint;
-    this.kmsKeyId = this.coreConfig.s3KmsKeyId;
     this.accessKeyId = this.coreConfig.s3AccessKeyId;
     this.secretAccessKey = this.coreConfig.s3SecretAccessKey;
 
@@ -74,13 +69,11 @@ export class FilesService {
           Key: fileKey,
           Body: fileBuffer,
           ContentType: mimeType,
-          ServerSideEncryption: 'aws:kms',
-          SSEKMSKeyId: this.kmsKeyId,
         });
 
         await this.s3.send(uploadCommand);
 
-        const fileUrl = await this.generateSignedUrl(fileKey);
+        const fileUrl = `https://${this.bucketName}.storage.yandexcloud.net/${fileKey}`;
 
         uploadedFiles.push({
           key: fileKey,
@@ -102,30 +95,6 @@ export class FilesService {
     }
 
     return uploadedFiles;
-  }
-
-  async generateSignedUrl(
-    fileKey: string,
-    expiresIn: number = this.urlExpirationTime,
-  ): Promise<string> {
-    try {
-      const command = new GetObjectCommand({
-        Bucket: this.bucketName,
-        Key: fileKey,
-      });
-
-      const signedUrl = await getSignedUrl(this.s3 as any, command, {
-        expiresIn,
-      });
-      return signedUrl;
-    } catch (error) {
-      this.logger.error(
-        `Error generating signed URL for ${fileKey}`,
-        error?.stack,
-        FilesService.name,
-      );
-      throw new Error(`Failed to generate signed URL: ${error.message}`);
-    }
   }
 
   async deleteFile(s3key: string): Promise<void> {
