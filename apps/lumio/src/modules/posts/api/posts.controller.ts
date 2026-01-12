@@ -79,7 +79,7 @@ export class PostsController {
 
   @Put(':postId')
   @ApiUpdatePost()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updatePost(
     @Param('postId') postId: number,

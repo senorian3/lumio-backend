@@ -29,6 +29,7 @@ export class SessionsController {
 
   @Get()
   @ApiGetAllSessions()
+  @HttpCode(HttpStatus.OK)
   async getAllSessions(@Req() req: any): Promise<OutputSessionDto[]> {
     return await this.queryBus.execute<GetAllSessionsQuery, OutputSessionDto[]>(
       new GetAllSessionsQuery(req.user.userId),
