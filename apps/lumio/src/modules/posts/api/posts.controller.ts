@@ -18,7 +18,7 @@ import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { CreatePostCommand } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { FileValidationPipe } from '@libs/core/pipe/validation/validation-files.pipe';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { DeletePostCommand } from '@lumio/modules/posts/application/commands/delete-post.command-handler';

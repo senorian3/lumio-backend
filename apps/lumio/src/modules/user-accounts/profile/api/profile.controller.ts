@@ -31,6 +31,7 @@ import {
 import { ApiGetProfileOrPost } from '@lumio/core/decorators/swagger/profile/get-profile-or-post.decorator';
 import { ApiFillProfile } from '@lumio/core/decorators/swagger/profile/fill-profile.decorator';
 import { ApiUpdateProfile } from '@lumio/core/decorators/swagger/profile/edit-profile.decorator';
+import { SingleFileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -94,7 +95,7 @@ export class ProfileController {
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(
     @Req() req: any,
-    @UploadedFile() avatar: Express.Multer.File,
+    @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
   ): Promise<{ url: string }> {
     const avatarUrl = await this.commandBus.execute<
       UploadUserAvatarCommand,
