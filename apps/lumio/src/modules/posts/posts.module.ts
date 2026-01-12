@@ -14,7 +14,7 @@ import { LoggerModule } from '@libs/logger/logger.module';
 import { GetMainPageQueryHandler } from './application/queries/get-main-page.query-handler';
 import { SharedModule } from '@libs/shared/shared.module';
 import { GetProfilePostQueryHandler } from './application/queries/get-profile-post.query-handler';
-import { UserAccountsModule } from '../user-accounts/user-accounts.module';
+import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -33,8 +33,8 @@ const queryRepository = [QueryPostRepository];
 
 @Module({
   imports: [
-    UserAccountsModule,
     SharedModule,
+    UserAccountsModule,
     JwtModule,
     SessionsModule,
     LoggerModule,
