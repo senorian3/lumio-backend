@@ -74,7 +74,7 @@ export function ApiCreatePost() {
         description: 'Мой первый пост',
         createdAt: '2025-12-26T13:39:48.953Z',
         userId: 44,
-        files: [
+        postFiles: [
           {
             id: 248,
             url: 'https://lumio-files-photo.storage.yandexcloud.net/content/posts/62/62_image_...',

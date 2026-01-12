@@ -13,6 +13,18 @@ export function ApiUpdatePost() {
     ApiResponse({
       status: 200,
       description: 'Post successfully updated',
+      example: {
+        id: 65,
+        description: 'Мой первый пост',
+        createdAt: '2026-01-08T07:16:03.016Z',
+        userId: 46,
+        postFiles: [
+          {
+            id: 6,
+            url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_1_b8ab8ba8.png?...',
+          },
+        ],
+      },
     }),
     ApiResponse({
       status: 400,

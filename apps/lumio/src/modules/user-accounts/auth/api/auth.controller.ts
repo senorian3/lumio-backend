@@ -72,6 +72,7 @@ export class AuthController {
 
   @Get(AUTH_ROUTES.YANDEX)
   @ApiYandex()
+  @HttpCode(HttpStatus.FOUND)
   @UseGuards(AuthGuard('yandex'))
   async yandexLogin(): Promise<void> {}
 
@@ -100,7 +101,7 @@ export class AuthController {
 
   @Post(AUTH_ROUTES.REGISTRATION)
   @ApiRegistration()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: InputRegistrationDto): Promise<void> {
     return await this.commandBus.execute<RegisterUserCommand, void>(
       new RegisterUserCommand(dto),
@@ -170,7 +171,7 @@ export class AuthController {
 
   @Post(AUTH_ROUTES.NEW_PASSWORD)
   @ApiNewPassword()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
     return await this.commandBus.execute<NewPasswordCommand, void>(
       new NewPasswordCommand(dto),

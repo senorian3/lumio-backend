@@ -10,7 +10,7 @@ export function ApiRegistration() {
     }),
 
     ApiResponse({
-      status: 204,
+      status: 201,
       description: 'User successfully registered',
     }),
 

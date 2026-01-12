@@ -55,6 +55,22 @@ export class ProfileController {
     return profileOrPost;
   }
 
+  @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadUserAvatar(
+    @Req() req: any,
+    @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    const avatarUrl = await this.commandBus.execute<
+      UploadUserAvatarCommand,
+      { url: string }
+    >(new UploadUserAvatarCommand(req.user.userId, avatar));
+
+    return avatarUrl;
+  }
+
   @Put(PROFILE_ROUTES.FILL_PROFILE)
   @ApiFillProfile()
   @HttpCode(HttpStatus.OK)
@@ -87,21 +103,5 @@ export class ProfileController {
     >(new UpdateProfileCommand(dto, userId, req.user.userId));
 
     return updatedProfile;
-  }
-
-  @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
-  @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('avatar'))
-  async uploadUserAvatar(
-    @Req() req: any,
-    @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
-  ): Promise<{ url: string }> {
-    const avatarUrl = await this.commandBus.execute<
-      UploadUserAvatarCommand,
-      { url: string }
-    >(new UploadUserAvatarCommand(req.user.userId, avatar));
-
-    return avatarUrl;
   }
 }

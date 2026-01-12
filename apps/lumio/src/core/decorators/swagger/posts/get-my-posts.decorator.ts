@@ -17,31 +17,26 @@ export function ApiGetMyPosts() {
         success: {
           summary: 'Example response',
           value: {
+            pagesCount: 1,
             page: 1,
             pageSize: 10,
-            pagesCount: 1,
             totalCount: 5,
             items: [
               {
                 id: 65,
                 description: 'Мой первый пост',
                 createdAt: '2026-01-08T07:16:03.016Z',
-                deletedAt: null,
                 userId: 46,
-                files: [
+                postFiles: [
                   {
                     id: 6,
-                    postId: 65,
                     url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_1_b8ab8ba8.png?...',
-                    createdAt: '2026-01-08T07:16:04.603Z',
-                    deletedAt: null,
+                    postId: 65,
                   },
                   {
                     id: 7,
-                    postId: 65,
                     url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_2_2d5cd9ee.png?...',
-                    createdAt: '2026-01-08T07:16:04.603Z',
-                    deletedAt: null,
+                    postId: 65,
                   },
                 ],
               },

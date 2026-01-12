@@ -33,6 +33,7 @@ import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
 import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -49,10 +50,11 @@ export class PostsController {
     @Query()
     query: GetPostsQueryParams,
     @Req() req: any,
-  ): Promise<number> {
-    return await this.queryBus.execute<GetAllUserPostsQuery, number>(
-      new GetAllUserPostsQuery(req.user.userId, query),
-    );
+  ): Promise<PaginatedViewDto<PostView[]>> {
+    return await this.queryBus.execute<
+      GetAllUserPostsQuery,
+      PaginatedViewDto<PostView[]>
+    >(new GetAllUserPostsQuery(req.user.userId, query));
   }
 
   @Post()
