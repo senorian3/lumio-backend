@@ -21,6 +21,13 @@ export class GetProfileQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Profile is not found', 'userId');
     }
 
-    return ProfileView.fromEntity(user);
+    const profile = await this.userRepository.findUserProfileByUserId(
+      query.userId,
+    );
+    if (!profile) {
+      throw NotFoundDomainException.create('Profile is not found', 'userId');
+    }
+
+    return ProfileView.fromEntity(user, profile);
   }
 }

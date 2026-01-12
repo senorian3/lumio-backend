@@ -1,4 +1,5 @@
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
+import { UserProfileEntity } from '@lumio/modules/user-accounts/users/domain/entities/user-profile.entity';
 
 export class ProfileView {
   id: number;
@@ -11,15 +12,24 @@ export class ProfileView {
   aboutMe?: string;
   avatarUrl?: string;
 
-  static fromEntity(user: UserEntity): ProfileView {
+  static fromEntity(
+    user: UserEntity,
+    userProfile: UserProfileEntity | null | undefined,
+  ): ProfileView {
     const view = new ProfileView();
 
     view.id = user.id;
     view.username = user.username;
-    view.firstName = user.firstName || null;
-    view.lastName = user.lastName || null;
-    if (user.dateOfBirth) {
-      const date = user.dateOfBirth;
+
+    view.firstName = userProfile?.firstName || null;
+    view.lastName = userProfile?.lastName || null;
+    view.country = userProfile?.country || null;
+    view.city = userProfile?.city || null;
+    view.aboutMe = userProfile?.aboutMe || null;
+    view.avatarUrl = userProfile?.avatarUrl || null;
+
+    if (userProfile?.dateOfBirth) {
+      const date = userProfile.dateOfBirth;
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
@@ -27,10 +37,6 @@ export class ProfileView {
     } else {
       view.dateOfBirth = null;
     }
-    view.country = user.country || null;
-    view.city = user.city || null;
-    view.aboutMe = user.aboutMe || null;
-    view.avatarUrl = user.avatarUrl || null;
 
     return view;
   }

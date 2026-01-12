@@ -29,7 +29,11 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
       throw BadRequestDomainException.create('User is not found', 'userId');
     }
 
-    if (!user.profileFilled) {
+    const userProfile = await this.userRepository.findUserProfileByUserId(
+      command.userId,
+    );
+
+    if (!userProfile) {
       throw BadRequestDomainException.create(
         'Profile is not filled',
         'profileFilled',
@@ -48,6 +52,6 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
       { ...command.profileInformation, profileUpdatedAt: new Date() },
     );
 
-    return ProfileView.fromEntity(updatedProfile);
+    return ProfileView.fromEntity(user, updatedProfile);
   }
 }

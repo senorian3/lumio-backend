@@ -8,6 +8,7 @@ import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
 import { EditProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/edit-profile.domain.dto';
 import { FillProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/fill-profile.domain.dto';
+import { UserProfileEntity } from '@lumio/modules/user-accounts/users/domain/entities/user-profile.entity';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -196,28 +197,66 @@ export class UserRepository {
   async fillProfile(
     userId: number,
     data: FillProfileDomainDto,
-  ): Promise<UserEntity> {
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data,
+  ): Promise<UserProfileEntity> {
+    return await this.prisma.userProfile.create({
+      data: {
+        userId: userId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        country: data.country,
+        city: data.city,
+        aboutMe: data.aboutMe,
+        profileFilled: data.profileFilled,
+        profileFilledAt: data.profileFilledAt,
+        profileUpdatedAt: new Date(),
+      },
+      include: {
+        user: true,
+      },
     });
   }
 
   async updateProfile(
     userId: number,
     data: EditProfileDomainDto,
-  ): Promise<UserEntity> {
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data,
+  ): Promise<UserProfileEntity> {
+    return await this.prisma.userProfile.update({
+      where: { userId: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        country: data.country,
+        city: data.city,
+        aboutMe: data.aboutMe,
+        profileUpdatedAt: data.profileUpdatedAt,
+      },
+      include: {
+        user: true,
+      },
     });
   }
 
   async updateAvatarUrl(userId: number, avatarUrl: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
+    await this.prisma.userProfile.update({
+      where: {
+        userId: userId,
+      },
       data: {
         avatarUrl: avatarUrl,
+        profileUpdatedAt: new Date(),
+      },
+    });
+  }
+
+  async findUserProfileByUserId(
+    userId: number,
+  ): Promise<UserProfileEntity | null> {
+    return this.prisma.userProfile.findUnique({
+      where: { userId: userId },
+      include: {
+        user: true,
       },
     });
   }
