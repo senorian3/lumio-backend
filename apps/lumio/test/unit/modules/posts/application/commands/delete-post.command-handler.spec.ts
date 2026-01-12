@@ -4,9 +4,9 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { HttpService } from '@lumio/modules/posts/application/http.service';
+import { HttpService } from '@libs/shared/http.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
   DeletePostCommandHandler,
@@ -16,7 +16,7 @@ import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 
 describe('DeletePostCommandHandler', () => {
   let handler: DeletePostCommandHandler;
-  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
   let mockPostRepository: jest.Mocked<PostRepository>;
   let mockHttpService: jest.Mocked<HttpService>;
   let mockLogger: jest.Mocked<AppLoggerService>;
@@ -58,9 +58,9 @@ describe('DeletePostCommandHandler', () => {
       providers: [
         DeletePostCommandHandler,
         {
-          provide: UserRepository,
+          provide: ExternalQueryUserRepository,
           useValue: {
-            findUserById: jest.fn(),
+            findById: jest.fn(),
           },
         },
         {
@@ -86,7 +86,7 @@ describe('DeletePostCommandHandler', () => {
     }).compile();
 
     handler = module.get<DeletePostCommandHandler>(DeletePostCommandHandler);
-    mockUserRepository = module.get(UserRepository);
+    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
     mockPostRepository = module.get(PostRepository);
     mockHttpService = module.get(HttpService);
     mockLogger = module.get(AppLoggerService);
@@ -101,7 +101,7 @@ describe('DeletePostCommandHandler', () => {
       // Arrange
       const command = new DeletePostCommand(mockUserId, mockPostId);
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPost);
       mockPostRepository.softDeletePostById.mockResolvedValue(undefined);
       mockHttpService.delete.mockResolvedValue(undefined);
@@ -110,7 +110,9 @@ describe('DeletePostCommandHandler', () => {
       await handler.execute(command);
 
       // Assert
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
       expect(mockPostRepository.softDeletePostById).toHaveBeenCalledWith(
         mockPostId,
@@ -124,7 +126,7 @@ describe('DeletePostCommandHandler', () => {
       // Arrange
       const command = new DeletePostCommand(mockUserId, mockPostId);
 
-      mockUserRepository.findUserById.mockResolvedValue(null);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
@@ -140,7 +142,9 @@ describe('DeletePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('user');
       }
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
       expect(mockPostRepository.softDeletePostById).not.toHaveBeenCalled();
       expect(mockHttpService.delete).not.toHaveBeenCalled();
@@ -150,7 +154,7 @@ describe('DeletePostCommandHandler', () => {
       // Arrange
       const command = new DeletePostCommand(mockUserId, mockPostId);
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
@@ -167,7 +171,9 @@ describe('DeletePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('post');
       }
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
       expect(mockPostRepository.softDeletePostById).not.toHaveBeenCalled();
       expect(mockHttpService.delete).not.toHaveBeenCalled();
@@ -181,7 +187,7 @@ describe('DeletePostCommandHandler', () => {
         userId: 999, // Different user
       };
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(otherUserPost);
 
       // Act & Assert
@@ -200,7 +206,9 @@ describe('DeletePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('post');
       }
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
       expect(mockPostRepository.softDeletePostById).not.toHaveBeenCalled();
       expect(mockHttpService.delete).not.toHaveBeenCalled();
@@ -211,7 +219,7 @@ describe('DeletePostCommandHandler', () => {
       const command = new DeletePostCommand(mockUserId, mockPostId);
       const deleteError = new Error('File deletion failed');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPost);
       mockPostRepository.softDeletePostById.mockResolvedValue(undefined);
       mockHttpService.delete.mockRejectedValue(deleteError);
@@ -242,12 +250,14 @@ describe('DeletePostCommandHandler', () => {
       const command = new DeletePostCommand(mockUserId, mockPostId);
       const dbError = new Error('Database connection failed');
 
-      mockUserRepository.findUserById.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
     });
 
@@ -256,13 +266,15 @@ describe('DeletePostCommandHandler', () => {
       const command = new DeletePostCommand(mockUserId, mockPostId);
       const dbError = new Error('Database connection failed');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
       expect(mockPostRepository.softDeletePostById).not.toHaveBeenCalled();
     });
@@ -272,14 +284,16 @@ describe('DeletePostCommandHandler', () => {
       const command = new DeletePostCommand(mockUserId, mockPostId);
       const dbError = new Error('Cannot delete post');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPost);
       mockPostRepository.softDeletePostById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
       expect(mockPostRepository.softDeletePostById).toHaveBeenCalledWith(
         mockPostId,

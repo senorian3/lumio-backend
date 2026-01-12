@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { NodemailerService } from './adapters/nodemailer/nodemailer.service';
 import { CryptoService } from './adapters/crypto.service';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
@@ -33,11 +33,11 @@ import { RegistrationConfirmationUserCommandHandler } from './auth/application/c
 import { CreateUserCommandHandler } from './users/application/commands/create-user.command-handler';
 import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
 import { UpdateProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
-import { GetProfileOrPostQueryHandler } from './profile/application/queries/get-profile-or-post.query-handler';
-import { PostsModule } from '../posts/posts.module';
+import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
 import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
-import { HttpService } from '@lumio/modules/posts/application/http.service';
 import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
+import { ExternalQueryUserRepository } from './users/domain/infrastructure/user.external-query.repository';
+import { SharedModule } from '@libs/shared/shared.module';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -81,7 +81,7 @@ const useCases = [
   RefreshTokenCommandHandler,
   UpdateProfileCommandHandler,
   FillProfileCommandHandler,
-  GetProfileOrPostQueryHandler,
+  GetProfileQueryHandler,
   UploadUserAvatarCommandHandler,
 ];
 
@@ -91,19 +91,18 @@ const services = [
   EmailService,
   RecaptchaService,
   AuthService,
-  HttpService,
 ];
 
 const strategies = [JwtStrategy, YandexStrategy];
 
 @Module({
   imports: [
+    SharedModule,
     PassportModule,
     SessionsModule,
     JwtModule,
     ScheduleModule.forRoot(),
     LoggerModule,
-    forwardRef(() => PostsModule),
   ],
 
   controllers: [AuthController, ProfileController],
@@ -113,11 +112,12 @@ const strategies = [JwtStrategy, YandexStrategy];
     UserSchedulerService,
     AboutUserQueryHandler,
     QueryUserRepository,
+    ExternalQueryUserRepository,
     ...useCases,
     ...services,
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserRepository, UserAccountsConfig],
+  exports: [UserAccountsConfig],
 })
 export class UserAccountsModule {}

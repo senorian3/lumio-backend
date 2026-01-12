@@ -1,12 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { HttpService } from '../http.service';
+import { HttpService } from '@libs/shared/http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
+import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class CreatePostCommand {
   constructor(
@@ -22,7 +22,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
   { file: OutputFileType[]; postId: number }
 > {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
     private readonly postRepository: PostRepository,
     private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
@@ -31,7 +31,9 @@ export class CreatePostCommandHandler implements ICommandHandler<
   async execute(
     command: CreatePostCommand,
   ): Promise<{ file: OutputFileType[]; postId: number }> {
-    const user = await this.userRepository.findUserById(command.userId);
+    const user = await this.externalQueryUserRepository.findById(
+      command.userId,
+    );
 
     if (!user) {
       throw BadRequestDomainException.create('User does not exist', 'userId');

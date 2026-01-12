@@ -193,10 +193,6 @@ export class UserRepository {
     return;
   }
 
-  async getRegisteredUsersCount(): Promise<number> {
-    return this.prisma.user.count();
-  }
-
   async fillProfile(
     userId: number,
     data: FillProfileDomainDto,

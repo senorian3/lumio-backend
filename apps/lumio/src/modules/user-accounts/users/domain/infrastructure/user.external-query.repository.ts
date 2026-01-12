@@ -1,21 +1,21 @@
-import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class QueryUserRepository {
+export class ExternalQueryUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getById(userId: number): Promise<UserEntity | null> {
+  async findById(userId: number): Promise<number | null> {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
-      include: {
-        emailConfirmation: true,
-      },
     });
 
-    return user;
+    return user.id;
+  }
+
+  async getAllRegisteredUsersCount(): Promise<number> {
+    return this.prisma.user.count();
   }
 }

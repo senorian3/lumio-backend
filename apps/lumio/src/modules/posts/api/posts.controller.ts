@@ -34,6 +34,8 @@ import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/g
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
 import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
+import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -55,6 +57,21 @@ export class PostsController {
       GetAllUserPostsQuery,
       PaginatedViewDto<PostView[]>
     >(new GetAllUserPostsQuery(req.user.userId, query));
+  }
+
+  @Get(':userId')
+  @ApiGetProfilePost()
+  @HttpCode(HttpStatus.OK)
+  async getProfilePost(
+    @Param('userId') userId: number,
+    @Query('postId') postId: number,
+  ): Promise<PostView> {
+    const profilePost = await this.queryBus.execute<
+      GetProfilePostQuery,
+      PostView
+    >(new GetProfilePostQuery(userId, postId));
+
+    return profilePost;
   }
 
   @Post()

@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import { HttpService } from '@lumio/modules/posts/application/http.service';
+import { HttpService } from '@libs/shared/http.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';

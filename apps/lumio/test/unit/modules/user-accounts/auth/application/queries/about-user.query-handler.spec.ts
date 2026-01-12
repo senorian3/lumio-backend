@@ -50,7 +50,7 @@ describe('AboutUserQueryHandler', () => {
         {
           provide: QueryUserRepository,
           useValue: {
-            findById: jest.fn(),
+            getById: jest.fn(),
           },
         },
       ],
@@ -69,7 +69,7 @@ describe('AboutUserQueryHandler', () => {
     it('should return user information when user exists', async () => {
       // Arrange
       const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
+      (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(
         mockUser,
       );
 
@@ -77,14 +77,14 @@ describe('AboutUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(mockAboutUserOutput);
     });
 
     it('should throw UnauthorizedDomainException when user not found', async () => {
       // Arrange
       const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(null);
+      (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(
@@ -105,20 +105,18 @@ describe('AboutUserQueryHandler', () => {
         expect(unauthorizedException.extensions[0]?.field).toBe('accessToken');
       }
 
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should handle database error when finding user', async () => {
       // Arrange
       const query = new AboutUserUserQuery(mockUserId);
       const dbError = new Error('Database connection failed');
-      (mockUserQueryRepository.findById as jest.Mock).mockRejectedValue(
-        dbError,
-      );
+      (mockUserQueryRepository.getById as jest.Mock).mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should handle user with null email confirmation', async () => {
@@ -128,7 +126,7 @@ describe('AboutUserQueryHandler', () => {
         emailConfirmation: null,
       };
       const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
+      (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(
         userWithNullEmailConfirmation,
       );
 
@@ -136,7 +134,7 @@ describe('AboutUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(mockAboutUserOutput);
     });
 
@@ -147,7 +145,7 @@ describe('AboutUserQueryHandler', () => {
         sessions: [],
       };
       const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
+      (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(
         userWithEmptySessions,
       );
 
@@ -155,7 +153,7 @@ describe('AboutUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(mockAboutUserOutput);
     });
 
@@ -172,7 +170,7 @@ describe('AboutUserQueryHandler', () => {
         email: 'different@example.com',
       };
       const query = new AboutUserUserQuery(mockUserId);
-      (mockUserQueryRepository.findById as jest.Mock).mockResolvedValue(
+      (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(
         differentUser,
       );
 
@@ -180,7 +178,7 @@ describe('AboutUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockUserQueryRepository.findById).toHaveBeenCalledWith(mockUserId);
+      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
       expect(result).toEqual(expectedOutput);
     });
   });

@@ -15,7 +15,7 @@ export class AboutUserQueryHandler implements IQueryHandler<
   constructor(private readonly userQueryRepository: QueryUserRepository) {}
 
   async execute(query: AboutUserUserQuery): Promise<AboutUserOutputDto | null> {
-    const user = await this.userQueryRepository.findById(query.userId);
+    const user = await this.userQueryRepository.getById(query.userId);
 
     if (!user) {
       throw UnauthorizedDomainException.create('Unauthorized', 'accessToken');

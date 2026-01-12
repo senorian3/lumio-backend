@@ -1,5 +1,4 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import {
   BadRequestDomainException,
@@ -7,6 +6,7 @@ import {
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
+import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class UpdatePostCommand {
   constructor(
@@ -22,12 +22,14 @@ export class UpdatePostCommandHandler implements ICommandHandler<
   PostView
 > {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
     private readonly postRepository: PostRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<PostView> {
-    const user = await this.userRepository.findUserById(command.userId);
+    const user = await this.externalQueryUserRepository.findById(
+      command.userId,
+    );
 
     if (!user) {
       throw BadRequestDomainException.create('User does not exist', 'userId');
@@ -51,6 +53,6 @@ export class UpdatePostCommandHandler implements ICommandHandler<
       command.description,
     );
 
-    return PostView.fromEntity(updatedPost);
+    return PostView.fromPrisma(updatedPost);
   }
 }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import {
   GetMainPageQueryHandler,
   GetMainPageQuery,
@@ -13,7 +13,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 describe('GetMainPageQueryHandler', () => {
   let handler: GetMainPageQueryHandler;
   let mockPostRepository: jest.Mocked<PostRepository>;
-  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
 
   const mockPaginationParams = new GetMainPageInputDto();
   mockPaginationParams.pageNumber = 1;
@@ -76,9 +76,9 @@ describe('GetMainPageQueryHandler', () => {
           },
         },
         {
-          provide: UserRepository,
+          provide: ExternalQueryUserRepository,
           useValue: {
-            getRegisteredUsersCount: jest.fn(),
+            getAllRegisteredUsersCount: jest.fn(),
           },
         },
       ],
@@ -86,7 +86,7 @@ describe('GetMainPageQueryHandler', () => {
 
     handler = module.get<GetMainPageQueryHandler>(GetMainPageQueryHandler);
     mockPostRepository = module.get(PostRepository);
-    mockUserRepository = module.get(UserRepository);
+    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
   });
 
   it('should be defined', () => {
@@ -102,7 +102,7 @@ describe('GetMainPageQueryHandler', () => {
         posts: mockPostsFromDb,
         totalCount: 2,
       });
-      mockUserRepository.getRegisteredUsersCount.mockResolvedValue(
+      mockExternalQueryUserRepository.getAllRegisteredUsersCount.mockResolvedValue(
         mockRegisteredUsersCount,
       );
 
@@ -125,7 +125,9 @@ describe('GetMainPageQueryHandler', () => {
         mockPaginationParams.calculateSkip(),
         mockPaginationParams.pageSize,
       );
-      expect(mockUserRepository.getRegisteredUsersCount).toHaveBeenCalled();
+      expect(
+        mockExternalQueryUserRepository.getAllRegisteredUsersCount,
+      ).toHaveBeenCalled();
       expect(PostView.fromPrisma).toHaveBeenCalledTimes(2);
       expect(PaginatedViewDto.mapToView).toHaveBeenCalledWith({
         items: mockPostViews,
@@ -147,7 +149,9 @@ describe('GetMainPageQueryHandler', () => {
         posts: [],
         totalCount: 0,
       });
-      mockUserRepository.getRegisteredUsersCount.mockResolvedValue(50);
+      mockExternalQueryUserRepository.getAllRegisteredUsersCount.mockResolvedValue(
+        50,
+      );
 
       const emptyPaginatedPosts: PaginatedViewDto<PostView[]> = {
         page: 1,
@@ -183,7 +187,9 @@ describe('GetMainPageQueryHandler', () => {
         posts: mockPostsFromDb,
         totalCount: 15,
       });
-      mockUserRepository.getRegisteredUsersCount.mockResolvedValue(200);
+      mockExternalQueryUserRepository.getAllRegisteredUsersCount.mockResolvedValue(
+        200,
+      );
 
       jest.spyOn(PostView, 'fromPrisma').mockImplementation((post) => {
         const index = mockPostsFromDb.findIndex((p) => p.id === post.id);
@@ -231,7 +237,9 @@ describe('GetMainPageQueryHandler', () => {
         mockPaginationParams.calculateSkip(),
         mockPaginationParams.pageSize,
       );
-      expect(mockUserRepository.getRegisteredUsersCount).not.toHaveBeenCalled();
+      expect(
+        mockExternalQueryUserRepository.getAllRegisteredUsersCount,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle database error when getting user count', async () => {
@@ -243,13 +251,17 @@ describe('GetMainPageQueryHandler', () => {
         posts: mockPostsFromDb,
         totalCount: 2,
       });
-      mockUserRepository.getRegisteredUsersCount.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.getAllRegisteredUsersCount.mockRejectedValue(
+        dbError,
+      );
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
       expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalled();
-      expect(mockUserRepository.getRegisteredUsersCount).toHaveBeenCalled();
+      expect(
+        mockExternalQueryUserRepository.getAllRegisteredUsersCount,
+      ).toHaveBeenCalled();
     });
   });
 });

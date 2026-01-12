@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import FormData from 'form-data';
-import { CoreConfig } from '@lumio/core/core.config';
-import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '../../apps/lumio/src/core/core.config';
+import { AppLoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class HttpService {

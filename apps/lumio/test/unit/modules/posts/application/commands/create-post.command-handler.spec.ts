@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Readable } from 'stream';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
+import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { HttpService } from '@lumio/modules/posts/application/http.service';
+import { HttpService } from '@libs/shared/http.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
   CreatePostCommandHandler,
@@ -14,7 +14,7 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 describe('CreatePostCommandHandler', () => {
   let handler: CreatePostCommandHandler;
-  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
   let mockPostRepository: jest.Mocked<PostRepository>;
   let mockHttpService: jest.Mocked<HttpService>;
   let mockLogger: jest.Mocked<AppLoggerService>;
@@ -75,9 +75,9 @@ describe('CreatePostCommandHandler', () => {
       providers: [
         CreatePostCommandHandler,
         {
-          provide: UserRepository,
+          provide: ExternalQueryUserRepository,
           useValue: {
-            findUserById: jest.fn(),
+            findById: jest.fn(),
           },
         },
         {
@@ -105,7 +105,7 @@ describe('CreatePostCommandHandler', () => {
     }).compile();
 
     handler = module.get<CreatePostCommandHandler>(CreatePostCommandHandler);
-    mockUserRepository = module.get(UserRepository);
+    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
     mockPostRepository = module.get(PostRepository);
     mockHttpService = module.get(HttpService);
     mockLogger = module.get(AppLoggerService);
@@ -124,7 +124,7 @@ describe('CreatePostCommandHandler', () => {
         mockFiles,
       );
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
       mockHttpService.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockPostRepository.createPostFiles.mockResolvedValue(undefined);
@@ -133,7 +133,9 @@ describe('CreatePostCommandHandler', () => {
       const result = await handler.execute(command);
 
       // Assert
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.createPost).toHaveBeenCalledWith(
         mockUserId,
         mockDescription,
@@ -161,7 +163,7 @@ describe('CreatePostCommandHandler', () => {
         mockFiles,
       );
 
-      mockUserRepository.findUserById.mockResolvedValue(null);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
@@ -177,7 +179,9 @@ describe('CreatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('userId');
       }
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.createPost).not.toHaveBeenCalled();
       expect(mockHttpService.uploadFiles).not.toHaveBeenCalled();
     });
@@ -191,7 +195,7 @@ describe('CreatePostCommandHandler', () => {
       );
       const uploadError = new Error('Upload failed');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
       mockHttpService.uploadFiles.mockRejectedValue(uploadError);
       mockPostRepository.deletePostFilesByPostId.mockResolvedValue(undefined);
@@ -232,7 +236,7 @@ describe('CreatePostCommandHandler', () => {
       const uploadError = new Error('Upload failed');
       const cleanupError = new Error('Cleanup failed');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
       mockHttpService.uploadFiles.mockRejectedValue(uploadError);
       mockPostRepository.deletePostFilesByPostId.mockRejectedValue(
@@ -265,12 +269,14 @@ describe('CreatePostCommandHandler', () => {
       );
       const dbError = new Error('Database connection failed');
 
-      mockUserRepository.findUserById.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.createPost).not.toHaveBeenCalled();
     });
 
@@ -283,13 +289,15 @@ describe('CreatePostCommandHandler', () => {
       );
       const dbError = new Error('Cannot create post');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.createPost.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockUserRepository.findUserById).toHaveBeenCalledWith(mockUserId);
+      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(mockPostRepository.createPost).toHaveBeenCalledWith(
         mockUserId,
         mockDescription,
@@ -306,7 +314,7 @@ describe('CreatePostCommandHandler', () => {
       );
       const dbError = new Error('Cannot create post files');
 
-      mockUserRepository.findUserById.mockResolvedValue(mockUser);
+      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
       mockHttpService.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockPostRepository.createPostFiles.mockRejectedValue(dbError);

@@ -1,32 +1,18 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-export function ApiGetProfileOrPost() {
+export function ApiGetProfilePost() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Get profile or post of user',
-      description: 'Endpoint for get porifle or post of user(profile)',
-      operationId: 'getProfileOrPost',
+      summary: 'Get profile post of user',
+      description: 'Endpoint for get profile post of user',
+      operationId: 'getProfilePost',
     }),
 
     ApiResponse({
       status: 200,
-      description: 'Profile or post successfully fetched',
+      description: 'Profile post successfully fetched',
       examples: {
-        get_profile: {
-          summary: 'Example response for profile',
-          value: {
-            id: 46,
-            username: 'alex_ivanov',
-            firstName: 'Ivan',
-            lastName: 'Ivanov',
-            dateOfBirth: '23.03.2000',
-            country: 'Russia',
-            city: 'Moscow',
-            aboutMe: 'About me',
-            avatarUrl: 'https://i.pravatar.cc/150?u=alex_ivanov',
-          },
-        },
         get_post: {
           summary: 'Example response for post',
           value: {
