@@ -89,17 +89,18 @@ export class ProfileController {
   }
 
   @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(
     @Req() req: any,
     @UploadedFile() avatar: Express.Multer.File,
-  ): Promise<void> {
-    await this.commandBus.execute<UploadUserAvatarCommand, void>(
-      new UploadUserAvatarCommand(req.user.userId, avatar),
-    );
+  ): Promise<{ url: string }> {
+    const avatarUrl = await this.commandBus.execute<
+      UploadUserAvatarCommand,
+      { url: string }
+    >(new UploadUserAvatarCommand(req.user.userId, avatar));
 
-    return;
+    return avatarUrl;
   }
 }

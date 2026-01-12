@@ -105,6 +105,7 @@ const strategies = [JwtStrategy, YandexStrategy];
     LoggerModule,
     forwardRef(() => PostsModule),
   ],
+
   controllers: [AuthController, ProfileController],
   providers: [
     UserAccountsConfig,

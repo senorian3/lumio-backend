@@ -15,7 +15,7 @@ export class UploadUserAvatarCommand {
 @CommandHandler(UploadUserAvatarCommand)
 export class UploadUserAvatarCommandHandler implements ICommandHandler<
   UploadUserAvatarCommand,
-  void
+  { url: string }
 > {
   constructor(
     private readonly userRepository: UserRepository,
@@ -23,7 +23,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
     private readonly logger: AppLoggerService,
   ) {}
 
-  async execute(command: UploadUserAvatarCommand): Promise<void> {
+  async execute(command: UploadUserAvatarCommand): Promise<{ url: string }> {
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
@@ -43,7 +43,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       const avatarUrl = response.url;
 
       await this.userRepository.updateAvatarUrl(command.userId, avatarUrl);
-      return;
+      return { url: avatarUrl };
     } catch (error) {
       this.logger.error(
         `Avatar upload failed for user ${command.userId}`,
