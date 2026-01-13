@@ -34,7 +34,7 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
 
     const post = await this.postRepository.findById(query.postId);
 
-    if (!post || post.userId !== query.userId) {
+    if (!post || post.deletedAt !== null || post.userId !== query.userId) {
       throw NotFoundDomainException.create('Post is not found', 'postId');
     }
 

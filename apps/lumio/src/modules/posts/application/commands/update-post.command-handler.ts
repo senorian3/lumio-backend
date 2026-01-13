@@ -37,7 +37,7 @@ export class UpdatePostCommandHandler implements ICommandHandler<
 
     const post = await this.postRepository.findById(command.postId);
 
-    if (!post) {
+    if (!post || post.deletedAt !== null) {
       throw NotFoundDomainException.create('Post does not exist', 'post');
     }
 
