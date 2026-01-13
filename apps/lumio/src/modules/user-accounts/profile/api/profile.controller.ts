@@ -30,6 +30,7 @@ import { ApiGetProfile } from '@lumio/core/decorators/swagger/profile/get-profil
 import { ApiFillProfile } from '@lumio/core/decorators/swagger/profile/fill-profile.decorator';
 import { ApiUpdateProfile } from '@lumio/core/decorators/swagger/profile/edit-profile.decorator';
 import { SingleFileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { ApiUploadUserAvatar } from '@lumio/core/decorators/swagger/profile/upload-avatar.decorator';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -50,6 +51,7 @@ export class ProfileController {
   }
 
   @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
+  @ApiUploadUserAvatar()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar'))
