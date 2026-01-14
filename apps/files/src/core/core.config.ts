@@ -48,9 +48,6 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable S3_ACCESS_KEY_ID' })
   s3AccessKeyId: string = this.configService.get('S3_ACCESS_KEY_ID');
 
-  @IsNotEmpty({ message: 'Set Env variable S3_KMS_KEY_ID' })
-  s3KmsKeyId: string = this.configService.get('S3_KMS_KEY_ID');
-
   @IsNotEmpty({ message: 'Set Env variable S3_SECRET_ACCESS_KEY' })
   s3SecretAccessKey: string = this.configService.get('S3_SECRET_ACCESS_KEY');
 

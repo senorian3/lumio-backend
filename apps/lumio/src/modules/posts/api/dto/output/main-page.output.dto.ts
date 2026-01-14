@@ -1,8 +1,9 @@
-import { PostView } from './create-post.output.dto';
+import { PostView } from './post.output.dto';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 
 export class MainPageView {
   constructor(
-    public posts: PostView[],
+    public posts: PaginatedViewDto<PostView[]>,
     public allRegisteredUsersCount: number,
   ) {}
 }

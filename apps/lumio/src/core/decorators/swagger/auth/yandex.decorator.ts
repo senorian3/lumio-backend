@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function ApiYandex() {
   return applyDecorators(
@@ -8,6 +8,11 @@ export function ApiYandex() {
       description:
         'Initiate Yandex OAuth2 authentication flow. Redirects user to Yandex for authentication.',
       operationId: 'yandex',
+    }),
+
+    ApiResponse({
+      status: 302,
+      description: 'Redirects user to Yandex for authentication.',
     }),
   );
 }

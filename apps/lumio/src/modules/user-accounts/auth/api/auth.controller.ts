@@ -14,28 +14,27 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Response, Request } from 'express';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
 import { AuthGuard } from '@nestjs/passport';
-import { LoginUserCommand } from '../application/use-cases/login-user.usecase';
-import { LogoutUserCommand } from '../application/use-cases/logout-user.usecase';
-import { NewPasswordCommand } from '../application/use-cases/new-password.usecase';
-import { PasswordRecoveryCommand } from '../application/use-cases/password-recovery.usecase';
-import { RegisterUserCommand } from '../application/use-cases/register-user.usecase';
+import { LoginUserCommand } from '../application/commands/login-user.command-handler';
+import { LogoutUserCommand } from '../application/commands/logout-user.command-handler';
+import { NewPasswordCommand } from '../application/commands/new-password.command-handler';
+import { PasswordRecoveryCommand } from '../application/commands/password-recovery.command-handler';
+import { RegisterUserCommand } from '../application/commands/register-user.command-handler';
 import { InputLoginDto } from '../../users/api/dto/input/login.input.dto';
 import { InputNewPasswordDto } from '../../users/api/dto/input/new-password.input.dto';
 import { InputRegistrationDto } from '../../users/api/dto/input/registration.input.dto';
 import { InputPasswordRecoveryDto } from '../../users/api/dto/input/password-recovery.input.dto';
-import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routs/routs';
 import { ApiRegistration } from '@lumio/core/decorators/swagger/auth/registration.decorator';
 import { ApiLogin } from '@lumio/core/decorators/swagger/auth/login.decorator';
 import { ApiLogout } from '@lumio/core/decorators/swagger/auth/logout.decorator';
 import { ApiPasswordRecovery } from '@lumio/core/decorators/swagger/auth/password-recovery.decorator';
 import { ApiNewPassword } from '@lumio/core/decorators/swagger/auth/new-password.decorator';
-import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
+import { RegistrationConfirmationUserCommand } from '@lumio/modules/user-accounts/auth/application/commands/registration-confirmation.command-handler';
 import { InputRegistrationConfirmationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration-confirmation.input.dto';
 import { ApiRegistrationConfirmation } from '@lumio/core/decorators/swagger/auth/registration-confirmation.decorator';
-import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
+import { LoginUserYandexCommand } from '@lumio/modules/user-accounts/auth/application/commands/login-user-yandex.command-handler';
 import { ApiYandex } from '@lumio/core/decorators/swagger/auth/yandex.decorator';
 import { ApiYandexCallback } from '@lumio/core/decorators/swagger/auth/yandex-callback.decorator';
-import { RefreshTokenCommand } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
+import { RefreshTokenCommand } from '@lumio/modules/user-accounts/auth/application/commands/refresh-token.command-handler';
 import { ApiRefreshToken } from '@lumio/core/decorators/swagger/auth/refresh-token.decorator';
 import {
   getClearCookieOptions,
@@ -43,10 +42,11 @@ import {
 } from '../../config/cookie.helper';
 import { CoreConfig } from '@lumio/core/core.config';
 import { getClientIp, getUserAgent } from '@lumio/core/utils/request.utils';
-import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
+import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { AboutUserOutputDto } from '@lumio/modules/user-accounts/users/api/dto/output/about-user.output.dto';
 import { ApiGetCurrentUser } from '@lumio/core/decorators/swagger/auth/me.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { AUTH_BASE, AUTH_ROUTES } from '@lumio/core/routes/auth-routes';
 
 @UseGuards(ThrottlerGuard)
 @Controller(AUTH_BASE)
@@ -72,6 +72,7 @@ export class AuthController {
 
   @Get(AUTH_ROUTES.YANDEX)
   @ApiYandex()
+  @HttpCode(HttpStatus.FOUND)
   @UseGuards(AuthGuard('yandex'))
   async yandexLogin(): Promise<void> {}
 
@@ -100,7 +101,7 @@ export class AuthController {
 
   @Post(AUTH_ROUTES.REGISTRATION)
   @ApiRegistration()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.CREATED)
   async register(@Body() dto: InputRegistrationDto): Promise<void> {
     return await this.commandBus.execute<RegisterUserCommand, void>(
       new RegisterUserCommand(dto),
@@ -170,7 +171,7 @@ export class AuthController {
 
   @Post(AUTH_ROUTES.NEW_PASSWORD)
   @ApiNewPassword()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   async newPassword(@Body() dto: InputNewPasswordDto): Promise<void> {
     return await this.commandBus.execute<NewPasswordCommand, void>(
       new NewPasswordCommand(dto),

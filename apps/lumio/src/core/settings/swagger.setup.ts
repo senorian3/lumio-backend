@@ -25,8 +25,8 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
       )
       .setVersion('1.0')
       .setDescription('Lumio backend API documentation')
-      .addServer('https://lumio.su', 'Production')
-      .addServer('http://localhost:3000', 'Local development')
+      .addServer('https://lumio.su', 'Testing')
+      .addServer('http://localhost:3000', 'Local')
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',

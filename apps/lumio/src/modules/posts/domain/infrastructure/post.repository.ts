@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
+import { Post } from 'generated/prisma-lumio';
 
 @Injectable()
 export class PostRepository {
@@ -11,6 +12,7 @@ export class PostRepository {
       data: { userId, description },
       include: {
         user: true,
+        files: true,
       },
     });
 
@@ -22,6 +24,7 @@ export class PostRepository {
       where: { id: postId },
       include: {
         user: true,
+        files: true,
       },
     });
   }
@@ -35,6 +38,7 @@ export class PostRepository {
       data: { description },
       include: {
         user: true,
+        files: true,
       },
     });
   }
@@ -46,14 +50,42 @@ export class PostRepository {
     });
   }
 
-  async getLastPosts(take: number): Promise<PostEntity[]> {
-    return this.prisma.post.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-      take,
-      include: {
-        user: true,
-      },
+  async getPostsWithPagination(
+    skip: number,
+    take: number,
+  ): Promise<{ posts: (Post & { files: any[] })[]; totalCount: number }> {
+    const [posts, totalCount] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          files: true,
+        },
+      }),
+      this.prisma.post.count({
+        where: { deletedAt: null },
+      }),
+    ]);
+
+    return { posts, totalCount };
+  }
+
+  async createPostFiles(
+    postId: number,
+    files: Array<{ url: string }>,
+  ): Promise<void> {
+    await this.prisma.postFile.createMany({
+      data: files.map((file) => ({ postId, url: file.url })),
     });
+  }
+
+  async deletePostFilesByPostId(postId: number): Promise<void> {
+    await this.prisma.postFile.deleteMany({ where: { postId } });
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    await this.prisma.post.delete({ where: { id: postId } });
   }
 }

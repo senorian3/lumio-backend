@@ -12,12 +12,24 @@ datasource db {
 }
 
 model PostFile {
-    id         Int   @id @default(autoincrement())
-    key         String   @unique
-    url         String
-    mimetype    String
-    size        Int
-    createdAt   DateTime @default(now())
-    deletedAt   DateTime?
-    postId      Int?
+  id        Int       @id @default(autoincrement())
+  key       String    @unique
+  url       String
+  mimetype  String
+  size      Int
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  postId    Int?
 }
+
+model UserAvatar {
+  id        Int       @id @default(autoincrement())
+  key       String    @unique
+  url       String
+  mimetype  String
+  size      Int
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  userId    Int?
+}
+

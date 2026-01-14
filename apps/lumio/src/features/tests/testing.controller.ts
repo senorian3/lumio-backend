@@ -19,6 +19,7 @@ export class TestingController {
     await this.prismaService.session.deleteMany();
     await this.prismaService.emailConfirmation.deleteMany();
     await this.prismaService.yandex.deleteMany();
+    await this.prismaService.postFile.deleteMany();
     await this.prismaService.post.deleteMany();
     await this.prismaService.user.deleteMany();
   }

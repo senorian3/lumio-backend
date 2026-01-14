@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { CreateUserUseCase } from './users/application/use-cases/create-user.use-case';
-import { RegisterUserUseCase } from './auth/application/use-cases/register-user.usecase';
 import { NodemailerService } from './adapters/nodemailer/nodemailer.service';
 import { CryptoService } from './adapters/crypto.service';
 import { EmailService } from './adapters/nodemailer/template/email-examples';
@@ -11,26 +9,35 @@ import {
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { UserAccountsConfig } from './config/user-accounts.config';
-import { LoginUserUseCase } from './auth/application/use-cases/login-user.usecase';
 import { AuthService } from './auth/application/auth.service';
-import { PasswordRecoveryUseCase } from './auth/application/use-cases/password-recovery.usecase';
-import { NewPasswordUseCase } from './auth/application/use-cases/new-password.usecase';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from '@lumio/core/guards/bearer/jwt.strategy';
 import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UserRepository } from './users/domain/infrastructure/user.repository';
-import { LogoutUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/logout-user.usecase';
-import { RegistrationConfirmationUserUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/registration-confirmation.usecase';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserSchedulerService } from './scheduler/users-scheduler';
 import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
-import { LoginUserYandexUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/login-user-yandex.usecase';
 import { LoggerModule } from '@libs/logger/logger.module';
-import { RefreshTokenUseCase } from '@lumio/modules/user-accounts/auth/application/use-cases/refresh-token.usecase';
-import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/query/about-user.query-handler';
-import { UserQueryRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
+import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
+import { QueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
+import { LoginUserYandexCommandHandler } from './auth/application/commands/login-user-yandex.command-handler';
+import { LoginUserCommandHandler } from './auth/application/commands/login-user.command-handler';
+import { LogoutUserCommandHandler } from './auth/application/commands/logout-user.command-handler';
+import { NewPasswordCommandHandler } from './auth/application/commands/new-password.command-handler';
+import { PasswordRecoveryCommandHandler } from './auth/application/commands/password-recovery.command-handler';
+import { RefreshTokenCommandHandler } from './auth/application/commands/refresh-token.command-handler';
+import { RegisterUserCommandHandler } from './auth/application/commands/register-user.command-handler';
+import { RegistrationConfirmationUserCommandHandler } from './auth/application/commands/registration-confirmation.command-handler';
+import { CreateUserCommandHandler } from './users/application/commands/create-user.command-handler';
+import { ProfileController } from '@lumio/modules/user-accounts/profile/api/profile.controller';
+import { UpdateProfileCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
+import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
+import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
+import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
+import { ExternalQueryUserRepository } from './users/domain/infrastructure/user.external-query.repository';
+import { SharedModule } from '@libs/shared/shared.module';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -63,15 +70,19 @@ const jwtProviders = [
 ];
 
 const useCases = [
-  CreateUserUseCase,
-  RegisterUserUseCase,
-  LoginUserUseCase,
-  PasswordRecoveryUseCase,
-  NewPasswordUseCase,
-  LogoutUserUseCase,
-  RegistrationConfirmationUserUseCase,
-  LoginUserYandexUseCase,
-  RefreshTokenUseCase,
+  CreateUserCommandHandler,
+  RegisterUserCommandHandler,
+  LoginUserCommandHandler,
+  PasswordRecoveryCommandHandler,
+  NewPasswordCommandHandler,
+  LogoutUserCommandHandler,
+  RegistrationConfirmationUserCommandHandler,
+  LoginUserYandexCommandHandler,
+  RefreshTokenCommandHandler,
+  UpdateProfileCommandHandler,
+  FillProfileCommandHandler,
+  GetProfileQueryHandler,
+  UploadUserAvatarCommandHandler,
 ];
 
 const services = [
@@ -86,24 +97,27 @@ const strategies = [JwtStrategy, YandexStrategy];
 
 @Module({
   imports: [
+    SharedModule,
     PassportModule,
     SessionsModule,
     JwtModule,
     ScheduleModule.forRoot(),
     LoggerModule,
   ],
-  controllers: [AuthController],
+
+  controllers: [AuthController, ProfileController],
   providers: [
     UserAccountsConfig,
     UserRepository,
     UserSchedulerService,
     AboutUserQueryHandler,
-    UserQueryRepository,
+    QueryUserRepository,
+    ExternalQueryUserRepository,
     ...useCases,
     ...services,
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserRepository, UserAccountsConfig],
+  exports: [UserAccountsConfig, ExternalQueryUserRepository],
 })
 export class UserAccountsModule {}

@@ -10,6 +10,22 @@ describe('AuthService', () => {
   let userRepository: jest.Mocked<UserRepository>;
   let cryptoService: jest.Mocked<CryptoService>;
 
+  const mockUserProfile = {
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'New York',
+    aboutMe: 'Test user',
+    avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
+    userId: 1,
+    user: {} as any,
+  };
+
   const mockUser: UserEntity = {
     id: 1,
     username: 'testuser',
@@ -17,6 +33,7 @@ describe('AuthService', () => {
     password: 'hashedPassword123',
     createdAt: new Date(),
     deletedAt: null,
+    profile: mockUserProfile,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',

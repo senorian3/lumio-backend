@@ -15,33 +15,36 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { CreatePostCommand } from '@lumio/modules/posts/application/use-case/command/create-post.usecase';
-import { UpdatePostCommand } from '@lumio/modules/posts/application/use-case/command/update-post.usecase';
+import { CreatePostCommand } from '@lumio/modules/posts/application/commands/create-post.command-handler';
+import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
+import { FileValidationPipe } from '@libs/core/pipe/validation/validation-files.pipe';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { DeletePostCommand } from '@lumio/modules/posts/application/use-case/command/delete-post.usecase';
+import { DeletePostCommand } from '@lumio/modules/posts/application/commands/delete-post.command-handler';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { ApiCreatePost } from '@lumio/core/decorators/swagger/posts/create-post.decorator';
 import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
-import { PostView } from './dto/output/create-post.output.dto';
-import { GetAllUserPostsCommand } from '../application/use-case/query/get-all-user-posts.usecase';
-import { GetCreatePostUserCommand } from '../application/use-case/query/get-by-id-create-post.usecase';
+import { PostView } from './dto/output/post.output.dto';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
 import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
-import { POSTS_BASE, POSTS_ROUTES } from '@lumio/core/routs/routs';
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
+import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
+import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
+import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
+import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 
-@Controller(POSTS_BASE)
+@Controller(POST_BASE)
 export class PostsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get(POSTS_ROUTES.GET_MY_POSTS)
+  @Get(POST_ROUTES.GET_MY_POSTS)
   @ApiGetMyPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -49,10 +52,26 @@ export class PostsController {
     @Query()
     query: GetPostsQueryParams,
     @Req() req: any,
-  ): Promise<number> {
-    return await this.queryBus.execute<GetAllUserPostsCommand, number>(
-      new GetAllUserPostsCommand(req.user.userId, query),
-    );
+  ): Promise<PaginatedViewDto<PostView[]>> {
+    return await this.queryBus.execute<
+      GetAllUserPostsQuery,
+      PaginatedViewDto<PostView[]>
+    >(new GetAllUserPostsQuery(req.user.userId, query));
+  }
+
+  @Get(':userId')
+  @ApiGetProfilePost()
+  @HttpCode(HttpStatus.OK)
+  async getProfilePost(
+    @Param('userId') userId: number,
+    @Query('postId') postId: number,
+  ): Promise<PostView> {
+    const profilePost = await this.queryBus.execute<
+      GetProfilePostQuery,
+      PostView
+    >(new GetProfilePostQuery(userId, postId));
+
+    return profilePost;
   }
 
   @Post()
@@ -70,17 +89,16 @@ export class PostsController {
       { file: OutputFileType[]; postId: number }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
-    const post = await this.queryBus.execute<
-      GetCreatePostUserCommand,
-      PostView
-    >(new GetCreatePostUserCommand(postFile.postId, postFile.file));
+    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
+      new GetCreatePostUserQuery(postFile.postId, postFile.file),
+    );
 
     return post;
   }
 
   @Put(':postId')
   @ApiUpdatePost()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updatePost(
     @Param('postId') postId: number,

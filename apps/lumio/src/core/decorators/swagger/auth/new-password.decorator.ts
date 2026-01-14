@@ -10,7 +10,7 @@ export function ApiNewPassword() {
     }),
 
     ApiResponse({
-      status: 204,
+      status: 200,
       description: 'User create new password successfully',
     }),
 

@@ -6,6 +6,9 @@ import { EmailConfirmation, User } from 'generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
+import { EditProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/edit-profile.domain.dto';
+import { FillProfileDomainDto } from '@lumio/modules/user-accounts/profile/domain/dto/fill-profile.domain.dto';
+import { UserProfileEntity } from '@lumio/modules/user-accounts/users/domain/entities/user-profile.entity';
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -91,6 +94,8 @@ export class UserRepository {
         isConfirmed: false,
       },
     });
+
+    return;
   }
 
   async updatePassword(userId: number, newPasswordHash: string): Promise<void> {
@@ -100,6 +105,8 @@ export class UserRepository {
         password: newPasswordHash,
       },
     });
+
+    return;
   }
 
   async findUserById(id: number): Promise<User | null> {
@@ -119,6 +126,8 @@ export class UserRepository {
         isConfirmed: true,
       },
     });
+
+    return;
   }
 
   async deleteExpiredUserRegistration(date: Date): Promise<void> {
@@ -140,6 +149,8 @@ export class UserRepository {
         where: { id: { in: userIds } },
       });
     });
+
+    return;
   }
 
   async findYandexByYandexId(yandexId: string): Promise<YandexEntity | null> {
@@ -179,9 +190,74 @@ export class UserRepository {
       where: { id },
       data,
     });
+
+    return;
   }
 
-  async getRegisteredUsersCount(): Promise<number> {
-    return this.prisma.user.count();
+  async fillProfile(
+    userId: number,
+    data: FillProfileDomainDto,
+  ): Promise<UserProfileEntity> {
+    return await this.prisma.userProfile.create({
+      data: {
+        userId: userId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        country: data.country,
+        city: data.city,
+        aboutMe: data.aboutMe,
+        profileFilled: data.profileFilled,
+        profileFilledAt: data.profileFilledAt,
+        profileUpdatedAt: new Date(),
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async updateProfile(
+    userId: number,
+    data: EditProfileDomainDto,
+  ): Promise<UserProfileEntity> {
+    return await this.prisma.userProfile.update({
+      where: { userId: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        country: data.country,
+        city: data.city,
+        aboutMe: data.aboutMe,
+        profileUpdatedAt: data.profileUpdatedAt,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async updateAvatarUrl(userId: number, avatarUrl: string): Promise<void> {
+    await this.prisma.userProfile.update({
+      where: {
+        userId: userId,
+      },
+      data: {
+        avatarUrl: avatarUrl,
+        profileUpdatedAt: new Date(),
+      },
+    });
+  }
+
+  async findUserProfileByUserId(
+    userId: number,
+  ): Promise<UserProfileEntity | null> {
+    return this.prisma.userProfile.findUnique({
+      where: { userId: userId },
+      include: {
+        user: true,
+      },
+    });
   }
 }

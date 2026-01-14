@@ -35,13 +35,12 @@
     "test:unit:files": "jest --selectProjects files",
     "test:coverage:lumio": "jest --selectProjects lumio --coverage",
     "test:coverage:files": "jest --selectProjects files --coverage",
-    "test:unit:all": "jest --selectProjects",
-    "test:coverage:all": "jest --selectProjects --coverage",
+    "test:unit:all": "jest --selectProjects lumio files --runInBand",
+    "test:coverage:all": "jest --selectProjects lumio files --runInBand --coverage",
     "test": "jest"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.952.0",
-    "@aws-sdk/s3-request-presigner": "^3.958.0",
     "@nestjs/cli": "^11.0.14",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.2",

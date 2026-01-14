@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { FilesService } from '@files/core/services/s3.service';
 import {
-  DeletedPostFilePostUseCase,
+  DeletedPostFileCommandHandler,
   DeletedPostFileCommand,
-} from '@files/modules/application/use-cases/deleted-post-file.usecase';
-import { FilesService } from '@files/modules/application/s3.service';
-import { FileRepository } from '@files/modules/domain/infrastructure/file.repository';
-import { PostFileEntity } from '@files/modules/domain/entities/post-file.entity';
+} from '@files/modules/posts/application/commands/deleted-post-file.command-handler';
+import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
+import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
+import { Test, TestingModule } from '@nestjs/testing';
 
-describe('DeletedPostFilePostUseCase', () => {
-  let useCase: DeletedPostFilePostUseCase;
+describe('DeletedPostFileCommandHandler', () => {
+  let useCase: DeletedPostFileCommandHandler;
   let mockFilesService: FilesService;
   let mockFileRepository: FileRepository;
 
@@ -38,7 +38,7 @@ describe('DeletedPostFilePostUseCase', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DeletedPostFilePostUseCase,
+        DeletedPostFileCommandHandler,
         {
           provide: FilesService,
           useValue: {
@@ -55,8 +55,8 @@ describe('DeletedPostFilePostUseCase', () => {
       ],
     }).compile();
 
-    useCase = module.get<DeletedPostFilePostUseCase>(
-      DeletedPostFilePostUseCase,
+    useCase = module.get<DeletedPostFileCommandHandler>(
+      DeletedPostFileCommandHandler,
     );
     mockFilesService = module.get<FilesService>(FilesService);
     mockFileRepository = module.get<FileRepository>(FileRepository);
