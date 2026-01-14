@@ -10,13 +10,8 @@ describe('AboutUserQueryHandler', () => {
   let mockUserQueryRepository: QueryUserRepository;
 
   const mockUserId = 1;
-  const mockUser: UserEntity = {
+  const mockUserProfile = {
     id: mockUserId,
-    username: 'testuser',
-    email: 'test@example.com',
-    password: 'hashedPassword123',
-    createdAt: new Date('2025-01-01T10:00:00Z'),
-    deletedAt: null,
     firstName: 'John',
     lastName: 'Doe',
     dateOfBirth: new Date('1990-01-01'),
@@ -27,6 +22,18 @@ describe('AboutUserQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    userId: mockUserId,
+    user: {} as any,
+  };
+
+  const mockUser: UserEntity = {
+    id: mockUserId,
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'hashedPassword123',
+    createdAt: new Date('2025-01-01T10:00:00Z'),
+    deletedAt: null,
+    profile: mockUserProfile,
     emailConfirmation: {
       id: 1,
       confirmationCode: 'code123',

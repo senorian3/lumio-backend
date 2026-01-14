@@ -19,6 +19,22 @@ describe('GetCreatePostQueryHandler', () => {
     new OutputFileType(2, 'https://example.com/file2.jpg', mockPostId),
   ];
 
+  const mockUserProfile = {
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'NY',
+    aboutMe: 'Test user',
+    avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
+    userId: 1,
+    user: {} as any,
+  };
+
   const mockPost: PostEntity = {
     id: mockPostId,
     description: 'Test post description',
@@ -32,16 +48,7 @@ describe('GetCreatePostQueryHandler', () => {
       password: 'hashed',
       createdAt: new Date(),
       deletedAt: null,
-      firstName: 'John',
-      lastName: 'Doe',
-      dateOfBirth: new Date('1990-01-01'),
-      country: 'USA',
-      city: 'NY',
-      aboutMe: 'Test user',
-      avatarUrl: null,
-      profileFilled: false,
-      profileFilledAt: null,
-      profileUpdatedAt: null,
+      profile: mockUserProfile,
     },
     files: [],
   };

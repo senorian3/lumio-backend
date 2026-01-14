@@ -18,6 +18,22 @@ describe('GetAllUserPostsQueryHandler', () => {
 
   const mockUserId = 1;
 
+  const mockUserProfile = {
+    id: mockUserId,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date('1990-01-01'),
+    country: 'USA',
+    city: 'NY',
+    aboutMe: 'Test user',
+    avatarUrl: null,
+    profileFilled: false,
+    profileFilledAt: null,
+    profileUpdatedAt: null,
+    userId: mockUserId,
+    user: {} as any,
+  };
+
   const mockPosts: PostEntity[] = [
     {
       id: 1,
@@ -32,16 +48,7 @@ describe('GetAllUserPostsQueryHandler', () => {
         password: 'hashed',
         createdAt: new Date(),
         deletedAt: null,
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: new Date('1990-01-01'),
-        country: 'USA',
-        city: 'NY',
-        aboutMe: 'Test user',
-        avatarUrl: null,
-        profileFilled: false,
-        profileFilledAt: null,
-        profileUpdatedAt: null,
+        profile: mockUserProfile,
       },
       files: [],
     },
@@ -58,16 +65,7 @@ describe('GetAllUserPostsQueryHandler', () => {
         password: 'hashed',
         createdAt: new Date(),
         deletedAt: null,
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: new Date('1990-01-01'),
-        country: 'USA',
-        city: 'NY',
-        aboutMe: 'Test user',
-        avatarUrl: null,
-        profileFilled: false,
-        profileFilledAt: null,
-        profileUpdatedAt: null,
+        profile: mockUserProfile,
       },
       files: [],
     },

@@ -11,10 +11,8 @@ describe('GetProfileQueryHandler', () => {
   let handler: GetProfileQueryHandler;
   let mockUserRepository: UserRepository;
 
-  const mockUser = {
+  const mockUserProfile = {
     id: 1,
-    username: 'testuser',
-    email: 'test@example.com',
     firstName: 'John',
     lastName: 'Doe',
     dateOfBirth: new Date('1990-01-01'),
@@ -22,15 +20,24 @@ describe('GetProfileQueryHandler', () => {
     city: 'New York',
     aboutMe: 'About me',
     avatarUrl: 'avatar.jpg',
-    password: 'hashedpassword',
-    createdAt: new Date(),
-    deletedAt: null,
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    userId: 1,
+    user: {} as any,
   };
 
-  const mockProfileView = ProfileView.fromEntity(mockUser);
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'hashedpassword',
+    createdAt: new Date(),
+    deletedAt: null,
+    profile: mockUserProfile,
+  };
+
+  const mockProfileView = ProfileView.fromEntity(mockUser, mockUser.profile);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +47,7 @@ describe('GetProfileQueryHandler', () => {
           provide: UserRepository,
           useValue: {
             findUserById: jest.fn(),
+            findUserProfileByUserId: jest.fn(),
           },
         },
       ],
@@ -62,6 +70,9 @@ describe('GetProfileQueryHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
 
       // Act
@@ -69,7 +80,13 @@ describe('GetProfileQueryHandler', () => {
 
       // Assert
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
-      expect(ProfileView.fromEntity).toHaveBeenCalledWith(mockUser);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(ProfileView.fromEntity).toHaveBeenCalledWith(
+        mockUser,
+        mockUserProfile,
+      );
       expect(result).toEqual(mockProfileView);
     });
 

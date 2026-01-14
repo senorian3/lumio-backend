@@ -23,10 +23,8 @@ describe('UpdateProfileCommandHandler', () => {
   mockEditProfileDto.city = 'New York';
   mockEditProfileDto.aboutMe = 'About me';
 
-  const mockUser = {
+  const mockUserProfile = {
     id: 1,
-    username: 'testuser',
-    email: 'test@example.com',
     firstName: 'John',
     lastName: 'Doe',
     dateOfBirth: new Date('1990-01-01'),
@@ -34,21 +32,38 @@ describe('UpdateProfileCommandHandler', () => {
     city: 'New York',
     aboutMe: 'About me',
     avatarUrl: 'avatar.jpg',
-    password: 'hashedpassword',
-    createdAt: new Date(),
-    deletedAt: null,
     profileFilled: true,
     profileFilledAt: new Date(),
     profileUpdatedAt: null,
+    userId: 1,
+    user: {} as any,
   };
 
-  const mockUpdatedUser = {
-    ...mockUser,
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'hashedpassword',
+    createdAt: new Date(),
+    deletedAt: null,
+    profile: mockUserProfile,
+  };
+
+  const mockUpdatedUserProfile = {
+    ...mockUserProfile,
     firstName: 'Jane',
     lastName: 'Smith',
   };
 
-  const mockProfileView = ProfileView.fromEntity(mockUpdatedUser);
+  const mockUpdatedUser = {
+    ...mockUser,
+    profile: mockUpdatedUserProfile,
+  };
+
+  const mockProfileView = ProfileView.fromEntity(
+    mockUpdatedUser,
+    mockUpdatedUser.profile,
+  );
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -58,6 +73,7 @@ describe('UpdateProfileCommandHandler', () => {
           provide: UserRepository,
           useValue: {
             findUserById: jest.fn(),
+            findUserProfileByUserId: jest.fn(),
             updateProfile: jest.fn(),
           },
         },
@@ -88,8 +104,11 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
       (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
-        mockUpdatedUser,
+        mockUpdatedUserProfile,
       );
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
 
@@ -102,7 +121,10 @@ describe('UpdateProfileCommandHandler', () => {
         ...mockEditProfileDto,
         profileUpdatedAt: expect.any(Date),
       });
-      expect(ProfileView.fromEntity).toHaveBeenCalledWith(mockUpdatedUser);
+      expect(ProfileView.fromEntity).toHaveBeenCalledWith(
+        mockUser,
+        mockUpdatedUserProfile,
+      );
       expect(result).toEqual(mockProfileView);
     });
 
@@ -130,7 +152,10 @@ describe('UpdateProfileCommandHandler', () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
-      const notFilledUser = { ...mockUser, profileFilled: false };
+      const notFilledUser = {
+        ...mockUser,
+        profile: { ...mockUser.profile, profileFilled: false },
+      };
       const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
@@ -140,12 +165,18 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         notFilledUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         BadRequestDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
@@ -162,12 +193,18 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         ForbiddenDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
@@ -204,6 +241,9 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
       (mockUserRepository.updateProfile as jest.Mock).mockRejectedValue(
         updateError,
       );
@@ -211,6 +251,9 @@ describe('UpdateProfileCommandHandler', () => {
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(updateError);
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.updateProfile).toHaveBeenCalledWith(userId, {
         ...mockEditProfileDto,
         profileUpdatedAt: expect.any(Date),
@@ -234,6 +277,9 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
       (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
         mockUpdatedUser,
       );
@@ -262,6 +308,9 @@ describe('UpdateProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(mockUserProfile);
       (mockUserRepository.updateProfile as jest.Mock).mockResolvedValue(
         mockUpdatedUser,
       );

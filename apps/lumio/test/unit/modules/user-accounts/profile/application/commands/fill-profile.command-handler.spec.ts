@@ -23,10 +23,8 @@ describe('FillProfileCommandHandler', () => {
   mockFillProfileDto.city = 'New York';
   mockFillProfileDto.aboutMe = 'About me';
 
-  const mockUser = {
+  const mockUserProfile = {
     id: 1,
-    username: 'testuser',
-    email: 'test@example.com',
     firstName: null,
     lastName: null,
     dateOfBirth: null,
@@ -34,22 +32,39 @@ describe('FillProfileCommandHandler', () => {
     city: null,
     aboutMe: null,
     avatarUrl: null,
-    password: 'hashedpassword',
-    createdAt: new Date(),
-    deletedAt: null,
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    userId: 1,
+    user: {} as any,
   };
 
-  const mockFilledUser = {
-    ...mockUser,
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    password: 'hashedpassword',
+    createdAt: new Date(),
+    deletedAt: null,
+    profile: mockUserProfile,
+  };
+
+  const mockFilledUserProfile = {
+    ...mockUserProfile,
     ...mockFillProfileDto,
     profileFilled: true,
     profileFilledAt: expect.any(Date),
   };
 
-  const mockProfileView = ProfileView.fromEntity(mockFilledUser);
+  const mockFilledUser = {
+    ...mockUser,
+    profile: mockFilledUserProfile,
+  };
+
+  const mockProfileView = ProfileView.fromEntity(
+    mockFilledUser,
+    mockFilledUser.profile,
+  );
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -59,6 +74,7 @@ describe('FillProfileCommandHandler', () => {
           provide: UserRepository,
           useValue: {
             findUserById: jest.fn(),
+            findUserProfileByUserId: jest.fn(),
             fillProfile: jest.fn(),
           },
         },
@@ -87,8 +103,11 @@ describe('FillProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(null);
       (mockUserRepository.fillProfile as jest.Mock).mockResolvedValue(
-        mockFilledUser,
+        mockFilledUserProfile,
       );
       jest.spyOn(ProfileView, 'fromEntity').mockReturnValue(mockProfileView);
 
@@ -97,12 +116,18 @@ describe('FillProfileCommandHandler', () => {
 
       // Assert
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.fillProfile).toHaveBeenCalledWith(userId, {
         ...mockFillProfileDto,
         profileFilledAt: expect.any(Date),
         profileFilled: true,
       });
-      expect(ProfileView.fromEntity).toHaveBeenCalledWith(mockFilledUser);
+      expect(ProfileView.fromEntity).toHaveBeenCalledWith(
+        mockUser,
+        mockFilledUserProfile,
+      );
       expect(result).toEqual(mockProfileView);
     });
 
@@ -130,7 +155,10 @@ describe('FillProfileCommandHandler', () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
-      const alreadyFilledUser = { ...mockUser, profileFilled: true };
+      const alreadyFilledUser = {
+        ...mockUser,
+        profile: { ...mockUser.profile, profileFilled: true },
+      };
       const command = new FillProfileCommand(
         mockFillProfileDto,
         userId,
@@ -140,12 +168,18 @@ describe('FillProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         alreadyFilledUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(alreadyFilledUser.profile);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         BadRequestDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.fillProfile).not.toHaveBeenCalled();
     });
 
@@ -162,12 +196,18 @@ describe('FillProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         ForbiddenDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.fillProfile).not.toHaveBeenCalled();
     });
 
@@ -204,6 +244,9 @@ describe('FillProfileCommandHandler', () => {
       (mockUserRepository.findUserById as jest.Mock).mockResolvedValue(
         mockUser,
       );
+      (
+        mockUserRepository.findUserProfileByUserId as jest.Mock
+      ).mockResolvedValue(null);
       (mockUserRepository.fillProfile as jest.Mock).mockRejectedValue(
         fillError,
       );
@@ -211,6 +254,9 @@ describe('FillProfileCommandHandler', () => {
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(fillError);
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
+      expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockUserRepository.fillProfile).toHaveBeenCalledWith(userId, {
         ...mockFillProfileDto,
         profileFilledAt: expect.any(Date),
