@@ -35,16 +35,25 @@ export class InputRegistrationDto {
     nullable: false,
     minLength: 6,
     maxLength: 20,
-    pattern: `^[A-Za-z0-9]+$`,
+    pattern: `^[A-Za-z0-9!"#$%&'()*+,-./:;<=>?@[\\\[\\\\\\]^_\`{|}~]+$`,
   })
   @IsString({
     message: 'Password must be a string',
   })
   @MinLength(6, { message: 'Minimum number of characters 6' })
   @MaxLength(20, { message: 'Maximum number of characters 20' })
-  @Matches(/^[A-Za-z0-9]+$/, {
+  @Matches(/[a-z]/, {
+    message: 'Password must contain at least one lowercase letter',
+  })
+  @Matches(/[A-Z]/, {
+    message: 'Password must contain at least one uppercase letter',
+  })
+  @Matches(/\d/, {
+    message: 'Password must contain at least one number',
+  })
+  @Matches(/^[A-Za-z0-9!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~]+$/, {
     message:
-      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      'Password can only contain letters, numbers and allowed special characters',
   })
   @Trim()
   password: string;
