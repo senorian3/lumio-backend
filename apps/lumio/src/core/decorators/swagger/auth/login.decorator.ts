@@ -64,13 +64,46 @@ export function ApiLogin() {
             ],
           },
         },
-        password_regexp: {
-          summary: 'Password is not valid',
+        password_lowercase: {
+          summary: 'Password must contain lowercase letter',
+          value: {
+            errorMessages: [
+              {
+                message: 'Password must contain at least one lowercase letter',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_uppercase: {
+          summary: 'Password must contain uppercase letter',
+          value: {
+            errorMessages: [
+              {
+                message: 'Password must contain at least one uppercase letter',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_number: {
+          summary: 'Password must contain number',
+          value: {
+            errorMessages: [
+              {
+                message: 'Password must contain at least one number',
+                field: 'password',
+              },
+            ],
+          },
+        },
+        password_allowed_chars: {
+          summary: 'Password contains invalid characters',
           value: {
             errorMessages: [
               {
                 message:
-                  'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+                  'Password can only contain letters, numbers and allowed special characters',
                 field: 'password',
               },
             ],
