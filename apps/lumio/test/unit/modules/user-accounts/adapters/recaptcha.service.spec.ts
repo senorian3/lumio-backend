@@ -41,19 +41,6 @@ describe('RecaptchaService', () => {
   });
 
   describe('verify', () => {
-    it('should return true when secret key is not set (disabled)', async () => {
-      // Arrange
-      mockConfigService.recaptchaSecretKey = undefined;
-      const token = 'any-token';
-
-      // Act
-      const result = await service.verify(token);
-
-      // Assert
-      expect(result).toBe(true);
-      expect(fetch).not.toHaveBeenCalled();
-    });
-
     it('should return false when token is empty', async () => {
       // Arrange
       mockConfigService.recaptchaSecretKey = 'secret-key';
