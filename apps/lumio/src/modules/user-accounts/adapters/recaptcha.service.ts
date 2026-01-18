@@ -3,12 +3,11 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { CoreConfig } from '@lumio/core/core.config';
 
 class RecaptchaResponse {
-  success: boolean;
-  score: number;
   action: string;
   challenge_ts: string;
   hostname: string;
-  'error-codes'?: string[];
+  score: number;
+  success: boolean;
 }
 
 @Injectable()
@@ -29,32 +28,24 @@ export class RecaptchaService {
   async verify(token: string): Promise<boolean> {
     const secretKey = this.getSecretKey();
 
-    if (!secretKey) {
-      return true;
-    }
-
     if (!token || token.trim() === '') {
       return false;
     }
 
     try {
-      const formData = new URLSearchParams();
-      formData.append('secret', secretKey);
-      formData.append('response', token);
-
-      const response = await fetch(this.verifyUrl, {
-        method: 'POST',
+      const result = await fetch(this.verifyUrl, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: formData.toString(),
+        method: 'POST',
+        body: `secret=${secretKey}&response=${token}`,
       });
 
-      if (!response.ok) {
+      if (!result.ok) {
         return false;
       }
 
-      const data: RecaptchaResponse = await response.json();
+      const data: RecaptchaResponse = await result.json();
 
       if (!data.success || data.score < this.scoreThreshold) {
         return false;
