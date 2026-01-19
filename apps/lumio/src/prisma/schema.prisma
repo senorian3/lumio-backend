@@ -40,6 +40,8 @@ model UserProfile {
   profileFilledAt  DateTime?
   profileUpdatedAt DateTime? @db.Timestamp(0)
 
+  accountType      String    @default("Personal") @db.VarChar(50)
+
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

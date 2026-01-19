@@ -15,6 +15,8 @@ export class UserProfileEntity {
   profileFilledAt: Date | null;
   profileUpdatedAt: Date | null;
 
+  accountType: string;
+
   userId: number;
   user: UserEntity;
 }
