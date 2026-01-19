@@ -1,4 +1,5 @@
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
+import { PaymentsEntity } from '@lumio/modules/user-accounts/users/domain/entities/payments.entity';
 
 export class UserProfileEntity {
   id: number;
@@ -19,4 +20,6 @@ export class UserProfileEntity {
 
   userId: number;
   user: UserEntity;
+
+  payments?: PaymentsEntity[];
 }

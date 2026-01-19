@@ -44,6 +44,18 @@ model UserProfile {
 
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  payments         Payments[]
+}
+
+model Payments {
+  id              Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now()) @db.Timestamp(0)
+  amount          Float
+  paymentsService String?  @db.VarChar(50)
+
+  userProfileId   Int
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 }
 
 model Session {
