@@ -56,6 +56,18 @@ model Payments {
 
   userProfileId   Int
   userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  subscription    Subscription?
+}
+
+model Subscription {
+  id           Int       @id @default(autoincrement())
+  durationType String    @db.VarChar(20)
+  startDate    DateTime  @db.Timestamp(0)
+  endDate      DateTime  @db.Timestamp(0)
+  autoRenewal  Boolean   @default(false)
+
+  paymentId    Int       @unique
+  payment      Payments  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 }
 
 model Session {
