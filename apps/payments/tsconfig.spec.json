@@ -4,9 +4,9 @@
     "baseUrl": "./",
     "paths": {
       "@libs/*": ["../../libs/*"],
-      "@lumio/*": ["src/*"],
+      "@payments/*": ["src/*"],
+      "@lumio/*": ["../../apps/lumio/src/*"],
       "@files/*": ["../../apps/files/src/*"],
-      "@payments/*": ["../../apps/payments/src/*"],
       "generated/*": ["../../generated/*"]
     },
     "types": ["jest", "node", "@types/multer"],

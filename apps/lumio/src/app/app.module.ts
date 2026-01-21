@@ -1,7 +1,7 @@
 import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { CoreConfig } from '../core/core.config';
-import { TestingModule } from '../features/tests/testing.module';
+import { TestingModule } from '../modules/tests/testing.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CoreModule } from '../core/core.module';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';

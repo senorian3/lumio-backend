@@ -6,7 +6,7 @@ import { proxySetup } from '@libs/settings/proxy-setup';
 import { swaggerSetup } from '@lumio/core/settings/swagger.setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
 import { CoreConfig } from '../core/core.config';
-import { exceptionFilterSetup } from '../core/exception-filter.setup';
+import { exceptionFilterSetup } from '@libs/settings/exception-filter.setup';
 import { enableCorsSetup } from '@lumio/core/settings/enable-cors.setup';
 import { jsonLimitSetup } from '@libs/settings/json-limit.setup';
 
