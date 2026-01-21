@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@files/prisma/prisma.service';
 import { UserAvatar } from 'generated/prisma-files';
-import { CreateUserAvatarDto } from '@files/modules/profile/domain/dto/create-user-avatar.domain.dto';
+import { CreateUserAvatarDto } from '@files/modules/avatar/domain/dto/create-user-avatar.domain.dto';
 
 @Injectable()
 export class ProfileRepository {

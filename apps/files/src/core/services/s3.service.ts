@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PostFileEntity } from '../../modules/posts/domain/entities/post-file.entity';
+import { PostFileEntity } from '../../modules/post-files/domain/entities/post-file.entity';
 import { validateAndConvertBuffer } from '../utils/buffer-validation.utils';
 
 @Injectable()

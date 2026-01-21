@@ -9,12 +9,12 @@ import {
 } from '@nestjs/common';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
 import { CommandBus } from '@nestjs/cqrs';
-import { UploadUserAvatarCommand } from '@files/modules/profile/application/commands/upload-user-avatar.command-handler';
+import { UploadUserAvatarCommand } from '@files/modules/avatar/application/commands/upload-user-avatar.command-handler';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('profile')
 @UseGuards(InternalApiGuard)
-export class ProfileController {
+export class AvatarController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post('/upload-user-avatar')

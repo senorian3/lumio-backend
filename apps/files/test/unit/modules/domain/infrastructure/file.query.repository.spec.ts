@@ -1,5 +1,5 @@
-import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
-import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
+import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
+import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
 import { PrismaService } from '@files/prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
