@@ -27,7 +27,7 @@ const queryHandler = [GetAllFilesByPostUserQueryHandler];
 
 const repository = [FileRepository, ProfileRepository];
 
-const queryFileRepository = [QueryFileRepository];
+const queryRepository = [QueryFileRepository];
 
 @Module({
   imports: [
@@ -48,7 +48,7 @@ const queryFileRepository = [QueryFileRepository];
     ...useCases,
     ...queryHandler,
     ...repository,
-    ...queryFileRepository,
+    ...queryRepository,
   ],
 })
 export class FilesModule {

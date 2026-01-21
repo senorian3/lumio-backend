@@ -1,0 +1,23 @@
+// Prisma schema for Payments microservice
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../../generated/prisma-payments"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  paymentProvider String
+  currency    String
+  amount      Float    
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  profileId   Int
+}

@@ -19,9 +19,10 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "paths": {
-      "@libs/*": ["libs/*"],
+      "@payments/*": ["apps/payments/src/*"],
+      "@files/*": ["apps/files/src/*"],
       "@lumio/*": ["apps/lumio/src/*"],
-      "@files/*": ["apps/files/src/*"]
+      "@libs/*": ["libs/*"]
     }
   }
 }

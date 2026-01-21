@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/lumio",
   "projects": {
+    "files": {
+      "type": "application",
+      "root": "apps/files",
+      "entryFile": "app/main",
+      "sourceRoot": "apps/files/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/files/tsconfig.app.json"
+      }
+    },
     "lumio": {
       "type": "application",
       "root": "apps/lumio",
@@ -19,13 +28,13 @@
         "tsConfigPath": "apps/lumio/tsconfig.app.json"
       }
     },
-    "files": {
+    "payments": {
       "type": "application",
-      "root": "apps/files",
+      "root": "apps/payments",
       "entryFile": "app/main",
-      "sourceRoot": "apps/files/src",
+      "sourceRoot": "apps/payments/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/files/tsconfig.app.json"
+        "tsConfigPath": "apps/payments/tsconfig.app.json"
       }
     }
   }

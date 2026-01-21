@@ -1,13 +1,12 @@
-import { CoreConfig } from '@files/core/core.config';
+import { CoreConfig } from '@payments/core/core.config';
 import { exceptionFilterSetup } from '@libs/settings/exception-filter.setup';
-import { enableCorsSetup } from '@files/core/settings/enable-cors.setup';
 import { cookieParserSetup } from '@libs/settings/cookie-parser.setup';
 import { globalPrefixSetup } from '@libs/settings/global-prefix.setup';
-import { jsonLimitSetup } from '@libs/settings/json-limit.setup';
 import { pipesSetup } from '@libs/settings/pipes.setup';
 import { proxySetup } from '@libs/settings/proxy-setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
 import { DynamicModule, INestApplication } from '@nestjs/common';
+import { enableCorsSetup } from '@payments/core/settings/enable-cors.setup';
 
 export function appSetup(
   app: INestApplication,
@@ -18,7 +17,6 @@ export function appSetup(
   proxySetup(app);
   globalPrefixSetup(app);
   pipesSetup(app);
-  jsonLimitSetup(app);
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);
   cookieParserSetup(app);

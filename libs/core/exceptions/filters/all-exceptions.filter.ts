@@ -1,11 +1,15 @@
 import { Catch, HttpException, HttpStatus } from '@nestjs/common';
 import { Response } from 'express';
-import { BaseExceptionFilter } from '@libs/core/exceptions/filters/base-exception.filter';
-import { CoreConfig, Environments } from '../core.config';
+import { BaseExceptionFilter } from './base-exception.filter';
+import { Environments } from '../environments.enum';
+
+export interface ExceptionFilterConfig {
+  env: string;
+}
 
 @Catch()
 export class AllExceptionsFilter extends BaseExceptionFilter {
-  constructor(private readonly coreConfig: CoreConfig) {
+  constructor(private readonly config: ExceptionFilterConfig) {
     super();
   }
 
@@ -15,7 +19,7 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const isProduction = this.coreConfig.env === Environments.PRODUCTION;
+    const isProduction = this.config.env === Environments.PRODUCTION;
 
     if (HttpStatus.INTERNAL_SERVER_ERROR === status) {
       console.error(exception);
