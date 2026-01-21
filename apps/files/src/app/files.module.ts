@@ -4,16 +4,16 @@ import { PrismaModule } from '@files/prisma/prisma.module';
 import { CoreModule } from '@files/core/core.module';
 import { CoreConfig } from '@files/core/core.config';
 import { LoggerModule } from '@libs/logger/logger.module';
-import { FilesController } from '@files/modules/posts/api/files.controller';
-import { GetAllFilesByPostUserQueryHandler } from '@files/modules/posts/application/queries/get-all-files-by-post.query-handler';
+import { PostFilesController } from '@files/modules/post-files/api/post-files.controller';
+import { GetAllFilesByPostUserQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
 import { FilesService } from '@files/core/services/s3.service';
-import { DeletedPostFileCommandHandler } from '@files/modules/posts/application/commands/deleted-post-file.command-handler';
-import { UploadFilesCreatedPostCommandHandler } from '@files/modules/posts/application/commands/upload-post-file.command-handler';
-import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
-import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
-import { ProfileRepository } from '@files/modules/profile/domain/infrastructure/profile.repository';
-import { UploadUserAvatarCommandHandler } from '@files/modules/profile/application/commands/upload-user-avatar.command-handler';
-import { ProfileController } from '@files/modules/profile/api/profile.controller';
+import { DeletedPostFileCommandHandler } from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
+import { UploadFilesCreatedPostCommandHandler } from '@files/modules/post-files/application/commands/upload-post-file.command-handler';
+import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
+import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
+import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
+import { UploadUserAvatarCommandHandler } from '@files/modules/avatar/application/commands/upload-user-avatar.command-handler';
+import { AvatarController } from '@files/modules/avatar/api/avatar.controller';
 
 const services = [FilesService];
 
@@ -42,7 +42,7 @@ const queryRepository = [QueryFileRepository];
     }),
   ],
 
-  controllers: [FilesController, ProfileController],
+  controllers: [PostFilesController, AvatarController],
   providers: [
     ...services,
     ...useCases,

@@ -22,7 +22,7 @@ import { GetUserPostsDto } from './dto/input/get-user-post.input.dto';
 
 @Controller('files')
 @UseGuards(InternalApiGuard)
-export class FilesController {
+export class PostFilesController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
@@ -59,7 +59,7 @@ export class FilesController {
       this.logger.error(
         'Failed to delete post files',
         error?.stack,
-        FilesController.name,
+        PostFilesController.name,
       );
       return false;
     }

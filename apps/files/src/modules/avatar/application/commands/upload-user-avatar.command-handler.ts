@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { FilesService } from '@files/core/services/s3.service';
-import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
-import { ProfileRepository } from '@files/modules/profile/domain/infrastructure/profile.repository';
-import { CreateUserAvatarDto } from '@files/modules/profile/domain/dto/create-user-avatar.domain.dto';
+import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
+import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
+import { CreateUserAvatarDto } from '@files/modules/avatar/domain/dto/create-user-avatar.domain.dto';
 
 export class UploadUserAvatarCommand {
   constructor(

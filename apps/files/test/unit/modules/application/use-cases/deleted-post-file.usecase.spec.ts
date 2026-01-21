@@ -2,9 +2,9 @@ import { FilesService } from '@files/core/services/s3.service';
 import {
   DeletedPostFileCommandHandler,
   DeletedPostFileCommand,
-} from '@files/modules/posts/application/commands/deleted-post-file.command-handler';
-import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
-import { FileRepository } from '@files/modules/posts/domain/infrastructure/file.repository';
+} from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
+import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
+import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('DeletedPostFileCommandHandler', () => {

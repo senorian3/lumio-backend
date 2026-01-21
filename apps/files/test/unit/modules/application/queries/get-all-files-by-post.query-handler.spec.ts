@@ -3,9 +3,9 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import {
   GetAllFilesByPostUserQueryHandler,
   GetAllFilesByPostUserQuery,
-} from '@files/modules/posts/application/queries/get-all-files-by-post.query-handler';
-import { PostFileEntity } from '@files/modules/posts/domain/entities/post-file.entity';
-import { QueryFileRepository } from '@files/modules/posts/domain/infrastructure/file.query.repository';
+} from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
+import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
+import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
 
 describe('GetAllFilesByPostUserQueryHandler', () => {
   let handler: GetAllFilesByPostUserQueryHandler;

@@ -25,6 +25,11 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable RMQ_URL, example: amqp://localhost:5672',
+  })
+  rmqUrl: string = this.configService.get('RMQ_URL');
+
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
