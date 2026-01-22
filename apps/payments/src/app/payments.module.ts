@@ -5,8 +5,10 @@ import { CoreModule } from '@payments/core/core.module';
 import { CoreConfig } from '@payments/core/core.config';
 import { PrismaModule } from '@payments/prisma/prisma.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { SubscriptionPaymentsController } from '@payments/modules/subscription-payments/api/subscription-payments.controller';
+import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 
-const services = [];
+const services = [StripeService];
 
 const useCases = [];
 
@@ -52,7 +54,7 @@ const queryRepository = [];
     }),
   ],
 
-  controllers: [],
+  controllers: [SubscriptionPaymentsController],
   providers: [
     ...services,
     ...useCases,
