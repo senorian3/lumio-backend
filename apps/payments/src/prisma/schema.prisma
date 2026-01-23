@@ -20,4 +20,5 @@ model Payment {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   profileId   Int
+  paymentsUrl  String?
 }

@@ -8,7 +8,9 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const DynamicAppModule = await initAppModule();
 
-  const app = await NestFactory.create(DynamicAppModule);
+  const app = await NestFactory.create(DynamicAppModule, {
+    rawBody: true,
+  });
 
   const coreConfig = app.get<CoreConfig>(CoreConfig);
 

@@ -7,14 +7,17 @@ import { PrismaModule } from '@payments/prisma/prisma.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { SubscriptionPaymentsController } from '@payments/modules/subscription-payments/api/subscription-payments.controller';
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
+import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
+import { SubscriptionCommandHandler } from '@payments/modules/subscription-payments/application/commands/subscription.command-handler';
+import { StripeHookCommandHandler } from '@payments/modules/subscription-payments/application/commands/stripe-hook.command-handler';
 
 const services = [StripeService];
 
-const useCases = [];
+const useCases = [SubscriptionCommandHandler, StripeHookCommandHandler];
 
 const queryHandler = [];
 
-const repository = [];
+const repository = [PaymentsRepository];
 
 const queryRepository = [];
 

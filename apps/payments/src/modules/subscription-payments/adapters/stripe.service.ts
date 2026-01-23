@@ -1,11 +1,13 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
   private successUrl: string;
   private cancelUrl: string;
+  private endpointSecret: string;
 
   constructor() {
     const apiKey = process.env.STRIPE_SECRET_KEY;
@@ -17,6 +19,8 @@ export class StripeService {
 
     this.cancelUrl = process.env.CANCEL_URL;
 
+    this.endpointSecret = process.env.ENDPOINT_SECRET;
+
     this.stripe = new Stripe(apiKey, {
       apiVersion: '2025-12-15.clover',
       appInfo: {
@@ -26,10 +30,12 @@ export class StripeService {
     });
   }
 
-  async createPaymentUrl(subscriptionType: string, amount: number) {
-    console.log(this.successUrl + '               successUrl');
-    console.log(this.cancelUrl + '                     cancelUrl');
-
+  async createPaymentSession(
+    subscriptionType: string,
+    amount: number,
+    paymentId: number,
+    currency: string,
+  ) {
     const session = await this.stripe.checkout.sessions.create({
       success_url: this.successUrl,
       cancel_url: this.cancelUrl,
@@ -41,13 +47,27 @@ export class StripeService {
               description: `Subscription for a period of ${subscriptionType}`,
             },
             unit_amount: amount * 100,
-            currency: 'USD',
+            currency: currency,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
+      client_reference_id: paymentId.toString(),
     });
     return session;
+  }
+
+  async verify(rawBody: any, signature: string): Promise<Stripe.Event> {
+    try {
+      return this.stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        this.endpointSecret,
+      );
+    } catch (err) {
+      console.error(err);
+      throw BadRequestDomainException.create('verify endpoint error', 'verify');
+    }
   }
 }
