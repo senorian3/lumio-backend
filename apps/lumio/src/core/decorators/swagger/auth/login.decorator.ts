@@ -34,7 +34,7 @@ export function ApiLogin() {
         password_min_length: {
           summary: 'Password too short',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Minimum number of characters 6',
                 field: 'password',
@@ -45,7 +45,7 @@ export function ApiLogin() {
         password_max_length: {
           summary: 'Password too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 20',
                 field: 'password',
@@ -56,7 +56,7 @@ export function ApiLogin() {
         password_not_string: {
           summary: 'Password is not a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must be a string',
                 field: 'password',
@@ -67,7 +67,7 @@ export function ApiLogin() {
         password_lowercase: {
           summary: 'Password must contain lowercase letter',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one lowercase letter',
                 field: 'password',
@@ -78,7 +78,7 @@ export function ApiLogin() {
         password_uppercase: {
           summary: 'Password must contain uppercase letter',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one uppercase letter',
                 field: 'password',
@@ -89,7 +89,7 @@ export function ApiLogin() {
         password_number: {
           summary: 'Password must contain number',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one number',
                 field: 'password',
@@ -100,7 +100,7 @@ export function ApiLogin() {
         password_allowed_chars: {
           summary: 'Password contains invalid characters',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'Password can only contain letters, numbers and allowed special characters',
@@ -112,7 +112,7 @@ export function ApiLogin() {
         email_not_email: {
           summary: 'Email is not valid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'The email must match the format example@example.com',
                 field: 'email',
@@ -123,7 +123,7 @@ export function ApiLogin() {
         email_min_length: {
           summary: 'Email too short',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Minimum number of characters 6',
                 field: 'email',
@@ -134,7 +134,7 @@ export function ApiLogin() {
         email_max_length: {
           summary: 'Email too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 100',
                 field: 'email',

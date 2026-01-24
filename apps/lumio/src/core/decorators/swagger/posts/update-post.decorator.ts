@@ -33,7 +33,7 @@ export function ApiUpdatePost() {
         user_not_found: {
           summary: 'User does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User does not exist',
                 field: 'userId',
@@ -51,7 +51,7 @@ export function ApiUpdatePost() {
         expired_token_version: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
@@ -69,7 +69,7 @@ export function ApiUpdatePost() {
         user_doesnt_own_post: {
           summary: 'Post does not belong to the user',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Post does not belong to the user',
                 field: 'post',
@@ -87,7 +87,7 @@ export function ApiUpdatePost() {
         post_not_found: {
           summary: 'Post does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Post does not exist',
                 field: 'postId',

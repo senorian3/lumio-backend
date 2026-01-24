@@ -21,7 +21,7 @@ export function ApiDeletePost() {
         user_not_found: {
           summary: 'User does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User does not exist',
                 field: 'userId',
@@ -33,7 +33,7 @@ export function ApiDeletePost() {
         file_not_deleted: {
           summary: 'Failed to delete files',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Failed to delete files',
                 field: 'files',
@@ -51,7 +51,7 @@ export function ApiDeletePost() {
         expired_token_version: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
@@ -69,7 +69,7 @@ export function ApiDeletePost() {
         user_doesnt_own_post: {
           summary: 'Post does not belong to the user',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Post does not belong to the user',
                 field: 'post',
@@ -87,7 +87,7 @@ export function ApiDeletePost() {
         post_not_found: {
           summary: 'Post does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Post does not exist',
                 field: 'postId',

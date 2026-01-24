@@ -38,7 +38,7 @@ export function ApiYandexCallback() {
         refresh_token_not_verified: {
           summary: 'Refresh token is not verified',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Refresh token is not verified',
                 field: 'refreshToken',
@@ -56,7 +56,7 @@ export function ApiYandexCallback() {
         too_many_requests: {
           summary: 'Too many requests',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Too many requests',
                 field: null,
