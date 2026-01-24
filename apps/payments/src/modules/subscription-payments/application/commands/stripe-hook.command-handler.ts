@@ -10,6 +10,11 @@ export enum StripeEventType {
   PAYMENT_FAILED = 'payment_intent.payment_failed',
 }
 
+export enum PaymentStatus {
+  SUCCESSFUL = 'successful',
+  FAILED = 'failed',
+}
+
 export class StripeHookCommand {
   constructor(
     public readonly signature: string,
@@ -61,6 +66,11 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
     console.log('good');
 
+    await this.paymentsRepository.updatePaymentStatus(
+      +session.client_reference_id,
+      PaymentStatus.SUCCESSFUL,
+    );
+
     // TODO: Логика обработки удачной оплаты (используйте clientReferenceId)
   }
 
@@ -83,6 +93,11 @@ export class StripeHookCommandHandler implements ICommandHandler<
     }
 
     console.log('bad');
+
+    await this.paymentsRepository.updatePaymentStatus(
+      +clientReferenceId,
+      PaymentStatus.FAILED,
+    );
 
     // TODO: Логика обработки неудачной оплаты (используйте clientReferenceId)
   }

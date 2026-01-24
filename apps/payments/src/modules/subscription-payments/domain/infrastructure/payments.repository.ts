@@ -30,4 +30,13 @@ export class PaymentsRepository {
       },
     });
   }
+
+  async updatePaymentStatus(id: number, status: string): Promise<Payment> {
+    return this.prisma.payment.update({
+      where: { id },
+      data: {
+        status,
+      },
+    });
+  }
 }
