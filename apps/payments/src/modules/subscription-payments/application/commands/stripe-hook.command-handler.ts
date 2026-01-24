@@ -57,6 +57,11 @@ export class StripeHookCommandHandler implements ICommandHandler<
   private async handleSessionCompleted(event: Stripe.Event) {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    if (session.payment_status !== 'paid') {
+      console.log(`Ожидание подтверждения платежа для сессии ${session.id}`);
+      return;
+    }
+
     if (!session.client_reference_id) {
       throw BadRequestDomainException.create(
         'Отсутствует client_reference_id в сессии',
