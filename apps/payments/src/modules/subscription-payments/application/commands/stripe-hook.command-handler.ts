@@ -1,6 +1,14 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import Stripe from 'stripe';
+
+export enum StripeEventType {
+  SESSION_COMPLETED = 'checkout.session.completed',
+  SESSION_EXPIRED = 'checkout.session.expired',
+  PAYMENT_FAILED = 'payment_intent.payment_failed',
+}
 
 export class StripeHookCommand {
   constructor(
@@ -25,6 +33,57 @@ export class StripeHookCommandHandler implements ICommandHandler<
       command.signature,
     );
 
-    console.log(event);
+    switch (event.type) {
+      case StripeEventType.SESSION_COMPLETED:
+        await this.handleSessionCompleted(event);
+        break;
+
+      case StripeEventType.SESSION_EXPIRED:
+      case StripeEventType.PAYMENT_FAILED:
+        await this.handleFailedPayment(event);
+        break;
+
+      default:
+        console.log(`Необработанный тип события: ${event.type}`);
+        return;
+    }
+  }
+
+  private async handleSessionCompleted(event: Stripe.Event) {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    if (!session.client_reference_id) {
+      throw BadRequestDomainException.create(
+        'Отсутствует client_reference_id в сессии',
+        'MISSING_CLIENT_REFERENCE',
+      );
+    }
+
+    console.log('good');
+
+    // TODO: Логика обработки удачной оплаты (используйте clientReferenceId)
+  }
+
+  private async handleFailedPayment(event: Stripe.Event) {
+    let clientReferenceId: string | null = null;
+
+    if (event.type === 'checkout.session.expired') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      clientReferenceId = session.client_reference_id;
+    } else if (event.type === 'payment_intent.payment_failed') {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      clientReferenceId = paymentIntent.metadata?.paymentId || null;
+    }
+
+    if (!clientReferenceId) {
+      throw BadRequestDomainException.create(
+        `Отсутствует client_reference_id для события ${event.type}`,
+        'MISSING_CLIENT_REFERENCE',
+      );
+    }
+
+    console.log('bad');
+
+    // TODO: Логика обработки неудачной оплаты (используйте clientReferenceId)
   }
 }

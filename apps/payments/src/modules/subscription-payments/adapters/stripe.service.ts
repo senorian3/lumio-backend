@@ -54,6 +54,12 @@ export class StripeService {
       ],
       mode: 'payment',
       client_reference_id: paymentId.toString(),
+
+      payment_intent_data: {
+        metadata: {
+          paymentId: paymentId.toString(),
+        },
+      },
     });
     return session;
   }
