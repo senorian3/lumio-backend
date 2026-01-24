@@ -40,8 +40,34 @@ model UserProfile {
   profileFilledAt  DateTime?
   profileUpdatedAt DateTime? @db.Timestamp(0)
 
+  accountType      String    @default("Personal") @db.VarChar(50)
+
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  payments         Payments[]
+}
+
+model Payments {
+  id              Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now()) @db.Timestamp(0)
+  amount          Float
+  paymentsService String?  @db.VarChar(50)
+
+  userProfileId   Int
+  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  subscription    Subscription?
+}
+
+model Subscription {
+  id           Int       @id @default(autoincrement())
+  durationType String    @db.VarChar(20)
+  startDate    DateTime  @db.Timestamp(0)
+  endDate      DateTime  @db.Timestamp(0)
+  autoRenewal  Boolean   @default(false)
+
+  paymentId    Int       @unique
+  payment      Payments  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 }
 
 model Session {

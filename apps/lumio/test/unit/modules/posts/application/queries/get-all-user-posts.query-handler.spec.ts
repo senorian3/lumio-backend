@@ -30,6 +30,7 @@ describe('GetAllUserPostsQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    accountType: 'regular',
     userId: mockUserId,
     user: {} as any,
   };

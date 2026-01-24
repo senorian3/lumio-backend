@@ -33,7 +33,7 @@ export function ApiFillProfile() {
         user_not_found: {
           summary: 'User is not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User is not found',
                 field: 'userId',
@@ -44,7 +44,7 @@ export function ApiFillProfile() {
         user_already_filled: {
           summary: 'User already filled profile',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User already filled profile',
                 field: 'userId',
@@ -62,7 +62,7 @@ export function ApiFillProfile() {
         expired_token_version: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
@@ -80,7 +80,7 @@ export function ApiFillProfile() {
         user_doesnt_own_profile: {
           summary: 'Profile does not belong to the user',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User cannot fill profile for another user',
                 field: 'userId',

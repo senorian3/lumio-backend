@@ -35,6 +35,7 @@ describe('UpdateProfileCommandHandler', () => {
     profileFilled: true,
     profileFilledAt: new Date(),
     profileUpdatedAt: null,
+    accountType: 'regular',
     userId: 1,
     user: {} as any,
   };

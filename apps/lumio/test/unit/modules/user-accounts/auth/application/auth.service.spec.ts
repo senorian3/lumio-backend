@@ -22,6 +22,7 @@ describe('AuthService', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    accountType: 'regular',
     userId: 1,
     user: {} as any,
   };
