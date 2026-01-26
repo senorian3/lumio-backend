@@ -3,11 +3,15 @@ import { PaymentsRepository } from '@payments/modules/subscription-payments/doma
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import Stripe from 'stripe';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export enum StripeEventType {
   SESSION_COMPLETED = 'checkout.session.completed',
+  INVOICE_PAID = 'invoice.paid',
+  INVOICE_PAYMENT_FAILED = 'invoice.payment_failed',
+  SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
   SESSION_EXPIRED = 'checkout.session.expired',
-  PAYMENT_FAILED = 'payment_intent.payment_failed',
+  PAYMENT_INTENT_FAILED = 'payment_intent.payment_failed',
 }
 
 export enum PaymentStatus {
@@ -30,35 +34,64 @@ export class StripeHookCommandHandler implements ICommandHandler<
   constructor(
     private paymentsRepository: PaymentsRepository,
     private stripeService: StripeService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: StripeHookCommand): Promise<void> {
-    const event = await this.stripeService.verify(
-      command.rawBody,
-      command.signature,
-    );
+    try {
+      const event = await this.stripeService.verify(
+        command.rawBody,
+        command.signature,
+      );
 
-    switch (event.type) {
-      case StripeEventType.SESSION_COMPLETED:
-        await this.handleSessionCompleted(event);
-        break;
+      switch (event.type) {
+        case StripeEventType.SESSION_COMPLETED:
+          await this.handleInitialPayment(event);
+          break;
 
-      case StripeEventType.SESSION_EXPIRED:
-      case StripeEventType.PAYMENT_FAILED:
-        await this.handleFailedPayment(event);
-        break;
+        case StripeEventType.INVOICE_PAID:
+          await this.handleRecurringPayment(event);
+          break;
 
-      default:
-        console.log(`Необработанный тип события: ${event.type}`);
-        return;
+        case StripeEventType.INVOICE_PAYMENT_FAILED:
+        case StripeEventType.PAYMENT_INTENT_FAILED:
+        case StripeEventType.SESSION_EXPIRED:
+          await this.handleFailedPayment(event);
+          this.logger.debug(
+            `Получено событие Stripe: ${event.type} (ID: ${event.id})`,
+            'BAD',
+          );
+          break;
+
+        case StripeEventType.SUBSCRIPTION_DELETED:
+          await this.handleSubscriptionCancelled(event);
+          this.logger.debug(
+            `Получено событие Stripe: ${event.type} (ID: ${event.id})`,
+            'CANCEL',
+          );
+          break;
+
+        default:
+          this.logger.verbose(
+            `Пропущено событие: ${event.type}`,
+            'StripeWebhook',
+          );
+          return;
+      }
+    } catch (error) {
+      this.logger.error(
+        `Критическая ошибка при обработке вебхука Stripe: ${error.message}`,
+        error.stack,
+        'StripeWebhook',
+      );
+      throw error;
     }
   }
 
-  private async handleSessionCompleted(event: Stripe.Event) {
+  private async handleInitialPayment(event: Stripe.Event) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status !== 'paid') {
-      console.log(`Ожидание подтверждения платежа для сессии ${session.id}`);
       return;
     }
 
@@ -69,41 +102,77 @@ export class StripeHookCommandHandler implements ICommandHandler<
       );
     }
 
-    console.log('good');
-
-    await this.paymentsRepository.updatePaymentStatus(
-      +session.client_reference_id,
-      PaymentStatus.SUCCESSFUL,
-    );
-
-    // TODO: Логика обработки удачной оплаты (используйте clientReferenceId)
-  }
-
-  private async handleFailedPayment(event: Stripe.Event) {
-    let clientReferenceId: string | null = null;
-
-    if (event.type === 'checkout.session.expired') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      clientReferenceId = session.client_reference_id;
-    } else if (event.type === 'payment_intent.payment_failed') {
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      clientReferenceId = paymentIntent.metadata?.paymentId || null;
-    }
-
-    if (!clientReferenceId) {
+    const paymentId = parseInt(session.client_reference_id, 10);
+    if (isNaN(paymentId) || paymentId <= 0) {
       throw BadRequestDomainException.create(
-        `Отсутствует client_reference_id для события ${event.type}`,
-        'MISSING_CLIENT_REFERENCE',
+        `Некорректный paymentId: ${session.client_reference_id}`,
+        'INVALID_PAYMENT_ID',
       );
     }
 
-    console.log('bad');
+    if (!session.subscription) {
+      throw BadRequestDomainException.create(
+        'Отсутствует subscription ID в сессии',
+        'MISSING_SUBSCRIPTION_ID',
+      );
+    }
 
-    await this.paymentsRepository.updatePaymentStatus(
-      +clientReferenceId,
-      PaymentStatus.FAILED,
+    const subscriptionId = session.subscription.toString();
+
+    let subscriptionDetails;
+    try {
+      subscriptionDetails =
+        await this.stripeService.getSubscriptionDetails(subscriptionId);
+    } catch (error) {
+      console.error(error);
+      throw BadRequestDomainException.create(
+        'Ошибка получения деталей подписки',
+        'SUBSCRIPTION_DETAILS_ERROR',
+      );
+    }
+
+    const currentPeriodStart = new Date(
+      subscriptionDetails.billing_cycle_anchor * 1000,
     );
 
-    // TODO: Логика обработки неудачной оплаты (используйте clientReferenceId)
+    const subscriptionType =
+      session.metadata?.subscriptionType ||
+      (subscriptionDetails.metadata as any)?.subscriptionType ||
+      '1 month';
+
+    let periodDuration: number;
+    if (subscriptionType.includes('week')) {
+      const weekCount = subscriptionType.includes('2') ? 2 : 1;
+      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
+    } else {
+      periodDuration = 30 * 24 * 60 * 60 * 1000;
+    }
+
+    const currentPeriodEnd = new Date(
+      currentPeriodStart.getTime() + periodDuration,
+    );
+    const nextPaymentDate = currentPeriodEnd;
+
+    await this.paymentsRepository.updatePayment(
+      paymentId,
+      PaymentStatus.SUCCESSFUL,
+      subscriptionId,
+      currentPeriodStart,
+      currentPeriodEnd,
+      nextPaymentDate,
+      subscriptionType,
+    );
+  }
+
+  private async handleRecurringPayment(event: Stripe.Event) {
+    console.log(event);
+  }
+
+  private async handleFailedPayment(event: Stripe.Event) {
+    console.log(event);
+  }
+
+  private async handleSubscriptionCancelled(event: Stripe.Event) {
+    console.log(event);
   }
 }

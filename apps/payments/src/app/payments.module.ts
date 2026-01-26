@@ -48,7 +48,7 @@ const queryRepository = [];
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
+    LoggerModule,
     CoreModule,
     LoggerModule,
     PrismaModule.forRootAsync({

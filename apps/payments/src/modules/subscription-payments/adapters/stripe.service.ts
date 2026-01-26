@@ -15,7 +15,7 @@ export class StripeService {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
 
-    this.successUrl = process.env.SUCSSES_URL;
+    this.successUrl = process.env.SUCCESS_URL;
 
     this.cancelUrl = process.env.CANCEL_URL;
 
@@ -24,44 +24,84 @@ export class StripeService {
     this.stripe = new Stripe(apiKey, {
       apiVersion: '2025-12-15.clover',
       appInfo: {
-        name: 'YourApp',
+        name: 'Incgram',
         version: '1.0.0',
       },
     });
   }
 
   async createPaymentSession(
-    subscriptionType: string,
+    subscriptionType: '1 week' | '2 weeks' | '1 month',
     amount: number,
     paymentId: number,
     currency: string,
   ) {
-    const session = await this.stripe.checkout.sessions.create({
-      success_url: this.successUrl,
-      cancel_url: this.cancelUrl,
-      line_items: [
-        {
-          price_data: {
-            product_data: {
-              name: `Subscription`,
-              description: `Subscription for a period of ${subscriptionType}`,
-            },
-            unit_amount: amount * 100,
-            currency: currency,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      client_reference_id: paymentId.toString(),
-
-      payment_intent_data: {
-        metadata: {
-          paymentId: paymentId.toString(),
-        },
+    const subscriptionConfigs = {
+      '1 week': {
+        interval: 'week' as const,
+        intervalCount: 1,
+        description: '1 неделю',
       },
-    });
-    return session;
+      '2 weeks': {
+        interval: 'week' as const,
+        intervalCount: 2,
+        description: '2 недели',
+      },
+      '1 month': {
+        interval: 'month' as const,
+        intervalCount: 1,
+        description: '1 месяц',
+      },
+    };
+
+    if (!subscriptionConfigs[subscriptionType]) {
+      throw new Error(
+        `Unsupported subscription type: ${subscriptionType}. Supported types: ${Object.keys(subscriptionConfigs).join(', ')}`,
+      );
+    }
+
+    const config = subscriptionConfigs[subscriptionType];
+
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        success_url: this.successUrl,
+        cancel_url: this.cancelUrl,
+        line_items: [
+          {
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: {
+                name: 'Бизнес подписка',
+                description: `Подписка на ${config.description} с автоматическим продлением`,
+              },
+              unit_amount: Math.round(amount * 100),
+              recurring: {
+                interval: config.interval,
+                interval_count: config.intervalCount,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        client_reference_id: paymentId.toString(),
+
+        subscription_data: {
+          metadata: {
+            paymentId: paymentId.toString(),
+            subscriptionType: subscriptionType,
+          },
+        },
+
+        billing_address_collection: 'auto',
+        payment_method_types: ['card'],
+      });
+
+      return session;
+    } catch (error) {
+      console.error('Stripe session creation failed:', error);
+      throw new Error(`Payment session creation failed: ${error.message}`);
+    }
   }
 
   async verify(rawBody: any, signature: string): Promise<Stripe.Event> {
@@ -74,6 +114,16 @@ export class StripeService {
     } catch (err) {
       console.error(err);
       throw BadRequestDomainException.create('verify endpoint error', 'verify');
+    }
+  }
+
+  async getSubscriptionDetails(subscriptionId: string) {
+    try {
+      return await this.stripe.subscriptions.retrieve(subscriptionId);
+    } catch (error) {
+      throw new Error(
+        `Failed to retrieve subscription details: ${error.message}`,
+      );
     }
   }
 }

@@ -1,13 +1,18 @@
 import { Payment } from 'generated/prisma-payments';
 
 export class PaymentEntity implements Payment {
-  id: number;
-  paymentProvider: string;
+  id!: number;
+  paymentProvider!: string;
   currency!: string;
   amount!: number;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
+  status!: string;
+  subscriptionId: string | null = null;
+  periodStart: Date | null = null;
+  periodEnd: Date | null = null;
+  nextPaymentDate: Date | null = null;
+  subscriptionType: string | null = null;
+  createdAt!: Date;
+  updatedAt!: Date;
   profileId!: number;
-  paymentsUrl: string | null;
+  paymentsUrl: string | null = null;
 }

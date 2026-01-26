@@ -30,6 +30,27 @@ export class PaymentsRepository {
       },
     });
   }
+  async updatePayment(
+    id: number,
+    status: string,
+    subscriptionId?: string,
+    periodStart?: Date,
+    periodEnd?: Date,
+    nextPaymentDate?: Date,
+    subscriptionType?: string,
+  ): Promise<Payment> {
+    return this.prisma.payment.update({
+      where: { id },
+      data: {
+        status,
+        subscriptionId,
+        periodStart,
+        periodEnd,
+        nextPaymentDate,
+        subscriptionType,
+      },
+    });
+  }
 
   async updatePaymentStatus(id: number, status: string): Promise<Payment> {
     return this.prisma.payment.update({
