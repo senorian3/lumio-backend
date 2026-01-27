@@ -1,4 +1,4 @@
-import { FilesService } from '@files/core/services/s3.service';
+import { FilesService } from '@files/core/services/s3-files-http.adapter';
 import {
   DeletedPostFileCommandHandler,
   DeletedPostFileCommand,

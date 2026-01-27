@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Readable } from 'stream';
 import axios from 'axios';
-import { HttpService } from '@libs/shared/http.service';
+import { HttpService } from '@libs/shared/files-http.adapter';
 import { CoreConfig } from '@lumio/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 

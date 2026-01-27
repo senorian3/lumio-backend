@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { FilesService } from '../../../../core/services/s3.service';
+import { S3FilesHttpAdapter } from '../../../../core/services/s3-files-http.adapter';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 
 export class DeletedPostFileCommand {
@@ -12,7 +12,7 @@ export class DeletedPostFileCommandHandler implements ICommandHandler<
   void
 > {
   constructor(
-    private readonly filesService: FilesService,
+    private readonly s3FilesHttpAdapter: S3FilesHttpAdapter,
     private readonly fileRepository: FileRepository,
   ) {}
 
@@ -20,7 +20,7 @@ export class DeletedPostFileCommandHandler implements ICommandHandler<
     const postFiles = await this.fileRepository.findFilesByPostId(postId);
 
     for (const file of postFiles) {
-      await this.filesService.deleteFile(file.key);
+      await this.s3FilesHttpAdapter.deleteFile(file.key);
     }
 
     await this.fileRepository.softDeleteFilesByPostId(postId);

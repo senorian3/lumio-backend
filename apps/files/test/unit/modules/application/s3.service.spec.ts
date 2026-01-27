@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CoreConfig } from '@files/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { FilesService } from '@files/core/services/s3.service';
+import { FilesService } from '@files/core/services/s3-files-http.adapter';
 
 describe('FilesService', () => {
   let service: FilesService;

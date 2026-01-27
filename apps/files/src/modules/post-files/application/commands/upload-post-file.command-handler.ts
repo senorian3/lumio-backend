@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { FilesService } from '../../../../core/services/s3.service';
+import { S3FilesHttpAdapter } from '../../../../core/services/s3-files-http.adapter';
 import { PostFileEntity } from '../../domain/entities/post-file.entity';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 
@@ -16,7 +16,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
   void
 > {
   constructor(
-    private readonly filesService: FilesService,
+    private readonly s3FilesHttpAdapter: S3FilesHttpAdapter,
     private readonly fileRepository: FileRepository,
   ) {}
 
@@ -24,11 +24,8 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
     postId,
     files,
   }: UploadFilesCreatedPostCommand): Promise<void> {
-    const uploadedFiles: PostFileEntity[] = await this.filesService.uploadFiles(
-      'posts',
-      postId,
-      files,
-    );
+    const uploadedFiles: PostFileEntity[] =
+      await this.s3FilesHttpAdapter.uploadFiles('posts', postId, files);
 
     for (const file of uploadedFiles) {
       await this.fileRepository.createFile({

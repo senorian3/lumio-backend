@@ -4,9 +4,9 @@ import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.
 import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { HttpService } from '@libs/shared/http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { FilesHttpAdapter } from '../files-http.adapter';
 
 export class CreatePostCommand {
   constructor(
@@ -24,7 +24,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
   constructor(
     private readonly externalQueryUserRepository: ExternalQueryUserRepository,
     private readonly postRepository: PostRepository,
-    private readonly httpService: HttpService,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -45,11 +45,9 @@ export class CreatePostCommandHandler implements ICommandHandler<
     );
 
     try {
-      const mappedFile = await this.httpService.uploadFiles<OutputFileType[]>(
-        `${GLOBAL_PREFIX}/files/upload-post-files`,
-        newPost.id,
-        command.files,
-      );
+      const mappedFile = await this.filesHttpAdapter.uploadFiles<
+        OutputFileType[]
+      >(`${GLOBAL_PREFIX}/files/upload-post-files`, newPost.id, command.files);
 
       await this.postRepository.createPostFiles(newPost.id, mappedFile);
 

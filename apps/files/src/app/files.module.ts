@@ -6,7 +6,6 @@ import { CoreConfig } from '@files/core/core.config';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PostFilesController } from '@files/modules/post-files/api/post-files.controller';
 import { GetAllFilesByPostUserQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
-import { FilesService } from '@files/core/services/s3.service';
 import { DeletedPostFileCommandHandler } from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
 import { UploadFilesCreatedPostCommandHandler } from '@files/modules/post-files/application/commands/upload-post-file.command-handler';
 import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
@@ -14,8 +13,9 @@ import { FileRepository } from '@files/modules/post-files/domain/infrastructure/
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
 import { UploadUserAvatarCommandHandler } from '@files/modules/avatar/application/commands/upload-user-avatar.command-handler';
 import { AvatarController } from '@files/modules/avatar/api/avatar.controller';
+import { S3FilesHttpAdapter } from '@files/core/services/s3-files-http.adapter';
 
-const services = [FilesService];
+const adapters = [S3FilesHttpAdapter];
 
 const useCases = [
   UploadFilesCreatedPostCommandHandler,
@@ -44,7 +44,7 @@ const queryRepository = [QueryFileRepository];
 
   controllers: [PostFilesController, AvatarController],
   providers: [
-    ...services,
+    ...adapters,
     ...useCases,
     ...queryHandler,
     ...repository,

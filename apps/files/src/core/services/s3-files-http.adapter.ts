@@ -12,7 +12,7 @@ import { PostFileEntity } from '../../modules/post-files/domain/entities/post-fi
 import { validateAndConvertBuffer } from '../utils/buffer-validation.utils';
 
 @Injectable()
-export class FilesService {
+export class S3FilesHttpAdapter {
   private readonly s3: S3Client;
   private readonly bucketName: string;
   private readonly region: string;
@@ -86,7 +86,7 @@ export class FilesService {
         this.logger.error(
           `Error uploading file ${fileName}`,
           exception?.stack,
-          FilesService.name,
+          S3FilesHttpAdapter.name,
         );
         throw new Error(
           `Failed to upload file ${originalname}: ${exception.message}`,
@@ -109,7 +109,7 @@ export class FilesService {
       this.logger.error(
         `Error deleting file ${s3key}`,
         error?.stack,
-        FilesService.name,
+        S3FilesHttpAdapter.name,
       );
       throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
     }

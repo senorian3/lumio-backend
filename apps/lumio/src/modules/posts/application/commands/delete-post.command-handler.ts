@@ -5,10 +5,10 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { HttpService } from '@libs/shared/http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { FilesHttpAdapter } from '../files-http.adapter';
 
 export class DeletePostCommand {
   constructor(
@@ -25,7 +25,7 @@ export class DeletePostCommandHandler implements ICommandHandler<
   constructor(
     private readonly externalQueryUserRepository: ExternalQueryUserRepository,
     private readonly postRepository: PostRepository,
-    private readonly httpService: HttpService,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -53,7 +53,7 @@ export class DeletePostCommandHandler implements ICommandHandler<
     await this.postRepository.softDeletePostById(command.postId);
 
     try {
-      await this.httpService.delete(
+      await this.filesHttpAdapter.delete(
         `${GLOBAL_PREFIX}/files/delete-post-files/${command.postId}`,
       );
     } catch (error) {

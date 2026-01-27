@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { HttpService } from '@libs/shared/http.service';
+import { HttpService } from '@libs/shared/files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
   CreatePostCommandHandler,

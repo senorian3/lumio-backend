@@ -3,8 +3,7 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { HttpService } from '@libs/shared/http.service';
-
+import { FilesHttpAdapter } from '@lumio/modules/posts/application/files-http.adapter';
 export class UploadUserAvatarCommand {
   constructor(
     public readonly userId: number,
@@ -19,7 +18,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
 > {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly httpService: HttpService,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -34,7 +33,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       const formData = new FormData();
       formData.append('userId', command.userId.toString());
 
-      const response = await this.httpService.uploadUserAvatar<any>(
+      const response = await this.filesHttpAdapter.uploadUserAvatar<any>(
         `${GLOBAL_PREFIX}/profile/upload-user-avatar`,
         command.userId,
         command.avatar,

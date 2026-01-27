@@ -1,11 +1,11 @@
+import { AppLoggerService } from '@libs/logger/logger.service';
+import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import FormData from 'form-data';
-import { CoreConfig } from '../../apps/lumio/src/core/core.config';
-import { AppLoggerService } from '../logger/logger.service';
 
 @Injectable()
-export class HttpService {
+export class FilesHttpAdapter {
   constructor(
     private readonly coreConfig: CoreConfig,
     private readonly loggerService: AppLoggerService,
@@ -17,28 +17,6 @@ export class HttpService {
       'Content-Type': 'application/json',
       ...additionalHeaders,
     };
-  }
-
-  async post<T>(
-    endpoint: string,
-    data?: any,
-    additionalHeaders?: Record<string, string>,
-  ): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
-    const headers = this.getHeaders(additionalHeaders);
-
-    try {
-      const response = await axios.post<T>(url, data, { headers });
-
-      return response.data;
-    } catch (error) {
-      this.loggerService.error(
-        `Failed to POST to ${url}:`,
-        error?.stack,
-        HttpService.name,
-      );
-      throw error;
-    }
   }
 
   async delete<T>(
@@ -55,7 +33,7 @@ export class HttpService {
       this.loggerService.error(
         `Failed to DELETE from ${url}:`,
         error?.stack,
-        HttpService.name,
+        FilesHttpAdapter.name,
       );
       throw error;
     }
@@ -90,7 +68,7 @@ export class HttpService {
       this.loggerService.error(
         `Failed to POST to ${url}:`,
         error?.stack,
-        HttpService.name,
+        FilesHttpAdapter.name,
       );
       throw error;
     }
@@ -122,7 +100,7 @@ export class HttpService {
       this.loggerService.error(
         `Failed to upload avatar to ${url}:`,
         error?.stack,
-        HttpService.name,
+        FilesHttpAdapter.name,
       );
       throw error;
     }
