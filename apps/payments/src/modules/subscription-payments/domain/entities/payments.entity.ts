@@ -15,4 +15,6 @@ export class PaymentEntity implements Payment {
   updatedAt!: Date;
   profileId!: number;
   paymentsUrl: string | null = null;
+  autoRenewal: boolean = true;
+  cancelledAt: Date | null = null;
 }

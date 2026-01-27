@@ -2,6 +2,24 @@ import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
+const subscriptionConfigs = {
+  '1 week': {
+    interval: 'week' as const,
+    intervalCount: 1,
+    description: '1 неделю',
+  },
+  '2 weeks': {
+    interval: 'week' as const,
+    intervalCount: 2,
+    description: '2 недели',
+  },
+  '1 month': {
+    interval: 'month' as const,
+    intervalCount: 1,
+    description: '1 месяц',
+  },
+};
+
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
@@ -35,25 +53,8 @@ export class StripeService {
     amount: number,
     paymentId: number,
     currency: string,
+    trialEnd?: number,
   ) {
-    const subscriptionConfigs = {
-      '1 week': {
-        interval: 'week' as const,
-        intervalCount: 1,
-        description: '1 неделю',
-      },
-      '2 weeks': {
-        interval: 'week' as const,
-        intervalCount: 2,
-        description: '2 недели',
-      },
-      '1 month': {
-        interval: 'month' as const,
-        intervalCount: 1,
-        description: '1 месяц',
-      },
-    };
-
     if (!subscriptionConfigs[subscriptionType]) {
       throw new Error(
         `Unsupported subscription type: ${subscriptionType}. Supported types: ${Object.keys(subscriptionConfigs).join(', ')}`,
@@ -91,6 +92,9 @@ export class StripeService {
             paymentId: paymentId.toString(),
             subscriptionType: subscriptionType,
           },
+          ...(trialEnd && {
+            trial_end: trialEnd,
+          }),
         },
 
         billing_address_collection: 'auto',
@@ -125,5 +129,11 @@ export class StripeService {
         `Failed to retrieve subscription details: ${error.message}`,
       );
     }
+  }
+
+  async cancelSubscriptionAtPeriodEnd(subscriptionId: string): Promise<void> {
+    await this.stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: true,
+    });
   }
 }

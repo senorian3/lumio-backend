@@ -119,6 +119,47 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
     const subscriptionId = session.subscription.toString();
 
+    const currentPayment =
+      await this.paymentsRepository.findPaymentById(paymentId);
+
+    if (!currentPayment) {
+      throw BadRequestDomainException.create(
+        `Платеж с ID ${paymentId} не найден`,
+        'PAYMENT_NOT_FOUND',
+      );
+    }
+
+    const profileId = currentPayment.profileId;
+
+    const activeSubscriptions =
+      await this.paymentsRepository.findActiveSubscriptionsWithAutoRenewalByProfileId(
+        profileId,
+      );
+
+    for (const subscription of activeSubscriptions) {
+      if (
+        subscription.subscriptionId &&
+        subscription.subscriptionId !== subscriptionId
+      ) {
+        try {
+          await this.stripeService.cancelSubscriptionAtPeriodEnd(
+            subscription.subscriptionId,
+          );
+
+          await this.paymentsRepository.updatePaymentAutoRenewal(
+            subscription.id,
+            false,
+            new Date(),
+          );
+        } catch (error) {
+          console.error(
+            `Ошибка при отключении автопродления у подписки ${subscription.subscriptionId}:`,
+            error,
+          );
+        }
+      }
+    }
+
     let subscriptionDetails;
     try {
       subscriptionDetails =
@@ -132,7 +173,9 @@ export class StripeHookCommandHandler implements ICommandHandler<
     }
 
     const currentPeriodStart = new Date(
-      subscriptionDetails.billing_cycle_anchor * 1000,
+      subscriptionDetails.billing_cycle_anchor
+        ? subscriptionDetails.billing_cycle_anchor * 1000
+        : subscriptionDetails.current_period_start * 1000,
     );
 
     const subscriptionType =
@@ -161,6 +204,12 @@ export class StripeHookCommandHandler implements ICommandHandler<
       currentPeriodEnd,
       nextPaymentDate,
       subscriptionType,
+      true,
+      null,
+    );
+
+    console.log(
+      `Подписка ${subscriptionId} успешно создана для профиля ${profileId} с автопродлением`,
     );
   }
 
@@ -173,6 +222,22 @@ export class StripeHookCommandHandler implements ICommandHandler<
   }
 
   private async handleSubscriptionCancelled(event: Stripe.Event) {
-    console.log(event);
+    const subscription = event.data.object as Stripe.Subscription;
+
+    const payment = await this.paymentsRepository.findPaymentBySubscriptionId(
+      subscription.id,
+    );
+
+    if (payment) {
+      await this.paymentsRepository.updatePaymentStatus(
+        payment.id,
+        'cancelled',
+      );
+
+      this.logger.log(
+        `Подписка ${subscription.id} полностью завершена после окончания периода`,
+        'SubscriptionLifecycle',
+      );
+    }
   }
 }
