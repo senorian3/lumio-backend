@@ -7,7 +7,7 @@ import {
 } from '@libs/core/exceptions/domain-exceptions';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../files-http.adapter';
 
 export class DeletePostCommand {
@@ -23,14 +23,14 @@ export class DeletePostCommandHandler implements ICommandHandler<
   void
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
     private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
-    const user = await this.externalQueryUserRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
     if (!user) {

@@ -5,7 +5,7 @@ import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../files-http.adapter';
 
 export class CreatePostCommand {
@@ -22,7 +22,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
   { file: OutputFileType[]; postId: number }
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
     private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
@@ -31,7 +31,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
   async execute(
     command: CreatePostCommand,
   ): Promise<{ file: OutputFileType[]; postId: number }> {
-    const user = await this.externalQueryUserRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
 
@@ -59,6 +59,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
         CommandHandler.name,
       );
 
+      //сделать нормальную траназакцию на удаление
       try {
         await this.postRepository.deletePostFilesByPostId(newPost.id);
         await this.postRepository.deletePost(newPost.id);

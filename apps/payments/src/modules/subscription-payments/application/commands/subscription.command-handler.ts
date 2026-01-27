@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SubscriptionPaymentTransferDto } from '@payments/modules/subscription-payments/api/dto/transfer/subscription-payment.transfer.dto';
+import { SubscriptionPaymentTransferDto } from '@libs/dto/transfer/subscription-payment.transfer.dto';
 import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 

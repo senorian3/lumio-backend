@@ -6,7 +6,7 @@ import {
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
-import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class UpdatePostCommand {
   constructor(
@@ -22,12 +22,12 @@ export class UpdatePostCommandHandler implements ICommandHandler<
   PostView
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<PostView> {
-    const user = await this.externalQueryUserRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
 

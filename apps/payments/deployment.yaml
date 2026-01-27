@@ -51,3 +51,8 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-payments-production-config-secret
                   key: RMQ_URL
+            - name: INTERNAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-payments-production-config-secret
+                  key: INTERNAL_API_KEY

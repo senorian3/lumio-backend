@@ -9,6 +9,7 @@ import { throttlerModule } from '../core/guards/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     CoreModule,
     UserAccountsModule,
     PostsModule,
+    PaymentsModule,
   ],
 })
 export class AppModule {

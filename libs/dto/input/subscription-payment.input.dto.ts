@@ -1,7 +1,7 @@
 import { IsNumber, IsString, IsNotEmpty, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class SubscriptionPaymentInputDto {
+export class InputCreateSubscriptionPaymentDto {
   @IsNumber()
   @IsNotEmpty()
   profileId: number;

@@ -36,7 +36,7 @@ import { UpdateProfileCommandHandler } from '@lumio/modules/user-accounts/profil
 import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
 import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
 import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
-import { ExternalQueryUserRepository } from './users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from './users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../posts/application/files-http.adapter';
 
 const createJwtServiceProvider = (
@@ -113,13 +113,13 @@ const strategies = [JwtStrategy, YandexStrategy];
     UserSchedulerService,
     AboutUserQueryHandler,
     QueryUserRepository,
-    ExternalQueryUserRepository,
+    ExternalQueryUserAccountsRepository,
     ...useCases,
     ...services,
     ...adapters,
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserAccountsConfig, ExternalQueryUserRepository],
+  exports: [UserAccountsConfig, ExternalQueryUserAccountsRepository],
 })
 export class UserAccountsModule {}
