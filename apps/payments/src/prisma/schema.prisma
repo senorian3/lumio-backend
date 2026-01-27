@@ -26,4 +26,6 @@ model Payment {
   updatedAt   DateTime @updatedAt
   profileId   Int
   paymentsUrl  String?
+  autoRenewal       Boolean  @default(true)
+  cancelledAt       DateTime?
 }

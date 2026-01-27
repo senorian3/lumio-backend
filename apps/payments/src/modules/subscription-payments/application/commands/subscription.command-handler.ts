@@ -18,6 +18,23 @@ export class SubscriptionCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ dto }: SubscriptionCommand): Promise<string> {
+    const lastSuccessfulPayment =
+      await this.paymentsRepository.findLastSuccessfulPaymentByProfileId(
+        dto.profileId,
+      );
+
+    let trialEndDate: number | undefined = undefined;
+
+    if (
+      lastSuccessfulPayment &&
+      lastSuccessfulPayment.nextPaymentDate &&
+      lastSuccessfulPayment.nextPaymentDate > new Date()
+    ) {
+      trialEndDate = Math.floor(
+        lastSuccessfulPayment.nextPaymentDate.getTime() / 1000,
+      );
+    }
+
     const payment = await this.paymentsRepository.createPayment({
       paymentProvider: dto.paymentProvider,
       currency: dto.currency,
@@ -30,6 +47,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
       dto.amount,
       payment.id,
       dto.currency,
+      trialEndDate,
     );
 
     await this.paymentsRepository.updatePaymentUrl(payment.id, session.url);
