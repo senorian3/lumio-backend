@@ -29,3 +29,21 @@ model Payment {
   autoRenewal       Boolean  @default(true)
   cancelledAt       DateTime?
 }
+
+model OutboxMessage {
+  id           Int      @id @default(autoincrement())
+  aggregateId  Int
+  aggregateType String  @db.VarChar(50)
+  eventType    String  @db.VarChar(100)
+  payload      Json
+  status       String  @default("pending") @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  processedAt  DateTime?
+  scheduledAt  DateTime @default(now())
+  retryCount   Int      @default(0)
+  maxRetries   Int      @default(3)
+  ttl          DateTime?
+
+  @@index([status, scheduledAt])
+  @@index([ttl])
+}

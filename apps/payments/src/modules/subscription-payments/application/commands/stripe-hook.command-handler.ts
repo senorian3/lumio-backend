@@ -3,6 +3,8 @@ import { PaymentsRepository } from '@payments/modules/subscription-payments/doma
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { OutboxService } from '@payments/modules/subscription-payments/domain/infrastructure/outbox.service';
+import { PrismaService } from '@payments/prisma/prisma.service';
 import Stripe from 'stripe';
 
 export enum StripeEventType {
@@ -28,9 +30,11 @@ export class StripeHookCommandHandler implements ICommandHandler<
   void
 > {
   constructor(
-    private paymentsRepository: PaymentsRepository,
-    private stripeService: StripeService,
+    private readonly paymentsRepository: PaymentsRepository,
+    private readonly stripeService: StripeService,
     private readonly logger: AppLoggerService,
+    private readonly outboxService: OutboxService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(command: StripeHookCommand): Promise<void> {
@@ -122,82 +126,125 @@ export class StripeHookCommandHandler implements ICommandHandler<
         profileId,
       );
 
+    // Шаг 1: Транзакция с базой данных (все операции с БД)
+    let subscriptionType: string;
+    let currentPeriodStart: Date;
+    let currentPeriodEnd: Date;
+    let nextPaymentDate: Date;
+
+    try {
+      // Получаем детали подписки (внешний вызов)
+      let subscriptionDetails;
+
+      try {
+        subscriptionDetails =
+          await this.stripeService.getSubscriptionDetails(subscriptionId);
+      } catch (error) {
+        this.logger.error(error.message, error.stack, 'getSubscriptionDetails');
+        throw BadRequestDomainException.create(
+          'Failed to retrieve subscription details',
+          'subscriptionId',
+        );
+      }
+
+      currentPeriodStart = new Date(
+        subscriptionDetails.billing_cycle_anchor
+          ? subscriptionDetails.billing_cycle_anchor * 1000
+          : subscriptionDetails.current_period_start * 1000,
+      );
+
+      subscriptionType =
+        session.metadata?.subscriptionType ||
+        (subscriptionDetails.metadata as any)?.subscriptionType ||
+        '1 month';
+
+      let periodDuration: number;
+
+      if (subscriptionType.includes('week')) {
+        const weekCount = subscriptionType.includes('2') ? 2 : 1;
+        periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
+      } else {
+        periodDuration = 30 * 24 * 60 * 60 * 1000;
+      }
+
+      currentPeriodEnd = new Date(
+        currentPeriodStart.getTime() + periodDuration,
+      );
+      nextPaymentDate = currentPeriodEnd;
+
+      // Транзакция для обновления платежа в БД
+      await this.prisma.$transaction(async (tx) => {
+        // Отключаем автопродление для существующих подписок
+        for (const subscription of activeSubscriptions) {
+          if (
+            subscription.subscriptionId &&
+            subscription.subscriptionId !== subscriptionId
+          ) {
+            await this.paymentsRepository.updatePaymentAutoRenewal(
+              subscription.id,
+              false,
+              new Date(),
+              tx,
+            );
+          }
+        }
+
+        // Обновляем основной платеж
+        await this.paymentsRepository.updatePayment(
+          paymentId,
+          PaymentStatus.SUCCESSFUL,
+          subscriptionId,
+          currentPeriodStart,
+          currentPeriodEnd,
+          nextPaymentDate,
+          subscriptionType,
+          true,
+          null,
+          tx,
+        );
+      });
+    } catch (error) {
+      // Compensating Transaction: Отмена платежа, если что-то пошло не так
+      await this.prisma.$transaction(async (tx) => {
+        await this.paymentsRepository.cancelPaymentInTransaction(paymentId, tx);
+      });
+
+      this.logger.error(error.message, error.stack, 'handleInitialPayment');
+
+      throw BadRequestDomainException.create(
+        'Failed to create subscription',
+        'subscriptionId',
+      );
+    }
+
+    // Шаг 2: Создание outbox сообщений для внешних вызовов (в транзакции)
     for (const subscription of activeSubscriptions) {
       if (
         subscription.subscriptionId &&
         subscription.subscriptionId !== subscriptionId
       ) {
-        try {
-          await this.stripeService.cancelSubscriptionAtPeriodEnd(
-            subscription.subscriptionId,
-          );
-
-          await this.paymentsRepository.updatePaymentAutoRenewal(
-            subscription.id,
-            false,
-            new Date(),
-          );
-        } catch (error) {
-          console.error(
-            `Ошибка при отключении автопродления у подписки ${subscription.subscriptionId}:`,
-            error,
-          );
-        }
+        await this.outboxService.createCancelSubscriptionMessage(
+          subscription.id,
+          subscription.subscriptionId,
+        );
       }
     }
 
-    let subscriptionDetails;
-    try {
-      subscriptionDetails =
-        await this.stripeService.getSubscriptionDetails(subscriptionId);
-    } catch (error) {
-      console.error(error);
-      throw BadRequestDomainException.create(
-        'Ошибка получения деталей подписки',
-        'SUBSCRIPTION_DETAILS_ERROR',
-      );
-    }
-
-    const currentPeriodStart = new Date(
-      subscriptionDetails.billing_cycle_anchor
-        ? subscriptionDetails.billing_cycle_anchor * 1000
-        : subscriptionDetails.current_period_start * 1000,
-    );
-
-    const subscriptionType =
-      session.metadata?.subscriptionType ||
-      (subscriptionDetails.metadata as any)?.subscriptionType ||
-      '1 month';
-
-    let periodDuration: number;
-    if (subscriptionType.includes('week')) {
-      const weekCount = subscriptionType.includes('2') ? 2 : 1;
-      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
-    } else {
-      periodDuration = 30 * 24 * 60 * 60 * 1000;
-    }
-
-    const currentPeriodEnd = new Date(
-      currentPeriodStart.getTime() + periodDuration,
-    );
-    const nextPaymentDate = currentPeriodEnd;
-
-    await this.paymentsRepository.updatePayment(
-      paymentId,
-      PaymentStatus.SUCCESSFUL,
+    // Шаг 3: Создание outbox сообщения (после транзакции)
+    await this.outboxService.createPaymentCompletedMessage(paymentId, {
+      profileId,
+      amount: currentPayment.amount,
+      currency: currentPayment.currency,
       subscriptionId,
-      currentPeriodStart,
-      currentPeriodEnd,
-      nextPaymentDate,
       subscriptionType,
-      true,
-      null,
-    );
+      periodStart: currentPeriodStart,
+      periodEnd: currentPeriodEnd,
+      nextPaymentDate,
+    });
 
-    //outbox
-
-    console.log(
+    this.logger.log(
       `Подписка ${subscriptionId} успешно создана для профиля ${profileId} с автопродлением`,
+      'StripeHook',
     );
   }
 
@@ -218,26 +265,25 @@ export class StripeHookCommandHandler implements ICommandHandler<
       return;
     }
 
-    try {
-      // const subscription =
-      //   await this.stripeService.getSubscriptionDetails(subscriptionId);
+    // const subscription =
+    //   await this.stripeService.getSubscriptionDetails(subscriptionId);
 
-      const existingPayment =
-        await this.paymentsRepository.findPaymentBySubscriptionId(
-          subscriptionId,
-        );
+    const existingPayment =
+      await this.paymentsRepository.findPaymentBySubscriptionId(subscriptionId);
 
-      if (!existingPayment) {
-        this.logger.debug(
-          `Платеж для подписки ${subscriptionId} ещё не создан в БД. Пропускаем.`,
-        );
-        return;
-      }
+    if (!existingPayment) {
+      this.logger.debug(
+        `Платеж для подписки ${subscriptionId} ещё не создан в БД. Пропускаем.`,
+      );
+      return;
+    }
 
-      const currentPeriodStart = new Date(invoice.period_start * 1000);
-      const currentPeriodEnd = new Date(invoice.period_end * 1000);
-      const nextPaymentDate = new Date(invoice.period_end * 1000);
+    const currentPeriodStart = new Date(invoice.period_start * 1000);
+    const currentPeriodEnd = new Date(invoice.period_end * 1000);
+    const nextPaymentDate = new Date(invoice.period_end * 1000);
 
+    // Транзакция для обновления платежа + создание outbox сообщения
+    await this.prisma.$transaction(async (tx) => {
       await this.paymentsRepository.updatePayment(
         existingPayment.id,
         PaymentStatus.SUCCESSFUL,
@@ -248,10 +294,24 @@ export class StripeHookCommandHandler implements ICommandHandler<
         existingPayment.subscriptionType,
         true,
         null,
+        tx,
       );
-    } catch (error) {
-      console.error(error);
-    }
+
+      // Создание outbox сообщения ВНУТРИ транзакции
+      await this.outboxService.createPaymentCompletedMessage(
+        existingPayment.id,
+        {
+          profileId: existingPayment.profileId,
+          amount: existingPayment.amount,
+          currency: existingPayment.currency,
+          subscriptionId,
+          subscriptionType: existingPayment.subscriptionType,
+          periodStart: currentPeriodStart,
+          periodEnd: currentPeriodEnd,
+          nextPaymentDate,
+        },
+      );
+    });
   }
 
   private async handleSubscriptionCancelled(event: Stripe.Event) {
@@ -261,18 +321,27 @@ export class StripeHookCommandHandler implements ICommandHandler<
       subscription.id,
     );
 
-    if (payment) {
+    if (!payment) {
+      throw BadRequestDomainException.create(
+        `Payment not found for subscription ${subscription.id}`,
+      );
+    }
+    await this.prisma.$transaction(async (tx) => {
       await this.paymentsRepository.updatePaymentStatus(
         payment.id,
         'cancelled',
+        tx,
       );
 
-      this.logger.log(
-        `Подписка ${subscription.id} полностью завершена после окончания периода`,
-        'SubscriptionLifecycle',
+      await this.outboxService.createSubscriptionCancelledMessage(
+        payment.id,
+        subscription.id,
       );
-    }
+    });
 
-    //отпровляем оповещение об отмене подписки
+    this.logger.log(
+      `Подписка ${subscription.id} полностью завершена после окончания периода`,
+      'SubscriptionLifecycle',
+    );
   }
 }

@@ -8,7 +8,6 @@ import { UserAccountsModule } from '../modules/user-accounts/user-accounts.modul
 import { throttlerModule } from '../core/guards/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 
 @Module({
@@ -24,28 +23,6 @@ import { PaymentsModule } from '@lumio/modules/payments/payments.module';
       },
       inject: [CoreConfig],
     }),
-    ClientsModule.registerAsync([
-      {
-        name: 'PAYMENTS_SERVICE',
-        useFactory: (coreConfig: CoreConfig) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [coreConfig.rmqUrl],
-            exchange: 'sub_payments_exchange',
-            exchangeOptions: {
-              type: 'direct',
-              durable: true,
-            },
-            queue: 'lumio_to_payments_queue',
-            queueOptions: {
-              durable: true,
-            },
-            noAck: false,
-          },
-        }),
-        inject: [CoreConfig],
-      },
-    ]),
 
     CoreModule,
     UserAccountsModule,

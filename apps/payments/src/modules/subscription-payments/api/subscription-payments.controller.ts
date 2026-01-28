@@ -14,15 +14,11 @@ import { Request } from 'express';
 import { StripeHookCommand } from '@payments/modules/subscription-payments/application/commands/stripe-hook.command-handler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
-import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 
 @Controller('subscription-payments')
 @UseGuards(InternalApiGuard)
 export class SubscriptionPaymentsController {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private stripeService: StripeService,
-  ) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
   async createSubscriptionPaymentUrl(

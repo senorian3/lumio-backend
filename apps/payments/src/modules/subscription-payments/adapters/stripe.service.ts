@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 const subscriptionConfigs = {
   '1 week': {
@@ -27,7 +28,7 @@ export class StripeService {
   private cancelUrl: string;
   private endpointSecret: string;
 
-  constructor() {
+  constructor(private readonly logger: AppLoggerService) {
     const apiKey = process.env.STRIPE_SECRET_KEY;
     if (!apiKey) {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
@@ -56,8 +57,9 @@ export class StripeService {
     trialEnd?: number,
   ) {
     if (!subscriptionConfigs[subscriptionType]) {
-      throw new Error(
-        `Unsupported subscription type: ${subscriptionType}. Supported types: ${Object.keys(subscriptionConfigs).join(', ')}`,
+      throw BadRequestDomainException.create(
+        'Subscription type is not supported',
+        'subscriptionType',
       );
     }
 
@@ -107,8 +109,10 @@ export class StripeService {
 
       return session;
     } catch (error) {
-      console.error('Stripe session creation failed:', error);
-      throw new Error(`Payment session creation failed: ${error.message}`);
+      throw BadRequestDomainException.create(
+        `Failed to create payment session with paymentId=${paymentId}: ${error.message}`,
+        'createPaymentSession',
+      );
     }
   }
 
@@ -120,8 +124,15 @@ export class StripeService {
         this.endpointSecret,
       );
     } catch (err) {
-      console.error(err);
-      throw BadRequestDomainException.create('verify endpoint error', 'verify');
+      this.logger.error(
+        `Error verifying webhook: ${err.message}`,
+        err.stack,
+        'StripeService',
+      );
+      throw BadRequestDomainException.create(
+        'Verification endpoint failed',
+        'verify',
+      );
     }
   }
 
@@ -131,8 +142,9 @@ export class StripeService {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {
-      throw new Error(
+      throw BadRequestDomainException.create(
         `Failed to retrieve subscription details: ${error.message}`,
+        'getSubscriptionDetails',
       );
     }
   }
@@ -140,6 +152,12 @@ export class StripeService {
   async cancelSubscriptionAtPeriodEnd(subscriptionId: string): Promise<void> {
     await this.stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
+    });
+  }
+
+  async enableSubscriptionAutoRenewal(subscriptionId: string): Promise<void> {
+    await this.stripe.subscriptions.update(subscriptionId, {
+      cancel_at_period_end: false,
     });
   }
 }
