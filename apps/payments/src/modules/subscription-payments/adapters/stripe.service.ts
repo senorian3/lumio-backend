@@ -121,7 +121,9 @@ export class StripeService {
     }
   }
 
-  async getSubscriptionDetails(subscriptionId: string) {
+  async getSubscriptionDetails(
+    subscriptionId: string,
+  ): Promise<Stripe.Subscription> {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {

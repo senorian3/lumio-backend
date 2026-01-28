@@ -11,6 +11,7 @@ export class PaymentsRepository {
     currency: string;
     amount: number;
     profileId: number;
+    status?: string;
   }): Promise<Payment> {
     return this.prisma.payment.create({
       data: {
@@ -18,6 +19,7 @@ export class PaymentsRepository {
         currency: data.currency,
         amount: data.amount,
         profileId: data.profileId,
+        ...(data.status && { status: data.status }),
       },
     });
   }

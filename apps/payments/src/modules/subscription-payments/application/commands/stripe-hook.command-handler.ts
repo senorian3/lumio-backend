@@ -2,8 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import Stripe from 'stripe';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import Stripe from 'stripe';
 
 export enum StripeEventType {
   SESSION_COMPLETED = 'checkout.session.completed',
@@ -208,16 +208,68 @@ export class StripeHookCommandHandler implements ICommandHandler<
       null,
     );
 
+    //outbox
+
     console.log(
       `Подписка ${subscriptionId} успешно создана для профиля ${profileId} с автопродлением`,
     );
   }
 
   private async handleRecurringPayment(event: Stripe.Event) {
-    console.log(event);
+    const invoice = event.data.object as Stripe.Invoice;
+
+    if (invoice.status !== 'paid') {
+      this.logger.debug(`Пропущен неоплаченный инвойс: ${invoice.id}`);
+      return;
+    }
+
+    const subscriptionId = (invoice as any).subscription as string | null;
+
+    if (!subscriptionId) {
+      this.logger.warn(
+        `Инвойс ${invoice.id} не содержит информацию о подписке`,
+      );
+      return;
+    }
+
+    try {
+      // const subscription =
+      //   await this.stripeService.getSubscriptionDetails(subscriptionId);
+
+      const existingPayment =
+        await this.paymentsRepository.findPaymentBySubscriptionId(
+          subscriptionId,
+        );
+
+      if (!existingPayment) {
+        this.logger.debug(
+          `Платеж для подписки ${subscriptionId} ещё не создан в БД. Пропускаем.`,
+        );
+        return;
+      }
+
+      const currentPeriodStart = new Date(invoice.period_start * 1000);
+      const currentPeriodEnd = new Date(invoice.period_end * 1000);
+      const nextPaymentDate = new Date(invoice.period_end * 1000);
+
+      await this.paymentsRepository.updatePayment(
+        existingPayment.id,
+        PaymentStatus.SUCCESSFUL,
+        subscriptionId,
+        currentPeriodStart,
+        currentPeriodEnd,
+        nextPaymentDate,
+        existingPayment.subscriptionType,
+        true,
+        null,
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private async handleFailedPayment(event: Stripe.Event) {
+    console.log('я отработал ');
     console.log(event);
   }
 
@@ -239,5 +291,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
         'SubscriptionLifecycle',
       );
     }
+
+    //отпровляем оповещение об отмене подписки
   }
 }
