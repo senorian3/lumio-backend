@@ -64,6 +64,8 @@ export class StripeService {
     const config = subscriptionConfigs[subscriptionType];
 
     try {
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+
       const session = await this.stripe.checkout.sessions.create({
         success_url: this.successUrl,
         cancel_url: this.cancelUrl,
@@ -99,6 +101,8 @@ export class StripeService {
 
         billing_address_collection: 'auto',
         payment_method_types: ['card'],
+
+        expires_at: expiresAt,
       });
 
       return session;

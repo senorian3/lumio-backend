@@ -8,15 +8,11 @@ import Stripe from 'stripe';
 export enum StripeEventType {
   SESSION_COMPLETED = 'checkout.session.completed',
   INVOICE_PAID = 'invoice.paid',
-  INVOICE_PAYMENT_FAILED = 'invoice.payment_failed',
   SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
-  SESSION_EXPIRED = 'checkout.session.expired',
-  PAYMENT_INTENT_FAILED = 'payment_intent.payment_failed',
 }
 
 export enum PaymentStatus {
   SUCCESSFUL = 'successful',
-  FAILED = 'failed',
 }
 
 export class StripeHookCommand {
@@ -51,16 +47,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
         case StripeEventType.INVOICE_PAID:
           await this.handleRecurringPayment(event);
-          break;
-
-        case StripeEventType.INVOICE_PAYMENT_FAILED:
-        case StripeEventType.PAYMENT_INTENT_FAILED:
-        case StripeEventType.SESSION_EXPIRED:
-          await this.handleFailedPayment(event);
-          this.logger.debug(
-            `Получено событие Stripe: ${event.type} (ID: ${event.id})`,
-            'BAD',
-          );
           break;
 
         case StripeEventType.SUBSCRIPTION_DELETED:
@@ -266,11 +252,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
     } catch (error) {
       console.error(error);
     }
-  }
-
-  private async handleFailedPayment(event: Stripe.Event) {
-    console.log('я отработал ');
-    console.log(event);
   }
 
   private async handleSubscriptionCancelled(event: Stripe.Event) {
