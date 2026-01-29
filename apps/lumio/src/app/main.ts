@@ -22,8 +22,11 @@ async function bootstrap() {
       queue: 'payments_to_lumio_queue',
       queueOptions: {
         durable: true,
+        deadLetterExchange: 'dlx_ack_exchange',
+        deadLetterRoutingKey: 'dlq.acknowledgment',
+        messageTtl: 300000,
       },
-      noAck: false,
+      noAck: true,
     },
   });
 

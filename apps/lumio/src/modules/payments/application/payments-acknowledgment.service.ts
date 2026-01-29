@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { lastValueFrom } from 'rxjs';
 
 export interface PaymentAcknowledgment {
   messageId: number;
@@ -35,9 +34,8 @@ export class PaymentsAcknowledgmentService {
       };
 
       // Send acknowledgment to Payments service
-      await lastValueFrom(
-        this.paymentsService.emit('payment.acknowledgment', acknowledgment),
-      );
+
+      this.paymentsService.emit('payment.acknowledgment', acknowledgment);
     } catch (error) {
       this.logger.error(
         `Failed to send acknowledgment for message ${messageId}: ${error.message}`,

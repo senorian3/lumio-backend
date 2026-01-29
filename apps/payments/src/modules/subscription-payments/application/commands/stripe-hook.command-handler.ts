@@ -218,6 +218,8 @@ export class StripeHookCommandHandler implements ICommandHandler<
     }
 
     // Шаг 2: Создание outbox сообщений для внешних вызовов (в транзакции)
+
+    //СДЕЛАТЬ TX
     for (const subscription of activeSubscriptions) {
       if (
         subscription.subscriptionId &&

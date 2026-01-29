@@ -4,7 +4,6 @@ import { OutboxRepository, OutboxEventType } from './outbox.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
-import { lastValueFrom } from 'rxjs';
 import { ExternalCallsProcessor } from './external-calls.processor';
 
 @Injectable()
@@ -104,16 +103,14 @@ export class OutboxScheduler {
     try {
       const routingKey = this.getRoutingKey(message.eventType);
 
-      await lastValueFrom(
-        this.lumioService.emit(routingKey, {
-          id: message.id,
-          aggregateId: message.aggregateId,
-          aggregateType: message.aggregateType,
-          eventType: message.eventType,
-          payload: message.payload,
-          timestamp: message.createdAt,
-        }),
-      );
+      this.lumioService.emit(routingKey, {
+        id: message.id,
+        aggregateId: message.aggregateId,
+        aggregateType: message.aggregateType,
+        eventType: message.eventType,
+        payload: message.payload,
+        timestamp: message.createdAt,
+      });
 
       return true;
     } catch (error) {

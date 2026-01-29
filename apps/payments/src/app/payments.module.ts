@@ -57,7 +57,7 @@ const outboxComponents = [
               deadLetterRoutingKey: 'dlq.acknowledgment',
               messageTtl: 300000,
             },
-            noAck: false,
+            noAck: true,
           },
         }),
         inject: [CoreConfig],
