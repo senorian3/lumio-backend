@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { OutboxRepository, OutboxEventType } from './outbox.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -8,17 +8,13 @@ import { lastValueFrom } from 'rxjs';
 import { ExternalCallsProcessor } from './external-calls.processor';
 
 @Injectable()
-export class OutboxScheduler implements OnModuleInit {
+export class OutboxScheduler {
   constructor(
     private readonly outboxRepository: OutboxRepository,
     private readonly logger: AppLoggerService,
     @Inject('LUMIO_SERVICE') private readonly lumioService: ClientProxy,
     private readonly externalCallsProcessor: ExternalCallsProcessor,
   ) {}
-
-  onModuleInit() {
-    this.logger.log('Outbox scheduler initialized', 'OutboxScheduler');
-  }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async processOutboxMessages(): Promise<void> {

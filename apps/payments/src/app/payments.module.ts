@@ -16,6 +16,7 @@ import { OutboxRepository } from '@payments/modules/subscription-payments/domain
 import { OutboxService } from '@payments/modules/subscription-payments/domain/infrastructure/outbox.service';
 import { OutboxScheduler } from '@payments/modules/subscription-payments/domain/infrastructure/outbox.scheduler';
 import { ExternalCallsProcessor } from '@payments/modules/subscription-payments/domain/infrastructure/external-calls.processor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const services = [StripeService];
 
@@ -36,6 +37,7 @@ const outboxComponents = [
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ClientsModule.registerAsync([
       {
         name: 'LUMIO_SERVICE',
