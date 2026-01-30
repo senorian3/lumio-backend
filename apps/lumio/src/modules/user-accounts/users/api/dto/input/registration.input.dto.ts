@@ -10,7 +10,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class InputRegistrationDto {
   @ApiProperty({
-    description: 'Unique username of the user',
+    description:
+      'Unique username of the user. Only Latin letters, numbers, underscores, and hyphens are allowed. Cyrillic characters are prohibited',
     example: 'goodusername',
     required: true,
     nullable: false,
@@ -25,6 +26,9 @@ export class InputRegistrationDto {
   @Matches(/^[A-Za-z0-9_-]+$/, {
     message:
       'Username must contain only letters, numbers, underscores, or hyphens',
+  })
+  @Matches(/^[^а-яА-ЯёЁ]*$/, {
+    message: 'Username must not contain Cyrillic characters',
   })
   username: string;
 
