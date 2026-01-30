@@ -37,7 +37,7 @@ export class TestingController {
           data: {
             username: `hellotestuser${i}`,
             email: `hellotestuser${i}@example.com`,
-            password: `password${i}`,
+            password: `Password${i}`,
           },
         });
 
