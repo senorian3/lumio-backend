@@ -15,6 +15,7 @@ export enum StripeEventType {
 
 export enum PaymentStatus {
   SUCCESSFUL = 'successful',
+  CANCELLED = `cancelled`,
 }
 
 export class StripeHookCommand {
@@ -172,6 +173,14 @@ export class StripeHookCommandHandler implements ICommandHandler<
       );
       nextPaymentDate = currentPeriodEnd;
 
+      // ✅ Гарантируем ровно 30 дней для месячной подписки (минимальное изменение)
+      if (subscriptionType === '1 month') {
+        currentPeriodEnd = new Date(
+          currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000,
+        );
+        nextPaymentDate = currentPeriodEnd;
+      }
+
       // Транзакция для обновления платежа в БД
       await this.prisma.$transaction(async (tx) => {
         // Отключаем автопродление для существующих подписок
@@ -251,69 +260,95 @@ export class StripeHookCommandHandler implements ICommandHandler<
   }
 
   private async handleRecurringPayment(event: Stripe.Event) {
-    const invoice = event.data.object as Stripe.Invoice;
+    try {
+      const invoice = event.data.object as Stripe.Invoice;
 
-    if (invoice.status !== 'paid') {
-      this.logger.debug(`Пропущен неоплаченный инвойс: ${invoice.id}`);
-      return;
-    }
+      // Пропускаем первый инвойс при создании подписки
+      if (invoice.billing_reason === 'subscription_create') {
+        return;
+      }
 
-    const subscriptionId = (invoice as any).subscription as string | null;
+      // Проверяем статус инвойса
+      if (invoice.status !== 'paid') {
+        return;
+      }
 
-    if (!subscriptionId) {
-      this.logger.warn(
-        `Инвойс ${invoice.id} не содержит информацию о подписке`,
-      );
-      return;
-    }
+      // Извлекаем данные подписки
+      const subscriptionId = invoice.parent.subscription_details
+        .subscription as string;
 
-    // const subscription =
-    //   await this.stripeService.getSubscriptionDetails(subscriptionId);
+      if (!subscriptionId) {
+        return;
+      }
 
-    const existingPayment =
-      await this.paymentsRepository.findPaymentBySubscriptionId(subscriptionId);
-
-    if (!existingPayment) {
-      this.logger.debug(
-        `Платеж для подписки ${subscriptionId} ещё не создан в БД. Пропускаем.`,
-      );
-      return;
-    }
-
-    const currentPeriodStart = new Date(invoice.period_start * 1000);
-    const currentPeriodEnd = new Date(invoice.period_end * 1000);
-    const nextPaymentDate = new Date(invoice.period_end * 1000);
-
-    // Транзакция для обновления платежа + создание outbox сообщения
-    await this.prisma.$transaction(async (tx) => {
-      await this.paymentsRepository.updatePayment(
-        existingPayment.id,
-        PaymentStatus.SUCCESSFUL,
-        subscriptionId,
-        currentPeriodStart,
-        currentPeriodEnd,
-        nextPaymentDate,
-        existingPayment.subscriptionType,
-        true,
-        null,
-        tx,
-      );
-
-      // Создание outbox сообщения ВНУТРИ транзакции
-      await this.outboxService.createPaymentCompletedMessage(
-        existingPayment.id,
-        {
-          profileId: existingPayment.profileId,
-          amount: existingPayment.amount,
-          currency: existingPayment.currency,
+      // Ищем существующий платеж в БД
+      const existingPayment =
+        await this.paymentsRepository.findPaymentBySubscriptionId(
           subscriptionId,
-          subscriptionType: existingPayment.subscriptionType,
-          periodStart: currentPeriodStart,
-          periodEnd: currentPeriodEnd,
+        );
+
+      if (!existingPayment) {
+        return;
+      }
+
+      const invoiceLine = invoice.lines.data[0];
+      if (!invoiceLine) {
+        throw BadRequestDomainException.create(
+          'Invoice has no line items',
+          'invoice.lines',
+        );
+      }
+
+      const currentPeriodStart = new Date(invoiceLine.period.start * 1000);
+      const currentPeriodEnd = new Date(invoiceLine.period.end * 1000);
+      const nextPaymentDate = currentPeriodEnd;
+
+      // Определяем тип подписки из метаданных инвойса (более надёжно)
+      const subscriptionType =
+        invoiceLine.metadata?.subscriptionType ||
+        existingPayment.subscriptionType ||
+        '1 month';
+
+      await this.prisma.$transaction(async (tx) => {
+        // Обновляем платеж с новыми датами
+        await this.paymentsRepository.updatePayment(
+          existingPayment.id,
+          PaymentStatus.SUCCESSFUL,
+          subscriptionId,
+          currentPeriodStart,
+          currentPeriodEnd,
           nextPaymentDate,
-        },
+          subscriptionType,
+          true,
+          null,
+          tx,
+        );
+
+        await this.outboxService.createPaymentCompletedMessage(
+          existingPayment.id,
+          {
+            profileId: existingPayment.profileId,
+            amount: existingPayment.amount,
+            currency: existingPayment.currency,
+            subscriptionId,
+            subscriptionType,
+            periodStart: currentPeriodStart,
+            periodEnd: currentPeriodEnd,
+            nextPaymentDate,
+          },
+        );
+      });
+
+      this.logger.debug(
+        `Рекуррентный платеж для подписки ${subscriptionId} успешно обработан`,
       );
-    });
+    } catch (error) {
+      this.logger.error(
+        `Ошибка при обработке рекуррентного платежа: ${(error as Error).message}`,
+        error,
+      );
+      throw error;
+    }
   }
 
   private async handleSubscriptionCancelled(event: Stripe.Event) {
@@ -331,7 +366,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
     await this.prisma.$transaction(async (tx) => {
       await this.paymentsRepository.updatePaymentStatus(
         payment.id,
-        'cancelled',
+        PaymentStatus.CANCELLED,
         tx,
       );
 

@@ -5,19 +5,19 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 
 const subscriptionConfigs = {
   '1 week': {
-    interval: 'week' as const,
-    intervalCount: 1,
-    description: '1 неделю',
+    interval: 'day' as const,
+    intervalCount: 7,
+    description: '7 дней',
   },
   '2 weeks': {
-    interval: 'week' as const,
-    intervalCount: 2,
-    description: '2 недели',
+    interval: 'day' as const,
+    intervalCount: 14,
+    description: '14 дней',
   },
   '1 month': {
-    interval: 'month' as const,
-    intervalCount: 1,
-    description: '1 месяц',
+    interval: 'day' as const,
+    intervalCount: 30,
+    description: '30 дней',
   },
 };
 
