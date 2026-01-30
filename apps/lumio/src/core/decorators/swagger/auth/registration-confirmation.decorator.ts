@@ -27,7 +27,7 @@ export function ApiRegistrationConfirmation() {
         code_not_found: {
           summary: 'Confirmation code not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Confirmation code not found',
                 field: 'confirmationCode',
@@ -38,7 +38,7 @@ export function ApiRegistrationConfirmation() {
         code_already_used: {
           summary: 'Confirmation code already used',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Confirmation code already used',
                 field: 'confirmationCode',
@@ -49,7 +49,7 @@ export function ApiRegistrationConfirmation() {
         code_expired: {
           summary: 'Confirmation code expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Confirmation code expired',
                 field: 'confirmationCode',

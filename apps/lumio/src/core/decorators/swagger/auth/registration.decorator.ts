@@ -21,7 +21,7 @@ export function ApiRegistration() {
         user_already_registered: {
           summary: 'User already registered',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User with this username is already registered',
                 field: 'username',
@@ -32,7 +32,7 @@ export function ApiRegistration() {
         email_already_registered: {
           summary: 'Email already registered',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User with this email is already registered',
                 field: 'email',
@@ -43,7 +43,7 @@ export function ApiRegistration() {
         email_confirmation_not_found: {
           summary: 'Email confirmation not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Email confirmation not found',
                 field: 'emailConfirmation',
@@ -54,7 +54,7 @@ export function ApiRegistration() {
         username_min_length: {
           summary: 'Username too short',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Minimum number of characters 6',
                 field: 'username',
@@ -65,7 +65,7 @@ export function ApiRegistration() {
         username_max_length: {
           summary: 'Username too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 30',
                 field: 'username',
@@ -76,7 +76,7 @@ export function ApiRegistration() {
         usename_not_string: {
           summary: 'Username is not a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Username must be a string',
                 field: 'username',
@@ -87,7 +87,7 @@ export function ApiRegistration() {
         username_regexp: {
           summary: 'Username is not valid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'Username must contain only letters, numbers, underscores, or hyphens',
@@ -99,7 +99,7 @@ export function ApiRegistration() {
         username_cyrillic_not_allowed: {
           summary: 'Username contains Cyrillic characters',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Username must not contain Cyrillic characters',
                 field: 'username',
@@ -110,7 +110,7 @@ export function ApiRegistration() {
         password_min_length: {
           summary: 'Password too short',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Minimum number of characters 6',
                 field: 'password',
@@ -121,7 +121,7 @@ export function ApiRegistration() {
         password_max_length: {
           summary: 'Password too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 20',
                 field: 'password',
@@ -132,7 +132,7 @@ export function ApiRegistration() {
         password_not_string: {
           summary: 'Password is not a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must be a string',
                 field: 'password',
@@ -143,7 +143,7 @@ export function ApiRegistration() {
         password_lowercase: {
           summary: 'Password must contain lowercase letter',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one lowercase letter',
                 field: 'password',
@@ -154,7 +154,7 @@ export function ApiRegistration() {
         password_uppercase: {
           summary: 'Password must contain uppercase letter',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one uppercase letter',
                 field: 'password',
@@ -165,7 +165,7 @@ export function ApiRegistration() {
         password_number: {
           summary: 'Password must contain number',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Password must contain at least one number',
                 field: 'password',
@@ -176,7 +176,7 @@ export function ApiRegistration() {
         password_allowed_chars: {
           summary: 'Password contains invalid characters',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'Password can only contain letters, numbers and allowed special characters',
@@ -188,7 +188,7 @@ export function ApiRegistration() {
         email_not_email: {
           summary: 'Email is not valid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'The email must match the format example@example.com',
                 field: 'email',
@@ -199,7 +199,7 @@ export function ApiRegistration() {
         email_min_length: {
           summary: 'Email too short',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Minimum number of characters 6',
                 field: 'email',
@@ -210,7 +210,7 @@ export function ApiRegistration() {
         email_max_length: {
           summary: 'Email too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 100',
                 field: 'email',

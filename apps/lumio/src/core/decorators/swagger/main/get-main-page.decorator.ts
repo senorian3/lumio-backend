@@ -58,7 +58,7 @@ export function ApiGetMainPage() {
         files_not_found: {
           summary: 'Failed to fetch files',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Failed to fetch files',
                 field: 'files',

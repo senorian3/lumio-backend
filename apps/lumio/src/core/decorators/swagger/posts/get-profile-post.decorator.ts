@@ -44,7 +44,7 @@ export function ApiGetProfilePost() {
         not_found_user: {
           summary: 'Profile is not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile is not found',
                 field: 'userId',
@@ -55,7 +55,7 @@ export function ApiGetProfilePost() {
         not_found_post: {
           summary: 'Post is not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Post is not found',
                 field: 'postId',
