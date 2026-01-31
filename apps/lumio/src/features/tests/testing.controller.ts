@@ -43,7 +43,7 @@ export class TestingController {
 
         const post = await prisma.post.create({
           data: {
-            description: `Пост пользователя ${i}`,
+            description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor  consectetur adipiscing`,
             userId: user.id,
           },
         });
