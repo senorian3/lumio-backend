@@ -1,24 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { OutboxMessage } from 'generated/prisma-payments';
 
 @Injectable()
 export class ExternalCallsProcessor {
   constructor(
-    private readonly stripeService: StripeService,
+    private readonly stropeAdapter: StripeAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
   async processCancelSubscription(message: OutboxMessage): Promise<boolean> {
     const payload = message.payload as {
-      paymentId: number;
       subscriptionId: string;
-      timestamp: string;
     };
 
     try {
-      await this.stripeService.cancelSubscriptionAtPeriodEnd(
+      await this.stropeAdapter.cancelSubscriptionAtPeriodEnd(
         payload.subscriptionId,
       );
 

@@ -9,9 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { SubscriptionCommand } from '@payments/modules/subscription-payments/application/commands/subscription.command-handler';
+import { SubscriptionCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/subscription.command-handler';
 import { Request } from 'express';
-import { StripeHookCommand } from '@payments/modules/subscription-payments/application/commands/stripe-hook.command-handler';
+import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 

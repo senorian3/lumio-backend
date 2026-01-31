@@ -2,31 +2,14 @@ import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
-
-const subscriptionConfigs = {
-  '1 week': {
-    interval: 'day' as const,
-    intervalCount: 7,
-    description: '7 дней',
-  },
-  '2 weeks': {
-    interval: 'day' as const,
-    intervalCount: 14,
-    description: '14 дней',
-  },
-  '1 month': {
-    interval: 'day' as const,
-    intervalCount: 30,
-    description: '30 дней',
-  },
-};
+import { subscriptionConfigs } from '../../constants/stripe-constants';
 
 @Injectable()
-export class StripeService {
-  private stripe: Stripe;
-  private successUrl: string;
-  private cancelUrl: string;
-  private endpointSecret: string;
+export class StripeAdapter {
+  private readonly stripe: Stripe;
+  private readonly successUrl: string;
+  private readonly cancelUrl: string;
+  private readonly endpointSecret: string;
 
   constructor(private readonly logger: AppLoggerService) {
     const apiKey = process.env.STRIPE_SECRET_KEY;

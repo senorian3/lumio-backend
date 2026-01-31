@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SubscriptionPaymentTransferDto } from '@libs/dto/transfer/subscription-payment.transfer.dto';
-import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
-import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
+import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
@@ -16,7 +16,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
 > {
   constructor(
     private readonly paymentsRepository: PaymentsRepository,
-    private readonly stripeService: StripeService,
+    private readonly stripeAdapter: StripeAdapter,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
   ) {}
@@ -54,7 +54,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
 
     try {
       // Этап 2: Создание Stripe сессии
-      const session = await this.stripeService.createPaymentSession(
+      const session = await this.stripeAdapter.createPaymentSession(
         dto.subscriptionType,
         dto.amount,
         payment.id,

@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { OutboxRepository, OutboxEventType } from './outbox.repository';
+import { OutboxRepository } from '../domain/outbox.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { ExternalCallsProcessor } from './external-calls.processor';
+import { OutboxEventType } from '../../constants/outbox-constants';
 
 @Injectable()
 export class OutboxScheduler {
   constructor(
+    @Inject('LUMIO_SERVICE') private readonly lumioService: ClientProxy,
     private readonly outboxRepository: OutboxRepository,
     private readonly logger: AppLoggerService,
-    @Inject('LUMIO_SERVICE') private readonly lumioService: ClientProxy,
     private readonly externalCallsProcessor: ExternalCallsProcessor,
   ) {}
 
@@ -45,8 +46,8 @@ export class OutboxScheduler {
               break;
 
             case OutboxEventType.PAYMENT_COMPLETED:
-            case OutboxEventType.PAYMENT_FAILED:
             case OutboxEventType.SUBSCRIPTION_CANCELLED:
+            case OutboxEventType.SUBSCRIPTION_UPDATED:
               result = await this.sendMessageToLumio(message);
               break;
 
@@ -59,7 +60,11 @@ export class OutboxScheduler {
           }
 
           if (result) {
-            await this.outboxRepository.markAsCompleted(message.id);
+            await this.outboxRepository.markAsCompleted(
+              message.id,
+              'Completed by scheduler, no acknowledgment by Lumio',
+              new Date(),
+            );
           } else {
             await this.outboxRepository.incrementRetryCount(message.id);
             this.logger.warn(
@@ -127,10 +132,10 @@ export class OutboxScheduler {
     switch (eventType) {
       case OutboxEventType.PAYMENT_COMPLETED:
         return 'payment.completed';
-      case OutboxEventType.PAYMENT_FAILED:
-        return 'payment.failed';
       case OutboxEventType.SUBSCRIPTION_CANCELLED:
         return 'subscription.cancelled';
+      case OutboxEventType.SUBSCRIPTION_UPDATED:
+        return 'subscription.updated';
       default:
         return 'payment.unknown';
     }

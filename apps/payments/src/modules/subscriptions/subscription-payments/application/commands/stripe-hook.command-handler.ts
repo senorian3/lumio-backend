@@ -1,22 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { PaymentsRepository } from '@payments/modules/subscription-payments/domain/infrastructure/payments.repository';
-import { StripeService } from '@payments/modules/subscription-payments/adapters/stripe.service';
+import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { OutboxService } from '@payments/modules/subscription-payments/domain/infrastructure/outbox.service';
+import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import Stripe from 'stripe';
-
-export enum StripeEventType {
-  SESSION_COMPLETED = 'checkout.session.completed',
-  INVOICE_PAID = 'invoice.paid',
-  SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
-}
-
-export enum PaymentStatus {
-  SUCCESSFUL = 'successful',
-  CANCELLED = `cancelled`,
-}
+import {
+  PaymentStatus,
+  StripeEventType,
+} from '@payments/modules/subscriptions/constants/stripe-constants';
 
 export class StripeHookCommand {
   constructor(
@@ -32,7 +25,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
 > {
   constructor(
     private readonly paymentsRepository: PaymentsRepository,
-    private readonly stripeService: StripeService,
+    private readonly stripeAdapter: StripeAdapter,
     private readonly logger: AppLoggerService,
     private readonly outboxService: OutboxService,
     private readonly prisma: PrismaService,
@@ -40,7 +33,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
   async execute(command: StripeHookCommand): Promise<void> {
     try {
-      const event = await this.stripeService.verify(
+      const event = await this.stripeAdapter.verify(
         command.rawBody,
         command.signature,
       );
@@ -139,7 +132,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
       try {
         subscriptionDetails =
-          await this.stripeService.getSubscriptionDetails(subscriptionId);
+          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
       } catch (error) {
         this.logger.error(error.message, error.stack, 'getSubscriptionDetails');
         throw BadRequestDomainException.create(
@@ -211,6 +204,36 @@ export class StripeHookCommandHandler implements ICommandHandler<
           null,
           tx,
         );
+
+        // Шаг 2: Создание outbox сообщений для внешних вызовов (в транзакции)
+        for (const subscription of activeSubscriptions) {
+          if (
+            subscription.subscriptionId &&
+            subscription.subscriptionId !== subscriptionId
+          ) {
+            await this.outboxService.createCancelSubscriptionMessage(
+              subscription.id,
+              subscription.subscriptionId,
+              tx,
+            );
+          }
+        }
+
+        // Шаг 3: Создание outbox сообщения (в транзакции)
+        await this.outboxService.createPaymentCompletedMessage(
+          paymentId,
+          {
+            profileId,
+            amount: currentPayment.amount,
+            currency: currentPayment.currency,
+            subscriptionId,
+            subscriptionType,
+            periodStart: currentPeriodStart,
+            periodEnd: currentPeriodEnd,
+            nextPaymentDate,
+          },
+          tx,
+        );
       });
     } catch (error) {
       // Compensating Transaction: Отмена платежа, если что-то пошло не так
@@ -225,33 +248,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
         'subscriptionId',
       );
     }
-
-    // Шаг 2: Создание outbox сообщений для внешних вызовов (в транзакции)
-
-    //СДЕЛАТЬ TX
-    for (const subscription of activeSubscriptions) {
-      if (
-        subscription.subscriptionId &&
-        subscription.subscriptionId !== subscriptionId
-      ) {
-        await this.outboxService.createCancelSubscriptionMessage(
-          subscription.id,
-          subscription.subscriptionId,
-        );
-      }
-    }
-
-    // Шаг 3: Создание outbox сообщения (после транзакции)
-    await this.outboxService.createPaymentCompletedMessage(paymentId, {
-      profileId,
-      amount: currentPayment.amount,
-      currency: currentPayment.currency,
-      subscriptionId,
-      subscriptionType,
-      periodStart: currentPeriodStart,
-      periodEnd: currentPeriodEnd,
-      nextPaymentDate,
-    });
 
     this.logger.log(
       `Подписка ${subscriptionId} успешно создана для профиля ${profileId} с автопродлением`,
@@ -324,18 +320,14 @@ export class StripeHookCommandHandler implements ICommandHandler<
           tx,
         );
 
-        await this.outboxService.createPaymentCompletedMessage(
+        // Создаем таску для обновления периода подписки в Lumio (в транзакции)
+        await this.outboxService.createSubscriptionUpdatedMessage(
           existingPayment.id,
-          {
-            profileId: existingPayment.profileId,
-            amount: existingPayment.amount,
-            currency: existingPayment.currency,
-            subscriptionId,
-            subscriptionType,
-            periodStart: currentPeriodStart,
-            periodEnd: currentPeriodEnd,
-            nextPaymentDate,
-          },
+          subscriptionId,
+          subscriptionType,
+          currentPeriodEnd,
+          nextPaymentDate,
+          tx,
         );
       });
 
@@ -373,6 +365,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
       await this.outboxService.createSubscriptionCancelledMessage(
         payment.id,
         subscription.id,
+        tx,
       );
     });
 

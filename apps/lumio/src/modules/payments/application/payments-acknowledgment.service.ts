@@ -5,7 +5,6 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 
 export interface PaymentAcknowledgment {
   messageId: number;
-  paymentId: number;
   status: 'received' | 'processed';
   timestamp: Date;
   details?: string;
@@ -20,14 +19,12 @@ export class PaymentsAcknowledgmentService {
 
   async sendPaymentAcknowledgment(
     messageId: number,
-    paymentId: number,
     status: 'received' | 'processed',
     details?: string,
   ): Promise<void> {
     try {
       const acknowledgment: PaymentAcknowledgment = {
         messageId,
-        paymentId,
         status,
         timestamp: new Date(),
         details,
@@ -46,40 +43,31 @@ export class PaymentsAcknowledgmentService {
     }
   }
 
-  async sendPaymentCompletedAcknowledgment(
-    messageId: number,
-    paymentId: number,
-  ): Promise<void> {
+  async sendPaymentCompletedAcknowledgment(messageId: number): Promise<void> {
     await this.sendPaymentAcknowledgment(
       messageId,
-      paymentId,
       'processed',
       'Payment successfully processed and subscription updated',
     );
   }
 
-  async sendPaymentFailedAcknowledgment(
+  async sendSubscriptionCancelledAcknowledgment(
     messageId: number,
-    paymentId: number,
-    error: string,
   ): Promise<void> {
     await this.sendPaymentAcknowledgment(
       messageId,
-      paymentId,
       'processed',
-      `Payment failed: ${error}`,
+      'Subscription cancellation processed',
     );
   }
 
-  async sendSubscriptionCancelledAcknowledgment(
+  async sendSubscriptionUpdatedAcknowledgment(
     messageId: number,
-    paymentId: number,
   ): Promise<void> {
     await this.sendPaymentAcknowledgment(
       messageId,
-      paymentId,
       'processed',
-      'Subscription cancellation processed',
+      'Subscription updated successfully',
     );
   }
 }

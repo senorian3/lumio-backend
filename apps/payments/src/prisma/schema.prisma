@@ -39,10 +39,12 @@ model OutboxMessage {
   status       String  @default("pending") @db.VarChar(20)
   createdAt    DateTime @default(now())
   processedAt  DateTime?
+  failedAt     DateTime?
   scheduledAt  DateTime @default(now())
   retryCount   Int      @default(0)
   maxRetries   Int      @default(3)
   ttl          DateTime?
+  details      String?  
 
   @@index([status, scheduledAt])
   @@index([ttl])

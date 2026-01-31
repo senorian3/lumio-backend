@@ -1,38 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { OutboxMessage } from 'generated/prisma-payments';
-
-export enum OutboxMessageStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-}
-
-export enum OutboxAggregateType {
-  PAYMENT = 'payment',
-}
-
-export enum OutboxEventType {
-  PAYMENT_COMPLETED = 'payment.completed',
-  PAYMENT_FAILED = 'payment.failed',
-  SUBSCRIPTION_CANCELLED = 'subscription.cancelled',
-  CANCEL_SUBSCRIPTION = 'subscription.cancel',
-}
+import {
+  OutboxAggregateType,
+  OutboxEventType,
+  OutboxMessageStatus,
+} from '../../constants/outbox-constants';
 
 @Injectable()
 export class OutboxRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOutboxMessage(data: {
-    aggregateId: number;
-    aggregateType: OutboxAggregateType;
-    eventType: OutboxEventType;
-    payload: any;
-    scheduledAt?: Date;
-    ttl?: Date;
-  }): Promise<OutboxMessage> {
-    return this.prisma.outboxMessage.create({
+  async createOutboxMessage(
+    data: {
+      aggregateId: number;
+      aggregateType: OutboxAggregateType;
+      eventType: OutboxEventType;
+      payload: any;
+      scheduledAt?: Date;
+      ttl?: Date;
+    },
+    tx?: any,
+  ): Promise<OutboxMessage> {
+    const client = tx || this.prisma;
+    return client.outboxMessage.create({
       data: {
         aggregateId: data.aggregateId,
         aggregateType: data.aggregateType,
@@ -66,22 +57,17 @@ export class OutboxRepository {
     });
   }
 
-  async markAsCompleted(messageId: number): Promise<void> {
+  async markAsCompleted(
+    messageId: number,
+    details: string,
+    processedAt: Date,
+  ): Promise<void> {
     await this.prisma.outboxMessage.update({
       where: { id: messageId },
       data: {
         status: OutboxMessageStatus.COMPLETED,
-        processedAt: new Date(),
-      },
-    });
-  }
-
-  async markAsFailed(messageId: number): Promise<void> {
-    await this.prisma.outboxMessage.update({
-      where: { id: messageId },
-      data: {
-        status: OutboxMessageStatus.FAILED,
-        processedAt: new Date(),
+        processedAt,
+        details,
       },
     });
   }
