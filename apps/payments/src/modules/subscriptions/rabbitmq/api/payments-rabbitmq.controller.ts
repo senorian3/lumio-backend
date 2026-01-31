@@ -4,7 +4,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { HandlePaymentAcknowledgmentCommand } from '../application/commands/handle-payment-acknowledgment.command-handler';
 import { RabbitMQUtils } from '@libs/utils/rabbitmq.utils';
-import { InputPaymentAcknowledgmentDto } from './input/payment-acknowledgment.input.dto';
+import { InputPaymentAcknowledgmentDto } from '@payments/modules/subscriptions/rabbitmq/api/dto/input/payment-acknowledgment.input.dto';
 
 @Controller('payments-rabbitmq')
 export class PaymentsRabbitMQController {
@@ -21,11 +21,7 @@ export class PaymentsRabbitMQController {
     try {
       // Execute the command handler
       await this.commandBus.execute(
-        new HandlePaymentAcknowledgmentCommand(
-          data.messageId,
-          0, // paymentId не используется в текущей логике
-          data.status,
-        ),
+        new HandlePaymentAcknowledgmentCommand(data.messageId, data.status),
       );
 
       // Acknowledge the message

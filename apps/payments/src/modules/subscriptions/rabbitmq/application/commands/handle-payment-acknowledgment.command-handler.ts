@@ -5,7 +5,6 @@ import { OutboxRepository } from '../../../outbox/domain/outbox.repository';
 export class HandlePaymentAcknowledgmentCommand {
   constructor(
     public readonly messageId: number,
-    public readonly paymentId: number,
     public readonly status: 'received' | 'processed',
   ) {}
 }

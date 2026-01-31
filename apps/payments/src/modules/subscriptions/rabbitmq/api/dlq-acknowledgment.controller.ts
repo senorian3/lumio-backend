@@ -3,7 +3,7 @@ import { EventPattern, Payload, Ctx, RmqContext } from '@nestjs/microservices';
 import { CommandBus } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { RabbitMQUtils } from '@libs/utils/rabbitmq.utils';
-import { InputPaymentAcknowledgmentDto } from './input/payment-acknowledgment.input.dto';
+import { InputPaymentAcknowledgmentDto } from '@payments/modules/subscriptions/rabbitmq/api/dto/input/payment-acknowledgment.input.dto';
 import { HandleDLQAcknowledgmentCommand } from '../application/commands/handle-dlq-acknowledgment.command-handler';
 
 @Controller('dlq-acknowledgment')

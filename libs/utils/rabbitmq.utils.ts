@@ -7,12 +7,6 @@ export class RabbitMQUtils {
     channel.ack(originalMessage);
   }
 
-  static rejectMessage(context: RmqContext): void {
-    const channel = context.getChannelRef();
-    const originalMessage = context.getMessage();
-    channel.reject(originalMessage, false);
-  }
-
   static nackMessage(context: RmqContext): void {
     const channel = context.getChannelRef();
     const originalMessage = context.getMessage();

@@ -10,7 +10,8 @@ import { OutboxEventType } from '../../constants/outbox-constants';
 @Injectable()
 export class OutboxScheduler {
   constructor(
-    @Inject('LUMIO_SERVICE') private readonly lumioService: ClientProxy,
+    @Inject('LUMIO_SERVICE')
+    private readonly lumioService: ClientProxy,
     private readonly outboxRepository: OutboxRepository,
     private readonly logger: AppLoggerService,
     private readonly externalCallsProcessor: ExternalCallsProcessor,
