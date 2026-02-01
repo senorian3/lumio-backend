@@ -277,13 +277,16 @@ export class StripeHookCommandHandler implements ICommandHandler<
         return;
       }
 
-      // Ищем существующий платеж в БД
+      // Ищем существующий платеж в БД для получения данных профиля и подписки
       const existingPayment =
         await this.paymentsRepository.findPaymentBySubscriptionId(
           subscriptionId,
         );
 
       if (!existingPayment) {
+        this.logger.warn(
+          `Не найден существующий платеж для подписки ${subscriptionId}`,
+        );
         return;
       }
 
@@ -295,34 +298,53 @@ export class StripeHookCommandHandler implements ICommandHandler<
         );
       }
 
+      // Извлекаем данные из инвойса
+      const amount = invoice.amount_paid / 100; // конвертируем из центов в основную валюту
+      const currency = invoice.currency;
       const currentPeriodStart = new Date(invoiceLine.period.start * 1000);
       const currentPeriodEnd = new Date(invoiceLine.period.end * 1000);
       const nextPaymentDate = currentPeriodEnd;
 
-      // Определяем тип подписки из метаданных инвойса (более надёжно)
+      // Определяем тип подписки из метаданных инвойса или существующего платежа
       const subscriptionType =
         invoiceLine.metadata?.subscriptionType ||
         existingPayment.subscriptionType ||
         '1 month';
 
+      const finishDate = new Date(Date.now());
+
       await this.prisma.$transaction(async (tx) => {
-        // Обновляем платеж с новыми датами
-        await this.paymentsRepository.updatePayment(
-          existingPayment.id,
-          PaymentStatus.SUCCESSFUL,
-          subscriptionId,
-          currentPeriodStart,
-          currentPeriodEnd,
-          nextPaymentDate,
-          subscriptionType,
-          true,
-          null,
+        // Создаем новый платеж для рекуррентного платежа
+        const newPayment = await this.paymentsRepository.createPayment(
+          {
+            paymentProvider: 'stripe',
+            currency: currency,
+            amount: amount,
+            profileId: existingPayment.profileId,
+            status: PaymentStatus.SUCCESSFUL,
+            subscriptionId: subscriptionId,
+            periodStart: currentPeriodStart,
+            periodEnd: currentPeriodEnd,
+            nextPaymentDate: nextPaymentDate,
+            subscriptionType: subscriptionType,
+            autoRenewal: existingPayment.autoRenewal,
+            paymentsUrl: null,
+          },
           tx,
         );
 
-        // Создаем таску для обновления периода подписки в Lumio (в транзакции)
-        await this.outboxService.createSubscriptionUpdatedMessage(
+        // Обновляем статус предыдущего платежа на COMPLETED
+        await this.paymentsRepository.updatePaymentStatus(
           existingPayment.id,
+          PaymentStatus.COMPLETED,
+          false,
+          finishDate,
+          tx,
+        );
+
+        // Создаем таску для обновления периода подписки в Lumio
+        await this.outboxService.createSubscriptionUpdatedMessage(
+          newPayment.id,
           subscriptionId,
           subscriptionType,
           currentPeriodEnd,
@@ -332,7 +354,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
       });
 
       this.logger.debug(
-        `Рекуррентный платеж для подписки ${subscriptionId} успешно обработан`,
+        `Рекуррентный платеж для подписки ${subscriptionId} успешно создан`,
       );
     } catch (error) {
       this.logger.error(
@@ -355,10 +377,15 @@ export class StripeHookCommandHandler implements ICommandHandler<
         `Payment not found for subscription ${subscription.id}`,
       );
     }
+
+    const cancelDate = new Date(Date.now());
+
     await this.prisma.$transaction(async (tx) => {
       await this.paymentsRepository.updatePaymentStatus(
         payment.id,
         PaymentStatus.CANCELLED,
+        false,
+        cancelDate,
         tx,
       );
 

@@ -6,20 +6,41 @@ import { Payment } from 'generated/prisma-payments';
 export class PaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createPayment(data: {
-    paymentProvider: string;
-    currency: string;
-    amount: number;
-    profileId: number;
-    status?: string;
-  }): Promise<Payment> {
-    return this.prisma.payment.create({
+  async createPayment(
+    data: {
+      paymentProvider: string;
+      currency: string;
+      amount: number;
+      profileId: number;
+      status?: string;
+      subscriptionId?: string | null;
+      periodStart?: Date | null;
+      periodEnd?: Date | null;
+      nextPaymentDate?: Date | null;
+      subscriptionType?: string | null;
+      paymentsUrl?: string | null;
+      autoRenewal?: boolean;
+      cancelledAt?: Date | null;
+    },
+    tx?: any,
+  ): Promise<Payment> {
+    const client = tx || this.prisma;
+
+    return client.payment.create({
       data: {
         paymentProvider: data.paymentProvider,
         currency: data.currency,
         amount: data.amount,
         profileId: data.profileId,
-        ...(data.status && { status: data.status }),
+        status: data.status || 'pending',
+        autoRenewal: data.autoRenewal ?? true,
+        subscriptionId: data.subscriptionId,
+        periodStart: data.periodStart,
+        periodEnd: data.periodEnd,
+        nextPaymentDate: data.nextPaymentDate,
+        subscriptionType: data.subscriptionType,
+        paymentsUrl: data.paymentsUrl,
+        cancelledAt: data.cancelledAt,
       },
     });
   }
@@ -32,6 +53,7 @@ export class PaymentsRepository {
       },
     });
   }
+
   async updatePayment(
     id: number,
     status: string,
@@ -63,13 +85,18 @@ export class PaymentsRepository {
   async updatePaymentStatus(
     id: number,
     status: string,
+    autoRenewal?: boolean,
+    cancelledAt?: Date | null,
     tx?: any,
   ): Promise<Payment> {
     const client = tx || this.prisma;
+
     return client.payment.update({
       where: { id },
       data: {
         status,
+        ...(autoRenewal !== undefined && { autoRenewal }),
+        ...(cancelledAt !== undefined && { cancelledAt }),
       },
     });
   }
@@ -121,6 +148,7 @@ export class PaymentsRepository {
     return this.prisma.payment.findFirst({
       where: {
         subscriptionId,
+        status: 'successful',
       },
       orderBy: { createdAt: 'desc' },
     });

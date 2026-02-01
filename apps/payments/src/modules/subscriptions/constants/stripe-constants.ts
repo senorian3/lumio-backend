@@ -7,6 +7,7 @@ export enum StripeEventType {
 export enum PaymentStatus {
   SUCCESSFUL = 'successful',
   CANCELLED = `cancelled`,
+  COMPLETED = 'completed',
 }
 
 export const subscriptionConfigs = {
