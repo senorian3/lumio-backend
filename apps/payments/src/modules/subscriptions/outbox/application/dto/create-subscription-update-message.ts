@@ -1,6 +1,6 @@
 export class CreateSubscriptionUpdateMessageDto {
   constructor(
-    public paymentId: number,
+    public customPaymentId: string,
     public createdAt: Date,
     public amount: number,
     public subscriptionId: string,

@@ -1,6 +1,6 @@
 export class CreatePaymentCompleteMessageDto {
   constructor(
-    public paymentId: number,
+    public paymentId: string,
     public profileId: number,
     public amount: number,
     public currency: string,
@@ -8,7 +8,6 @@ export class CreatePaymentCompleteMessageDto {
     public subscriptionType: string,
     public periodStart: Date,
     public periodEnd: Date,
-    public nextPaymentDate: Date,
     public timestamp: string,
   ) {}
 }

@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PaymentsAcknowledgmentService } from '../payments-acknowledgment.service';
 
 export interface SubscriptionCancelledEvent {
   id: number;
@@ -21,20 +20,12 @@ export class HandleSubscriptionCancelledCommand {
 
 @CommandHandler(HandleSubscriptionCancelledCommand)
 export class HandleSubscriptionCancelledCommandHandler implements ICommandHandler<HandleSubscriptionCancelledCommand> {
-  constructor(
-    private readonly appLogger: AppLoggerService,
-    private readonly acknowledgmentService: PaymentsAcknowledgmentService,
-  ) {}
+  constructor(private readonly appLogger: AppLoggerService) {}
 
   async execute(command: HandleSubscriptionCancelledCommand): Promise<void> {
     try {
       // Process the subscription cancellation
       await this.processSubscriptionCancelled(command.data);
-
-      // Send acknowledgment to Payments service
-      await this.acknowledgmentService.sendSubscriptionCancelledAcknowledgment(
-        command.data.id,
-      );
 
       this.appLogger.log(
         `Successfully processed subscription cancelled event: ${command.data.payload.paymentId}`,

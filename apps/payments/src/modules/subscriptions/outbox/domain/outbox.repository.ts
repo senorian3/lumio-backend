@@ -13,7 +13,7 @@ export class OutboxRepository {
 
   async createOutboxMessage(
     data: {
-      aggregateId: number;
+      aggregateId: string;
       aggregateType: OutboxAggregateType;
       eventType: OutboxEventType;
       payload: any;

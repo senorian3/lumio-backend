@@ -25,7 +25,7 @@ export class OutboxService {
         aggregateType: OutboxAggregateType.PAYMENT,
         eventType: OutboxEventType.PAYMENT_COMPLETED,
         payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
+        ttl: new Date(Date.now() + 30 * 60 * 1000),
       },
       tx,
     );
@@ -36,8 +36,9 @@ export class OutboxService {
     );
   }
 
-  async createSubscriptionCancelledMessage(
-    paymentId: number,
+  //метод для отмены подписки от юзера
+  async createSubscriptionCancelByUserMessage(
+    paymentId: string,
     subscriptionId: string,
     tx?: any,
   ): Promise<void> {
@@ -64,8 +65,9 @@ export class OutboxService {
     );
   }
 
+  // метод после покупки подписки через initial другие подписки отменяются
   async createCancelSubscriptionMessage(
-    paymentId: number,
+    paymentId: string,
     subscriptionId: string,
     tx?: any,
   ): Promise<void> {
@@ -77,11 +79,11 @@ export class OutboxService {
 
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: paymentId,
+        aggregateId: payload.paymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
         eventType: OutboxEventType.CANCEL_SUBSCRIPTION,
         payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
+        ttl: new Date(Date.now() + 30 * 60 * 1000),
       },
       tx,
     );
@@ -98,7 +100,7 @@ export class OutboxService {
   ): Promise<void> {
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: payload.paymentId,
+        aggregateId: payload.customPaymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
         eventType: OutboxEventType.SUBSCRIPTION_UPDATED,
         payload,
@@ -108,7 +110,7 @@ export class OutboxService {
     );
 
     this.logger.log(
-      `Created subscription updated outbox message for payment ${payload.paymentId}`,
+      `Created subscription updated outbox message for payment ${payload.customPaymentId}`,
       'OutboxService',
     );
   }
@@ -116,5 +118,23 @@ export class OutboxService {
   async cleanupExpiredMessages(): Promise<void> {
     await this.outboxRepository.cleanupExpiredMessages();
     this.logger.log('Cleaned up expired outbox messages', 'OutboxService');
+  }
+
+  async createManualReviewTask(payload: any, tx?: any): Promise<void> {
+    await this.outboxRepository.createOutboxMessage(
+      {
+        aggregateId: payload.customPaymentId || payload.sessionId,
+        aggregateType: OutboxAggregateType.PAYMENT,
+        eventType: OutboxEventType.MANUAL_REVIEW_REQUIRED,
+        payload,
+        ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+      tx,
+    );
+
+    this.logger.log(
+      `Created manual review task for session ${payload.sessionId}`,
+      'OutboxService',
+    );
   }
 }

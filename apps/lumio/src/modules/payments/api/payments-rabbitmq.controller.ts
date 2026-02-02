@@ -18,6 +18,7 @@ export class PaymentsRabbitMQController {
 
   @EventPattern('payment.completed')
   async handlePaymentCompleted(@Payload() data: InputPaymentCompletedDto) {
+    console.log('data', data);
     try {
       // Execute the command handler
       await this.commandBus.execute(new HandlePaymentCompletedCommand(data));
@@ -67,3 +68,5 @@ export class PaymentsRabbitMQController {
     }
   }
 }
+
+//todo добавитть subscription.cancel

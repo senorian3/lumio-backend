@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { SubscriptionCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/subscription.command-handler';
+import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
 import { Request } from 'express';
 import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
@@ -25,9 +25,9 @@ export class SubscriptionPaymentsController {
     @Body() payload: InputCreateSubscriptionPaymentDto,
   ): Promise<{ url: string }> {
     const paymentsUrl = await this.commandBus.execute<
-      SubscriptionCommand,
+      CreateSubscriptionPaymentCommand,
       string
-    >(new SubscriptionCommand(payload));
+    >(new CreateSubscriptionPaymentCommand(payload));
 
     return { url: paymentsUrl };
   }

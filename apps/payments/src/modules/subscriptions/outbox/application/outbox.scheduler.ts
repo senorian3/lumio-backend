@@ -46,6 +46,20 @@ export class OutboxScheduler {
                 );
               break;
 
+            case OutboxEventType.FAILED_INITIAL_PAYMENT_PROCESSING:
+              result =
+                await this.externalCallsProcessor.processFailedInitialPayment(
+                  message,
+                );
+              break;
+
+            case OutboxEventType.FAILED_RECURRING_PAYMENT_PROCESSING:
+              result =
+                await this.externalCallsProcessor.processFailedRecurringPayment(
+                  message,
+                );
+              break;
+
             case OutboxEventType.PAYMENT_COMPLETED:
             case OutboxEventType.SUBSCRIPTION_CANCELLED:
             case OutboxEventType.SUBSCRIPTION_UPDATED:

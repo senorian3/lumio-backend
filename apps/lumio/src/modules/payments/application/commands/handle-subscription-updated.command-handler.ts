@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PaymentsAcknowledgmentService } from '../payments-acknowledgment.service';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
@@ -31,7 +30,6 @@ export class HandleSubscriptionUpdatedCommand {
 export class HandleSubscriptionUpdatedCommandHandler implements ICommandHandler<HandleSubscriptionUpdatedCommand> {
   constructor(
     private readonly appLogger: AppLoggerService,
-    private readonly acknowledgmentService: PaymentsAcknowledgmentService,
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly prisma: PrismaService,
@@ -102,11 +100,6 @@ export class HandleSubscriptionUpdatedCommandHandler implements ICommandHandler<
       this.appLogger.log(
         `Successfully updated subscription ${data.payload.subscriptionId} with new payment ${newPayment.id}. Old payment ${oldPayment.id} remains in database.`,
         'HandleSubscriptionUpdatedCommandHandler',
-      );
-
-      // Send acknowledgment to Payments service
-      await this.acknowledgmentService.sendSubscriptionUpdatedAcknowledgment(
-        command.data.id,
       );
 
       this.appLogger.log(

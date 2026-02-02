@@ -34,13 +34,13 @@ export class PaymentsRepository {
   ): Promise<Payment> {
     const client = tx || this.prisma;
     return client.payment.update({
-      where: { id: data.id },
+      where: { custimPaymentId: data.customPaymentId },
       data,
     });
   }
 
   async completePayment(
-    id: number,
+    customPaymentId: string,
     status: string,
     autoRenewal: boolean,
     cancelledAt: Date,
@@ -49,7 +49,7 @@ export class PaymentsRepository {
     const client = tx || this.prisma;
 
     return client.payment.update({
-      where: { id },
+      where: { customPaymentId },
       data: {
         status,
         autoRenewal,
@@ -58,13 +58,15 @@ export class PaymentsRepository {
     });
   }
 
-  async findPaymentById(id: number): Promise<Payment | null> {
-    return this.prisma.payment.findUnique({
-      where: { id },
+  async findByCustomPaymentId(
+    customPaymentId: string,
+  ): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
+      where: { customPaymentId },
     });
   }
 
-  async findActiveSubscriptionsWithAutoRenewalByProfileId(
+  async findActiveSubscriptionPaymentsWithAutoRenewalByProfileId(
     profileId: number,
   ): Promise<Payment[]> {
     return this.prisma.payment.findMany({
@@ -74,24 +76,20 @@ export class PaymentsRepository {
         autoRenewal: true,
         cancelledAt: null,
         status: 'successful',
-        OR: [
-          { nextPaymentDate: null },
-          { nextPaymentDate: { gt: new Date() } },
-        ],
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async updatePaymentAutoRenewal(
-    paymentId: number,
+    subscriptionId: number,
     autoRenewal: boolean,
     cancelledAt: Date | null,
     tx?: any,
   ): Promise<void> {
     const client = tx || this.prisma;
     await client.payment.update({
-      where: { id: paymentId },
+      where: { subscriptionId },
       data: {
         autoRenewal,
         cancelledAt,
@@ -99,8 +97,12 @@ export class PaymentsRepository {
     });
   }
 
-  async findBySubscriptionId(subscriptionId: string): Promise<Payment | null> {
-    return this.prisma.payment.findFirst({
+  async findBySubscriptionId(
+    subscriptionId: string,
+    tx?: any,
+  ): Promise<Payment | null> {
+    const client = tx || this.prisma;
+    return client.payment.findFirst({
       where: {
         subscriptionId,
         status: 'successful',
@@ -116,9 +118,9 @@ export class PaymentsRepository {
       where: {
         profileId,
         status: 'successful',
-        subscriptionId: { not: null }, // Только платежи с подпиской
+        subscriptionId: { not: null },
       },
-      orderBy: { createdAt: 'desc' }, // Самый последний
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -132,17 +134,6 @@ export class PaymentsRepository {
       where: { id },
       data: {
         paymentsUrl,
-      },
-    });
-  }
-
-  async cancelPayment(id: number, tx?: any): Promise<void> {
-    const client = tx || this.prisma;
-    await client.payment.update({
-      where: { id },
-      data: {
-        status: 'cancelled',
-        cancelledAt: new Date(),
       },
     });
   }

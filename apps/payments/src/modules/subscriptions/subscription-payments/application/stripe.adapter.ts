@@ -24,17 +24,10 @@ export class StripeAdapter {
   async createPaymentSession(
     subscriptionType: '1 week' | '2 weeks' | '1 month',
     amount: number,
-    paymentId: number,
+    profileId: string,
     currency: string,
     trialEnd?: number,
-  ) {
-    if (!subscriptionConfigs[subscriptionType]) {
-      throw BadRequestDomainException.create(
-        'Subscription type is not supported',
-        'subscriptionType',
-      );
-    }
-
+  ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
     try {
@@ -61,11 +54,11 @@ export class StripeAdapter {
           },
         ],
         mode: 'subscription',
-        client_reference_id: paymentId.toString(),
+        client_reference_id: profileId.toString(),
 
         subscription_data: {
           metadata: {
-            paymentId: paymentId.toString(),
+            customPaymentId: `${profileId}-${Date.now()}`,
             subscriptionType: subscriptionType,
           },
           ...(trialEnd && {
@@ -82,7 +75,7 @@ export class StripeAdapter {
       return session;
     } catch (error) {
       throw BadRequestDomainException.create(
-        `Failed to create payment session with paymentId=${paymentId}: ${error.message}`,
+        `Failed to create payment session with profileId=${profileId}: ${error.message}`,
         'createPaymentSession',
       );
     }
@@ -131,5 +124,16 @@ export class StripeAdapter {
     await this.stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: false,
     });
+  }
+
+  async cancelSession(sessionId: string): Promise<void> {
+    try {
+      await this.stripe.checkout.sessions.expire(sessionId);
+    } catch (error) {
+      throw BadRequestDomainException.create(
+        `Failed to cancel session: ${error.message}`,
+        'cancelSession',
+      );
+    }
   }
 }

@@ -13,4 +13,7 @@ export enum OutboxEventType {
   SUBSCRIPTION_CANCELLED = 'subscription.cancelled',
   CANCEL_SUBSCRIPTION = 'subscription.cancel',
   SUBSCRIPTION_UPDATED = 'subscription.updated',
+  MANUAL_REVIEW_REQUIRED = 'manual.review.required',
+  FAILED_INITIAL_PAYMENT_PROCESSING = 'failed.initial.payment.processing',
+  FAILED_RECURRING_PAYMENT_PROCESSING = 'failed.recurring.payment.processing',
 }

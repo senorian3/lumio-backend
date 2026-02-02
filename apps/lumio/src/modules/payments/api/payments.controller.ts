@@ -29,7 +29,7 @@ export class PaymentsController {
     const url: string = await this.commandBus.execute<
       CreateSubscriptionPaymentUrlCommand,
       string
-    >(new CreateSubscriptionPaymentUrlCommand(req.user.userId, dto));
+    >(new CreateSubscriptionPaymentUrlCommand(+req.user.userId, dto));
 
     return { url };
   }

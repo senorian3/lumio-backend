@@ -7,7 +7,6 @@ import { HandleSubscriptionCancelledCommandHandler } from './application/command
 import { HandleSubscriptionUpdatedCommandHandler } from './application/commands/handle-subscription-updated.command-handler';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PaymentsHttpAdapter } from './application/payments-http.adapter';
-import { PaymentsAcknowledgmentService } from './application/payments-acknowledgment.service';
 import { PaymentsRepository } from './domain/infrastructure/payments.repository';
 import { SubscriptionRepository } from './domain/infrastructure/subscription.repository';
 import { Module } from '@nestjs/common';
@@ -21,8 +20,6 @@ const useCases = [
   HandleSubscriptionCancelledCommandHandler,
   HandleSubscriptionUpdatedCommandHandler,
 ];
-
-const services = [PaymentsAcknowledgmentService];
 
 const adapters = [PaymentsHttpAdapter];
 
@@ -57,6 +54,6 @@ const repositories = [PaymentsRepository, SubscriptionRepository];
     ]),
   ],
   controllers: [PaymentsController, PaymentsRabbitMQController],
-  providers: [...useCases, ...services, ...adapters, ...repositories],
+  providers: [...useCases, ...adapters, ...repositories],
 })
 export class PaymentsModule {}

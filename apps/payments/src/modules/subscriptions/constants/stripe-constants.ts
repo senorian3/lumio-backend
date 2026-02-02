@@ -27,3 +27,9 @@ export const subscriptionConfigs = {
     description: '30 дней',
   },
 };
+
+export const SUBSCRIPTION_PRICES = {
+  '1 week': 1,
+  '2 weeks': 1.5,
+  '1 month': 3,
+};

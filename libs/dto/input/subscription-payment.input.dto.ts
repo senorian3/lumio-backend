@@ -1,5 +1,4 @@
 import { IsString, IsNotEmpty, IsIn } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class InputCreateSubscriptionPaymentDto {
   @IsString()
@@ -12,7 +11,6 @@ export class InputCreateSubscriptionPaymentDto {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.trim().toLowerCase()) // Нормализация значения
   @IsIn(['1 week', '2 weeks', '1 month'], {
     message:
       'Invalid subscription type. Must be one of: 1 week, 2 week, 1 month',

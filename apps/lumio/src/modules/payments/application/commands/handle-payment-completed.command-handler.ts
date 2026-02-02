@@ -1,7 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PaymentsAcknowledgmentService } from '../payments-acknowledgment.service';
-import { CommandBus } from '@nestjs/cqrs';
 
 export interface PaymentCompletedEvent {
   id: number;
@@ -9,7 +7,7 @@ export interface PaymentCompletedEvent {
   aggregateType: string;
   eventType: string;
   payload: {
-    paymentId: number;
+    paymentId: string;
     profileId: number;
     amount: number;
     currency: string;
@@ -17,7 +15,6 @@ export interface PaymentCompletedEvent {
     subscriptionType: string;
     periodStart: Date;
     periodEnd: Date;
-    nextPaymentDate: Date;
     timestamp: string;
   };
   timestamp: Date;
@@ -29,26 +26,11 @@ export class HandlePaymentCompletedCommand {
 
 @CommandHandler(HandlePaymentCompletedCommand)
 export class HandlePaymentCompletedCommandHandler implements ICommandHandler<HandlePaymentCompletedCommand> {
-  constructor(
-    private readonly appLogger: AppLoggerService,
-    private readonly acknowledgmentService: PaymentsAcknowledgmentService,
-    private readonly commandBus: CommandBus,
-  ) {}
+  constructor(private readonly appLogger: AppLoggerService) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     try {
-      // Process the payment completion
       await this.processPaymentCompleted(command.data);
-
-      // Send acknowledgment to Payments service
-      await this.acknowledgmentService.sendPaymentCompletedAcknowledgment(
-        command.data.id,
-      );
-
-      this.appLogger.log(
-        `Successfully processed payment completed event: ${command.data.payload.paymentId}`,
-        'PaymentsRabbitMQ',
-      );
     } catch (error) {
       this.appLogger.error(
         `Error processing payment completed event: ${error.message}`,

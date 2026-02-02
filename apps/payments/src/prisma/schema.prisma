@@ -13,6 +13,7 @@ datasource db {
 
 model Payment {
   id                Int      @id @default(autoincrement())
+  customPaymentId   String   
   profileId         Int
   autoRenewal       Boolean  @default(true)
   paymentProvider   String
@@ -20,15 +21,15 @@ model Payment {
   amount            Float
   status            String   @default("pending")
   createdAt         DateTime
-  stripePaymentCreatedAt DateTime?
+  nextPaymentDate   DateTime?
+  stripePaymentCreatedAt DateTime
   updatedAt         DateTime? @updatedAt
   cancelledAt       DateTime?
-  subscriptionId    String?
+  subscriptionId    String
   subscriptionType  String
   periodStart       DateTime?
   periodEnd         DateTime?
-  nextPaymentDate   DateTime?
-  paymentsUrl       String?
+  paymentsUrl       String
 
 }
 

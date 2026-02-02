@@ -15,5 +15,6 @@ export class CreatePaymentDomainDto {
     public readonly paymentsUrl: string | null,
     public readonly stripePaymentCreatedAt: Date | null,
     public readonly cancelledAt: Date | null,
+    public readonly customPaymentId: string | null,
   ) {}
 }
