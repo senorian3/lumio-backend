@@ -1,8 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsAcknowledgmentService } from '../payments-acknowledgment.service';
-import { CommandBus } from '@nestjs/cqrs';
-import { UpdateSubscriptionPeriodCommand } from './update-subscription-period.command-handler';
+import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
+import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export interface SubscriptionUpdatedEvent {
   id: number;
@@ -11,7 +12,10 @@ export interface SubscriptionUpdatedEvent {
   eventType: string;
   payload: {
     paymentId: number;
+    createdAt: Date;
+    amount: number;
     subscriptionId: number;
+    subscriptionType: string;
     periodEnd: Date;
     nextPaymentDate: Date;
     timestamp: string;
@@ -28,13 +32,77 @@ export class HandleSubscriptionUpdatedCommandHandler implements ICommandHandler<
   constructor(
     private readonly appLogger: AppLoggerService,
     private readonly acknowledgmentService: PaymentsAcknowledgmentService,
-    private readonly commandBus: CommandBus,
+    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly paymentsRepository: PaymentsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(command: HandleSubscriptionUpdatedCommand): Promise<void> {
     try {
-      // Process the subscription update
-      await this.processSubscriptionUpdated(command.data);
+      const data = command.data;
+
+      // Найдем подписку по subscriptionId
+      const subscription =
+        await this.subscriptionRepository.findSubscriptionById(
+          data.payload.subscriptionId,
+        );
+
+      if (!subscription) {
+        this.appLogger.warn(
+          `Subscription not found for payment ${data.payload.paymentId}`,
+          'HandleSubscriptionUpdatedCommandHandler',
+        );
+        return;
+      }
+
+      // Найдем старый платеж по subscriptionId
+      const oldPayment =
+        await this.paymentsRepository.findPaymentBySubscriptionId(
+          data.payload.subscriptionId,
+        );
+
+      if (!oldPayment) {
+        this.appLogger.warn(
+          `Payment not found for subscription ${data.payload.subscriptionId}`,
+          'HandleSubscriptionUpdatedCommandHandler',
+        );
+        return;
+      }
+
+      // Создадим новый платеж и обновим подписку в транзакции
+      const newPayment = await this.prisma.$transaction(async (tx) => {
+        // Создадим новый платеж в транзакции
+        const payment = await this.paymentsRepository.createPayment(
+          {
+            amount: data.payload.amount,
+            paymentsService: data.payload.subscriptionType,
+            userProfileId: oldPayment.userProfileId,
+          },
+          tx,
+        );
+
+        // Обновим подписку с новым ID платежа в транзакции
+        await this.subscriptionRepository.updateSubscriptionWithNewPayment(
+          data.payload.subscriptionId,
+          payment.id,
+          subscription.durationType,
+          data.payload.periodEnd,
+          data.payload.nextPaymentDate > data.payload.periodEnd,
+          tx,
+        );
+
+        return payment;
+      });
+
+      this.appLogger.log(
+        `Created new payment ${newPayment.id} for subscription ${data.payload.subscriptionId}`,
+        'HandleSubscriptionUpdatedCommandHandler',
+      );
+
+      this.appLogger.log(
+        `Successfully updated subscription ${data.payload.subscriptionId} with new payment ${newPayment.id}. Old payment ${oldPayment.id} remains in database.`,
+        'HandleSubscriptionUpdatedCommandHandler',
+      );
 
       // Send acknowledgment to Payments service
       await this.acknowledgmentService.sendSubscriptionUpdatedAcknowledgment(
@@ -53,24 +121,5 @@ export class HandleSubscriptionUpdatedCommandHandler implements ICommandHandler<
       );
       throw error; // This will cause the message to be retried
     }
-  }
-
-  private async processSubscriptionUpdated(
-    data: SubscriptionUpdatedEvent,
-  ): Promise<void> {
-    // Update the existing subscription's periodEnd and nextPaymentDate
-    await this.commandBus.execute(
-      new UpdateSubscriptionPeriodCommand(
-        data.payload.paymentId,
-        data.payload.subscriptionId,
-        data.payload.periodEnd,
-        data.payload.nextPaymentDate,
-      ),
-    );
-
-    this.appLogger.log(
-      `Successfully updated subscription for payment ${data.payload.paymentId}`,
-      'PaymentsRabbitMQ',
-    );
   }
 }

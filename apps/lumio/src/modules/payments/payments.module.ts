@@ -2,7 +2,6 @@ import { PaymentsController } from './api/payments.controller';
 import { PaymentsRabbitMQController } from './api/payments-rabbitmq.controller';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { CreateSubscriptionPaymentUrlCommandHandler } from './application/commands/create-subscription.command-handler';
-import { UpdateSubscriptionPeriodCommandHandler } from './application/commands/update-subscription-period.command-handler';
 import { HandlePaymentCompletedCommandHandler } from './application/commands/handle-payment-completed.command-handler';
 import { HandleSubscriptionCancelledCommandHandler } from './application/commands/handle-subscription-cancelled.command-handler';
 import { HandleSubscriptionUpdatedCommandHandler } from './application/commands/handle-subscription-updated.command-handler';
@@ -18,7 +17,6 @@ import { CoreConfig } from '../../core/core.config';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
-  UpdateSubscriptionPeriodCommandHandler,
   HandlePaymentCompletedCommandHandler,
   HandleSubscriptionCancelledCommandHandler,
   HandleSubscriptionUpdatedCommandHandler,
@@ -51,7 +49,7 @@ const repositories = [PaymentsRepository, SubscriptionRepository];
             queueOptions: {
               durable: true,
             },
-            noAck: false,
+            noAck: true,
           },
         }),
         inject: [CoreConfig],

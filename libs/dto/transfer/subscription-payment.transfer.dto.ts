@@ -1,7 +1,6 @@
 export class SubscriptionPaymentTransferDto {
-  profileId: number;
+  profileId: string;
   currency: string;
-  amount: number;
   subscriptionType: '1 week' | '2 weeks' | '1 month';
   paymentProvider: string;
 }

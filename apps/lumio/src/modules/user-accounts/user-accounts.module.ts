@@ -38,6 +38,7 @@ import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/pro
 import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
 import { ExternalQueryUserAccountsRepository } from './users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../posts/application/files-http.adapter';
+import { ExternalQuerySessionsRepository } from '../sessions/domain/infrastructure/session.external-query.repository';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -114,12 +115,17 @@ const strategies = [JwtStrategy, YandexStrategy];
     AboutUserQueryHandler,
     QueryUserRepository,
     ExternalQueryUserAccountsRepository,
+    ExternalQuerySessionsRepository,
     ...useCases,
     ...services,
     ...adapters,
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserAccountsConfig, ExternalQueryUserAccountsRepository],
+  exports: [
+    UserAccountsConfig,
+    ExternalQueryUserAccountsRepository,
+    ExternalQuerySessionsRepository,
+  ],
 })
 export class UserAccountsModule {}

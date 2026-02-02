@@ -5,6 +5,8 @@ import {
   OutboxAggregateType,
   OutboxEventType,
 } from '../../constants/outbox-constants';
+import { CreatePaymentCompleteMessageDto } from './dto/create-payment-complete-message.dto';
+import { CreateSubscriptionUpdateMessageDto } from './dto/create-subscription-update-message';
 
 @Injectable()
 export class OutboxService {
@@ -14,26 +16,12 @@ export class OutboxService {
   ) {}
 
   async createPaymentCompletedMessage(
-    paymentId: number,
-    paymentData: any,
+    payload: CreatePaymentCompleteMessageDto,
     tx?: any,
   ): Promise<void> {
-    const payload = {
-      paymentId,
-      profileId: paymentData.profileId,
-      amount: paymentData.amount,
-      currency: paymentData.currency,
-      subscriptionId: paymentData.subscriptionId,
-      subscriptionType: paymentData.subscriptionType,
-      periodStart: paymentData.periodStart,
-      periodEnd: paymentData.periodEnd,
-      nextPaymentDate: paymentData.nextPaymentDate,
-      timestamp: new Date().toISOString(),
-    };
-
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: paymentId,
+        aggregateId: payload.paymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
         eventType: OutboxEventType.PAYMENT_COMPLETED,
         payload,
@@ -43,7 +31,7 @@ export class OutboxService {
     );
 
     this.logger.log(
-      `Created outbox message for payment ${paymentId}`,
+      `Created outbox message for payment ${payload.paymentId}`,
       'OutboxService',
     );
   }
@@ -105,25 +93,12 @@ export class OutboxService {
   }
 
   async createSubscriptionUpdatedMessage(
-    paymentId: number,
-    subscriptionId: string,
-    subscriptionType: string,
-    periodEnd: Date,
-    nextPaymentDate: Date,
+    payload: CreateSubscriptionUpdateMessageDto,
     tx?: any,
   ): Promise<void> {
-    const payload = {
-      paymentId,
-      subscriptionId,
-      subscriptionType,
-      periodEnd,
-      nextPaymentDate,
-      timestamp: new Date().toISOString(),
-    };
-
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: paymentId,
+        aggregateId: payload.paymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
         eventType: OutboxEventType.SUBSCRIPTION_UPDATED,
         payload,
@@ -133,7 +108,7 @@ export class OutboxService {
     );
 
     this.logger.log(
-      `Created subscription updated outbox message for payment ${paymentId}`,
+      `Created subscription updated outbox message for payment ${payload.paymentId}`,
       'OutboxService',
     );
   }

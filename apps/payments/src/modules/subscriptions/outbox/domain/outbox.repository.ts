@@ -18,7 +18,7 @@ export class OutboxRepository {
       eventType: OutboxEventType;
       payload: any;
       scheduledAt?: Date;
-      ttl?: Date;
+      ttl: Date;
     },
     tx?: any,
   ): Promise<OutboxMessage> {

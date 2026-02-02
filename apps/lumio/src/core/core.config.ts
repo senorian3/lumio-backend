@@ -71,6 +71,9 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
   filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable PAYMENTS_FRONTEND_URL' })
+  paymentsFrontendUrl: string = this.configService.get('PAYMENTS_FRONTEND_URL');
+
   @IsNumber(
     {},
     {

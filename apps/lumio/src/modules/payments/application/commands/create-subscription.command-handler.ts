@@ -8,7 +8,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 
 export class CreateSubscriptionPaymentUrlCommand {
   constructor(
-    public readonly userId: number,
+    public readonly userId: string,
     public readonly dto: InputCreateSubscriptionPaymentDto,
   ) {}
 }
@@ -27,7 +27,7 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
   async execute(command: CreateSubscriptionPaymentUrlCommand): Promise<string> {
     const profileId =
       await this.externalQueryUserAccountsRepository.getProfileIdByUserId(
-        command.userId,
+        parseInt(command.userId, 10),
       );
 
     if (!profileId) {
@@ -42,7 +42,7 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
         url: string;
       }>(`${GLOBAL_PREFIX}/subscription-payments`, {
         ...command.dto,
-        profileId,
+        profileId: profileId.toString(),
       });
 
       return urlData.url;

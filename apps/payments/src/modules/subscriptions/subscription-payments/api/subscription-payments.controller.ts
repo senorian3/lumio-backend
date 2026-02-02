@@ -16,11 +16,11 @@ import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 
 @Controller('subscription-payments')
-@UseGuards(InternalApiGuard)
 export class SubscriptionPaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
+  @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
     @Body() payload: InputCreateSubscriptionPaymentDto,
   ): Promise<{ url: string }> {

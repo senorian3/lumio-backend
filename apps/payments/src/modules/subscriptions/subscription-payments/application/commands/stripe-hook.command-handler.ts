@@ -10,6 +10,10 @@ import {
   PaymentStatus,
   StripeEventType,
 } from '@payments/modules/subscriptions/constants/stripe-constants';
+import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.dto';
+import { CreatePaymentCompleteMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-payment-complete-message.dto';
+import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
+import { CreateSubscriptionUpdateMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-subscription-update-message';
 
 export class StripeHookCommand {
   constructor(
@@ -125,6 +129,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
     let currentPeriodStart: Date;
     let currentPeriodEnd: Date;
     let nextPaymentDate: Date;
+    let stripePaymentCreatedAt: Date;
 
     try {
       // Получаем детали подписки (внешний вызов)
@@ -140,6 +145,8 @@ export class StripeHookCommandHandler implements ICommandHandler<
           'subscriptionId',
         );
       }
+
+      stripePaymentCreatedAt = new Date(subscriptionDetails.created * 1000);
 
       currentPeriodStart = new Date(
         subscriptionDetails.billing_cycle_anchor
@@ -191,19 +198,20 @@ export class StripeHookCommandHandler implements ICommandHandler<
           }
         }
 
-        // Обновляем основной платеж
-        await this.paymentsRepository.updatePayment(
-          paymentId,
-          PaymentStatus.SUCCESSFUL,
+        const updatePaymentData: UpdatePaymentDomainDto = {
+          id: paymentId,
+          status: PaymentStatus.SUCCESSFUL,
           subscriptionId,
-          currentPeriodStart,
-          currentPeriodEnd,
+          periodStart: currentPeriodStart,
+          periodEnd: currentPeriodEnd,
           nextPaymentDate,
           subscriptionType,
-          true,
-          null,
-          tx,
-        );
+          autoRenewal: true,
+          stripePaymentCreatedAt,
+        };
+
+        // Обновляем основной платеж
+        await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
         // Шаг 2: Создание outbox сообщений для внешних вызовов (в транзакции)
         for (const subscription of activeSubscriptions) {
@@ -219,26 +227,29 @@ export class StripeHookCommandHandler implements ICommandHandler<
           }
         }
 
+        const createPaymentData: CreatePaymentCompleteMessageDto = {
+          paymentId,
+          profileId,
+          amount: currentPayment.amount,
+          currency: currentPayment.currency,
+          subscriptionId,
+          subscriptionType,
+          periodStart: currentPeriodStart,
+          periodEnd: currentPeriodEnd,
+          nextPaymentDate,
+          timestamp: new Date().toISOString(),
+        };
+
         // Шаг 3: Создание outbox сообщения (в транзакции)
         await this.outboxService.createPaymentCompletedMessage(
-          paymentId,
-          {
-            profileId,
-            amount: currentPayment.amount,
-            currency: currentPayment.currency,
-            subscriptionId,
-            subscriptionType,
-            periodStart: currentPeriodStart,
-            periodEnd: currentPeriodEnd,
-            nextPaymentDate,
-          },
+          createPaymentData,
           tx,
         );
       });
     } catch (error) {
       // Compensating Transaction: Отмена платежа, если что-то пошло не так
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.cancelPaymentInTransaction(paymentId, tx);
+        await this.paymentsRepository.cancelPayment(paymentId, tx);
       });
 
       this.logger.error(error.message, error.stack, 'handleInitialPayment');
@@ -279,9 +290,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
       // Ищем существующий платеж в БД для получения данных профиля и подписки
       const existingPayment =
-        await this.paymentsRepository.findPaymentBySubscriptionId(
-          subscriptionId,
-        );
+        await this.paymentsRepository.findBySubscriptionId(subscriptionId);
 
       if (!existingPayment) {
         this.logger.warn(
@@ -304,6 +313,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
       const currentPeriodStart = new Date(invoiceLine.period.start * 1000);
       const currentPeriodEnd = new Date(invoiceLine.period.end * 1000);
       const nextPaymentDate = currentPeriodEnd;
+      const createdAt = new Date(invoice.created * 1000);
 
       // Определяем тип подписки из метаданных инвойса или существующего платежа
       const subscriptionType =
@@ -314,27 +324,31 @@ export class StripeHookCommandHandler implements ICommandHandler<
       const finishDate = new Date(Date.now());
 
       await this.prisma.$transaction(async (tx) => {
+        const createPaymentData: CreatePaymentDomainDto = {
+          paymentProvider: 'Stripe',
+          currency: currency,
+          amount: amount,
+          profileId: existingPayment.profileId,
+          status: PaymentStatus.SUCCESSFUL,
+          subscriptionId: subscriptionId,
+          periodStart: currentPeriodStart,
+          periodEnd: currentPeriodEnd,
+          nextPaymentDate: nextPaymentDate,
+          subscriptionType: subscriptionType,
+          autoRenewal: existingPayment.autoRenewal,
+          paymentsUrl: null,
+          createdAt: new Date(),
+          stripePaymentCreatedAt: createdAt,
+          cancelledAt: null,
+        };
         // Создаем новый платеж для рекуррентного платежа
         const newPayment = await this.paymentsRepository.createPayment(
-          {
-            paymentProvider: 'stripe',
-            currency: currency,
-            amount: amount,
-            profileId: existingPayment.profileId,
-            status: PaymentStatus.SUCCESSFUL,
-            subscriptionId: subscriptionId,
-            periodStart: currentPeriodStart,
-            periodEnd: currentPeriodEnd,
-            nextPaymentDate: nextPaymentDate,
-            subscriptionType: subscriptionType,
-            autoRenewal: existingPayment.autoRenewal,
-            paymentsUrl: null,
-          },
+          createPaymentData,
           tx,
         );
 
         // Обновляем статус предыдущего платежа на COMPLETED
-        await this.paymentsRepository.updatePaymentStatus(
+        await this.paymentsRepository.completePayment(
           existingPayment.id,
           PaymentStatus.COMPLETED,
           false,
@@ -342,13 +356,21 @@ export class StripeHookCommandHandler implements ICommandHandler<
           tx,
         );
 
+        const createSubscriptionUpdateMessageData: CreateSubscriptionUpdateMessageDto =
+          {
+            paymentId: newPayment.id,
+            createdAt,
+            amount,
+            subscriptionId,
+            subscriptionType,
+            currentPeriodEnd,
+            nextPaymentDate,
+            timestamp: new Date().toISOString(),
+          };
+
         // Создаем таску для обновления периода подписки в Lumio
         await this.outboxService.createSubscriptionUpdatedMessage(
-          newPayment.id,
-          subscriptionId,
-          subscriptionType,
-          currentPeriodEnd,
-          nextPaymentDate,
+          createSubscriptionUpdateMessageData,
           tx,
         );
       });
@@ -368,7 +390,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
   private async handleSubscriptionCancelled(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
 
-    const payment = await this.paymentsRepository.findPaymentBySubscriptionId(
+    const payment = await this.paymentsRepository.findBySubscriptionId(
       subscription.id,
     );
 
@@ -381,7 +403,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
     const cancelDate = new Date(Date.now());
 
     await this.prisma.$transaction(async (tx) => {
-      await this.paymentsRepository.updatePaymentStatus(
+      await this.paymentsRepository.completePayment(
         payment.id,
         PaymentStatus.CANCELLED,
         false,

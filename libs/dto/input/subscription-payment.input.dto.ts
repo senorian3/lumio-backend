@@ -1,19 +1,14 @@
-import { IsNumber, IsString, IsNotEmpty, IsIn } from 'class-validator';
+import { IsString, IsNotEmpty, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class InputCreateSubscriptionPaymentDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  profileId: number;
+  profileId: string;
 
   @IsString()
   @IsNotEmpty()
   currency: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @Transform(({ value }) => parseFloat(value)) // ← Принудительное преобразование
-  amount: number;
 
   @IsString()
   @IsNotEmpty()

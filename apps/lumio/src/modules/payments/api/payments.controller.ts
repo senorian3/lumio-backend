@@ -11,13 +11,15 @@ import { CommandBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/create-subscription.command-handler';
+import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 
-@UseGuards(ThrottlerGuard)
+@UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
+
   //@ApiGetSubscriptionPaymentUrl()
   @HttpCode(HttpStatus.OK)
   async getSubscriptionPaymentUrl(

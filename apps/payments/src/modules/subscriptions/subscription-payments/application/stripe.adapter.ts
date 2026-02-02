@@ -3,27 +3,16 @@ import { Injectable } from '@nestjs/common';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { subscriptionConfigs } from '../../constants/stripe-constants';
+import { CoreConfig } from '@payments/core/core.config';
 
 @Injectable()
 export class StripeAdapter {
-  private readonly stripe: Stripe;
-  private readonly successUrl: string;
-  private readonly cancelUrl: string;
-  private readonly endpointSecret: string;
-
-  constructor(private readonly logger: AppLoggerService) {
-    const apiKey = process.env.STRIPE_SECRET_KEY;
-    if (!apiKey) {
-      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
-    }
-
-    this.successUrl = process.env.SUCCESS_URL;
-
-    this.cancelUrl = process.env.CANCEL_URL;
-
-    this.endpointSecret = process.env.ENDPOINT_SECRET;
-
-    this.stripe = new Stripe(apiKey, {
+  private stripe: Stripe;
+  constructor(
+    private readonly logger: AppLoggerService,
+    private readonly coreConfig: CoreConfig,
+  ) {
+    this.stripe = new Stripe(this.coreConfig.stripeApiKey, {
       apiVersion: '2025-12-15.clover',
       appInfo: {
         name: 'Incgram',
@@ -52,8 +41,8 @@ export class StripeAdapter {
       const expiresAt = Math.floor(Date.now() / 1000) + 3600;
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: this.successUrl,
-        cancel_url: this.cancelUrl,
+        success_url: this.coreConfig.stripeSuccessUrl,
+        cancel_url: this.coreConfig.stripeCancelUrl,
         line_items: [
           {
             price_data: {
@@ -104,7 +93,7 @@ export class StripeAdapter {
       return this.stripe.webhooks.constructEvent(
         rawBody,
         signature,
-        this.endpointSecret,
+        this.coreConfig.stripeEndpointSecret,
       );
     } catch (err) {
       this.logger.error(

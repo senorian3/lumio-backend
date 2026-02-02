@@ -44,6 +44,26 @@ export class CoreConfig {
     this.configService.get('IS_SWAGGER_ENABLED'),
   ) as boolean;
 
+  @IsNotEmpty({ message: 'Set Env variable STRIPE_API_KEY' })
+  stripeApiKey: string = this.configService.get('STRIPE_API_KEY');
+
+  @IsNotEmpty({
+    message: 'Set Env variable STRIPE_SUCCESS_URL',
+  })
+  stripeSuccessUrl: string = this.configService.get('STRIPE_SUCCESS_URL');
+
+  @IsNotEmpty({
+    message: 'Set Env variable STRIPE_CANCEL_URL',
+  })
+  stripeCancelUrl: string = this.configService.get('STRIPE_CANCEL_URL');
+
+  @IsNotEmpty({
+    message: 'Set Env variable STRIPE_ENDPOINT_SECRET',
+  })
+  stripeEndpointSecret: string = this.configService.get(
+    'STRIPE_ENDPOINT_SECRET',
+  );
+
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 

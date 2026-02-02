@@ -20,23 +20,20 @@ export class PaymentsRepository {
     });
   }
 
-  async updatePayment(
-    paymentId: number,
-    periodEnd: Date,
-    autoRenewal: boolean,
-    nextPaymentDate: Date,
+  async createPayment(
+    data: {
+      amount: number;
+      paymentsService?: string;
+      userProfileId: number;
+    },
     tx?: any,
   ): Promise<Payments> {
     const client = tx || this.prisma;
-    return client.payments.update({
-      where: { id: paymentId },
+    return client.payments.create({
       data: {
-        subscription: {
-          update: {
-            endDate: periodEnd,
-            autoRenewal: autoRenewal,
-          },
-        },
+        amount: data.amount,
+        paymentsService: data.paymentsService,
+        userProfileId: data.userProfileId,
       },
     });
   }

@@ -6,7 +6,10 @@ export class InputSubscriptionUpdatedDto {
     public eventType: string,
     public payload: {
       paymentId: number;
+      createdAt: Date;
+      amount: number;
       subscriptionId: number;
+      subscriptionType: string;
       periodEnd: Date;
       nextPaymentDate: Date;
       timestamp: string;

@@ -14,8 +14,9 @@ export class SubscriptionRepository {
     });
   }
 
-  async updateSubscription(
+  async updateSubscriptionWithNewPayment(
     subscriptionId: number,
+    newPaymentId: number,
     durationType: string,
     endDate: Date,
     autoRenewal: boolean,
@@ -28,6 +29,7 @@ export class SubscriptionRepository {
         durationType,
         endDate,
         autoRenewal,
+        paymentId: newPaymentId,
       },
     });
   }

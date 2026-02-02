@@ -1,51 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { Payment } from 'generated/prisma-payments';
+import { CreatePaymentDomainDto } from '../dto/create-payment.domain.dto';
+import { UpdatePaymentDomainDto } from '../dto/update-payment.domain.dto';
 
 @Injectable()
 export class PaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createPayment(
-    data: {
-      paymentProvider: string;
-      currency: string;
-      amount: number;
-      profileId: number;
-      status?: string;
-      subscriptionId?: string | null;
-      periodStart?: Date | null;
-      periodEnd?: Date | null;
-      nextPaymentDate?: Date | null;
-      subscriptionType?: string | null;
-      paymentsUrl?: string | null;
-      autoRenewal?: boolean;
-      cancelledAt?: Date | null;
-    },
+    data: CreatePaymentDomainDto,
     tx?: any,
   ): Promise<Payment> {
     const client = tx || this.prisma;
 
     return client.payment.create({
-      data: {
-        paymentProvider: data.paymentProvider,
-        currency: data.currency,
-        amount: data.amount,
-        profileId: data.profileId,
-        status: data.status || 'pending',
-        autoRenewal: data.autoRenewal ?? true,
-        subscriptionId: data.subscriptionId,
-        periodStart: data.periodStart,
-        periodEnd: data.periodEnd,
-        nextPaymentDate: data.nextPaymentDate,
-        subscriptionType: data.subscriptionType,
-        paymentsUrl: data.paymentsUrl,
-        cancelledAt: data.cancelledAt,
-      },
+      data,
     });
   }
 
-  async updatePaymentUrl(id: number, paymentsUrl: string): Promise<Payment> {
+  async updateUrl(id: number, paymentsUrl: string): Promise<Payment> {
     return this.prisma.payment.update({
       where: { id },
       data: {
@@ -55,38 +29,21 @@ export class PaymentsRepository {
   }
 
   async updatePayment(
-    id: number,
-    status: string,
-    subscriptionId?: string,
-    periodStart?: Date,
-    periodEnd?: Date,
-    nextPaymentDate?: Date,
-    subscriptionType?: string,
-    autoRenewal?: boolean,
-    cancelledAt?: Date | null,
+    data: UpdatePaymentDomainDto,
     tx?: any,
   ): Promise<Payment> {
     const client = tx || this.prisma;
     return client.payment.update({
-      where: { id },
-      data: {
-        status,
-        subscriptionId,
-        periodStart,
-        periodEnd,
-        nextPaymentDate,
-        subscriptionType,
-        autoRenewal,
-        cancelledAt,
-      },
+      where: { id: data.id },
+      data,
     });
   }
 
-  async updatePaymentStatus(
+  async completePayment(
     id: number,
     status: string,
-    autoRenewal?: boolean,
-    cancelledAt?: Date | null,
+    autoRenewal: boolean,
+    cancelledAt: Date,
     tx?: any,
   ): Promise<Payment> {
     const client = tx || this.prisma;
@@ -95,8 +52,8 @@ export class PaymentsRepository {
       where: { id },
       data: {
         status,
-        ...(autoRenewal !== undefined && { autoRenewal }),
-        ...(cancelledAt !== undefined && { cancelledAt }),
+        autoRenewal,
+        cancelledAt,
       },
     });
   }
@@ -142,9 +99,7 @@ export class PaymentsRepository {
     });
   }
 
-  async findPaymentBySubscriptionId(
-    subscriptionId: string,
-  ): Promise<Payment | null> {
+  async findBySubscriptionId(subscriptionId: string): Promise<Payment | null> {
     return this.prisma.payment.findFirst({
       where: {
         subscriptionId,
@@ -167,29 +122,7 @@ export class PaymentsRepository {
     });
   }
 
-  async createPaymentInTransaction(
-    data: {
-      paymentProvider: string;
-      currency: string;
-      amount: number;
-      profileId: number;
-      status?: string;
-    },
-    tx?: any,
-  ): Promise<Payment> {
-    const client = tx || this.prisma;
-    return client.payment.create({
-      data: {
-        paymentProvider: data.paymentProvider,
-        currency: data.currency,
-        amount: data.amount,
-        profileId: data.profileId,
-        ...(data.status && { status: data.status }),
-      },
-    });
-  }
-
-  async updatePaymentUrlInTransaction(
+  async updatePaymentUrl(
     id: number,
     paymentsUrl: string,
     tx?: any,
@@ -203,7 +136,7 @@ export class PaymentsRepository {
     });
   }
 
-  async cancelPaymentInTransaction(id: number, tx?: any): Promise<void> {
+  async cancelPayment(id: number, tx?: any): Promise<void> {
     const client = tx || this.prisma;
     await client.payment.update({
       where: { id },

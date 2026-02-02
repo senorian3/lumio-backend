@@ -114,8 +114,8 @@ export class OutboxScheduler {
         aggregateId: message.aggregateId,
         aggregateType: message.aggregateType,
         eventType: message.eventType,
-        payload: message.payload,
         timestamp: message.createdAt,
+        payload: message.payload,
       });
 
       return true;

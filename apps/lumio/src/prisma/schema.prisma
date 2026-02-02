@@ -52,8 +52,7 @@ model Payments {
   id              Int      @id @default(autoincrement())
   createdAt       DateTime @default(now()) @db.Timestamp(0)
   amount          Float
-  paymentsService String?  @db.VarChar(50)
-
+  paymentsService String  
   userProfileId   Int
   userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   subscription    Subscription?

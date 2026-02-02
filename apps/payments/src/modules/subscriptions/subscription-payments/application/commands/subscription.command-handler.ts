@@ -4,6 +4,7 @@ import { PaymentsRepository } from '@payments/modules/subscriptions/subscription
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
 
 export class SubscriptionCommand {
   constructor(public dto: SubscriptionPaymentTransferDto) {}
@@ -24,7 +25,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
   async execute({ dto }: SubscriptionCommand): Promise<string> {
     const lastSuccessfulPayment =
       await this.paymentsRepository.findLastSuccessfulPaymentByProfileId(
-        dto.profileId,
+        parseInt(dto.profileId, 10),
       );
 
     let trialEndDate: number | undefined = undefined;
@@ -39,15 +40,44 @@ export class SubscriptionCommandHandler implements ICommandHandler<
       );
     }
 
+    // Расчет суммы на основе типа подписки
+    let amount: number;
+    switch (dto.subscriptionType) {
+      case '1 week':
+        amount = 1;
+        break;
+      case '2 weeks':
+        amount = 1.5;
+        break;
+      case '1 month':
+        amount = 3;
+        break;
+      default:
+        throw new Error(`Unknown subscription type: ${dto.subscriptionType}`);
+    }
+
     // Этап 1: Транзакция для создания платежа в БД
     const payment = await this.prisma.$transaction(async (tx) => {
-      return await this.paymentsRepository.createPaymentInTransaction(
-        {
-          paymentProvider: dto.paymentProvider,
-          currency: dto.currency,
-          amount: dto.amount,
-          profileId: dto.profileId,
-        },
+      const createDomainPymentData: CreatePaymentDomainDto = {
+        paymentProvider: dto.paymentProvider,
+        currency: dto.currency,
+        amount: amount,
+        profileId: parseInt(dto.profileId, 10),
+        status: 'pending',
+        subscriptionType: dto.subscriptionType,
+        autoRenewal: true,
+        subscriptionId: null,
+        periodStart: null,
+        periodEnd: null,
+        nextPaymentDate: null,
+        createdAt: new Date(),
+        paymentsUrl: null,
+        stripePaymentCreatedAt: null,
+        cancelledAt: null,
+      };
+
+      return await this.paymentsRepository.createPayment(
+        createDomainPymentData,
         tx,
       );
     });
@@ -56,7 +86,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
       // Этап 2: Создание Stripe сессии
       const session = await this.stripeAdapter.createPaymentSession(
         dto.subscriptionType,
-        dto.amount,
+        amount,
         payment.id,
         dto.currency,
         trialEndDate,
@@ -64,7 +94,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
 
       // Этап 3: Транзакция для обновления URL в БД
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.updatePaymentUrlInTransaction(
+        await this.paymentsRepository.updatePaymentUrl(
           payment.id,
           session.url,
           tx,
@@ -75,10 +105,7 @@ export class SubscriptionCommandHandler implements ICommandHandler<
     } catch (error) {
       // Compensating Transaction: Отмена уже созданного платежа
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.cancelPaymentInTransaction(
-          payment.id,
-          tx,
-        );
+        await this.paymentsRepository.cancelPayment(payment.id, tx);
       });
 
       this.logger.error(

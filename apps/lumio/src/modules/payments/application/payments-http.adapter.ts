@@ -24,7 +24,7 @@ export class PaymentsHttpAdapter {
     dto: SubscriptionPaymentTransferDto,
     additionalHeaders?: Record<string, string>,
   ): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
+    const url = `${this.coreConfig.paymentsFrontendUrl}/${endpoint}`;
     const headers = this.getHeaders(additionalHeaders);
 
     try {

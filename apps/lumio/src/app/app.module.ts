@@ -9,6 +9,7 @@ import { throttlerModule } from '../core/guards/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
+import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PaymentsModule } from '@lumio/modules/payments/payments.module';
     UserAccountsModule,
     PostsModule,
     PaymentsModule,
+    SessionsModule,
   ],
 })
 export class AppModule {
