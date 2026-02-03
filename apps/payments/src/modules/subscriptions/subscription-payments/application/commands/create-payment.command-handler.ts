@@ -32,7 +32,15 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         +dto.profileId,
       );
 
-    // ✅ Триал только если есть активная подписка
+    if (lastSuccessfulPayment) {
+      console.log('-------------');
+      console.log(lastSuccessfulPayment);
+      await this.stripeAdapter.cancelSubscriptionImmediately(
+        lastSuccessfulPayment.subscriptionId,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
     const trialEndDate = lastSuccessfulPayment
       ? this.calculateTrialEndDate(lastSuccessfulPayment, dto.subscriptionType)
       : null;
@@ -115,26 +123,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       );
     }
   }
-
-  // private calculateTrialEndDate(
-  //   lastSuccessfulPayment: Payment,
-  //   newSubcriptionType: string,
-  // ): number | null {
-  //   const remainingTime = lastSuccessfulPayment.nextPaymentDate.getTime();
-  //
-  //   let period;
-  //
-  //   if (newSubcriptionType.includes('week')) {
-  //     const weekCount = newSubcriptionType.includes('2') ? 2 : 1;
-  //     period = weekCount * 7 * 24 * 60 * 60 * 1000;
-  //   } else {
-  //     period = 30 * 24 * 60 * 60 * 1000;
-  //   }
-  //
-  //   const trialEnd = remainingTime + period;
-  //
-  //   return Math.floor(trialEnd / 1000);
-  // }
 
   private calculateTrialEndDate(
     lastSuccessfulPayment: Payment,

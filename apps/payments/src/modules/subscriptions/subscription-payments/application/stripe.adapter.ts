@@ -117,7 +117,7 @@ export class StripeAdapter {
 
   async cancelSubscriptionAtPeriodEnd(subscriptionId: string): Promise<void> {
     await this.stripe.subscriptions.update(subscriptionId, {
-      cancel_at_period_end: true,
+      cancel_at_period_end: false,
     });
   }
 
@@ -134,6 +134,18 @@ export class StripeAdapter {
       throw BadRequestDomainException.create(
         `Failed to cancel session: ${error.message}`,
         'cancelSession',
+      );
+    }
+  }
+
+  async cancelSubscriptionImmediately(subscriptionId: string): Promise<void> {
+    try {
+      const req = await this.stripe.subscriptions.cancel(subscriptionId);
+      console.log(req);
+    } catch (error) {
+      throw BadRequestDomainException.create(
+        `Failed to cancel subscription immediately: ${error.message}`,
+        'cancelSubscriptionImmediately',
       );
     }
   }
