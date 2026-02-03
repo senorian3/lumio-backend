@@ -7,13 +7,12 @@ import { OutboxService } from '@payments/modules/subscriptions/outbox/applicatio
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { ProcessInitialPaymentCommand } from './process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommand } from './process-recurring-payment.command-handler';
+import { ProcessSubscriptionCancelledCommand } from './process-subscription-cancelled.command-handler';
 import Stripe from 'stripe';
 import {
   PaymentStatus,
   StripeEventType,
 } from '@payments/modules/subscriptions/constants/stripe-constants';
-import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
-import { CreateSubscriptionUpdateMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-subscription-update-message';
 
 export class StripeHookCommand {
   constructor(
@@ -52,7 +51,7 @@ export class StripeHookCommandHandler implements ICommandHandler<
           await this.handleRecurringPayment(event);
           break;
 
-        case StripeEventType.SUBSCRIPTION_DELETED:
+        case StripeEventType.SUBSCRIPTION_CANCELLED:
           await this.handleSubscriptionCancelled(event);
           this.logger.debug(
             `Получено событие Stripe: ${event.type} (ID: ${event.id})`,
@@ -109,37 +108,8 @@ export class StripeHookCommandHandler implements ICommandHandler<
   private async handleSubscriptionCancelled(event: Stripe.Event) {
     const subscription = event.data.object as Stripe.Subscription;
 
-    const payment = await this.paymentsRepository.findBySubscriptionId(
-      subscription.id,
-    );
-
-    if (!payment) {
-      throw BadRequestDomainException.create(
-        `Payment not found for subscription ${subscription.id}`,
-      );
-    }
-
-    const cancelDate = new Date(Date.now());
-
-    await this.prisma.$transaction(async (tx) => {
-      await this.paymentsRepository.completePayment(
-        payment.customPaymentId,
-        PaymentStatus.CANCELLED,
-        false,
-        cancelDate,
-        tx,
-      );
-
-      await this.outboxService.createSubscriptionCancelByUserMessage(
-        payment.id.toString(),
-        subscription.id,
-        tx,
-      );
-    });
-
-    this.logger.log(
-      `Подписка ${subscription.id} полностью завершена после окончания периода`,
-      'SubscriptionLifecycle',
+    await this.commandBus.execute(
+      new ProcessSubscriptionCancelledCommand(subscription),
     );
   }
 }

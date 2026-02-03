@@ -39,9 +39,9 @@ export class OutboxScheduler {
 
           // Обработка в зависимости от типа события
           switch (message.eventType) {
-            case OutboxEventType.CANCEL_SUBSCRIPTION:
+            case OutboxEventType.CANCEL_SUBSCRIPTION_AUTO_RENEWAL:
               result =
-                await this.externalCallsProcessor.processCancelSubscription(
+                await this.externalCallsProcessor.processCancelSubscriptionAutoRenewal(
                   message,
                 );
               break;

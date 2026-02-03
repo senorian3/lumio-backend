@@ -11,11 +11,11 @@ export class InputCreateSubscriptionPaymentDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn(['1 week', '2 weeks', '1 month'], {
+  @IsIn(['1 week', '2 weeks', '1 month', '3 months', '1 year'], {
     message:
-      'Invalid subscription type. Must be one of: 1 week, 2 weeks, 1 month',
+      'Invalid subscription type. Must be one of: 1 week, 2 weeks, 1 month, 3 months, 1 year',
   })
-  subscriptionType: '1 week' | '2 weeks' | '1 month';
+  subscriptionType: '1 week' | '2 weeks' | '1 month' | '3 months' | '1 year';
 
   @IsString()
   @IsNotEmpty()

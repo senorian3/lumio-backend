@@ -8,7 +8,6 @@ import Stripe from 'stripe';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { SUBSCRIPTION_PRICES } from '@payments/modules/subscriptions/constants/stripe-constants';
 import { PrismaService } from '@payments/prisma/prisma.service';
-import { Payment } from 'generated/prisma-payments';
 
 export class CreateSubscriptionPaymentCommand {
   constructor(public dto: SubscriptionPaymentTransferDto) {}
@@ -27,23 +26,17 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
-    const lastSuccessfulPayment =
-      await this.paymentsRepository.findLastSuccessfulPaymentByProfileId(
+    const activeSubscription =
+      await this.paymentsRepository.findActiveSubscriptionByProfileId(
         +dto.profileId,
       );
 
-    if (lastSuccessfulPayment) {
-      console.log('-------------');
-      console.log(lastSuccessfulPayment);
-      await this.stripeAdapter.cancelSubscriptionImmediately(
-        lastSuccessfulPayment.subscriptionId,
+    if (activeSubscription) {
+      throw BadRequestDomainException.create(
+        `User with profileId ${activeSubscription.profileId} already has active subscription: ${activeSubscription.subscriptionType}`,
+        'profileId',
       );
-
-      await new Promise((resolve) => setTimeout(resolve, 10000));
     }
-    const trialEndDate = lastSuccessfulPayment
-      ? this.calculateTrialEndDate(lastSuccessfulPayment, dto.subscriptionType)
-      : null;
 
     const amount: number = SUBSCRIPTION_PRICES[dto.subscriptionType];
 
@@ -55,7 +48,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         amount,
         dto.profileId,
         dto.currency,
-        trialEndDate,
       );
     } catch (error) {
       this.logger.error(
@@ -63,10 +55,9 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         error?.stack,
         CommandHandler.name,
       );
-      throw error; // ✅ Пробрасываем ошибку
+      throw error;
     }
 
-    // ✅ Проверяем наличие URL
     if (!session.url) {
       throw BadRequestDomainException.create(
         'Stripe session URL is missing',
@@ -78,7 +69,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     const customPaymentId = session.metadata.customPaymentId;
 
     const createDomainPaymentData: CreatePaymentDomainDto = {
-      // ✅ Исправлена опечатка
       paymentProvider: dto.paymentProvider,
       currency: dto.currency,
       amount: amount,
@@ -91,7 +81,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       periodEnd: null,
       nextPaymentDate: null,
       createdAt: new Date(),
-      paymentsUrl: session.url, // ✅ Гарантированно не null
+      paymentsUrl: session.url,
       stripePaymentCreatedAt,
       cancelledAt: null,
       customPaymentId,
@@ -122,34 +112,5 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         'createPayment',
       );
     }
-  }
-
-  private calculateTrialEndDate(
-    lastSuccessfulPayment: Payment,
-    newSubscriptionType: string,
-  ): number | null {
-    const now = Date.now();
-    const currentSubscriptionEnd =
-      lastSuccessfulPayment.nextPaymentDate.getTime();
-    const remainingTime = currentSubscriptionEnd - now;
-
-    // Если текущая подписка уже истекла, не даём триал
-    if (remainingTime <= 0) {
-      return null;
-    }
-
-    // Рассчитываем период новой подписки
-    let period: number;
-    if (newSubscriptionType.includes('week')) {
-      const weekCount = newSubscriptionType.includes('2') ? 2 : 1;
-      period = weekCount * 7 * 24 * 60 * 60 * 1000;
-    } else {
-      period = 30 * 24 * 60 * 60 * 1000;
-    }
-
-    // ✅ Правильная логика: конец текущей подписки + период новой
-    const trialEndTimestamp = currentSubscriptionEnd + period;
-
-    return Math.floor(trialEndTimestamp / 1000);
   }
 }

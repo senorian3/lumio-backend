@@ -13,9 +13,11 @@ import {
   CreateSubscriptionPaymentCommand,
   CreateSubscriptionPaymentCommandHandler,
 } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
+import { CancelSubscriptionCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/cancel-subscription.command-handler';
 import { StripeHookCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { ProcessInitialPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
+import { ProcessSubscriptionCancelledCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-subscription-cancelled.command-handler';
 import { RetryService } from '@payments/modules/subscriptions/subscription-payments/application/retry.service';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { OutboxRepository } from '@payments/modules/subscriptions/outbox/domain/outbox.repository';
@@ -32,6 +34,8 @@ const useCases = [
   ProcessInitialPaymentCommandHandler,
   ProcessRecurringPaymentCommandHandler,
   CreateSubscriptionPaymentCommandHandler,
+  CancelSubscriptionCommandHandler,
+  ProcessSubscriptionCancelledCommandHandler,
 ];
 
 const repositories = [PaymentsRepository];

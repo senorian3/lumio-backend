@@ -10,20 +10,27 @@ export class ExternalCallsProcessor {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async processCancelSubscription(message: OutboxMessage): Promise<boolean> {
+  async processCancelSubscriptionAutoRenewal(
+    message: OutboxMessage,
+  ): Promise<boolean> {
     const payload = message.payload as {
       subscriptionId: string;
+      paymentId: string;
     };
 
     try {
-      await this.stripeAdapter.cancelSubscriptionAtPeriodEnd(
+      await this.stripeAdapter.cancelSubscriptionAutoRenewal(
         payload.subscriptionId,
       );
 
+      this.logger.log(
+        `Successfully cancelled auto-renewal for subscription ${payload.subscriptionId}`,
+        'ExternalCallsProcessor',
+      );
       return true;
     } catch (error) {
       this.logger.error(
-        `Failed to cancel subscription ${payload.subscriptionId}: ${error.message}`,
+        `Failed to cancel auto-renewal for subscription ${payload.subscriptionId}: ${error.message}`,
         error.stack,
         'ExternalCallsProcessor',
       );

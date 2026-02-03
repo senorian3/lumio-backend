@@ -65,31 +65,30 @@ export class OutboxService {
     );
   }
 
-  // метод после покупки подписки через initial другие подписки отменяются
-  async createCancelSubscriptionMessage(
-    paymentId: string,
+  async createCancelSubscriptionAutoRenewalMessage(
     subscriptionId: string,
+    paymentId: string,
     tx?: any,
   ): Promise<void> {
     const payload = {
-      paymentId,
       subscriptionId,
+      paymentId,
       timestamp: new Date().toISOString(),
     };
 
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: payload.paymentId,
+        aggregateId: paymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.CANCEL_SUBSCRIPTION,
+        eventType: OutboxEventType.CANCEL_SUBSCRIPTION_AUTO_RENEWAL,
         payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000),
+        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
       },
       tx,
     );
 
     this.logger.log(
-      `Created cancel subscription outbox message for payment ${paymentId}`,
+      `Created cancel subscription auto-renewal outbox message for subscription ${subscriptionId}`,
       'OutboxService',
     );
   }

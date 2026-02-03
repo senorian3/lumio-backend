@@ -79,10 +79,10 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const profileId = currentPayment.profileId;
     const subscriptionType = currentPayment.subscriptionType;
 
-    const activeSubscriptionsPayments =
-      await this.paymentsRepository.findActiveSubscriptionPaymentsWithAutoRenewalByProfileId(
-        profileId,
-      );
+    // const activeSubscriptionsPayments =
+    //   await this.paymentsRepository.findActiveSubscriptionPaymentsWithAutoRenewalByProfileId(
+    //     profileId,
+    //   );
 
     // Шаг 1: Транзакция с базой данных (все операции с БД)
 
@@ -109,6 +109,11 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
       if (subscriptionType.includes('week')) {
         const weekCount = subscriptionType.includes('2') ? 2 : 1;
         periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
+      } else if (subscriptionType.includes('month')) {
+        const monthCount = subscriptionType.includes('3') ? 3 : 1;
+        periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
+      } else if (subscriptionType.includes('year')) {
+        periodDuration = 365 * 24 * 60 * 60 * 1000;
       } else {
         periodDuration = 30 * 24 * 60 * 60 * 1000;
       }
@@ -117,27 +122,21 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         currentPeriodStart.getTime() + periodDuration,
       );
 
-      if (subscriptionType === '1 month') {
-        currentPeriodEnd = new Date(
-          currentPeriodStart.getTime() + 30 * 24 * 60 * 60 * 1000,
-        );
-      }
-
       await this.prisma.$transaction(async (tx) => {
-        for (const activeSubscriptionPayment of activeSubscriptionsPayments) {
-          if (
-            activeSubscriptionPayment.subscriptionId &&
-            activeSubscriptionPayment.subscriptionId !== subscriptionId
-          ) {
-            await this.paymentsRepository.updatePaymentAutoRenewal(
-              activeSubscriptionPayment.subscriptionId,
-              activeSubscriptionPayment.customPaymentId,
-              false,
-              new Date(),
-              tx,
-            );
-          }
-        }
+        // for (const activeSubscriptionPayment of activeSubscriptionsPayments) {
+        //   if (
+        //     activeSubscriptionPayment.subscriptionId &&
+        //     activeSubscriptionPayment.subscriptionId !== subscriptionId
+        //   ) {
+        //     await this.paymentsRepository.updatePaymentAutoRenewal(
+        //       activeSubscriptionPayment.subscriptionId,
+        //       activeSubscriptionPayment.customPaymentId,
+        //       false,
+        //       new Date(),
+        //       tx,
+        //     );
+        //   }
+        // }
 
         const updatePaymentData: UpdatePaymentDomainDto = {
           customPaymentId,
@@ -150,19 +149,19 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
         await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
-        for (const subscription of activeSubscriptionsPayments) {
-          if (
-            subscription.subscriptionId &&
-            subscription.subscriptionId !== subscriptionId
-          ) {
-            //Дописать RabbitMQ по отмене подписки
-            await this.outboxService.createCancelSubscriptionMessage(
-              customPaymentId,
-              subscription.subscriptionId,
-              tx,
-            );
-          }
-        }
+        // for (const subscription of activeSubscriptionsPayments) {
+        //   if (
+        //     subscription.subscriptionId &&
+        //     subscription.subscriptionId !== subscriptionId
+        //   ) {
+        //     //Дописать RabbitMQ по отмене подписки
+        //     await this.outboxService.createCancelSubscriptionMessage(
+        //       customPaymentId,
+        //       subscription.subscriptionId,
+        //       tx,
+        //     );
+        //   }
+        // }
 
         const createPaymentData: CreatePaymentCompleteMessageDto = {
           paymentId: currentPayment.customPaymentId,

@@ -22,22 +22,22 @@ export class StripeAdapter {
   }
 
   async createPaymentSession(
-    subscriptionType: '1 week' | '2 weeks' | '1 month',
+    subscriptionType: '1 week' | '2 weeks' | '1 month' | '3 months' | '1 year',
     amount: number,
     profileId: string,
     currency: string,
-    billingCycleAnchor?: number,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
     try {
-      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+      const nowDate = Date.now();
+      const expiresAt = Math.floor(nowDate / 1000) + 3600;
 
       const session = await this.stripe.checkout.sessions.create({
         success_url: this.coreConfig.stripeSuccessUrl,
         cancel_url: this.coreConfig.stripeCancelUrl,
         metadata: {
-          customPaymentId: `${profileId}-${Date.now()}`,
+          customPaymentId: `${profileId}-${nowDate}`,
           subscriptionType: subscriptionType,
         },
         line_items: [
@@ -59,13 +59,6 @@ export class StripeAdapter {
         ],
         mode: 'subscription',
         client_reference_id: profileId.toString(),
-
-        subscription_data: {
-          ...(billingCycleAnchor && {
-            billing_cycle_anchor: billingCycleAnchor,
-            proration_behavior: 'none' as const,
-          }),
-        },
 
         billing_address_collection: 'auto',
         payment_method_types: ['card'],
@@ -115,9 +108,9 @@ export class StripeAdapter {
     }
   }
 
-  async cancelSubscriptionAtPeriodEnd(subscriptionId: string): Promise<void> {
+  async cancelSubscriptionAutoRenewal(subscriptionId: string): Promise<void> {
     await this.stripe.subscriptions.update(subscriptionId, {
-      cancel_at_period_end: false,
+      cancel_at_period_end: true,
     });
   }
 
@@ -140,8 +133,7 @@ export class StripeAdapter {
 
   async cancelSubscriptionImmediately(subscriptionId: string): Promise<void> {
     try {
-      const req = await this.stripe.subscriptions.cancel(subscriptionId);
-      console.log(req);
+      await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
       throw BadRequestDomainException.create(
         `Failed to cancel subscription immediately: ${error.message}`,

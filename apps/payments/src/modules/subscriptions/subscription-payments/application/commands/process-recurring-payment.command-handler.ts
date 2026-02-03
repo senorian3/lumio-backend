@@ -8,6 +8,7 @@ import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.d
 import { CreateSubscriptionUpdateMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-subscription-update-message';
 import { RetryService } from '../retry.service';
 import { ManualReviewService } from '../manual-review.service';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class ProcessRecurringPaymentCommand {
   constructor(public readonly invoice: Stripe.Invoice) {}
@@ -24,6 +25,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
     private readonly prisma: PrismaService,
     private readonly retryService: RetryService,
     private readonly manualReviewService: ManualReviewService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: ProcessRecurringPaymentCommand): Promise<void> {
@@ -43,10 +45,19 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
   }
 
   private async processRecurringPayment(invoice: Stripe.Invoice) {
+    this.logger.log(
+      `Начало обработки рекуррентного платежа: invoice=${invoice.id}, status=${invoice.status}, billing_reason=${invoice.billing_reason}`,
+      ProcessRecurringPaymentCommandHandler.name,
+    );
+
     if (
       invoice.billing_reason === 'subscription_create' ||
       invoice.status !== 'paid'
     ) {
+      this.logger.log(
+        `Пропуск обработки: invoice=${invoice.id}, billing_reason=${invoice.billing_reason}, status=${invoice.status}`,
+        ProcessRecurringPaymentCommandHandler.name,
+      );
       return;
     }
 
@@ -59,9 +70,11 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         await this.paymentsRepository.findBySubscriptionId(subscriptionId, tx);
 
       if (!existingPayment) {
-        throw new Error(
-          `Не найден существующий платеж для подписки ${subscriptionId}`,
+        this.logger.error(
+          `Платеж не найден в БД: subscriptionId=${subscriptionId}`,
+          ProcessRecurringPaymentCommandHandler.name,
         );
+        throw Error;
       }
 
       const invoiceLine = invoice.lines.data[0];
@@ -117,6 +130,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           customPaymentId: existingPayment.customPaymentId,
           createdAt,
           amount,
+          paymentService: existingPayment.paymentProvider,
           subscriptionId,
           subscriptionType,
           currentPeriodEnd,
@@ -129,6 +143,16 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         createSubscriptionUpdateMessageData,
         tx,
       );
+
+      this.logger.log(
+        `Создано сообщение для обновления подписки в Lumio: subscriptionId=${subscriptionId}, periodEnd=${currentPeriodEnd.toISOString()}`,
+        ProcessRecurringPaymentCommandHandler.name,
+      );
     });
+
+    this.logger.log(
+      `Успешно обработан рекуррентный платеж: invoice=${invoice.id}`,
+      ProcessRecurringPaymentCommandHandler.name,
+    );
   }
 }
