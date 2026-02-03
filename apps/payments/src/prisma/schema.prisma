@@ -25,7 +25,7 @@ model Payment {
   stripePaymentCreatedAt DateTime
   updatedAt         DateTime? @updatedAt
   cancelledAt       DateTime?
-  subscriptionId    String
+  subscriptionId    String?
   subscriptionType  String
   periodStart       DateTime?
   periodEnd         DateTime?
@@ -35,7 +35,7 @@ model Payment {
 
 model OutboxMessage {
   id            Int      @id @default(autoincrement())
-  aggregateId   Int
+  aggregateId   String
   aggregateType String  @db.VarChar(50)
   eventType     String  @db.VarChar(100)
   payload       Json

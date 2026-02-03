@@ -9,7 +9,10 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { SubscriptionPaymentsController } from '@payments/modules/subscriptions/subscription-payments/api/subscription-payments.controller';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
-import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
+import {
+  CreateSubscriptionPaymentCommand,
+  CreateSubscriptionPaymentCommandHandler,
+} from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
 import { StripeHookCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { ProcessInitialPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
@@ -28,6 +31,7 @@ const useCases = [
   StripeHookCommandHandler,
   ProcessInitialPaymentCommandHandler,
   ProcessRecurringPaymentCommandHandler,
+  CreateSubscriptionPaymentCommandHandler,
 ];
 
 const repositories = [PaymentsRepository];

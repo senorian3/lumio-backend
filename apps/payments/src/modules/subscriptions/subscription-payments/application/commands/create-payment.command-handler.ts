@@ -27,6 +27,8 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
+    console.log(dto);
+
     const lastSuccessfulPayment =
       await this.paymentsRepository.findLastSuccessfulPaymentByProfileId(
         +dto.profileId,
@@ -45,6 +47,8 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         dto.currency,
         trialEndDate,
       );
+
+      console.log(session);
     } catch (error) {
       this.logger.error(
         `Failed to create subscription payment session for profileId=${dto.profileId}: ${error.message}`,
@@ -53,7 +57,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       );
     }
 
-    const subscriptionId = session.subscription.toString();
     const stripePaymentCreatedAt = new Date(session.created * 1000);
     const customPaymentId = session.metadata.customPaymentId;
 
@@ -65,7 +68,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       status: 'pending',
       subscriptionType: dto.subscriptionType,
       autoRenewal: true,
-      subscriptionId,
+      subscriptionId: null,
       periodStart: null,
       periodEnd: null,
       nextPaymentDate: null,

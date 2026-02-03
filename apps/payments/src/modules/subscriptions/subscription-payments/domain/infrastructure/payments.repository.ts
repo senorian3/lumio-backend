@@ -34,7 +34,7 @@ export class PaymentsRepository {
   ): Promise<Payment> {
     const client = tx || this.prisma;
     return client.payment.update({
-      where: { custimPaymentId: data.customPaymentId },
+      where: { customPaymentId: data.customPaymentId },
       data,
     });
   }
@@ -118,7 +118,6 @@ export class PaymentsRepository {
       where: {
         profileId,
         status: 'successful',
-        subscriptionId: { not: null },
       },
       orderBy: { createdAt: 'desc' },
     });

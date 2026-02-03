@@ -36,6 +36,10 @@ export class StripeAdapter {
       const session = await this.stripe.checkout.sessions.create({
         success_url: this.coreConfig.stripeSuccessUrl,
         cancel_url: this.coreConfig.stripeCancelUrl,
+        metadata: {
+          customPaymentId: `${profileId}-${Date.now()}`,
+          subscriptionType: subscriptionType,
+        },
         line_items: [
           {
             price_data: {
@@ -57,10 +61,6 @@ export class StripeAdapter {
         client_reference_id: profileId.toString(),
 
         subscription_data: {
-          metadata: {
-            customPaymentId: `${profileId}-${Date.now()}`,
-            subscriptionType: subscriptionType,
-          },
           ...(trialEnd && {
             trial_end: trialEnd,
           }),

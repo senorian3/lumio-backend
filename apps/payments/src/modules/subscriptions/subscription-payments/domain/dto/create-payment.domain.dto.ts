@@ -12,9 +12,9 @@ export class CreatePaymentDomainDto {
     public readonly periodEnd: Date | null,
     public readonly nextPaymentDate: Date | null,
     public readonly createdAt: Date,
-    public readonly paymentsUrl: string | null,
-    public readonly stripePaymentCreatedAt: Date | null,
+    public readonly paymentsUrl: string,
+    public readonly stripePaymentCreatedAt: Date,
     public readonly cancelledAt: Date | null,
-    public readonly customPaymentId: string | null,
+    public readonly customPaymentId: string,
   ) {}
 }

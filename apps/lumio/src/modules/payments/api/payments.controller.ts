@@ -19,7 +19,6 @@ export class PaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
-
   //@ApiGetSubscriptionPaymentUrl()
   @HttpCode(HttpStatus.OK)
   async getSubscriptionPaymentUrl(
