@@ -32,10 +32,11 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         +dto.profileId,
       );
 
-    const trialEndDate = this.calculateNextSubscriptionEndDate(
-      lastSuccessfulPayment,
-      dto.subscriptionType,
-    );
+    // ✅ Триал только если есть активная подписка
+    const trialEndDate = lastSuccessfulPayment
+      ? this.calculateTrialEndDate(lastSuccessfulPayment, dto.subscriptionType)
+      : null;
+
     const amount: number = SUBSCRIPTION_PRICES[dto.subscriptionType];
 
     let session: Stripe.Checkout.Session;
@@ -54,12 +55,22 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         error?.stack,
         CommandHandler.name,
       );
+      throw error; // ✅ Пробрасываем ошибку
+    }
+
+    // ✅ Проверяем наличие URL
+    if (!session.url) {
+      throw BadRequestDomainException.create(
+        'Stripe session URL is missing',
+        'createPaymentSession',
+      );
     }
 
     const stripePaymentCreatedAt = new Date(session.created * 1000);
     const customPaymentId = session.metadata.customPaymentId;
 
-    const createDomainPymentData: CreatePaymentDomainDto = {
+    const createDomainPaymentData: CreatePaymentDomainDto = {
+      // ✅ Исправлена опечатка
       paymentProvider: dto.paymentProvider,
       currency: dto.currency,
       amount: amount,
@@ -72,7 +83,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       periodEnd: null,
       nextPaymentDate: null,
       createdAt: new Date(),
-      paymentsUrl: session.url,
+      paymentsUrl: session.url, // ✅ Гарантированно не null
       stripePaymentCreatedAt,
       cancelledAt: null,
       customPaymentId,
@@ -81,14 +92,14 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     try {
       const payment = await this.prisma.$transaction(async (tx) => {
         return await this.paymentsRepository.createPayment(
-          createDomainPymentData,
+          createDomainPaymentData,
           tx,
         );
       });
       return payment.paymentsUrl;
     } catch (error) {
       try {
-        if (session && session.id) {
+        if (session?.id) {
           await this.stripeAdapter.cancelSession(session.id);
         }
       } catch (stripeError) {
@@ -105,41 +116,52 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     }
   }
 
-  private calculateNextSubscriptionEndDate(
-    lastSuccessfulPayment: Payment | null,
-    subscriptionType: string,
-  ): number {
-    if (!lastSuccessfulPayment) {
-      return Math.floor(
-        (Date.now() + this.calculateSubscriptionDuration(subscriptionType)) /
-          1000,
-      );
+  // private calculateTrialEndDate(
+  //   lastSuccessfulPayment: Payment,
+  //   newSubcriptionType: string,
+  // ): number | null {
+  //   const remainingTime = lastSuccessfulPayment.nextPaymentDate.getTime();
+  //
+  //   let period;
+  //
+  //   if (newSubcriptionType.includes('week')) {
+  //     const weekCount = newSubcriptionType.includes('2') ? 2 : 1;
+  //     period = weekCount * 7 * 24 * 60 * 60 * 1000;
+  //   } else {
+  //     period = 30 * 24 * 60 * 60 * 1000;
+  //   }
+  //
+  //   const trialEnd = remainingTime + period;
+  //
+  //   return Math.floor(trialEnd / 1000);
+  // }
+
+  private calculateTrialEndDate(
+    lastSuccessfulPayment: Payment,
+    newSubscriptionType: string,
+  ): number | null {
+    const now = Date.now();
+    const currentSubscriptionEnd =
+      lastSuccessfulPayment.nextPaymentDate.getTime();
+    const remainingTime = currentSubscriptionEnd - now;
+
+    // Если текущая подписка уже истекла, не даём триал
+    if (remainingTime <= 0) {
+      return null;
     }
 
-    const now = new Date();
-    const remainingTime =
-      lastSuccessfulPayment.nextPaymentDate.getTime() - now.getTime();
-
-    if (remainingTime > 0) {
-      return Math.floor(
-        (now.getTime() +
-          remainingTime +
-          this.calculateSubscriptionDuration(subscriptionType)) /
-          1000,
-      );
+    // Рассчитываем период новой подписки
+    let period: number;
+    if (newSubscriptionType.includes('week')) {
+      const weekCount = newSubscriptionType.includes('2') ? 2 : 1;
+      period = weekCount * 7 * 24 * 60 * 60 * 1000;
+    } else {
+      period = 30 * 24 * 60 * 60 * 1000;
     }
 
-    return Math.floor(
-      (now.getTime() + this.calculateSubscriptionDuration(subscriptionType)) /
-        1000,
-    );
-  }
+    // ✅ Правильная логика: конец текущей подписки + период новой
+    const trialEndTimestamp = currentSubscriptionEnd + period;
 
-  private calculateSubscriptionDuration(subscriptionType: string): number {
-    if (subscriptionType.includes('week')) {
-      const weekCount = subscriptionType.includes('2') ? 2 : 1;
-      return weekCount * 7 * 24 * 60 * 60 * 1000;
-    }
-    return 30 * 24 * 60 * 60 * 1000;
+    return Math.floor(trialEndTimestamp / 1000);
   }
 }

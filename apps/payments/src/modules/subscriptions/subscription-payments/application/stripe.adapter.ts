@@ -26,7 +26,7 @@ export class StripeAdapter {
     amount: number,
     profileId: string,
     currency: string,
-    trialEnd?: number,
+    billingCycleAnchor?: number,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
@@ -61,8 +61,9 @@ export class StripeAdapter {
         client_reference_id: profileId.toString(),
 
         subscription_data: {
-          ...(trialEnd && {
-            trial_end: trialEnd,
+          ...(billingCycleAnchor && {
+            billing_cycle_anchor: billingCycleAnchor,
+            proration_behavior: 'none' as const,
           }),
         },
 

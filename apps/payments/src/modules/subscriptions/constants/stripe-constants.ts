@@ -16,11 +16,13 @@ export const subscriptionConfigs = {
     intervalCount: 7,
     description: '7 дней',
   },
+
   '2 weeks': {
     interval: 'day' as const,
     intervalCount: 14,
     description: '14 дней',
   },
+
   '1 month': {
     interval: 'day' as const,
     intervalCount: 30,
