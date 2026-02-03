@@ -20,7 +20,7 @@ export class SubscriptionPaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
-  @UseGuards(InternalApiGuard)
+  // @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
     @Body() payload: InputCreateSubscriptionPaymentDto,
   ): Promise<{ url: string }> {

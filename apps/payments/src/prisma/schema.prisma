@@ -13,7 +13,7 @@ datasource db {
 
 model Payment {
   id                Int      @id @default(autoincrement())
-  customPaymentId   String   
+  customPaymentId   String   @unique
   profileId         Int
   autoRenewal       Boolean  @default(true)
   paymentProvider   String

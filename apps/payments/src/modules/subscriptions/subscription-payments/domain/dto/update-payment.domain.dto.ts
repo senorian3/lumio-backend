@@ -1,6 +1,7 @@
 export class UpdatePaymentDomainDto {
   constructor(
     public readonly customPaymentId: string,
+    public readonly subscriptionId: string,
     public readonly status: string,
     public readonly periodStart: Date,
     public readonly periodEnd: Date,

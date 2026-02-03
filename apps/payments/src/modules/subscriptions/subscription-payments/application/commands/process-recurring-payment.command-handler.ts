@@ -27,17 +27,19 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
   ) {}
 
   async execute(command: ProcessRecurringPaymentCommand): Promise<void> {
-    try {
-      await this.retryService.executeWithRetry(
-        () => this.processRecurringPayment(command.invoice),
-        { maxRetries: 5 },
-      );
-    } catch (error) {
-      await this.manualReviewService.createFailedRecurringPaymentTask(
-        command.invoice,
-        error,
-      );
-    }
+    // try {
+    //   await this.retryService.executeWithRetry(
+    //     () => this.processRecurringPayment(command.invoice),
+    //     { maxRetries: 5 },
+    //   );
+    // } catch (error) {
+    //   await this.manualReviewService.createFailedRecurringPaymentTask(
+    //     command.invoice,
+    //     error,
+    //   );
+    // }
+
+    await this.processRecurringPayment(command.invoice);
   }
 
   private async processRecurringPayment(invoice: Stripe.Invoice) {
@@ -50,7 +52,9 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
     // Ищем существующий платеж в БД для получения данных профиля и подписки
     await this.prisma.$transaction(async (tx) => {
-      const subscriptionId = invoice.lines.data[0].subscription.toString();
+      const subscriptionId = invoice.parent.subscription_details
+        .subscription as string;
+
       const existingPayment =
         await this.paymentsRepository.findBySubscriptionId(subscriptionId, tx);
 
@@ -79,7 +83,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
       const createPaymentData: CreatePaymentDomainDto = {
         paymentProvider: 'Stripe',
-        currency: invoice.currency,
+        currency: invoice.currency.toUpperCase(),
         amount,
         profileId: existingPayment.profileId,
         status: PaymentStatus.SUCCESSFUL,
@@ -93,7 +97,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         createdAt: new Date(),
         stripePaymentCreatedAt: createdAt,
         cancelledAt: null,
-        customPaymentId: existingPayment.customPaymentId,
+        customPaymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
       };
 
       // Создаем новый платеж для рекуррентного платежа

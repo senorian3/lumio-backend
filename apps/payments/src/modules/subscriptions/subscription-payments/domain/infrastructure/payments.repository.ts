@@ -82,14 +82,15 @@ export class PaymentsRepository {
   }
 
   async updatePaymentAutoRenewal(
-    subscriptionId: number,
+    subscriptionId: string,
+    customPaymentId: string,
     autoRenewal: boolean,
     cancelledAt: Date | null,
     tx?: any,
   ): Promise<void> {
     const client = tx || this.prisma;
     await client.payment.update({
-      where: { subscriptionId },
+      where: { subscriptionId, customPaymentId },
       data: {
         autoRenewal,
         cancelledAt,

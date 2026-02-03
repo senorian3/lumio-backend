@@ -27,14 +27,15 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
-    console.log(dto);
-
     const lastSuccessfulPayment =
       await this.paymentsRepository.findLastSuccessfulPaymentByProfileId(
         +dto.profileId,
       );
 
-    const trialEndDate = this.calculateTrialEndDate(lastSuccessfulPayment);
+    const trialEndDate = this.calculateNextSubscriptionEndDate(
+      lastSuccessfulPayment,
+      dto.subscriptionType,
+    );
     const amount: number = SUBSCRIPTION_PRICES[dto.subscriptionType];
 
     let session: Stripe.Checkout.Session;
@@ -47,8 +48,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         dto.currency,
         trialEndDate,
       );
-
-      console.log(session);
     } catch (error) {
       this.logger.error(
         `Failed to create subscription payment session for profileId=${dto.profileId}: ${error.message}`,
@@ -106,19 +105,41 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     }
   }
 
-  private calculateTrialEndDate(
+  private calculateNextSubscriptionEndDate(
     lastSuccessfulPayment: Payment | null,
-  ): number | undefined {
-    if (!lastSuccessfulPayment?.nextPaymentDate) {
-      return undefined;
+    subscriptionType: string,
+  ): number {
+    if (!lastSuccessfulPayment) {
+      return Math.floor(
+        (Date.now() + this.calculateSubscriptionDuration(subscriptionType)) /
+          1000,
+      );
     }
 
-    const nextPaymentDate = lastSuccessfulPayment.nextPaymentDate;
+    const now = new Date();
+    const remainingTime =
+      lastSuccessfulPayment.nextPaymentDate.getTime() - now.getTime();
 
-    if (nextPaymentDate <= new Date()) {
-      return undefined;
+    if (remainingTime > 0) {
+      return Math.floor(
+        (now.getTime() +
+          remainingTime +
+          this.calculateSubscriptionDuration(subscriptionType)) /
+          1000,
+      );
     }
 
-    return Math.floor(nextPaymentDate.getTime() / 1000);
+    return Math.floor(
+      (now.getTime() + this.calculateSubscriptionDuration(subscriptionType)) /
+        1000,
+    );
+  }
+
+  private calculateSubscriptionDuration(subscriptionType: string): number {
+    if (subscriptionType.includes('week')) {
+      const weekCount = subscriptionType.includes('2') ? 2 : 1;
+      return weekCount * 7 * 24 * 60 * 60 * 1000;
+    }
+    return 30 * 24 * 60 * 60 * 1000;
   }
 }

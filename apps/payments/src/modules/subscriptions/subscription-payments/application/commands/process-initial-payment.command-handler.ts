@@ -36,17 +36,20 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   async execute(command: ProcessInitialPaymentCommand): Promise<void> {
     const { session } = command;
 
-    try {
-      await this.retryService.executeWithRetry(
-        () => this.processPaymentSession(session),
-        { maxRetries: 5 },
-      );
-    } catch (error) {
-      await this.manualReviewService.createFailedInitialPaymentTask(
-        session,
-        error,
-      );
-    }
+    //   try {
+    //     await this.retryService.executeWithRetry(
+    //       () => this.processPaymentSession(session),
+    //       { maxRetries: 5 },
+    //     );
+    //   } catch (error) {
+    //     await this.manualReviewService.createFailedInitialPaymentTask(
+    //       session,
+    //       error,
+    //     );
+    //   }
+    // }
+
+    await this.processPaymentSession(session);
   }
 
   private async processPaymentSession(session: Stripe.Checkout.Session) {
@@ -127,7 +130,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             activeSubscriptionPayment.subscriptionId !== subscriptionId
           ) {
             await this.paymentsRepository.updatePaymentAutoRenewal(
-              +activeSubscriptionPayment.subscriptionId,
+              activeSubscriptionPayment.subscriptionId,
+              activeSubscriptionPayment.customPaymentId,
               false,
               new Date(),
               tx,
@@ -137,6 +141,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
         const updatePaymentData: UpdatePaymentDomainDto = {
           customPaymentId,
+          subscriptionId,
           status: PaymentStatus.SUCCESSFUL,
           periodStart: currentPeriodStart,
           periodEnd: currentPeriodEnd,
