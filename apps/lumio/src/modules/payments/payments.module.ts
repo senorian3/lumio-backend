@@ -13,6 +13,8 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CoreConfig } from '../../core/core.config';
+import { IdempotencyService } from './application/idempotency.service';
+import { DlqNotificationService } from './application/dlq-notification.service';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
@@ -24,6 +26,8 @@ const useCases = [
 const adapters = [PaymentsHttpAdapter];
 
 const repositories = [PaymentsRepository, SubscriptionRepository];
+
+const services = [IdempotencyService, DlqNotificationService];
 
 @Module({
   imports: [
@@ -39,12 +43,15 @@ const repositories = [PaymentsRepository, SubscriptionRepository];
             urls: [coreConfig.rmqUrl],
             exchange: 'sub_payments_exchange',
             exchangeOptions: {
-              type: 'direct',
+              type: 'topic',
               durable: true,
             },
             queue: 'lumio_to_payments_queue',
             queueOptions: {
               durable: true,
+              deadLetterExchange: 'dlx_payments_exchange',
+              deadLetterRoutingKey: 'dlq.payments',
+              messageTtl: 300000,
             },
             noAck: true,
           },
@@ -54,6 +61,6 @@ const repositories = [PaymentsRepository, SubscriptionRepository];
     ]),
   ],
   controllers: [PaymentsController, PaymentsRabbitMQController],
-  providers: [...useCases, ...adapters, ...repositories],
+  providers: [...useCases, ...adapters, ...repositories, ...services],
 })
 export class PaymentsModule {}

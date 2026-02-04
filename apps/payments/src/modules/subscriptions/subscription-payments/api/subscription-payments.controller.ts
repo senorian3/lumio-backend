@@ -7,6 +7,7 @@ import {
   Req,
   Headers,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
@@ -16,10 +17,15 @@ import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InputCancelSubscriptionDto } from '@libs/dto/input/cancel-subscription.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Controller('subscription-payments')
 export class SubscriptionPaymentsController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject('LUMIO_SERVICE')
+    private readonly ClientProxy: ClientProxy,
+  ) {}
 
   @Post()
   @UseGuards(InternalApiGuard)
@@ -40,6 +46,13 @@ export class SubscriptionPaymentsController {
     @Body() payload: InputCancelSubscriptionDto,
   ): Promise<{ success: boolean }> {
     await this.commandBus.execute(new CancelSubscriptionCommand(payload));
+
+    return { success: true };
+  }
+
+  @Post('test')
+  sendSomeText() {
+    this.ClientProxy.emit('payment.test', 'test');
 
     return { success: true };
   }

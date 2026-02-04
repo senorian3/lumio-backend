@@ -16,17 +16,17 @@ async function bootstrap() {
       urls: [coreConfig.rmqUrl],
       exchange: 'sub_payments_exchange',
       exchangeOptions: {
-        type: 'direct',
+        type: 'topic',
         durable: true,
       },
       queue: 'payments_to_lumio_queue',
       queueOptions: {
         durable: true,
-        deadLetterExchange: 'dlx_ack_exchange',
-        deadLetterRoutingKey: 'dlq.acknowledgment',
+        deadLetterExchange: 'dlx_payments_exchange',
+        deadLetterRoutingKey: 'dlq.payments',
         messageTtl: 300000,
       },
-      noAck: true,
+      noAck: false,
     },
   });
 

@@ -123,14 +123,26 @@ export class OutboxScheduler {
     try {
       const routingKey = this.getRoutingKey(message.eventType);
 
-      this.lumioService.emit(routingKey, {
+      // Генерируем уникальный messageId для idempotency
+      const messageId = `outbox-${message.id}-${Date.now()}`;
+
+      // Отправляем сообщение с дополнительными свойствами
+      // Для ClientProxy.emit() нужно использовать send() с pattern
+      await this.lumioService.emit(routingKey, {
         id: message.id,
         aggregateId: message.aggregateId,
         aggregateType: message.aggregateType,
         eventType: message.eventType,
         timestamp: message.createdAt,
         payload: message.payload,
+        _messageId: messageId, // Добавляем messageId в payload для idempotency
+        _retryCount: 0, // Начинаем с 0 попыток
       });
+
+      this.logger.log(
+        `Message sent to Lumio with ID: ${messageId}, routing key: ${routingKey}`,
+        'OutboxScheduler',
+      );
 
       return true;
     } catch (error) {
