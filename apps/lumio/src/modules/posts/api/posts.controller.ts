@@ -84,6 +84,7 @@ export class PostsController {
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
     @Body() dto: InputCreatePostDto,
   ): Promise<PostView> {
+    console.log('Файлы которые пришли в контроллер', files);
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
       { file: OutputFileType[]; postId: number }
