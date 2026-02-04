@@ -11,18 +11,16 @@ services:
     volumes:
       - postgres_data_payments:/var/lib/postgresql/data
 
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: lumio_payments_rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+  redis:
+    image: redis:7-alpine
+    container_name: lumio_payments_redis
     ports:
-      - '5673:5672'
-      - '15673:15672'
+      - '6380:6379'
     volumes:
-      - rabbitmq_data_payments:/var/lib/rabbitmq
+      - redis_data_payments:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
 
 volumes:
   postgres_data_payments:
-  rabbitmq_data_payments:
+  redis_data_payments:

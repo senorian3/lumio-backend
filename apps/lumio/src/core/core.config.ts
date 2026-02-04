@@ -30,6 +30,11 @@ export class CoreConfig {
   })
   rmqUrl: string = this.configService.get('RMQ_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable REDIS_URL, example: redis://localhost:6379',
+  })
+  redisUrl: string = this.configService.get('REDIS_URL');
+
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
