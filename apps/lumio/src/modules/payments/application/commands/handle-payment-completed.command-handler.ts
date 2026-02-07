@@ -30,6 +30,16 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     try {
+      // Логируем входящую команду и данные
+      this.appLogger.debug(
+        `Received command: HandlePaymentCompletedCommand`,
+        'PaymentsRabbitMQ',
+      );
+      this.appLogger.debug(
+        `Command data: ${JSON.stringify(command.data, null, 2)}`,
+        'PaymentsRabbitMQ',
+      );
+
       await this.processPaymentCompleted(command.data);
     } catch (error) {
       this.appLogger.error(

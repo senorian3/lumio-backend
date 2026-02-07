@@ -45,28 +45,37 @@ model UserProfile {
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  payments         Payments[]
+  subscriptions    Subscription[] // Пользователь может иметь несколько подписок
 }
 
 model Payments {
-  id              Int      @id @default(autoincrement())
-  createdAt       DateTime @default(now()) @db.Timestamp(0)
+  id              Int          @id @default(autoincrement())
+  createdAt       DateTime     @default(now()) @db.Timestamp(0)
+
   amount          Float
-  paymentsService String  
-  userProfileId   Int
-  userProfile     UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
-  subscription    Subscription?
+  currency        String
+  paymentsService String
+
+  subscriptionId  Int?         // Сделал необязательным, чтобы платеж мог существовать без подписки
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 }
 
 model Subscription {
   id           Int       @id @default(autoincrement())
+
+  subscriptionId  String       @unique
   durationType String    @db.VarChar(20)
+
   startDate    DateTime  @db.Timestamp(0)
   endDate      DateTime  @db.Timestamp(0)
-  autoRenewal  Boolean   @default(false)
 
-  paymentId    Int       @unique
-  payment      Payments  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  autoRenewal  Boolean   @default(false)
+  cancelledAt     DateTime?    @db.Timestamp(0)
+
+  userProfileId Int
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  payments     Payments[] // Одна подписка может иметь много платежей
 }
 
 model Session {
