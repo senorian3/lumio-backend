@@ -1,5 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
+import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 
 export interface PaymentCompletedEvent {
   id: number;
@@ -26,17 +28,17 @@ export class HandlePaymentCompletedCommand {
 
 @CommandHandler(HandlePaymentCompletedCommand)
 export class HandlePaymentCompletedCommandHandler implements ICommandHandler<HandlePaymentCompletedCommand> {
-  constructor(private readonly appLogger: AppLoggerService) {}
+  constructor(
+    private readonly appLogger: AppLoggerService,
+    private readonly subscriptionRepository: SubscriptionRepository,
+    private readonly paymentsRepository: PaymentsRepository,
+  ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     try {
       // Логируем входящую команду и данные
       this.appLogger.debug(
         `Received command: HandlePaymentCompletedCommand`,
-        'PaymentsRabbitMQ',
-      );
-      this.appLogger.debug(
-        `Command data: ${JSON.stringify(command.data, null, 2)}`,
         'PaymentsRabbitMQ',
       );
 
@@ -60,14 +62,37 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     // 2. Creating/updating the subscription entity
     // 3. Sending acknowledgment back to Payments service
 
+    const {
+      profileId,
+      amount,
+      currency,
+      subscriptionId,
+      subscriptionType,
+      periodStart,
+      periodEnd,
+    } = data.payload;
+
+    const startDate = new Date(periodStart);
+    const endDate = new Date(periodEnd);
+
+    const subscription = await this.subscriptionRepository.createSubscription({
+      subscriptionId,
+      durationType: subscriptionType,
+      startDate,
+      endDate,
+      userProfileId: profileId,
+      autoRenewal: true,
+    });
+
+    await this.paymentsRepository.createPayment({
+      amount,
+      currency,
+      paymentsService: 'Stripe',
+      subscriptionId: subscription.id,
+    });
+
     this.appLogger.log(
       `Processing payment completed for payment ${data.payload.paymentId}`,
-      'PaymentsRabbitMQ',
-    );
-
-    // For now, just log the data
-    this.appLogger.log(
-      `Payment data: ${JSON.stringify(data.payload)}`,
       'PaymentsRabbitMQ',
     );
   }

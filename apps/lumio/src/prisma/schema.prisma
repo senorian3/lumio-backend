@@ -56,7 +56,7 @@ model Payments {
   currency        String
   paymentsService String
 
-  subscriptionId  Int?         // Сделал необязательным, чтобы платеж мог существовать без подписки
+  subscriptionId  Int?
   subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 }
 

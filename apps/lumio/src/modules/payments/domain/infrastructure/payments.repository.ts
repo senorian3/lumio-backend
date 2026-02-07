@@ -23,17 +23,20 @@ export class PaymentsRepository {
   async createPayment(
     data: {
       amount: number;
-      paymentsService?: string;
-      userProfileId: number;
+      currency: string;
+      paymentsService: string;
+      subscriptionId: number;
     },
     tx?: any,
   ): Promise<Payments> {
     const client = tx || this.prisma;
+
     return client.payments.create({
       data: {
         amount: data.amount,
+        currency: data.currency,
         paymentsService: data.paymentsService,
-        userProfileId: data.userProfileId,
+        subscriptionId: data.subscriptionId,
       },
     });
   }

@@ -42,6 +42,7 @@ export class RegisterUserCommandHandler implements ICommandHandler<
         );
       }
     }
+
     const newUserId = await this.commandBus.execute<CreateUserCommand, number>(
       new CreateUserCommand({ ...registerDto }),
     );

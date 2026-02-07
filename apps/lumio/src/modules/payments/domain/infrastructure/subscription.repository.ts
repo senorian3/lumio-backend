@@ -33,4 +33,31 @@ export class SubscriptionRepository {
       },
     });
   }
+
+  async createSubscription(
+    data: {
+      subscriptionId: string;
+      durationType: string;
+      startDate: Date;
+      endDate: Date;
+      userProfileId: number;
+      autoRenewal?: boolean;
+      cancelledAt?: Date | null;
+    },
+    tx?: any,
+  ): Promise<Subscription> {
+    const client = tx || this.prisma;
+
+    return client.subscription.create({
+      data: {
+        subscriptionId: data.subscriptionId,
+        durationType: data.durationType,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        userProfileId: data.userProfileId,
+        autoRenewal: data.autoRenewal ?? false,
+        cancelledAt: data.cancelledAt,
+      },
+    });
+  }
 }
