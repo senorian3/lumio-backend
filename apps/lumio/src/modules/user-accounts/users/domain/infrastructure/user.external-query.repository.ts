@@ -1,5 +1,6 @@
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { UserProfile } from 'generated/prisma-lumio';
 
 @Injectable()
 export class ExternalQueryUserAccountsRepository {
@@ -35,5 +36,24 @@ export class ExternalQueryUserAccountsRepository {
 
   async getAllRegisteredUsersCount(): Promise<number> {
     return this.prisma.user.count();
+  }
+
+  async findByProfileId(profileId: number): Promise<UserProfile | null> {
+    return this.prisma.userProfile.findUnique({
+      where: { id: profileId },
+    });
+  }
+
+  async updateAccountType(
+    profileId: number,
+    accountType: string,
+  ): Promise<UserProfile> {
+    return this.prisma.userProfile.update({
+      where: { id: profileId },
+      data: {
+        accountType,
+        profileUpdatedAt: new Date(),
+      },
+    });
   }
 }

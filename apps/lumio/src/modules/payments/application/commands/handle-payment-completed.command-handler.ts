@@ -2,6 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
 import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export interface PaymentCompletedEvent {
   id: number;
@@ -32,6 +34,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly appLogger: AppLoggerService,
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly paymentsRepository: PaymentsRepository,
+    private readonly userRepository: ExternalQueryUserAccountsRepository,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -56,12 +59,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
   private async processPaymentCompleted(
     data: PaymentCompletedEvent,
   ): Promise<void> {
-    // TODO: Implement actual payment processing logic
-    // This would typically involve:
-    // 1. Updating the user's subscription status in the database
-    // 2. Creating/updating the subscription entity
-    // 3. Sending acknowledgment back to Payments service
-
     const {
       profileId,
       amount,
@@ -71,6 +68,15 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       periodStart,
       periodEnd,
     } = data.payload;
+
+    const profile = await this.userRepository.findByProfileId(profileId);
+
+    if (!profile) {
+      throw BadRequestDomainException.create(
+        'User profile dont exist',
+        'UserProfile',
+      );
+    }
 
     const startDate = new Date(periodStart);
     const endDate = new Date(periodEnd);
@@ -90,6 +96,8 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       paymentsService: 'Stripe',
       subscriptionId: subscription.id,
     });
+
+    await this.userRepository.updateAccountType(profileId, 'Business');
 
     this.appLogger.log(
       `Processing payment completed for payment ${data.payload.paymentId}`,
