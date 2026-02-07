@@ -8,8 +8,9 @@ import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.dto';
 import { CreatePaymentCompleteMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-payment-complete-message.dto';
+import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { RetryService } from '../retry.service';
-import { ManualReviewService } from '../manual-review.service';
 
 export class ProcessInitialPaymentCommand {
   constructor(
@@ -29,165 +30,111 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     private readonly logger: AppLoggerService,
     private readonly outboxService: OutboxService,
     private readonly prisma: PrismaService,
-    private readonly retryService: RetryService,
     private readonly manualReviewService: ManualReviewService,
+    private readonly retryService: RetryService,
   ) {}
 
   async execute(command: ProcessInitialPaymentCommand): Promise<void> {
     const { session } = command;
-
-    //   try {
-    //     await this.retryService.executeWithRetry(
-    //       () => this.processPaymentSession(session),
-    //       { maxRetries: 5 },
-    //     );
-    //   } catch (error) {
-    //     await this.manualReviewService.createFailedInitialPaymentTask(
-    //       session,
-    //       error,
-    //     );
-    //   }
-    // }
-
-    await this.processPaymentSession(session);
-  }
-
-  private async processPaymentSession(session: Stripe.Checkout.Session) {
-    if (!session.client_reference_id) {
-      throw new Error('Отсутствует client_reference_id в сессии');
-    }
-
-    if (!session.subscription) {
-      throw new Error('Отсутствует subscription ID в сессии');
-    }
-
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
 
-    const currentPayment =
-      await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
-
-    if (!currentPayment) {
-      this.logger.error(
-        `Платеж с customPaymentId ${customPaymentId} не найден`,
-        'ProcessInitialPayment',
-        'findByCustomPaymentId',
-      );
-      throw new Error(`Платеж с customPaymentId ${customPaymentId} не найден`);
-    }
-
-    const profileId = currentPayment.profileId;
-    const subscriptionType = currentPayment.subscriptionType;
-
-    // const activeSubscriptionsPayments =
-    //   await this.paymentsRepository.findActiveSubscriptionPaymentsWithAutoRenewalByProfileId(
-    //     profileId,
-    //   );
-
-    // Шаг 1: Транзакция с базой данных (все операции с БД)
-
-    let currentPeriodStart: Date;
-    let currentPeriodEnd: Date;
-
     try {
-      let subscriptionDetails: Stripe.Subscription;
+      await this.retryService.executeWithRetry(async () => {
+        const currentPayment =
+          await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
 
-      try {
-        subscriptionDetails =
+        if (!currentPayment) {
+          this.logger.error(
+            `Payment with customPaymentId ${customPaymentId} not found`,
+            null,
+            ProcessInitialPaymentCommand.name,
+          );
+          throw new Error();
+        }
+
+        const subscriptionDetails =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
-      } catch (error) {
-        this.logger.error(error.message, error.stack, 'getSubscriptionDetails');
-        throw new Error('Failed to retrieve subscription details');
-      }
 
-      currentPeriodStart = new Date(
-        subscriptionDetails.billing_cycle_anchor * 1000,
-      );
-
-      let periodDuration: number;
-
-      if (subscriptionType.includes('week')) {
-        const weekCount = subscriptionType.includes('2') ? 2 : 1;
-        periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
-      } else if (subscriptionType.includes('month')) {
-        const monthCount = subscriptionType.includes('3') ? 3 : 1;
-        periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
-      } else if (subscriptionType.includes('year')) {
-        periodDuration = 365 * 24 * 60 * 60 * 1000;
-      } else {
-        periodDuration = 30 * 24 * 60 * 60 * 1000;
-      }
-
-      currentPeriodEnd = new Date(
-        currentPeriodStart.getTime() + periodDuration,
-      );
-
-      await this.prisma.$transaction(async (tx) => {
-        // for (const activeSubscriptionPayment of activeSubscriptionsPayments) {
-        //   if (
-        //     activeSubscriptionPayment.subscriptionId &&
-        //     activeSubscriptionPayment.subscriptionId !== subscriptionId
-        //   ) {
-        //     await this.paymentsRepository.updatePaymentAutoRenewal(
-        //       activeSubscriptionPayment.subscriptionId,
-        //       activeSubscriptionPayment.customPaymentId,
-        //       false,
-        //       new Date(),
-        //       tx,
-        //     );
-        //   }
-        // }
-
-        const updatePaymentData: UpdatePaymentDomainDto = {
-          customPaymentId,
-          subscriptionId,
-          status: PaymentStatus.SUCCESSFUL,
-          periodStart: currentPeriodStart,
-          periodEnd: currentPeriodEnd,
-          nextPaymentDate: currentPeriodEnd,
-        };
-
-        await this.paymentsRepository.updatePayment(updatePaymentData, tx);
-
-        // for (const subscription of activeSubscriptionsPayments) {
-        //   if (
-        //     subscription.subscriptionId &&
-        //     subscription.subscriptionId !== subscriptionId
-        //   ) {
-        //     //Дописать RabbitMQ по отмене подписки
-        //     await this.outboxService.createCancelSubscriptionMessage(
-        //       customPaymentId,
-        //       subscription.subscriptionId,
-        //       tx,
-        //     );
-        //   }
-        // }
-
-        const createPaymentData: CreatePaymentCompleteMessageDto = {
-          paymentId: currentPayment.customPaymentId,
-          profileId,
-          amount: currentPayment.amount,
-          currency: currentPayment.currency,
-          subscriptionId,
-          subscriptionType,
-          periodStart: currentPeriodStart,
-          periodEnd: currentPeriodEnd,
-          timestamp: new Date().toISOString(),
-        };
-
-        await this.outboxService.createPaymentCompletedMessage(
-          createPaymentData,
-          tx,
+        const { periodStart, periodEnd } = this.calculatePeriodDates(
+          subscriptionDetails.billing_cycle_anchor,
+          currentPayment.subscriptionType,
         );
+
+        await this.prisma.$transaction(async (tx) => {
+          const updatePaymentData: UpdatePaymentDomainDto = {
+            customPaymentId,
+            subscriptionId,
+            status: PaymentStatus.SUCCESSFUL,
+            periodStart,
+            periodEnd,
+            nextPaymentDate: periodEnd,
+          };
+
+          await this.paymentsRepository.updatePayment(updatePaymentData, tx);
+
+          const createPaymentData: CreatePaymentCompleteMessageDto = {
+            paymentId: customPaymentId,
+            profileId: currentPayment.profileId,
+            amount: currentPayment.amount,
+            currency: currentPayment.currency,
+            subscriptionId,
+            subscriptionType: currentPayment.subscriptionType,
+            periodStart,
+            periodEnd,
+            timestamp: new Date().toISOString(),
+          };
+
+          await this.outboxService.createPaymentCompletedMessage(
+            createPaymentData,
+            tx,
+          );
+        });
       });
+
+      this.logger.log(
+        `Initial payment processed successfully for ${customPaymentId}`,
+        ProcessInitialPaymentCommand.name,
+      );
     } catch (error) {
-      this.logger.error(error.message, error.stack, 'processPaymentSession');
-      throw new Error('Failed to create subscription');
+      this.logger.error(
+        `Critical error processing initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
+        error.stack,
+        ProcessInitialPaymentCommand.name,
+      );
+      await this.manualReviewService.createFailedInitialPaymentTask(
+        session,
+        error,
+      );
+      throw BadRequestDomainException.create(
+        'Something went wrong processing initial payment, we are working on it',
+        'customPaymentId',
+      );
+    }
+  }
+
+  private calculatePeriodDates(
+    billingCycleAnchor: number,
+    subscriptionType: string,
+  ): { periodStart: Date; periodEnd: Date } {
+    const periodStart = new Date(billingCycleAnchor * 1000);
+
+    let periodDuration: number;
+
+    if (subscriptionType.includes('week')) {
+      const weekCount = subscriptionType.includes('2') ? 2 : 1;
+      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
+    } else if (subscriptionType.includes('month')) {
+      const monthCount = subscriptionType.includes('3') ? 3 : 1;
+      periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
+    } else if (subscriptionType.includes('year')) {
+      periodDuration = 365 * 24 * 60 * 60 * 1000;
+    } else {
+      periodDuration = 30 * 24 * 60 * 60 * 1000;
     }
 
-    this.logger.log(
-      `Подписка ${subscriptionId} успешно создана для профиля ${profileId} с автопродлением`,
-      'ProcessInitialPayment',
-    );
+    const periodEnd = new Date(periodStart.getTime() + periodDuration);
+
+    return { periodStart, periodEnd };
   }
 }

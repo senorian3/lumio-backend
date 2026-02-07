@@ -9,15 +9,11 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { SubscriptionPaymentsController } from '@payments/modules/subscriptions/subscription-payments/api/subscription-payments.controller';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
-import {
-  CreateSubscriptionPaymentCommand,
-  CreateSubscriptionPaymentCommandHandler,
-} from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
-import { CancelSubscriptionCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/cancel-subscription.command-handler';
+import { CreateSubscriptionPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
+import { ChangeAutoRenewalSubscriptionCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/change-subscription-autorenewal.command-handler';
 import { StripeHookCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { ProcessInitialPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
-import { ProcessSubscriptionCancelledCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-subscription-cancelled.command-handler';
 import { RetryService } from '@payments/modules/subscriptions/subscription-payments/application/retry.service';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { OutboxRepository } from '@payments/modules/subscriptions/outbox/domain/outbox.repository';
@@ -29,13 +25,11 @@ import { ScheduleModule } from '@nestjs/schedule';
 const adapters = [StripeAdapter];
 
 const useCases = [
-  CreateSubscriptionPaymentCommand,
   StripeHookCommandHandler,
+  CreateSubscriptionPaymentCommandHandler,
   ProcessInitialPaymentCommandHandler,
   ProcessRecurringPaymentCommandHandler,
-  CreateSubscriptionPaymentCommandHandler,
-  CancelSubscriptionCommandHandler,
-  ProcessSubscriptionCancelledCommandHandler,
+  ChangeAutoRenewalSubscriptionCommandHandler,
 ];
 
 const repositories = [PaymentsRepository];

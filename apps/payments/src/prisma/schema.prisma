@@ -46,7 +46,6 @@ model OutboxMessage {
   retryCount    Int      @default(0)
   maxRetries    Int      @default(3)
   ttl           DateTime?
-  details       String?
 
   @@index([status, scheduledAt])
   @@index([ttl])

@@ -19,121 +19,199 @@ export class OutboxService {
     payload: CreatePaymentCompleteMessageDto,
     tx?: any,
   ): Promise<void> {
-    await this.outboxRepository.createOutboxMessage(
-      {
-        aggregateId: payload.paymentId,
-        aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.PAYMENT_COMPLETED,
-        payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000),
-      },
-      tx,
-    );
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.paymentId,
+          aggregateType: OutboxAggregateType.PAYMENT,
+          eventType: OutboxEventType.PAYMENT_COMPLETED,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for payment ${payload.paymentId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
 
-    this.logger.log(
-      `Created outbox message for payment ${payload.paymentId}`,
-      'OutboxService',
-    );
-  }
-
-  //метод для отмены подписки от юзера
-  async createSubscriptionCancelByUserMessage(
-    paymentId: string,
-    subscriptionId: string,
-    tx?: any,
-  ): Promise<void> {
-    const payload = {
-      paymentId,
-      subscriptionId,
-      timestamp: new Date().toISOString(),
-    };
-
-    await this.outboxRepository.createOutboxMessage(
-      {
-        aggregateId: paymentId,
-        aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.SUBSCRIPTION_CANCELLED,
-        payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
-      },
-      tx,
-    );
-
-    this.logger.log(
-      `Created cancelled outbox message for payment ${paymentId}`,
-      'OutboxService',
-    );
-  }
-
-  async createCancelSubscriptionAutoRenewalMessage(
-    subscriptionId: string,
-    paymentId: string,
-    tx?: any,
-  ): Promise<void> {
-    const payload = {
-      subscriptionId,
-      paymentId,
-      timestamp: new Date().toISOString(),
-    };
-
-    await this.outboxRepository.createOutboxMessage(
-      {
-        aggregateId: paymentId,
-        aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.CANCEL_SUBSCRIPTION_AUTO_RENEWAL,
-        payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
-      },
-      tx,
-    );
-
-    this.logger.log(
-      `Created cancel subscription auto-renewal outbox message for subscription ${subscriptionId}`,
-      'OutboxService',
-    );
+      try {
+        await this.createFailedInitialPaymentProcessingMessage(
+          {
+            profileId: payload.profileId.toString(),
+            subscriptionId: payload.subscriptionId,
+            customPaymentId: payload.paymentId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+          tx,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to create failed initial payment processing message for session ${payload.profileId}: ${error.message}`,
+          error.stack,
+          OutboxService.name,
+        );
+        throw error;
+      }
+    }
   }
 
   async createSubscriptionUpdatedMessage(
     payload: CreateSubscriptionUpdateMessageDto,
     tx?: any,
   ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.customPaymentId,
+          aggregateType: OutboxAggregateType.PAYMENT,
+          eventType: OutboxEventType.RECURRING_PAYMENT_COMPLETED,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for recurring payment ${payload.customPaymentId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
+      try {
+        await this.createFailedRecurringPaymentCompleteMessage(
+          {
+            subscriptionId: payload.subscriptionId,
+            customPaymentId: payload.customPaymentId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+          tx,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to create failed initial payment processing message for session with customPaymentId ${payload.customPaymentId}`,
+          error.stack,
+          OutboxService.name,
+        );
+        throw error;
+      }
+    }
+  }
+
+  async createFailedInitialPaymentProcessingMessage(
+    payload: {
+      profileId: string;
+      subscriptionId?: string;
+      customPaymentId?: string;
+      error: string;
+      timestamp: string;
+    },
+    tx?: any,
+  ): Promise<void> {
     await this.outboxRepository.createOutboxMessage(
       {
         aggregateId: payload.customPaymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.SUBSCRIPTION_UPDATED,
+        eventType: OutboxEventType.FAILED_INITIAL_PAYMENT_PROCESSING,
+        scheduledAt: new Date(),
         payload,
-        ttl: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes TTL
+        ttl: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       },
       tx,
     );
-
-    this.logger.log(
-      `Created subscription updated outbox message for payment ${payload.customPaymentId}`,
-      'OutboxService',
-    );
   }
 
-  async cleanupExpiredMessages(): Promise<void> {
-    await this.outboxRepository.cleanupExpiredMessages();
-    this.logger.log('Cleaned up expired outbox messages', 'OutboxService');
-  }
-
-  async createManualReviewTask(payload: any, tx?: any): Promise<void> {
+  async createFailedRecurringPaymentCompleteMessage(
+    payload: {
+      subscriptionId?: string;
+      customPaymentId?: string;
+      error: string;
+      timestamp: string;
+    },
+    tx?: any,
+  ): Promise<void> {
     await this.outboxRepository.createOutboxMessage(
       {
-        aggregateId: payload.customPaymentId || payload.sessionId,
+        aggregateId: payload.customPaymentId,
         aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.MANUAL_REVIEW_REQUIRED,
+        eventType: OutboxEventType.FAILED_RECURRING_PAYMENT_PROCESSING,
+        scheduledAt: new Date(),
         payload,
         ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
       tx,
     );
+  }
 
-    this.logger.log(
-      `Created manual review task for session ${payload.sessionId}`,
-      'OutboxService',
+  async createChangeSubscriptionAutoRenewalMessage(
+    subscriptionId: string,
+    paymentId: string,
+    autoRenewal: boolean,
+    tx?: any,
+  ): Promise<void> {
+    const payload = {
+      subscriptionId,
+      paymentId,
+      autoRenewal,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.outboxRepository.createOutboxMessage(
+      {
+        aggregateId: paymentId,
+        aggregateType: OutboxAggregateType.PAYMENT,
+        eventType: OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED,
+        scheduledAt: new Date(),
+        payload,
+        ttl: new Date(Date.now() + 24 * 60 * 1000),
+      },
+      tx,
     );
+  }
+
+  async createChangeSubscriptionAutoRenewalStripe(
+    subscriptionId: string,
+    autoRenewal: boolean,
+    tx?: any,
+  ): Promise<void> {
+    await this.outboxRepository.createOutboxMessage(
+      {
+        aggregateId: subscriptionId,
+        aggregateType: OutboxAggregateType.SUBSCRIPTION,
+        eventType: OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE,
+        scheduledAt: new Date(),
+        payload: {
+          subscriptionId,
+          autoRenewal,
+          timestamp: new Date().toISOString(),
+        },
+        ttl: new Date(Date.now() + 24 * 60 * 1000),
+      },
+      tx,
+    );
+  }
+
+  async cleanupExpiredMessages(): Promise<void> {
+    await this.outboxRepository.cleanupExpiredMessages();
+  }
+
+  async createManualReviewTask(
+    payload: any,
+    aggregateId: string,
+    aggregateType: OutboxAggregateType,
+  ): Promise<void> {
+    await this.outboxRepository.createOutboxMessage({
+      aggregateId,
+      aggregateType,
+      eventType: OutboxEventType.MANUAL_REVIEW_REQUIRED,
+      payload,
+      scheduledAt: new Date(),
+      ttl: new Date(Date.now() + 24 * 60 * 1000),
+    });
   }
 }

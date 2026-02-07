@@ -17,21 +17,14 @@ export class OutboxRepository {
       aggregateType: OutboxAggregateType;
       eventType: OutboxEventType;
       payload: any;
-      scheduledAt?: Date;
+      scheduledAt: Date;
       ttl: Date;
     },
     tx?: any,
   ): Promise<OutboxMessage> {
     const client = tx || this.prisma;
     return client.outboxMessage.create({
-      data: {
-        aggregateId: data.aggregateId,
-        aggregateType: data.aggregateType,
-        eventType: data.eventType,
-        payload: data.payload,
-        scheduledAt: data.scheduledAt || new Date(),
-        ttl: data.ttl,
-      },
+      data,
     });
   }
 
@@ -40,7 +33,7 @@ export class OutboxRepository {
       where: {
         status: OutboxMessageStatus.PENDING,
         scheduledAt: { lte: new Date() },
-        retryCount: { lt: 3 },
+        retryCount: { lt: 5 },
       },
       orderBy: { scheduledAt: 'asc' },
       take: limit,
@@ -57,17 +50,12 @@ export class OutboxRepository {
     });
   }
 
-  async markAsCompleted(
-    messageId: number,
-    details: string,
-    processedAt: Date,
-  ): Promise<void> {
+  async markAsCompleted(messageId: number, processedAt: Date): Promise<void> {
     await this.prisma.outboxMessage.update({
       where: { id: messageId },
       data: {
         status: OutboxMessageStatus.COMPLETED,
         processedAt,
-        details,
       },
     });
   }
@@ -77,7 +65,7 @@ export class OutboxRepository {
       where: { id: messageId },
       data: {
         retryCount: { increment: 1 },
-        scheduledAt: new Date(Date.now() + 10000), // Retry after 10 seconds
+        scheduledAt: new Date(Date.now() + 10000),
       },
     });
   }

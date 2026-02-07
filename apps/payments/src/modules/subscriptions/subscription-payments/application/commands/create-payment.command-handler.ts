@@ -50,18 +50,9 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         dto.currency,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to create subscription payment session for profileId=${dto.profileId}: ${error.message}`,
-        error?.stack,
-        CommandHandler.name,
-      );
-      throw error;
-    }
-
-    if (!session.url) {
       throw BadRequestDomainException.create(
-        'Stripe session URL is missing',
-        'createPaymentSession',
+        `Failed to create subscription payment session: ${error.message}`,
+        'profileId',
       );
     }
 
@@ -71,7 +62,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     const createDomainPaymentData: CreatePaymentDomainDto = {
       paymentProvider: dto.paymentProvider,
       currency: dto.currency,
-      amount: amount,
+      amount,
       profileId: +dto.profileId,
       status: 'pending',
       subscriptionType: dto.subscriptionType,
@@ -96,20 +87,24 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       });
       return payment.paymentsUrl;
     } catch (error) {
+      this.logger.error(
+        `Failed to create payment: ${error.message}`,
+        error.stack,
+        CreateSubscriptionPaymentCommandHandler.name,
+      );
       try {
-        if (session?.id) {
+        if (session.id) {
           await this.stripeAdapter.cancelSession(session.id);
         }
       } catch (stripeError) {
         this.logger.warn(
           `Could not cancel Stripe session: ${stripeError.message}`,
-          stripeError.stack,
+          CreateSubscriptionPaymentCommandHandler.name,
         );
       }
-
       throw BadRequestDomainException.create(
-        `Failed to create payment: ${error.message}`,
-        'createPayment',
+        'Failed to create payment',
+        'profileId',
       );
     }
   }

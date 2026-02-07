@@ -1,7 +1,6 @@
 export enum StripeEventType {
   SESSION_COMPLETED = 'checkout.session.completed',
   INVOICE_PAID = 'invoice.paid',
-  SUBSCRIPTION_CANCELLED = 'customer.subscription.deleted',
 }
 
 export enum PaymentStatus {

@@ -60,8 +60,10 @@ export class PaymentsRepository {
 
   async findByCustomPaymentId(
     customPaymentId: string,
+    tx?: any,
   ): Promise<Payment | null> {
-    return this.prisma.payment.findFirst({
+    const client = tx || this.prisma;
+    return client.payment.findFirst({
       where: { customPaymentId },
     });
   }
@@ -96,12 +98,8 @@ export class PaymentsRepository {
     });
   }
 
-  async findBySubscriptionId(
-    subscriptionId: string,
-    tx?: any,
-  ): Promise<Payment | null> {
-    const client = tx || this.prisma;
-    return client.payment.findFirst({
+  async findBySubscriptionId(subscriptionId: string): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
       where: {
         subscriptionId,
         status: 'successful',
@@ -131,9 +129,8 @@ export class PaymentsRepository {
       where: {
         profileId,
         status: 'successful',
-        autoRenewal: true,
         cancelledAt: null,
-        OR: [{ nextPaymentDate: { gt: now } }, { nextPaymentDate: null }],
+        nextPaymentDate: { gt: now },
       },
       orderBy: { createdAt: 'desc' },
     });

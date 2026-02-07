@@ -1,13 +1,9 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
-import { PrismaService } from '@payments/prisma/prisma.service';
 import { ProcessInitialPaymentCommand } from './process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommand } from './process-recurring-payment.command-handler';
-import { ProcessSubscriptionCancelledCommand } from './process-subscription-cancelled.command-handler';
 import Stripe from 'stripe';
 import {
   PaymentStatus,
@@ -30,8 +26,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
     private readonly paymentsRepository: PaymentsRepository,
     private readonly stripeAdapter: StripeAdapter,
     private readonly logger: AppLoggerService,
-    private readonly outboxService: OutboxService,
-    private readonly prisma: PrismaService,
     private readonly commandBus: CommandBus,
   ) {}
 
@@ -49,14 +43,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
         case StripeEventType.INVOICE_PAID:
           await this.handleRecurringPayment(event);
-          break;
-
-        case StripeEventType.SUBSCRIPTION_CANCELLED:
-          await this.handleSubscriptionCancelled(event);
-          this.logger.debug(
-            `Получено событие Stripe: ${event.type} (ID: ${event.id})`,
-            'CANCEL',
-          );
           break;
 
         default:
@@ -103,13 +89,5 @@ export class StripeHookCommandHandler implements ICommandHandler<
   private async handleRecurringPayment(event: Stripe.Event) {
     const invoice = event.data.object as Stripe.Invoice;
     await this.commandBus.execute(new ProcessRecurringPaymentCommand(invoice));
-  }
-
-  private async handleSubscriptionCancelled(event: Stripe.Event) {
-    const subscription = event.data.object as Stripe.Subscription;
-
-    await this.commandBus.execute(
-      new ProcessSubscriptionCancelledCommand(subscription),
-    );
   }
 }

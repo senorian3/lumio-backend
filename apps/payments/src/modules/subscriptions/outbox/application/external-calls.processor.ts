@@ -10,21 +10,22 @@ export class ExternalCallsProcessor {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async processCancelSubscriptionAutoRenewal(
+  async processChangeSubscriptionAutoRenewal(
     message: OutboxMessage,
   ): Promise<boolean> {
     const payload = message.payload as {
       subscriptionId: string;
-      paymentId: string;
+      autoRenewal: boolean;
     };
 
     try {
-      await this.stripeAdapter.cancelSubscriptionAutoRenewal(
+      await this.stripeAdapter.changeSubscriptionAutoRenewal(
         payload.subscriptionId,
+        payload.autoRenewal,
       );
 
       this.logger.log(
-        `Successfully cancelled auto-renewal for subscription ${payload.subscriptionId}`,
+        `Successfully changed auto-renewal for ${payload.autoRenewal} for subscription ${payload.subscriptionId}`,
         'ExternalCallsProcessor',
       );
       return true;
@@ -50,51 +51,11 @@ export class ExternalCallsProcessor {
     };
 
     try {
-      // Логируем информацию о задаче для ручного разбора
-      this.logger.error(
-        `MANUAL REVIEW REQUIRED - Failed webhook processing after ${payload.retryCount} retries`,
-        null,
-        'ExternalCallsProcessor',
+      this.logger.log(
+        `Some logic for processing failed initial payment ${payload}`,
       );
 
-      this.logger.error(
-        `Session ID: ${payload.sessionId}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      if (payload.subscriptionId) {
-        this.logger.error(
-          `Subscription ID: ${payload.subscriptionId}`,
-          null,
-          'ExternalCallsProcessor',
-        );
-      }
-
-      if (payload.customPaymentId) {
-        this.logger.error(
-          `Custom Payment ID: ${payload.customPaymentId}`,
-          null,
-          'ExternalCallsProcessor',
-        );
-      }
-
-      this.logger.error(
-        `Error: ${payload.error}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      this.logger.error(
-        `Timestamp: ${payload.timestamp}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      // Можно добавить отправку уведомления в Slack, email или другие системы
-      // Например: await this.notificationService.sendManualReviewAlert(payload);
-
-      return true; // Задача обработана (записана в лог), можно помечать как completed
+      return true;
     } catch (error) {
       this.logger.error(
         `Failed to process manual review task ${message.id}: ${error.message}`,
@@ -112,49 +73,69 @@ export class ExternalCallsProcessor {
       type: string;
       invoiceId: string;
       subscriptionId: string;
+      error: string;
       timestamp: string;
       retryCount: number;
     };
 
     try {
-      // Логируем информацию о неудачной обработке рекуррентного платежа
-      this.logger.error(
-        `FAILED RECURRING PAYMENT PROCESSING - Failed after ${payload.retryCount} retries`,
-        null,
-        'ExternalCallsProcessor',
+      this.logger.log(
+        `Some logic for processing failed recurring payment ${payload}`,
       );
-
-      this.logger.error(
-        `Invoice ID: ${payload.invoiceId}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      this.logger.error(
-        `Subscription ID: ${payload.subscriptionId}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      this.logger.error(
-        `Timestamp: ${payload.timestamp}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      this.logger.error(
-        `Retry Count: ${payload.retryCount}`,
-        null,
-        'ExternalCallsProcessor',
-      );
-
-      // Можно добавить отправку уведомления в Slack, email или другие системы
-      // Например: await this.notificationService.sendFailedRecurringPaymentAlert(payload);
-
-      return true; // Задача обработана (записана в лог), можно помечать как completed
+      return true;
     } catch (error) {
       this.logger.error(
         `Failed to process failed recurring payment ${message.id}: ${error.message}`,
+        error.stack,
+        'ExternalCallsProcessor',
+      );
+      return false;
+    }
+  }
+
+  async processFailedSubscriptionChangeAutoRenewal(
+    message: OutboxMessage,
+  ): Promise<boolean> {
+    const payload = message.payload as {
+      type: string;
+      subscriptionId: string;
+      timestamp: string;
+      retryCount: number;
+    };
+
+    try {
+      this.logger.log(
+        `Some logic for processing failed subscription change auto-renewal ${payload}`,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process failed subscription change auto-renewal ${message.id}: ${error.message}`,
+        error.stack,
+        'ExternalCallsProcessor',
+      );
+      return false;
+    }
+  }
+
+  async processManualReviewRequired(message: OutboxMessage): Promise<boolean> {
+    const payload = message.payload as {
+      type: string;
+      subscriptionId: string;
+      customPaymentId: string;
+      error: string;
+      timestamp: string;
+      retryCount: number;
+    };
+
+    try {
+      this.logger.log(
+        `Some logic for processing manual review task ${payload}`,
+      );
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process manual review task ${message.id}: ${error.message}`,
         error.stack,
         'ExternalCallsProcessor',
       );

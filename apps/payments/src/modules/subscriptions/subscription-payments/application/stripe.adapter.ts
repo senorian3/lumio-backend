@@ -108,15 +108,12 @@ export class StripeAdapter {
     }
   }
 
-  async cancelSubscriptionAutoRenewal(subscriptionId: string): Promise<void> {
+  async changeSubscriptionAutoRenewal(
+    subscriptionId: string,
+    autoRenewal: boolean,
+  ): Promise<void> {
     await this.stripe.subscriptions.update(subscriptionId, {
-      cancel_at_period_end: true,
-    });
-  }
-
-  async enableSubscriptionAutoRenewal(subscriptionId: string): Promise<void> {
-    await this.stripe.subscriptions.update(subscriptionId, {
-      cancel_at_period_end: false,
+      cancel_at_period_end: !autoRenewal,
     });
   }
 
@@ -124,10 +121,7 @@ export class StripeAdapter {
     try {
       await this.stripe.checkout.sessions.expire(sessionId);
     } catch (error) {
-      throw BadRequestDomainException.create(
-        `Failed to cancel session: ${error.message}`,
-        'cancelSession',
-      );
+      throw error;
     }
   }
 

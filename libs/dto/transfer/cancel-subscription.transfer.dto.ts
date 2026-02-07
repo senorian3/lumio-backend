@@ -1,3 +1,4 @@
-export class CancelSubscriptionTransferDto {
+export class ChangeAutoRenewalSubscriptionTransferDto {
   profileId: string;
+  autoRenewal: boolean;
 }

@@ -6,14 +6,16 @@ export enum OutboxMessageStatus {
 
 export enum OutboxAggregateType {
   PAYMENT = 'payment',
+  SUBSCRIPTION = 'subscription',
 }
 
 export enum OutboxEventType {
   PAYMENT_COMPLETED = 'payment.completed',
-  SUBSCRIPTION_CANCELLED = 'subscription.cancelled',
-  CANCEL_SUBSCRIPTION_AUTO_RENEWAL = 'subscription.cancel.auto.renewal',
-  SUBSCRIPTION_UPDATED = 'subscription.updated',
+  RECURRING_PAYMENT_COMPLETED = 'recurring.payment.completed',
+  CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED = 'subscription.change.autorenewal.completed',
+  CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE = 'subscription.change.autorenewal.stripe',
   MANUAL_REVIEW_REQUIRED = 'manual.review.required',
   FAILED_INITIAL_PAYMENT_PROCESSING = 'failed.initial.payment.processing',
   FAILED_RECURRING_PAYMENT_PROCESSING = 'failed.recurring.payment.processing',
+  FAILED_SUBSCRIPTION_CHANGE_AUTO_RENEWAL_PROCESSING = 'failed.subscription.change.autorenewal.processing',
 }

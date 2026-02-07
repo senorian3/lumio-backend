@@ -13,10 +13,6 @@ export class RabbitMQSetupService implements OnModuleInit {
   async setupBindings() {
     try {
       const rmqUrl = this.coreConfig.rmqUrl;
-      if (!rmqUrl) {
-        console.warn('RMQ_URL not configured, skipping RabbitMQ setup');
-        return;
-      }
 
       const connection = await amqp.connect(rmqUrl);
       const channel = await connection.createChannel();

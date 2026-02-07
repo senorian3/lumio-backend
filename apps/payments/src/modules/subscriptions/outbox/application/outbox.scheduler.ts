@@ -20,16 +20,11 @@ export class OutboxScheduler {
   @Cron(CronExpression.EVERY_5_SECONDS)
   async processOutboxMessages(): Promise<void> {
     try {
-      const messages = await this.outboxRepository.findPendingMessages(10);
+      const messages = await this.outboxRepository.findPendingMessages(100);
 
       if (messages.length === 0) {
         return;
       }
-
-      this.logger.log(
-        `Processing ${messages.length} outbox messages`,
-        'OutboxScheduler',
-      );
 
       for (const message of messages) {
         try {
@@ -37,11 +32,10 @@ export class OutboxScheduler {
 
           let result: boolean;
 
-          // Обработка в зависимости от типа события
           switch (message.eventType) {
-            case OutboxEventType.CANCEL_SUBSCRIPTION_AUTO_RENEWAL:
+            case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE:
               result =
-                await this.externalCallsProcessor.processCancelSubscriptionAutoRenewal(
+                await this.externalCallsProcessor.processChangeSubscriptionAutoRenewal(
                   message,
                 );
               break;
@@ -59,39 +53,46 @@ export class OutboxScheduler {
                   message,
                 );
               break;
-
+            case OutboxEventType.FAILED_SUBSCRIPTION_CHANGE_AUTO_RENEWAL_PROCESSING:
+              result =
+                await this.externalCallsProcessor.processFailedSubscriptionChangeAutoRenewal(
+                  message,
+                );
+              break;
+            case OutboxEventType.MANUAL_REVIEW_REQUIRED:
+              result =
+                await this.externalCallsProcessor.processManualReviewRequired(
+                  message,
+                );
+              break;
             case OutboxEventType.PAYMENT_COMPLETED:
-            case OutboxEventType.SUBSCRIPTION_CANCELLED:
-            case OutboxEventType.SUBSCRIPTION_UPDATED:
+            case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
+            case OutboxEventType.RECURRING_PAYMENT_COMPLETED:
               result = await this.sendMessageToLumio(message);
               break;
 
             default:
               this.logger.warn(
                 `Unknown outbox event type: ${message.eventType}`,
-                'OutboxScheduler',
+                OutboxScheduler.name,
               );
               result = false;
           }
 
           if (result) {
-            await this.outboxRepository.markAsCompleted(
-              message.id,
-              'Completed by scheduler, no acknowledgment by Lumio',
-              new Date(),
-            );
+            await this.outboxRepository.markAsCompleted(message.id, new Date());
           } else {
             await this.outboxRepository.incrementRetryCount(message.id);
             this.logger.warn(
               `Failed to process outbox message ${message.id} (${message.eventType}), will retry`,
-              'OutboxScheduler',
+              OutboxScheduler.name,
             );
           }
         } catch (error) {
           this.logger.error(
             `Error processing outbox message ${message.id}: ${error.message}`,
             error.stack,
-            'OutboxScheduler',
+            OutboxScheduler.name,
           );
           await this.outboxRepository.incrementRetryCount(message.id);
         }
@@ -100,7 +101,7 @@ export class OutboxScheduler {
       this.logger.error(
         `Critical error in outbox scheduler: ${error.message}`,
         error.stack,
-        'OutboxScheduler',
+        OutboxScheduler.name,
       );
     }
   }
@@ -123,20 +124,17 @@ export class OutboxScheduler {
     try {
       const routingKey = this.getRoutingKey(message.eventType);
 
-      // Генерируем уникальный messageId для idempotency
       const messageId = `outbox-${message.id}-${Date.now()}`;
 
-      // Отправляем сообщение с дополнительными свойствами
-      // Для ClientProxy.emit() нужно использовать send() с pattern
-      await this.lumioService.emit(routingKey, {
+      this.lumioService.emit(routingKey, {
         id: message.id,
         aggregateId: message.aggregateId,
         aggregateType: message.aggregateType,
         eventType: message.eventType,
         timestamp: message.createdAt,
         payload: message.payload,
-        _messageId: messageId, // Добавляем messageId в payload для idempotency
-        _retryCount: 0, // Начинаем с 0 попыток
+        _messageId: messageId,
+        _retryCount: 0,
       });
 
       this.logger.log(
@@ -159,10 +157,11 @@ export class OutboxScheduler {
     switch (eventType) {
       case OutboxEventType.PAYMENT_COMPLETED:
         return 'payment.completed';
-      case OutboxEventType.SUBSCRIPTION_CANCELLED:
-        return 'subscription.cancelled';
-      case OutboxEventType.SUBSCRIPTION_UPDATED:
-        return 'subscription.updated';
+      case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
+        return 'subscription.change.autorenewal.completed';
+      case OutboxEventType.RECURRING_PAYMENT_COMPLETED:
+        return 'recurring.payment.completed';
+
       default:
         return 'payment.unknown';
     }
