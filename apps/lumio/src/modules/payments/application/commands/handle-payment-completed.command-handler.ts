@@ -20,6 +20,7 @@ export interface PaymentCompletedEvent {
     periodStart: Date;
     periodEnd: Date;
     timestamp: string;
+    paymentsService: string;
   };
   timestamp: Date;
 }
@@ -67,6 +68,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       subscriptionType,
       periodStart,
       periodEnd,
+      paymentsService,
     } = data.payload;
 
     const profile = await this.userRepository.findByProfileId(profileId);
@@ -93,7 +95,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     await this.paymentsRepository.createPayment({
       amount,
       currency,
-      paymentsService: 'Stripe',
+      paymentsService: paymentsService,
       subscriptionId: subscription.id,
     });
 

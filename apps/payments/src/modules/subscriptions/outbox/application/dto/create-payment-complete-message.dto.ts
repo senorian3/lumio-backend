@@ -9,5 +9,6 @@ export class CreatePaymentCompleteMessageDto {
     public periodStart: Date,
     public periodEnd: Date,
     public timestamp: string,
+    public paymentsService: string,
   ) {}
 }

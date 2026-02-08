@@ -83,6 +83,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             periodStart,
             periodEnd,
             timestamp: new Date().toISOString(),
+            paymentsService: currentPayment.paymentProvider,
           };
 
           await this.outboxService.createPaymentCompletedMessage(
