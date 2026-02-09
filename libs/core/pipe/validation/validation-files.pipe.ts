@@ -39,7 +39,7 @@ export class FileValidationPipe implements PipeTransform {
 
       if (fileExtension && !validExtensions.includes(fileExtension)) {
         throw BadRequestDomainException.create(
-          `File ${index + 1} (${file.originalname}) has invalid extension. Only .jpg, .jpeg, and .png are allowed`,
+          `File ${index + 1} (${file.originalname}) has invalid extension. Only .jpeg, and .png are allowed`,
           'file',
         );
       }

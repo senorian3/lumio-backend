@@ -20,6 +20,14 @@ export class ExternalQueryUserAccountsRepository {
     return user.id;
   }
 
+  async getProfileByUserId(userId: number): Promise<UserProfile | null> {
+    return this.prisma.userProfile.findUnique({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async getProfileIdByUserId(userId: number): Promise<number | null> {
     const profile = await this.prisma.userProfile.findUnique({
       where: {
@@ -38,7 +46,7 @@ export class ExternalQueryUserAccountsRepository {
     return this.prisma.user.count();
   }
 
-  async findByProfileId(profileId: number): Promise<UserProfile | null> {
+  async getProfileById(profileId: number): Promise<UserProfile | null> {
     return this.prisma.userProfile.findUnique({
       where: { id: profileId },
     });

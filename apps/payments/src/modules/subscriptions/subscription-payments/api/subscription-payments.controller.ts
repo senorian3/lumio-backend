@@ -8,6 +8,7 @@ import {
   Headers,
   UseGuards,
   Inject,
+  Put,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
@@ -17,7 +18,7 @@ import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { ClientProxy } from '@nestjs/microservices';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/cancel-subscription.input.dto';
+import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 
 @Controller('subscription-payments')
 export class SubscriptionPaymentsController {
@@ -40,16 +41,14 @@ export class SubscriptionPaymentsController {
     return { url: paymentsUrl };
   }
 
-  @Post('autorenewal')
-  // @UseGuards(InternalApiGuard)
+  @Put('autorenewal')
+  @UseGuards(InternalApiGuard)
   async changeAutorenwal(
     @Body() payload: InputChangeAutorenewalSubscriptionDto,
-  ): Promise<{ success: boolean }> {
+  ): Promise<void> {
     await this.commandBus.execute(
       new ChangeAutoRenewalSubscriptionCommand(payload),
     );
-
-    return { success: true };
   }
 
   @Post('test')

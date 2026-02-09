@@ -60,4 +60,22 @@ export class SubscriptionRepository {
       },
     });
   }
+
+  async findActiveSubscriptionByProfileId(
+    profileId: number,
+  ): Promise<Subscription> {
+    return this.prisma.subscription.findFirst({
+      where: {
+        userProfileId: profileId,
+        cancelledAt: null,
+      },
+    });
+  }
+
+  async updateAutoRenewalById(id: number, autoRenewal: boolean) {
+    return this.prisma.subscription.update({
+      where: { id },
+      data: { autoRenewal },
+    });
+  }
 }

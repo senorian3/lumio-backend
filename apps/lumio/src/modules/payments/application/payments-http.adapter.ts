@@ -1,3 +1,4 @@
+import { ChangeAutoRenewalSubscriptionTransferDto } from '@libs/dto/transfer/change-autorenewal-subscription.transfer.dto';
 import { SubscriptionPaymentTransferDto } from '@libs/dto/transfer/subscription-payment.transfer.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { CoreConfig } from '@lumio/core/core.config';
@@ -33,6 +34,26 @@ export class PaymentsHttpAdapter {
     } catch (error) {
       this.loggerService.error(
         `Failed to GET from ${url}:`,
+        error?.stack,
+        PaymentsHttpAdapter.name,
+      );
+      throw error;
+    }
+  }
+
+  async updateAutoRenewal<T>(
+    endpoint: string,
+    dto: ChangeAutoRenewalSubscriptionTransferDto,
+    additionalHeaders?: Record<string, string>,
+  ) {
+    const url = `${this.coreConfig.paymentsFrontendUrl}/${endpoint}`;
+    const headers = this.getHeaders(additionalHeaders);
+
+    try {
+      await axios.put<T>(url, dto, { headers });
+    } catch (error) {
+      this.loggerService.error(
+        `Failed to PUT from ${url}:`,
         error?.stack,
         PaymentsHttpAdapter.name,
       );

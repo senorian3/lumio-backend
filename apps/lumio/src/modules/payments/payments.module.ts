@@ -15,12 +15,14 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { CoreConfig } from '../../core/core.config';
 import { IdempotencyService } from './application/idempotency.service';
 import { DlqNotificationService } from './application/dlq-notification.service';
+import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
   HandlePaymentCompletedCommandHandler,
   HandleSubscriptionCancelledCommandHandler,
   HandleSubscriptionUpdatedCommandHandler,
+  ChangeAutoRenewalCommandHandler,
 ];
 
 const adapters = [PaymentsHttpAdapter];

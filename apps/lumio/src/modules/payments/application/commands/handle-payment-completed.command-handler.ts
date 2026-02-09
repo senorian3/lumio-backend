@@ -71,7 +71,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       paymentsService,
     } = data.payload;
 
-    const profile = await this.userRepository.findByProfileId(profileId);
+    const profile = await this.userRepository.getProfileById(profileId);
 
     if (!profile) {
       throw BadRequestDomainException.create(
