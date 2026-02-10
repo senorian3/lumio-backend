@@ -5,11 +5,11 @@ import { OutboxService } from '@payments/modules/subscriptions/outbox/applicatio
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
-import { CreateSubscriptionUpdateMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-subscription-update-message';
 import { ManualReviewService } from '../manual-review.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { RetryService } from '../retry.service';
+import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 
 export class ProcessRecurringPaymentCommand {
   constructor(public readonly invoice: Stripe.Invoice) {}
@@ -101,9 +101,10 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
           const createSubscriptionUpdateMessageData: CreateSubscriptionUpdateMessageDto =
             {
-              customPaymentId: existingPayment.customPaymentId,
+              paymentId: existingPayment.customPaymentId,
               createdAt,
               amount,
+              currency: invoice.currency.toUpperCase(),
               paymentService: existingPayment.paymentProvider,
               subscriptionId,
               subscriptionType,

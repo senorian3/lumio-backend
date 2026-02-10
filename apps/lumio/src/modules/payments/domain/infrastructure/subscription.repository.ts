@@ -16,7 +16,7 @@ export class SubscriptionRepository {
 
   async updateSubscriptionWithNewPayment(
     subscriptionId: number,
-    newPaymentId: number,
+    newPaymentId: string,
     durationType: string,
     endDate: Date,
     autoRenewal: boolean,

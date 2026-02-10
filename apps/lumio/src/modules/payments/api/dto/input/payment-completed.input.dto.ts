@@ -1,4 +1,4 @@
-import { CreatePaymentCompleteMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-payment-complete-message.dto';
+import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 
 export class InputPaymentCompletedDto {
   constructor(

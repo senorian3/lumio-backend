@@ -7,10 +7,10 @@ import { OutboxService } from '@payments/modules/subscriptions/outbox/applicatio
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.dto';
-import { CreatePaymentCompleteMessageDto } from '@payments/modules/subscriptions/outbox/application/dto/create-payment-complete-message.dto';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { RetryService } from '../retry.service';
+import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 
 export class ProcessInitialPaymentCommand {
   constructor(

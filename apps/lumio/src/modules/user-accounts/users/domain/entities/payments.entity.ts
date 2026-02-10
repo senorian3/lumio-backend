@@ -2,13 +2,13 @@ import { SubscriptionEntity } from '@lumio/modules/user-accounts/users/domain/en
 import { Payments } from 'generated/prisma-lumio';
 
 export class PaymentsEntity implements Payments {
-  id: number;
+  id: string;
   createdAt: Date;
 
   amount: number;
   currency: string;
   paymentsService: string;
 
-  subscriptionId!: number;
-  subscription?: SubscriptionEntity | null;
+  subscriptionId: string;
+  subscription: SubscriptionEntity | null;
 }

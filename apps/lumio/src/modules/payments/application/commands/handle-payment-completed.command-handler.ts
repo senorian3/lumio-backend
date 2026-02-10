@@ -93,6 +93,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     });
 
     await this.paymentsRepository.createPayment({
+      id: data.payload.paymentId,
       amount,
       currency,
       paymentsService: paymentsService,

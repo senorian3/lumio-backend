@@ -49,15 +49,15 @@ model UserProfile {
 }
 
 model Payments {
-  id              Int          @id @default(autoincrement())
+  id              String       @id
   createdAt       DateTime     @default(now()) @db.Timestamp(0)
 
   amount          Float
   currency        String
   paymentsService String
 
-  subscriptionId  Int?
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [subscriptionId], onDelete: SetNull)
 }
 
 model Subscription {
@@ -75,7 +75,7 @@ model Subscription {
   userProfileId Int
   userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
-  payments     Payments[] // Одна подписка может иметь много платежей
+  payments     Payments[]
 }
 
 model Session {

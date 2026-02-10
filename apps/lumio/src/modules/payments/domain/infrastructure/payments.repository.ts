@@ -6,7 +6,7 @@ import { Payments } from 'generated/prisma-lumio';
 export class PaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findPaymentById(paymentId: number): Promise<Payments | null> {
+  async findPaymentById(paymentId: string): Promise<Payments | null> {
     return this.prisma.payments.findUnique({
       where: { id: paymentId },
     });
@@ -22,6 +22,7 @@ export class PaymentsRepository {
 
   async createPayment(
     data: {
+      id: string;
       amount: number;
       currency: string;
       paymentsService: string;
@@ -33,10 +34,11 @@ export class PaymentsRepository {
 
     return client.payments.create({
       data: {
+        id: data.id,
         amount: data.amount,
         currency: data.currency,
         paymentsService: data.paymentsService,
-        subscriptionId: data.subscriptionId,
+        subscription: { connect: { id: data.subscriptionId } },
       },
     });
   }

@@ -4,7 +4,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { HandlePaymentCompletedCommand } from '../application/commands/handle-payment-completed.command-handler';
 import { HandleSubscriptionCancelledCommand } from '../application/commands/handle-subscription-cancelled.command-handler';
-import { HandleSubscriptionUpdatedCommand } from '../application/commands/handle-subscription-updated.command-handler';
+import { HandleSubscriptionRecurringUpdatedCommand } from '../application/commands/handle-subscription-updated.command-handler';
 import { IdempotencyService } from '../application/idempotency.service';
 import { DlqNotificationService } from '../application/dlq-notification.service';
 
@@ -206,7 +206,7 @@ export class PaymentsRabbitMQController {
     }
   }
 
-  @EventPattern('subscription.updated')
+  @EventPattern('recurring.payment.completed')
   async handleSubscriptionUpdated(
     @Payload() data: any,
     @Ctx() context: RmqContext,
@@ -235,7 +235,9 @@ export class PaymentsRabbitMQController {
       }
 
       // Execute the command handler
-      await this.commandBus.execute(new HandleSubscriptionUpdatedCommand(data));
+      await this.commandBus.execute(
+        new HandleSubscriptionRecurringUpdatedCommand(data),
+      );
 
       // Mark as processed
       await this.idempotencyService.markMessageAsProcessed(messageId);

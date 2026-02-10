@@ -5,8 +5,8 @@ import {
   OutboxAggregateType,
   OutboxEventType,
 } from '../../constants/outbox-constants';
-import { CreatePaymentCompleteMessageDto } from './dto/create-payment-complete-message.dto';
-import { CreateSubscriptionUpdateMessageDto } from './dto/create-subscription-update-message';
+import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
+import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 
 @Injectable()
 export class OutboxService {
@@ -67,9 +67,9 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.customPaymentId,
+          aggregateId: payload.paymentId,
           aggregateType: OutboxAggregateType.PAYMENT,
-          eventType: OutboxEventType.RECURRING_PAYMENT_COMPLETED,
+          eventType: OutboxEventType.PAYMENT_RECURRING_COMPLETED,
           scheduledAt: new Date(),
           payload,
           ttl: new Date(Date.now() + 24 * 60 * 1000),
@@ -78,7 +78,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for recurring payment ${payload.customPaymentId}: ${error.message}`,
+        `Failed to create outbox message for recurring payment ${payload.paymentId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -86,7 +86,7 @@ export class OutboxService {
         await this.createFailedRecurringPaymentCompleteMessage(
           {
             subscriptionId: payload.subscriptionId,
-            customPaymentId: payload.customPaymentId,
+            customPaymentId: payload.paymentId,
             error: error.message,
             timestamp: new Date().toISOString(),
           },
@@ -94,7 +94,7 @@ export class OutboxService {
         );
       } catch (error) {
         this.logger.error(
-          `Failed to create failed initial payment processing message for session with customPaymentId ${payload.customPaymentId}`,
+          `Failed to create failed initial payment processing message for session with customPaymentId ${payload.paymentId}`,
           error.stack,
           OutboxService.name,
         );

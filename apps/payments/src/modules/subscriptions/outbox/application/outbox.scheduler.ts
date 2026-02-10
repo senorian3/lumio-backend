@@ -66,8 +66,8 @@ export class OutboxScheduler {
                 );
               break;
             case OutboxEventType.PAYMENT_COMPLETED:
+            case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
             case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
-            case OutboxEventType.RECURRING_PAYMENT_COMPLETED:
               result = await this.sendMessageToLumio(message);
               break;
 
@@ -131,10 +131,10 @@ export class OutboxScheduler {
         aggregateId: message.aggregateId,
         aggregateType: message.aggregateType,
         eventType: message.eventType,
-        timestamp: message.createdAt,
         payload: message.payload,
         _messageId: messageId,
         _retryCount: 0,
+        timestamp: message.createdAt,
       });
 
       this.logger.log(
@@ -159,8 +159,8 @@ export class OutboxScheduler {
         return 'payment.completed';
       case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
         return 'subscription.change.autorenewal.completed';
-      case OutboxEventType.RECURRING_PAYMENT_COMPLETED:
-        return 'recurring.payment.completed';
+      case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
+        return 'payment.recurring.completed';
 
       default:
         return 'payment.unknown';

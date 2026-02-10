@@ -1,10 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { CoreConfig } from './core.config';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class RabbitMQSetupService implements OnModuleInit {
-  constructor(private readonly coreConfig: CoreConfig) {}
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly logger: AppLoggerService,
+  ) {}
 
   async onModuleInit() {
     await this.setupBindings();
@@ -17,7 +21,6 @@ export class RabbitMQSetupService implements OnModuleInit {
       const connection = await amqp.connect(rmqUrl);
       const channel = await connection.createChannel();
 
-      // Создаем DLX exchange и очередь (если еще не созданы)
       await channel.assertExchange('dlx_payments_exchange', 'direct', {
         durable: true,
       });
@@ -30,33 +33,27 @@ export class RabbitMQSetupService implements OnModuleInit {
         'dlq.payments',
       );
 
-      // Убедимся, что основной exchange существует
       await channel.assertExchange('sub_payments_exchange', 'topic', {
         durable: true,
       });
 
-      // Настроим bindings для lumio_to_payments_queue с DLX
       await channel.assertQueue('lumio_to_payments_queue', {
         durable: true,
         deadLetterExchange: 'dlx_payments_exchange',
         deadLetterRoutingKey: 'dlq.payments',
-        messageTtl: 300000, // 5 минут
+        messageTtl: 300000,
       });
 
-      // Создаем binding для lumio событий
       await channel.bindQueue(
         'lumio_to_payments_queue',
         'sub_payments_exchange',
         'lumio.#',
       );
 
-      console.log(
-        'Payments RabbitMQ bindings configured successfully with DLX',
-      );
       await channel.close();
       await connection.close();
     } catch (error) {
-      console.error('Failed to setup RabbitMQ bindings:', error);
+      this.logger.error(error.message, error.stack, RabbitMQSetupService.name);
     }
   }
 }
