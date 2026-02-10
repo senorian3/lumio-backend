@@ -6,7 +6,7 @@ pipeline {
         PORT = 4122
         NAMESPACE = "lumio-su"
         REGISTRY_HOSTNAME = "senorian3"
-        PROJECT = "lumio-backend-files"
+        PROJECT = "lumio-back-end-files"
         SERVICE = "files"
         REGISTRY = "registry.hub.docker.com"
         DEPLOYMENT_NAME = "lumio-backend-files-deployment"
