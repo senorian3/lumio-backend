@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -46,4 +47,7 @@ export class PaymentsController {
       new ChangeAutoRenewalCommand(+req.user.userId, dto),
     );
   }
+
+  @Get()
+  async getUserPayments(): Promise<void> {}
 }
