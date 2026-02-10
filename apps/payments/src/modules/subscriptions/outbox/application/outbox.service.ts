@@ -148,32 +148,6 @@ export class OutboxService {
     );
   }
 
-  async createChangeSubscriptionAutoRenewalMessage(
-    subscriptionId: string,
-    paymentId: string,
-    autoRenewal: boolean,
-    tx?: any,
-  ): Promise<void> {
-    const payload = {
-      subscriptionId,
-      paymentId,
-      autoRenewal,
-      timestamp: new Date().toISOString(),
-    };
-
-    await this.outboxRepository.createOutboxMessage(
-      {
-        aggregateId: paymentId,
-        aggregateType: OutboxAggregateType.PAYMENT,
-        eventType: OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED,
-        scheduledAt: new Date(),
-        payload,
-        ttl: new Date(Date.now() + 24 * 60 * 1000),
-      },
-      tx,
-    );
-  }
-
   async createChangeSubscriptionAutoRenewalStripe(
     subscriptionId: string,
     autoRenewal: boolean,

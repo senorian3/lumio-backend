@@ -12,7 +12,6 @@ export enum OutboxAggregateType {
 export enum OutboxEventType {
   PAYMENT_COMPLETED = 'payment.completed',
   PAYMENT_RECURRING_COMPLETED = 'payment.recurring.completed',
-  CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED = 'subscription.change.autorenewal.completed',
   CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE = 'subscription.change.autorenewal.stripe',
   MANUAL_REVIEW_REQUIRED = 'manual.review.required',
   FAILED_INITIAL_PAYMENT_PROCESSING = 'failed.initial.payment.processing',

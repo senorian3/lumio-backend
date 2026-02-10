@@ -48,13 +48,6 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
           tx,
         );
 
-        await this.outboxService.createChangeSubscriptionAutoRenewalMessage(
-          activeSubscription.customPaymentId,
-          activeSubscription.subscriptionId,
-          dto.autoRenewal,
-          tx,
-        );
-
         await this.outboxService.createChangeSubscriptionAutoRenewalStripe(
           activeSubscription.subscriptionId,
           dto.autoRenewal,

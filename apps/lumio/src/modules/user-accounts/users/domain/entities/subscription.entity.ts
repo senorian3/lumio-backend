@@ -3,7 +3,7 @@ import { UserProfileEntity } from '@lumio/modules/user-accounts/users/domain/ent
 import { Subscription } from 'generated/prisma-lumio';
 
 export class SubscriptionEntity implements Subscription {
-  id: number;
+  id: string;
 
   subscriptionId: string;
   durationType: string;

@@ -12,11 +12,9 @@ export class PaymentsRepository {
     });
   }
 
-  async findPaymentBySubscriptionId(
-    subscriptionId: number,
-  ): Promise<Payments | null> {
+  async findPaymentBySubscriptionId(id: string): Promise<Payments | null> {
     return this.prisma.payments.findFirst({
-      where: { subscription: { id: subscriptionId } },
+      where: { subscription: { id } },
     });
   }
 
@@ -26,7 +24,7 @@ export class PaymentsRepository {
       amount: number;
       currency: string;
       paymentsService: string;
-      subscriptionId: number;
+      subscriptionId: string;
     },
     tx?: any,
   ): Promise<Payments> {

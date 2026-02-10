@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InputSubscriptionRecurringUpdatedEvent } from '../../api/dto/input/subscription-recurring-updated-event.input.dto';
+import { InputSubscriptionRecurringUpdatedEvent } from '../../api/dto/transfer/subscription-recurring-updated-event.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
@@ -24,7 +24,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
     const data = command.data;
 
     const subscription = await this.subscriptionRepository.findSubscriptionById(
-      +command.data.payload.subscriptionId,
+      command.data.payload.subscriptionId,
     );
 
     if (!subscription) {
@@ -37,20 +37,19 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        const payment = await this.paymentsRepository.createPayment(
+        await this.paymentsRepository.createPayment(
           {
             id: data.payload.paymentId,
             amount: data.payload.amount,
             paymentsService: data.payload.subscriptionType,
             currency: data.payload.currency,
-            subscriptionId: +data.payload.subscriptionId,
+            subscriptionId: subscription.id,
           },
           tx,
         );
 
         await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-          +data.payload.subscriptionId,
-          payment.id,
+          subscription.id,
           subscription.durationType,
           data.payload.nextPaymentDate,
           subscription.autoRenewal,

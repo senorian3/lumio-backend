@@ -56,19 +56,15 @@ model Payments {
   currency        String
   paymentsService String
 
-  subscriptionId  String?
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [subscriptionId], onDelete: SetNull)
+  subscriptionId  String?     
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 }
 
 model Subscription {
-  id           Int       @id @default(autoincrement())
-
-  subscriptionId  String       @unique
+  id           String    @id
   durationType String    @db.VarChar(20)
-
   startDate    DateTime  @db.Timestamp(0)
   endDate      DateTime  @db.Timestamp(0)
-
   autoRenewal  Boolean   @default(false)
   cancelledAt     DateTime?    @db.Timestamp(0)
 

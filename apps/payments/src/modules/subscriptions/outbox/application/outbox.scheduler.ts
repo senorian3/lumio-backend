@@ -67,7 +67,6 @@ export class OutboxScheduler {
               break;
             case OutboxEventType.PAYMENT_COMPLETED:
             case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
-            case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
               result = await this.sendMessageToLumio(message);
               break;
 
@@ -157,8 +156,6 @@ export class OutboxScheduler {
     switch (eventType) {
       case OutboxEventType.PAYMENT_COMPLETED:
         return 'payment.completed';
-      case OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_COMPLETED:
-        return 'subscription.change.autorenewal.completed';
       case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
         return 'payment.recurring.completed';
 

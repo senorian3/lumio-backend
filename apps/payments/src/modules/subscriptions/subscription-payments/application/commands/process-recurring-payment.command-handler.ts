@@ -101,14 +101,12 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
           const createSubscriptionUpdateMessageData: CreateSubscriptionUpdateMessageDto =
             {
-              paymentId: existingPayment.customPaymentId,
-              createdAt,
+              paymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
               amount,
               currency: invoice.currency.toUpperCase(),
               paymentService: existingPayment.paymentProvider,
               subscriptionId,
               subscriptionType,
-              currentPeriodEnd,
               nextPaymentDate,
               timestamp: new Date().toISOString(),
             };

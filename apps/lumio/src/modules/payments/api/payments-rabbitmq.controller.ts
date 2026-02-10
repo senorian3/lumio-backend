@@ -206,7 +206,7 @@ export class PaymentsRabbitMQController {
     }
   }
 
-  @EventPattern('recurring.payment.completed')
+  @EventPattern('payment.recurring.completed')
   async handleSubscriptionUpdated(
     @Payload() data: any,
     @Ctx() context: RmqContext,

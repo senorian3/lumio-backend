@@ -4,26 +4,7 @@ import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastru
 import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-
-export interface PaymentCompletedEvent {
-  id: number;
-  aggregateId: number;
-  aggregateType: string;
-  eventType: string;
-  payload: {
-    paymentId: string;
-    profileId: number;
-    amount: number;
-    currency: string;
-    subscriptionId: string;
-    subscriptionType: string;
-    periodStart: Date;
-    periodEnd: Date;
-    timestamp: string;
-    paymentsService: string;
-  };
-  timestamp: Date;
-}
+import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -40,12 +21,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     try {
-      // Логируем входящую команду и данные
-      this.appLogger.debug(
-        `Received command: HandlePaymentCompletedCommand`,
-        'PaymentsRabbitMQ',
-      );
-
       await this.processPaymentCompleted(command.data);
     } catch (error) {
       this.appLogger.error(

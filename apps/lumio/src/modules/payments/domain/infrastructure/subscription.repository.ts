@@ -6,17 +6,14 @@ import { Subscription } from 'generated/prisma-lumio';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSubscriptionById(
-    subscriptionId: number,
-  ): Promise<Subscription | null> {
+  async findSubscriptionById(id: string): Promise<Subscription | null> {
     return this.prisma.subscription.findUnique({
-      where: { id: subscriptionId },
+      where: { id },
     });
   }
 
   async updateSubscriptionWithNewPayment(
-    subscriptionId: number,
-    newPaymentId: string,
+    id: string,
     durationType: string,
     endDate: Date,
     autoRenewal: boolean,
@@ -24,12 +21,11 @@ export class SubscriptionRepository {
   ): Promise<Subscription> {
     const client = tx || this.prisma;
     return client.subscription.update({
-      where: { id: subscriptionId },
+      where: { id },
       data: {
         durationType,
         endDate,
         autoRenewal,
-        paymentId: newPaymentId,
       },
     });
   }
@@ -50,7 +46,7 @@ export class SubscriptionRepository {
 
     return client.subscription.create({
       data: {
-        subscriptionId: data.subscriptionId,
+        id: data.subscriptionId,
         durationType: data.durationType,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -72,7 +68,7 @@ export class SubscriptionRepository {
     });
   }
 
-  async updateAutoRenewalById(id: number, autoRenewal: boolean) {
+  async updateAutoRenewalById(id: string, autoRenewal: boolean) {
     return this.prisma.subscription.update({
       where: { id },
       data: { autoRenewal },

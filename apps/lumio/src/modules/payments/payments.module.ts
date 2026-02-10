@@ -4,7 +4,7 @@ import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { CreateSubscriptionPaymentUrlCommandHandler } from './application/commands/create-subscription.command-handler';
 import { HandlePaymentCompletedCommandHandler } from './application/commands/handle-payment-completed.command-handler';
 import { HandleSubscriptionCancelledCommandHandler } from './application/commands/handle-subscription-cancelled.command-handler';
-import { HandleSubscriptionRecurringUpdatedCommand } from './application/commands/handle-subscription-updated.command-handler';
+import { HandleSubscriptionRecurringUpdatedCommandHandler } from './application/commands/handle-subscription-updated.command-handler';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PaymentsHttpAdapter } from './application/payments-http.adapter';
 import { PaymentsRepository } from './domain/infrastructure/payments.repository';
@@ -21,7 +21,7 @@ const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
   HandlePaymentCompletedCommandHandler,
   HandleSubscriptionCancelledCommandHandler,
-  HandleSubscriptionRecurringUpdatedCommand,
+  HandleSubscriptionRecurringUpdatedCommandHandler,
   ChangeAutoRenewalCommandHandler,
 ];
 

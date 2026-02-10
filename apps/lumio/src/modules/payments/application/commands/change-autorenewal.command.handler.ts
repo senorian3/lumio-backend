@@ -95,10 +95,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
     try {
       await this.paymentsHttpAdapter.updateAutoRenewal<void>(
         `${GLOBAL_PREFIX}/subscription-payments/autorenewal`,
-        {
-          ...command.dto,
-          profileId: command.dto.profileId.toString(),
-        },
+        command.dto,
       );
     } catch (error) {
       try {
