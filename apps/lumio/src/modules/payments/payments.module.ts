@@ -16,6 +16,7 @@ import { CoreConfig } from '../../core/core.config';
 import { IdempotencyService } from './application/idempotency.service';
 import { DlqNotificationService } from './application/dlq-notification.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
+import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
@@ -27,7 +28,11 @@ const useCases = [
 
 const adapters = [PaymentsHttpAdapter];
 
-const repositories = [PaymentsRepository, SubscriptionRepository];
+const repositories = [
+  PaymentsRepository,
+  SubscriptionRepository,
+  QueryPaymentsRepository,
+];
 
 const services = [IdempotencyService, DlqNotificationService];
 
