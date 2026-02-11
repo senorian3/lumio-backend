@@ -1,6 +1,5 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { GetPostsQueryParams } from '../../api/dto/input/get-all-user-posts.query.dto';
-import { PostEntity } from '../../domain/entities/post.entity';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
 import { PostView } from '../../api/dto/output/post.output.dto';
@@ -22,7 +21,7 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
   async execute(
     command: GetAllUserPostsQuery,
   ): Promise<PaginatedViewDto<PostView[]>> {
-    const paginatedPosts: PaginatedViewDto<PostEntity[]> =
+    const paginatedPosts: PaginatedViewDto<PostView[]> =
       await this.postQueryRepository.findUserPosts(
         command.userId,
         command.query,
@@ -33,7 +32,7 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
       pageSize: paginatedPosts.pageSize,
       pagesCount: paginatedPosts.pagesCount,
       totalCount: paginatedPosts.totalCount,
-      items: paginatedPosts.items,
+      items: paginatedPosts.items.map(PostView.fromPrisma),
     };
 
     return result;
