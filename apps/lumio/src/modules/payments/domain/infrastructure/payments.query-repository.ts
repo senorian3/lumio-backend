@@ -1,42 +1,50 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { Payments, Subscription } from 'generated/prisma-lumio';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 
 @Injectable()
 export class QueryPaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSubscriptionsByUserProfileId(
-    userProfileId: number,
-    includeRelations: boolean = false,
-  ): Promise<Subscription> {
-    const subscriptions = await this.prisma.subscription.findFirst({
-      where: { userProfileId },
-      include: includeRelations
-        ? {
-            payments: true,
-          }
-        : undefined,
-      orderBy: { startDate: 'desc' },
-    });
-
-    return subscriptions;
-  }
-
   async findPaymentsBySubscriptionId(
     subscriptionId: string,
+    query: GetUserPaymentsParams,
     includeSubscription: boolean = false,
-  ): Promise<Payments[]> {
-    const payments = await this.prisma.payments.findMany({
-      where: { subscriptionId },
-      include: includeSubscription
-        ? {
-            subscription: true,
-          }
-        : undefined,
-      orderBy: { createdAt: 'desc' },
-    });
+  ): Promise<any> {
+    const whereOptions = { subscriptionId };
 
-    return payments;
+    const sortDirection: 'asc' | 'desc' =
+      query.sortDirection === 'asc' ? 'asc' : 'desc';
+    const sortBy = 'createdAt';
+
+    const orderOptions = { [sortBy]: sortDirection };
+
+    const [payments, totalCount] = await Promise.all([
+      this.prisma.payments.findMany({
+        where: whereOptions,
+        skip: query.calculateSkip(),
+        take: query.pageSize,
+        orderBy: orderOptions,
+        include: includeSubscription ? { subscription: true } : undefined,
+      }),
+      this.prisma.payments.count({ where: whereOptions }),
+    ]);
+
+    const items = payments.map((payment) => ({
+      id: payment.id,
+      createdAt: payment.createdAt.toISOString(),
+      amount: Number(payment.amount),
+      currency: payment.currency,
+      paymentsService: payment.paymentsService,
+      subscriptionId: payment.subscriptionId,
+    }));
+
+    return PaginatedViewDto.mapToView({
+      items,
+      page: query.pageNumber,
+      size: query.pageSize,
+      totalCount,
+    });
   }
 }
