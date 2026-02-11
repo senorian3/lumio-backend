@@ -55,8 +55,11 @@ export class ExternalQueryUserAccountsRepository {
   async updateAccountType(
     profileId: number,
     accountType: string,
+    tx?: any,
   ): Promise<UserProfile> {
-    return this.prisma.userProfile.update({
+    const client = tx || this.prisma;
+
+    return client.userProfile.update({
       where: { id: profileId },
       data: {
         accountType,

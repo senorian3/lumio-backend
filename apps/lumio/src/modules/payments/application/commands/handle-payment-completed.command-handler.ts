@@ -5,6 +5,7 @@ import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructur
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -17,6 +18,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly userRepository: ExternalQueryUserAccountsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -58,28 +60,42 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     const startDate = new Date(periodStart);
     const endDate = new Date(periodEnd);
 
-    const subscription = await this.subscriptionRepository.createSubscription({
-      subscriptionId,
-      durationType: subscriptionType,
-      startDate,
-      endDate,
-      userProfileId: profileId,
-      autoRenewal: true,
-    });
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const subscription =
+          await this.subscriptionRepository.createSubscription(
+            {
+              subscriptionId,
+              durationType: subscriptionType,
+              startDate,
+              endDate,
+              userProfileId: profileId,
+              autoRenewal: true,
+            },
+            tx,
+          );
 
-    await this.paymentsRepository.createPayment({
-      id: data.payload.paymentId,
-      amount,
-      currency,
-      paymentsService: paymentsService,
-      subscriptionId: subscription.id,
-    });
+        await this.paymentsRepository.createPayment(
+          {
+            id: data.payload.paymentId,
+            amount,
+            currency,
+            paymentsService: paymentsService,
+            subscriptionId: subscription.id,
+          },
+          tx,
+        );
 
-    await this.userRepository.updateAccountType(profileId, 'Business');
-
-    this.appLogger.log(
-      `Processing payment completed for payment ${data.payload.paymentId}`,
-      'PaymentsRabbitMQ',
-    );
+        // Update account type within transaction
+        await this.userRepository.updateAccountType(profileId, 'Business', tx);
+      });
+    } catch (error) {
+      this.appLogger.error(
+        `Error processing payment completed event: ${error.message}`,
+        error.stack,
+        'PaymentsRabbitMQ',
+      );
+      throw error;
+    }
   }
 }

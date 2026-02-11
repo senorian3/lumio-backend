@@ -41,7 +41,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
           {
             id: data.payload.paymentId,
             amount: data.payload.amount,
-            paymentsService: data.payload.subscriptionType,
+            paymentsService: data.payload.paymentService,
             currency: data.payload.currency,
             subscriptionId: subscription.id,
           },
