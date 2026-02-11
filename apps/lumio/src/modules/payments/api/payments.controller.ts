@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/cre
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
+import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller('payments')
@@ -48,6 +50,11 @@ export class PaymentsController {
     );
   }
 
-  @Get()
-  async getUserPayments(): Promise<void> {}
+  @Get('me')
+  async getUserPayments(
+    @Query()
+    query: GetUserPaymentsParams,
+  ): Promise<void> {
+    console.log(query);
+  }
 }
