@@ -18,6 +18,7 @@ import { DlqNotificationService } from './application/dlq-notification.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
 import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
 import { GetUserPaymentsQueryHandler } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
+import { GetUserSubscriptionQueryHandler } from './application/queries/get-user-subscription.query-handler';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
@@ -27,7 +28,10 @@ const useCases = [
   ChangeAutoRenewalCommandHandler,
 ];
 
-const queryHandlers = [GetUserPaymentsQueryHandler];
+const queryHandlers = [
+  GetUserPaymentsQueryHandler,
+  GetUserSubscriptionQueryHandler,
+];
 
 const adapters = [PaymentsHttpAdapter];
 

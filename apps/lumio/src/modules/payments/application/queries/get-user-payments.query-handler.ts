@@ -33,12 +33,12 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Profile not found', 'profile');
     }
 
-    const subscribers =
+    const subscriptions =
       await this.subscriptionRepository.findAllSubscriptionsByProfileId(
         profile.id,
       );
 
-    if (!subscribers || subscribers.length === 0) {
+    if (!subscriptions || subscriptions.length === 0) {
       return PaginatedViewDto.mapToView({
         items: [],
         page: query.query.pageNumber,
@@ -47,7 +47,7 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
       });
     }
 
-    const subscriptionIds = subscribers.map((sub) => sub.id);
+    const subscriptionIds = subscriptions.map((sub) => sub.id);
 
     return await this.queryPaymentsRepository.findPaymentsBySubscriptionIds(
       subscriptionIds,

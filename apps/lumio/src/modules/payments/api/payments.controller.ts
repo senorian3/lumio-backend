@@ -18,6 +18,8 @@ import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-au
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 import { GetUserPaymentsQuery } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
+import { OutputUserSubscriptionDto } from '@lumio/modules/payments/api/dto/output/user-subscription.output.dto';
+import { GetUserSubscriptionQuery } from '../application/queries/get-user-subscription.query-handler';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller('payments')
@@ -54,7 +56,7 @@ export class PaymentsController {
     );
   }
 
-  @Get('me')
+  @Get('my-payments')
   async getUserPayments(
     @Query()
     query: GetUserPaymentsParams,
@@ -63,5 +65,15 @@ export class PaymentsController {
     return await this.queryBus.execute<GetUserPaymentsQuery, void>(
       new GetUserPaymentsQuery(+req.user.userId, query),
     );
+  }
+
+  @Get('my-subscription')
+  async getUserSubscription(
+    @Req() req: any,
+  ): Promise<OutputUserSubscriptionDto | null> {
+    return await this.queryBus.execute<
+      GetUserSubscriptionQuery,
+      OutputUserSubscriptionDto
+    >(new GetUserSubscriptionQuery(+req.user.userId));
   }
 }
