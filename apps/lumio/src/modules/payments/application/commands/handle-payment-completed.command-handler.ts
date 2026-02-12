@@ -82,6 +82,8 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             currency,
             paymentsService: paymentsService,
             subscriptionId: subscription.id,
+            datePayment: startDate,
+            endDate: endDate,
           },
           tx,
         );

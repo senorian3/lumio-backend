@@ -37,6 +37,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
 
     try {
       await this.prisma.$transaction(async (tx) => {
+        const datePayment = new Date();
         await this.paymentsRepository.createPayment(
           {
             id: data.payload.paymentId,
@@ -44,6 +45,8 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
             paymentsService: data.payload.paymentService,
             currency: data.payload.currency,
             subscriptionId: subscription.id,
+            datePayment: datePayment,
+            endDate: data.payload.nextPaymentDate,
           },
           tx,
         );

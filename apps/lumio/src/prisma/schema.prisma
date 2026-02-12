@@ -52,6 +52,9 @@ model Payments {
   id              String       @id
   createdAt       DateTime     @default(now()) @db.Timestamp(0)
 
+  datePayment     DateTime
+  endDate         DateTime
+
   amount          Float
   currency        String
   paymentsService String

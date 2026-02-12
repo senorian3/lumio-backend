@@ -25,6 +25,8 @@ export class PaymentsRepository {
       currency: string;
       paymentsService: string;
       subscriptionId: string;
+      datePayment: Date;
+      endDate: Date;
     },
     tx?: any,
   ): Promise<Payments> {
@@ -37,6 +39,8 @@ export class PaymentsRepository {
         currency: data.currency,
         paymentsService: data.paymentsService,
         subscription: { connect: { id: data.subscriptionId } },
+        datePayment: data.datePayment,
+        endDate: data.endDate,
       },
     });
   }

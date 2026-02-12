@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/create-subscription.command-handler';
@@ -17,11 +17,15 @@ import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
+import { GetUserPaymentsQuery } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Post()
   //@ApiGetSubscriptionPaymentUrl()
@@ -54,7 +58,10 @@ export class PaymentsController {
   async getUserPayments(
     @Query()
     query: GetUserPaymentsParams,
-  ): Promise<void> {
-    console.log(query);
+    @Req() req: any,
+  ): Promise<any> {
+    return await this.queryBus.execute<GetUserPaymentsQuery, void>(
+      new GetUserPaymentsQuery(+req.user.userId, query),
+    );
   }
 }

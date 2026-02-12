@@ -17,6 +17,7 @@ import { IdempotencyService } from './application/idempotency.service';
 import { DlqNotificationService } from './application/dlq-notification.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
 import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
+import { GetUserPaymentsQueryHandler } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
@@ -25,6 +26,8 @@ const useCases = [
   HandleSubscriptionRecurringUpdatedCommandHandler,
   ChangeAutoRenewalCommandHandler,
 ];
+
+const queryHandlers = [GetUserPaymentsQueryHandler];
 
 const adapters = [PaymentsHttpAdapter];
 
@@ -68,6 +71,12 @@ const services = [IdempotencyService, DlqNotificationService];
     ]),
   ],
   controllers: [PaymentsController, PaymentsRabbitMQController],
-  providers: [...useCases, ...adapters, ...repositories, ...services],
+  providers: [
+    ...useCases,
+    ...adapters,
+    ...repositories,
+    ...services,
+    ...queryHandlers,
+  ],
 })
 export class PaymentsModule {}

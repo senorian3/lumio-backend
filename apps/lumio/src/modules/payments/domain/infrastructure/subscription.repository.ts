@@ -74,4 +74,17 @@ export class SubscriptionRepository {
       data: { autoRenewal },
     });
   }
+
+  async findAllSubscriptionsByProfileId(
+    profileId: number,
+  ): Promise<Subscription[]> {
+    return this.prisma.subscription.findMany({
+      where: {
+        userProfileId: profileId,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+  }
 }

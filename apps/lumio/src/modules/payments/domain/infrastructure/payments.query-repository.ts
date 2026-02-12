@@ -7,12 +7,16 @@ import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get
 export class QueryPaymentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findPaymentsBySubscriptionId(
-    subscriptionId: string,
+  async findPaymentsBySubscriptionIds(
+    subscriptionIds: string[],
     query: GetUserPaymentsParams,
-    includeSubscription: boolean = false,
+    includeSubscription: boolean = true,
   ): Promise<any> {
-    const whereOptions = { subscriptionId };
+    const whereOptions = {
+      subscriptionId: {
+        in: subscriptionIds,
+      },
+    };
 
     const sortDirection: 'asc' | 'desc' =
       query.sortDirection === 'asc' ? 'asc' : 'desc';
@@ -34,10 +38,13 @@ export class QueryPaymentsRepository {
     const items = payments.map((payment) => ({
       id: payment.id,
       createdAt: payment.createdAt.toISOString(),
+      datePayment: payment.datePayment.toISOString(),
+      endDate: payment.endDate.toISOString(),
       amount: Number(payment.amount),
       currency: payment.currency,
       paymentsService: payment.paymentsService,
       subscriptionId: payment.subscriptionId,
+      durationType: payment.subscription?.durationType || null,
     }));
 
     return PaginatedViewDto.mapToView({
