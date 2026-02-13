@@ -6,7 +6,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 
 export class GetCreatePostUserQuery {
   constructor(
-    public readonly postId: number,
+    public readonly postId: string,
     public readonly files: OutputFileType[],
   ) {}
 }

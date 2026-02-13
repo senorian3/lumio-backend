@@ -11,7 +11,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 export class QueryPostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(postId: number): Promise<PostEntity | null> {
+  async findById(postId: string): Promise<PostEntity | null> {
     return this.prisma.post.findFirst({
       where: { id: postId },
       include: {

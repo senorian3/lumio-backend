@@ -41,7 +41,7 @@ export class FilesHttpAdapter {
 
   async uploadFiles<T>(
     endpoint: string,
-    postId: number,
+    postId: string,
     files: Array<Express.Multer.File>,
   ): Promise<T> {
     const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
@@ -116,6 +116,40 @@ export class FilesHttpAdapter {
     } catch (error) {
       this.loggerService.error(
         `Failed to delete avatar for userId=${userId}:`,
+        error?.stack,
+        FilesHttpAdapter.name,
+      );
+      throw error;
+    }
+  }
+
+  async deleteFile<T>(key: string): Promise<T> {
+    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-file`;
+    const headers = this.getHeaders();
+
+    try {
+      const response = await axios.post<T>(url, { key }, { headers });
+      return response.data;
+    } catch (error) {
+      this.loggerService.error(
+        `Failed to delete file with key=${key}:`,
+        error?.stack,
+        FilesHttpAdapter.name,
+      );
+      throw error;
+    }
+  }
+
+  async deletePostFiles<T>(postId: string): Promise<T> {
+    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-post-files/${postId}`;
+    const headers = this.getHeaders();
+
+    try {
+      const response = await axios.delete<T>(url, { headers });
+      return response.data;
+    } catch (error) {
+      this.loggerService.error(
+        `Failed to delete files for postId=${postId}:`,
         error?.stack,
         FilesHttpAdapter.name,
       );

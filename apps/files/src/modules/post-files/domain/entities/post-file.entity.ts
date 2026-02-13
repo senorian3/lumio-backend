@@ -8,5 +8,5 @@ export class PostFileEntity implements PostFile {
   size: number;
   createdAt: Date;
   deletedAt: Date | null;
-  postId: number;
+  postId: string;
 }

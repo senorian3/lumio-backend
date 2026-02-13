@@ -1,7 +1,9 @@
 export class CreateFileDomainDto {
-  key: string;
-  url: string;
-  mimetype: string;
-  size: number;
-  postId: number;
+  constructor(
+    public key: string,
+    public url: string,
+    public mimetype: string,
+    public size: number,
+    public postId: string,
+  ) {}
 }

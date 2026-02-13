@@ -3,11 +3,12 @@ import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-f
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class UploadUserAvatarCommand {
   constructor(
     public readonly userId: number,
-    public readonly avatar: Array<{ buffer: Buffer; originalname: string }>,
+    public readonly avatar: Express.Multer.File,
   ) {}
 }
 
@@ -23,49 +24,65 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ userId, avatar }: UploadUserAvatarCommand): Promise<string> {
-    const tempKey = `temp_${userId}_${Date.now()}`;
+    if (!avatar) {
+      throw BadRequestDomainException.create('Avatar file is required');
+    }
 
-    const avatarRecord = await this.profileRepository.createUserAvatar({
-      key: tempKey,
-      url: '',
-      mimetype: avatar[0].originalname,
-      size: 0,
-      userId,
-    });
+    const fileData = {
+      buffer: avatar.buffer,
+      originalname: avatar.originalname,
+    };
 
     let uploadedFiles: PostFileEntity[];
     try {
       uploadedFiles = await this.s3FilesHttpAdapter.uploadFiles(
         'users',
         userId,
-        avatar,
+        [fileData],
       );
     } catch (error) {
-      try {
-        await this.profileRepository.deleteAvatar(avatarRecord.id);
-      } catch (error) {
-        this.logger.error(
-          `Critical error to delete rollback avatar in DB for userId=${userId}: ${error.message}`,
-          error?.stack,
-          UploadUserAvatarCommandHandler.name,
-        );
-      }
       this.logger.error(
-        `Failed to upload avatar to S3, rolled back DB for userId=${userId}: ${error.message}`,
+        `Failed to upload avatar to S3 for userId=${userId}: ${error.message}`,
         error?.stack,
         UploadUserAvatarCommandHandler.name,
       );
-      throw error;
+      throw BadRequestDomainException.create(
+        'Failed to upload avatar',
+        'avatar',
+      );
     }
 
     const file = uploadedFiles[0];
 
-    await this.profileRepository.updateAvatar(avatarRecord.id, {
-      key: file.key,
-      url: file.url,
-      mimetype: file.mimetype,
-      size: file.size,
-    });
+    try {
+      await this.profileRepository.createUserAvatar({
+        key: file.key,
+        url: file.url,
+        mimetype: file.mimetype,
+        size: file.size,
+        userId,
+      });
+    } catch (error) {
+      try {
+        await this.s3FilesHttpAdapter.deleteFile(file.key);
+      } catch (deleteError) {
+        this.logger.error(
+          `Critical error during rollback to delete avatar file from S3 for userId=${userId}: ${deleteError.message}`,
+          deleteError?.stack,
+          UploadUserAvatarCommandHandler.name,
+        );
+      }
+
+      this.logger.error(
+        `Failed to save avatar in DB for userId=${userId}: ${error.message}`,
+        error?.stack,
+        UploadUserAvatarCommandHandler.name,
+      );
+      throw BadRequestDomainException.create(
+        'Failed to upload avatar',
+        'avatar',
+      );
+    }
 
     return file.url;
   }

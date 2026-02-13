@@ -3,7 +3,7 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { QueryFileRepository } from '../../domain/infrastructure/file.query.repository';
 
 export class GetAllFilesByPostIdsQuery {
-  constructor(public readonly postIds: number[]) {}
+  constructor(public readonly postIds: string[]) {}
 }
 
 @QueryHandler(GetAllFilesByPostIdsQuery)

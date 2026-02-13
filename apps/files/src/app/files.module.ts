@@ -1,14 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '@files/prisma/prisma.module';
-import { CoreModule } from '@files/core/core.module';
+import { FilesCoreModule } from '@files/core/core.module';
 import { CoreConfig } from '@files/core/core.config';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PostFilesController } from '@files/modules/post-files/api/post-files.controller';
 import { GetAllFilesByPostUserQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post-ids.query-handler';
-import { DeletedPostFileCommandHandler } from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
+import { DeletedPostFilesCommandHandler } from '@files/modules/post-files/application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommandHandler } from '@files/modules/post-files/application/commands/upload-post-file.command-handler';
+import { DeleteFileByKeyCommandHandler } from '@files/modules/post-files/application/commands/delete-file-by-key.command-handler';
 import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
 import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
@@ -17,22 +18,19 @@ import { DeleteUserAvatarCommandHandler } from '@files/modules/avatar/applicatio
 import { AvatarController } from '@files/modules/avatar/api/avatar.controller';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 
-const adapters = [S3FilesHttpAdapter];
-
 const commandHandlers = [
   UploadFilesCreatedPostCommandHandler,
-  DeletedPostFileCommandHandler,
+  DeletedPostFilesCommandHandler,
   UploadUserAvatarCommandHandler,
   DeleteUserAvatarCommandHandler,
+  DeleteFileByKeyCommandHandler,
 ];
-
 const queryHandlers = [
   GetAllFilesByPostUserQueryHandler,
   GetAllFilesByPostIdsQueryHandler,
 ];
-
+const adapters = [S3FilesHttpAdapter];
 const repositories = [FileRepository, ProfileRepository];
-
 const queryRepositories = [QueryFileRepository];
 
 @Module({
@@ -40,7 +38,7 @@ const queryRepositories = [QueryFileRepository];
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CoreModule,
+    FilesCoreModule,
     LoggerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),

@@ -7,6 +7,9 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../files-http.adapter';
+import { PostFilesRepository } from '../../domain/infrastructure/post-files.repository';
+import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class CreatePostCommand {
   constructor(
@@ -19,18 +22,20 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostCommandHandler implements ICommandHandler<
   CreatePostCommand,
-  { file: OutputFileType[]; postId: number }
+  { files: OutputFileType[]; postId: string }
 > {
   constructor(
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
+    private readonly postFilesRepository: PostFilesRepository,
     private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(
     command: CreatePostCommand,
-  ): Promise<{ file: OutputFileType[]; postId: number }> {
+  ): Promise<{ files: OutputFileType[]; postId: string }> {
     const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
@@ -39,39 +44,58 @@ export class CreatePostCommandHandler implements ICommandHandler<
       throw BadRequestDomainException.create('User does not exist', 'userId');
     }
 
-    const newPost: PostEntity = await this.postRepository.createPost(
-      command.userId,
-      command.description,
-    );
+    const postId = uuidv4();
 
+    let mappedFile: OutputFileType[];
     try {
-      const mappedFile = await this.filesHttpAdapter.uploadFiles<
-        OutputFileType[]
-      >(`${GLOBAL_PREFIX}/files/upload-post-files`, newPost.id, command.files);
-
-      await this.postRepository.createPostFiles(newPost.id, mappedFile);
-
-      return { file: mappedFile, postId: newPost.id };
+      mappedFile = await this.filesHttpAdapter.uploadFiles<OutputFileType[]>(
+        `${GLOBAL_PREFIX}/files/upload-post-files`,
+        postId,
+        command.files,
+      );
     } catch (error) {
       this.logger.error(
-        `Failed to upload files for postId=${newPost.id}: ${error.message}`,
+        `Failed to upload files for postId=${postId}: ${error.message}`,
         error?.stack,
-        CommandHandler.name,
+        CreatePostCommandHandler.name,
       );
 
-      //сделать нормальную траназакцию на удаление
+      throw BadRequestDomainException.create('Failed to upload files', 'files');
+    }
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const newPost: PostEntity = await this.postRepository.createPost(
+          command.userId,
+          postId,
+          command.description,
+          tx,
+        );
+        await this.postFilesRepository.createPostFiles(
+          newPost.id,
+          mappedFile,
+          tx,
+        );
+      });
+      return { files: mappedFile, postId };
+    } catch (error) {
+      this.logger.error(
+        `Failed to create post with post files in DB for postId=${postId}: ${error.message}`,
+        error?.stack,
+        CreatePostCommandHandler.name,
+      );
+
       try {
-        await this.postRepository.deletePostFilesByPostId(newPost.id);
-        await this.postRepository.deletePost(newPost.id);
+        await this.filesHttpAdapter.deletePostFiles(postId);
       } catch (cleanupError) {
         this.logger.error(
-          `Cleanup failed for postId=${newPost.id}: ${cleanupError.message}`,
+          `Critical error to delete files from S3 for postId=${postId}: ${cleanupError.message}`,
           cleanupError?.stack,
-          CommandHandler.name,
+          CreatePostCommandHandler.name,
         );
       }
 
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
+      throw BadRequestDomainException.create('Failed to create post', 'post');
     }
   }
 }

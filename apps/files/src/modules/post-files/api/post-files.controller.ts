@@ -11,17 +11,22 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
-import { InputUploadFilesType } from './dto/input/upload-files.input.dto';
+import { InputUploadFilesDto } from './dto/input/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { GetAllFilesByPostUserQuery } from '../application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQuery } from '../application/queries/get-all-files-by-post-ids.query-handler';
-import { DeletedPostFileCommand } from '../application/commands/deleted-post-file.command-handler';
+import { DeletedPostFilesCommand } from '../application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommand } from '../application/commands/upload-post-file.command-handler';
-import { GetUserPostsDto } from './dto/input/get-user-post.input.dto';
+import { DeleteFileByKeyCommand } from '../application/commands/delete-file-by-key.command-handler';
+import { InputGetUserPostsDto } from './dto/input/get-user-post.input.dto';
+import {
+  POST_FILES_BASE,
+  POST_FILES_ROUTES,
+} from '@files/core/routes/post-files-routes';
 
-@Controller('files')
+@Controller(POST_FILES_BASE)
 @UseGuards(InternalApiGuard)
 export class PostFilesController {
   constructor(
@@ -32,34 +37,41 @@ export class PostFilesController {
   @Get()
   async getAllUserPostsFiles(
     @Body()
-    data: GetUserPostsDto,
+    data: InputGetUserPostsDto,
   ): Promise<OutputFileType[]> {
     return await this.queryBus.execute(
       new GetAllFilesByPostIdsQuery(data.postIds),
     );
   }
 
-  @Post('upload-post-files')
+  @Post(POST_FILES_ROUTES.UPLOAD_POST_FILES)
   @UseInterceptors(FilesInterceptor('files'))
   async uploadPostFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
-    @Body() dto: InputUploadFilesType,
+    @Body() dto: InputUploadFilesDto,
   ): Promise<OutputFileType[]> {
     await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
-    >(new UploadFilesCreatedPostCommand(+dto.postId, files));
+    >(new UploadFilesCreatedPostCommand(dto.postId, files));
 
     return await this.queryBus.execute<
       GetAllFilesByPostUserQuery,
       OutputFileType[]
-    >(new GetAllFilesByPostUserQuery(+dto.postId));
+    >(new GetAllFilesByPostUserQuery(dto.postId));
   }
 
-  @Delete('delete-post-files/:postId')
-  async deletePostFiles(@Param('postId') postId: number): Promise<void> {
-    return await this.commandBus.execute<DeletedPostFileCommand, void>(
-      new DeletedPostFileCommand(postId),
+  @Delete(POST_FILES_ROUTES.DELETE_POST_FILES)
+  async deletePostFiles(@Param('postId') postId: string): Promise<void> {
+    return await this.commandBus.execute<DeletedPostFilesCommand, void>(
+      new DeletedPostFilesCommand(postId),
+    );
+  }
+
+  @Post(POST_FILES_ROUTES.DELETE_FILE)
+  async deleteFile(@Body() dto: { key: string }): Promise<void> {
+    return await this.commandBus.execute<DeleteFileByKeyCommand, void>(
+      new DeleteFileByKeyCommand(dto.key),
     );
   }
 }

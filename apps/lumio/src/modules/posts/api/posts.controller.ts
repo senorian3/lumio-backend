@@ -64,7 +64,7 @@ export class PostsController {
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
     @Param('userId') userId: number,
-    @Query('postId') postId: number,
+    @Query('postId') postId: string,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
@@ -86,11 +86,11 @@ export class PostsController {
   ): Promise<PostView> {
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
-      { file: OutputFileType[]; postId: number }
+      { files: OutputFileType[]; postId: string }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
     const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
-      new GetCreatePostUserQuery(postFile.postId, postFile.file),
+      new GetCreatePostUserQuery(postFile.postId, postFile.files),
     );
 
     return post;
@@ -101,7 +101,7 @@ export class PostsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updatePost(
-    @Param('postId') postId: number,
+    @Param('postId') postId: string,
     @Body() dto: InputUpdatePostDto,
     @Req() req: any,
   ): Promise<PostView> {
@@ -118,7 +118,7 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deletePost(
-    @Param('postId') postId: number,
+    @Param('postId') postId: string,
     @Req() req: any,
   ): Promise<void> {
     return await this.commandBus.execute<DeletePostCommand, void>(

@@ -1,18 +1,22 @@
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
+type BufferLike = Buffer | Uint8Array | number[];
+
+function isBufferLike(value: unknown): value is BufferLike {
+  return (
+    Buffer.isBuffer(value) ||
+    value instanceof Uint8Array ||
+    Array.isArray(value)
+  );
+}
+
 export function validateAndConvertBuffer(
-  buffer: any,
+  buffer: unknown,
   originalname: string,
   logger: AppLoggerService,
 ): Buffer {
-  if (Buffer.isBuffer(buffer)) {
-    return buffer;
-  } else if (buffer instanceof Uint8Array) {
-    return Buffer.from(buffer);
-  } else if (Array.isArray(buffer)) {
-    return Buffer.from(buffer);
-  } else {
+  if (!isBufferLike(buffer)) {
     logger.error(
       `Unsupported buffer type for file ${originalname}: ${typeof buffer}`,
     );
@@ -21,4 +25,6 @@ export function validateAndConvertBuffer(
       'file',
     );
   }
+
+  return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
 }

@@ -2,7 +2,7 @@ import { FilesService } from '@files/core/adapters/s3-files-http.adapter';
 import {
   DeletedPostFileCommandHandler,
   DeletedPostFileCommand,
-} from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
+} from '@files/modules/post-files/application/commands/deleted-post-files.command-handler';
 import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
 import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
 import { Test, TestingModule } from '@nestjs/testing';

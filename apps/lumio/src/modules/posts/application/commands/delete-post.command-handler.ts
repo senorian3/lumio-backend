@@ -13,7 +13,7 @@ import { FilesHttpAdapter } from '../files-http.adapter';
 export class DeletePostCommand {
   constructor(
     public readonly userId: number,
-    public readonly postId: number,
+    public readonly postId: string,
   ) {}
 }
 
@@ -50,7 +50,16 @@ export class DeletePostCommandHandler implements ICommandHandler<
       );
     }
 
-    await this.postRepository.softDeletePostById(command.postId);
+    try {
+      await this.postRepository.softDeletePostById(command.postId);
+    } catch (error) {
+      this.logger.error(
+        `Failed to soft delete post for postId=${command.postId}: ${error.message}`,
+        error?.stack,
+        DeletePostCommandHandler.name,
+      );
+      throw BadRequestDomainException.create('Failed to delete post', 'post');
+    }
 
     try {
       await this.filesHttpAdapter.delete(
@@ -58,11 +67,11 @@ export class DeletePostCommandHandler implements ICommandHandler<
       );
     } catch (error) {
       this.logger.error(
-        `Failed to delete files for postId=${command.postId}: ${error.message}`,
+        `Critical error to delete files for postId=${command.postId}: ${error.message}`,
         error?.stack,
-        CommandHandler.name,
+        DeletePostCommandHandler.name,
       );
-      throw BadRequestDomainException.create('Failed to delete files', 'files');
+      throw BadRequestDomainException.create('Failed to delete post', 'post');
     }
   }
 }

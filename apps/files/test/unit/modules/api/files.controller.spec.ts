@@ -5,7 +5,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { FilesController } from '@files/modules/post-files/api/post-files.controller';
 import { GetAllFilesByPostUserQuery } from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
-import { DeletedPostFileCommand } from '@files/modules/post-files/application/commands/deleted-post-file.command-handler';
+import { DeletedPostFileCommand } from '@files/modules/post-files/application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommand } from '@files/modules/post-files/application/commands/upload-post-file.command-handler';
 
 describe('FilesController', () => {

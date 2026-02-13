@@ -34,14 +34,14 @@ export class FileRepository {
     return Promise.all(createPromises);
   }
 
-  async softDeleteFilesByPostId(postId: number): Promise<void> {
+  async softDeleteFilesByPostId(postId: string): Promise<void> {
     await this.prisma.postFile.updateMany({
       where: { postId },
       data: { deletedAt: new Date() },
     });
   }
 
-  async findFilesByPostId(postId: number): Promise<PostFileEntity[]> {
+  async findFilesByPostId(postId: string): Promise<PostFileEntity[]> {
     return this.prisma.postFile.findMany({
       where: {
         postId,

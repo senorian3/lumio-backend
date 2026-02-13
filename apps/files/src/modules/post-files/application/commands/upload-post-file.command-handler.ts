@@ -3,10 +3,11 @@ import { S3FilesHttpAdapter } from '../../../../core/adapters/s3-files-http.adap
 import { PostFileEntity } from '../../domain/entities/post-file.entity';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class UploadFilesCreatedPostCommand {
   constructor(
-    public readonly postId: number,
+    public readonly postId: string,
     public readonly files: Array<{ buffer: Buffer; originalname: string }>,
   ) {}
 }
@@ -43,7 +44,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
         error?.stack,
         UploadFilesCreatedPostCommandHandler.name,
       );
-      throw error;
+      throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
 
     let uploadedFiles: PostFileEntity[];
@@ -70,7 +71,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
         error?.stack,
         UploadFilesCreatedPostCommandHandler.name,
       );
-      throw error;
+      throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
 
     const updates = createdFiles.map((file, index) => ({
@@ -84,12 +85,23 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
     try {
       await this.fileRepository.updateFiles(updates);
     } catch (error) {
+      try {
+        await this.fileRepository.deleteFilesByIds(
+          createdFiles.map((f) => f.id),
+        );
+      } catch (error) {
+        this.logger.error(
+          `Critical error to delete rollback files in DB after fail update files for postId=${postId}: ${error.message}`,
+          error?.stack,
+          UploadFilesCreatedPostCommandHandler.name,
+        );
+      }
       this.logger.error(
         `Critical error to update files in DB for postId=${postId}: ${error.message}`,
         error?.stack,
         UploadFilesCreatedPostCommandHandler.name,
       );
-      throw error;
+      throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
   }
 }

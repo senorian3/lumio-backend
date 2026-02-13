@@ -7,9 +7,15 @@ import { Post } from 'generated/prisma-lumio';
 export class PostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createPost(userId: number, description: string): Promise<PostEntity> {
-    const newPost = await this.prisma.post.create({
-      data: { userId, description },
+  async createPost(
+    userId: number,
+    postId: string,
+    description: string,
+    tx?: any,
+  ): Promise<PostEntity> {
+    const client = tx || this.prisma;
+    const newPost = await client.post.create({
+      data: { userId, description, id: postId },
       include: {
         user: true,
         files: true,
@@ -19,7 +25,7 @@ export class PostRepository {
     return newPost;
   }
 
-  async findById(postId: number): Promise<PostEntity | null> {
+  async findById(postId: string): Promise<PostEntity | null> {
     return this.prisma.post.findUnique({
       where: { id: postId },
       include: {
@@ -30,7 +36,7 @@ export class PostRepository {
   }
 
   async updateDescription(
-    postId: number,
+    postId: string,
     description: string,
   ): Promise<PostEntity> {
     return await this.prisma.post.update({
@@ -43,7 +49,7 @@ export class PostRepository {
     });
   }
 
-  async softDeletePostById(postId: number): Promise<void> {
+  async softDeletePostById(postId: string): Promise<void> {
     await this.prisma.post.update({
       where: { id: postId },
       data: { deletedAt: new Date() },
@@ -70,22 +76,5 @@ export class PostRepository {
     ]);
 
     return { posts, totalCount };
-  }
-
-  async createPostFiles(
-    postId: number,
-    files: Array<{ url: string }>,
-  ): Promise<void> {
-    await this.prisma.postFile.createMany({
-      data: files.map((file) => ({ postId, url: file.url })),
-    });
-  }
-
-  async deletePostFilesByPostId(postId: number): Promise<void> {
-    await this.prisma.postFile.deleteMany({ where: { postId } });
-  }
-
-  async deletePost(postId: number): Promise<void> {
-    await this.prisma.post.delete({ where: { id: postId } });
   }
 }

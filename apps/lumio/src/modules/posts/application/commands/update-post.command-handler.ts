@@ -10,7 +10,7 @@ import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/us
 
 export class UpdatePostCommand {
   constructor(
-    public postId: number,
+    public postId: string,
     public userId: number,
     public description: string,
   ) {}

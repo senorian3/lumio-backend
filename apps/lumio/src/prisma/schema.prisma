@@ -111,7 +111,7 @@ model Yandex {
 }
 
 model Post {
-  id          Int     @id @default(autoincrement())
+  id          String     @id
   description String?
 
   createdAt DateTime  @default(now())
@@ -125,7 +125,7 @@ model Post {
 
 model PostFile {
   id        Int       @id @default(autoincrement())
-  postId    Int
+  postId    String
   url       String
   createdAt DateTime  @default(now())
   deletedAt DateTime?
