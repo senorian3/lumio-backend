@@ -59,12 +59,10 @@ export class ProfileController {
     @Req() req: any,
     @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
   ): Promise<{ url: string }> {
-    const avatarUrl = await this.commandBus.execute<
+    return await this.commandBus.execute<
       UploadUserAvatarCommand,
       { url: string }
     >(new UploadUserAvatarCommand(req.user.userId, avatar));
-
-    return avatarUrl;
   }
 
   @Put(PROFILE_ROUTES.FILL_PROFILE)

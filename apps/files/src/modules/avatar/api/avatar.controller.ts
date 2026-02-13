@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
+  Param,
   Post,
   UploadedFile,
   UseGuards,
@@ -10,6 +12,7 @@ import {
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { UploadUserAvatarCommand } from '@files/modules/avatar/application/commands/upload-user-avatar.command-handler';
+import { DeleteUserAvatarCommand } from '@files/modules/avatar/application/commands/delete-user-avatar.command-handler';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('profile')
@@ -17,7 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class AvatarController {
   constructor(private readonly commandBus: CommandBus) {}
 
-  @Post('/upload-user-avatar')
+  @Post('upload-user-avatar')
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(
     @UploadedFile() avatar: Express.Multer.File,
@@ -38,5 +41,12 @@ export class AvatarController {
     >(new UploadUserAvatarCommand(+userId, [fileInput]));
 
     return { url: uploadUserAvatarUrl };
+  }
+
+  @Delete('delete-user-avatar/:userId')
+  async deleteUserAvatar(@Param('userId') userId: string) {
+    await this.commandBus.execute(new DeleteUserAvatarCommand(+userId));
+
+    return { success: true };
   }
 }

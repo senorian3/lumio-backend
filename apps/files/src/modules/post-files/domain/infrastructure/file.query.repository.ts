@@ -18,4 +18,23 @@ export class QueryFileRepository {
 
     return files;
   }
+
+  async getAllFilesByPostIds(postIds: number[]): Promise<PostFileEntity[]> {
+    if (!postIds || postIds.length === 0) {
+      return [];
+    }
+
+    const files = await this.prisma.postFile.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return files;
+  }
 }

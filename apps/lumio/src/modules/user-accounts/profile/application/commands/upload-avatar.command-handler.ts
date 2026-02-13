@@ -28,27 +28,51 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
     if (!user) {
       throw BadRequestDomainException.create('User does not exist', 'userId');
     }
-
+    let avatarUrl: string;
     try {
-      const formData = new FormData();
-      formData.append('userId', command.userId.toString());
-
       const response = await this.filesHttpAdapter.uploadUserAvatar<any>(
         `${GLOBAL_PREFIX}/profile/upload-user-avatar`,
         command.userId,
         command.avatar,
       );
 
-      const avatarUrl = response.url;
+      avatarUrl = response.url;
+    } catch (error) {
+      this.logger.error(
+        `Avatar upload failed for user ${command.userId}`,
+        error.stack,
+        UploadUserAvatarCommand.name,
+      );
 
+      throw BadRequestDomainException.create(
+        'Failed to upload avatar',
+        'avatar',
+      );
+    }
+
+    try {
       await this.userRepository.updateAvatarUrl(command.userId, avatarUrl);
       return { url: avatarUrl };
     } catch (error) {
       this.logger.error(
-        `Avatar upload failed for user ${command.userId}`,
-        error.stack || JSON.stringify(error),
-        CommandHandler.name,
+        `Avatar update failed for user ${command.userId}, rolling back uploaded file`,
+        error?.stack,
+        UploadUserAvatarCommand.name,
       );
+
+      try {
+        await this.filesHttpAdapter.deleteUserAvatar(command.userId);
+        this.logger.log(
+          `Successfully rolled back avatar upload for user ${command.userId}`,
+          UploadUserAvatarCommandHandler.name,
+        );
+      } catch (rollbackError) {
+        this.logger.error(
+          `Critical error to rollback avatar upload for user ${command.userId}: ${rollbackError.message}`,
+          rollbackError?.stack,
+          UploadUserAvatarCommandHandler.name,
+        );
+      }
 
       throw BadRequestDomainException.create('Failed to upload avatar', 'user');
     }

@@ -105,4 +105,21 @@ export class FilesHttpAdapter {
       throw error;
     }
   }
+
+  async deleteUserAvatar<T>(userId: number): Promise<T> {
+    const url = `${this.coreConfig.filesFrontendUrl}/profile/delete-user-avatar/${userId}`;
+    const headers = this.getHeaders();
+
+    try {
+      const response = await axios.delete<T>(url, { headers });
+      return response.data;
+    } catch (error) {
+      this.loggerService.error(
+        `Failed to delete avatar for userId=${userId}:`,
+        error?.stack,
+        FilesHttpAdapter.name,
+      );
+      throw error;
+    }
+  }
 }
