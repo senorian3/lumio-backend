@@ -67,6 +67,7 @@ export class OutboxScheduler {
               break;
             case OutboxEventType.PAYMENT_COMPLETED:
             case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
+            case OutboxEventType.SUBSCRIPTION_DELETED:
               result = await this.sendMessageToLumio(message);
               break;
 
@@ -158,6 +159,8 @@ export class OutboxScheduler {
         return 'payment.completed';
       case OutboxEventType.PAYMENT_RECURRING_COMPLETED:
         return 'payment.recurring.completed';
+      case OutboxEventType.SUBSCRIPTION_DELETED:
+        return 'subscription.deleted';
 
       default:
         return 'payment.unknown';

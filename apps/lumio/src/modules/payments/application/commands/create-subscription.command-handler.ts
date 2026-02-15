@@ -50,7 +50,7 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
       this.logger.error(
         `Failed to get subscription payment url for userId=${command.userId}: ${error.message}`,
         error?.stack,
-        CommandHandler.name,
+        CreateSubscriptionPaymentUrlCommand.name,
       );
 
       throw BadRequestDomainException.create(

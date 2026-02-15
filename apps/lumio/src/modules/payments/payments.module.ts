@@ -3,8 +3,8 @@ import { PaymentsRabbitMQController } from './api/payments-rabbitmq.controller';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
 import { CreateSubscriptionPaymentUrlCommandHandler } from './application/commands/create-subscription.command-handler';
 import { HandlePaymentCompletedCommandHandler } from './application/commands/handle-payment-completed.command-handler';
-import { HandleSubscriptionCancelledCommandHandler } from './application/commands/handle-subscription-cancelled.command-handler';
 import { HandleSubscriptionRecurringUpdatedCommandHandler } from './application/commands/handle-subscription-updated.command-handler';
+import { HandleSubscriptionDeletedCommandHandler } from './application/commands/handle-subscription-deleted.command-handler';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PaymentsHttpAdapter } from './application/payments-http.adapter';
 import { PaymentsRepository } from './domain/infrastructure/payments.repository';
@@ -23,8 +23,8 @@ import { GetUserSubscriptionQueryHandler } from './application/queries/get-user-
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
   HandlePaymentCompletedCommandHandler,
-  HandleSubscriptionCancelledCommandHandler,
   HandleSubscriptionRecurringUpdatedCommandHandler,
+  HandleSubscriptionDeletedCommandHandler,
   ChangeAutoRenewalCommandHandler,
 ];
 

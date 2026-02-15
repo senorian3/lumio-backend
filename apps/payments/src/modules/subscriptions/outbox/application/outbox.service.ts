@@ -7,6 +7,7 @@ import {
 } from '../../constants/outbox-constants';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
+import { CreateSubscriptionDeletedMessageDto } from '@libs/dto/transfer/create-subscription-deleted-message.dto';
 
 @Injectable()
 export class OutboxService {
@@ -187,5 +188,31 @@ export class OutboxService {
       scheduledAt: new Date(),
       ttl: new Date(Date.now() + 24 * 60 * 1000),
     });
+  }
+
+  async createSubscriptionDeletedMessage(
+    payload: CreateSubscriptionDeletedMessageDto,
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType: OutboxEventType.SUBSCRIPTION_DELETED,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for subscription deleted ${payload.subscriptionId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
+      throw error;
+    }
   }
 }

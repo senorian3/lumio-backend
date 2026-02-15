@@ -87,4 +87,17 @@ export class SubscriptionRepository {
       },
     });
   }
+
+  async cancelSubscription(
+    id: string,
+    cancelledAt: Date,
+  ): Promise<Subscription> {
+    return this.prisma.subscription.update({
+      where: { id },
+      data: {
+        cancelledAt,
+        autoRenewal: false,
+      },
+    });
+  }
 }

@@ -15,6 +15,7 @@ import { GetMainPageQueryHandler } from './application/queries/get-main-page.que
 import { GetProfilePostQueryHandler } from './application/queries/get-profile-post.query-handler';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 import { FilesHttpAdapter } from './application/files-http.adapter';
+import { PostFilesRepository } from './domain/infrastructure/post-files.repository';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -29,13 +30,13 @@ const useCases = [
 
 const adapters = [FilesHttpAdapter];
 
-const repository = [PostRepository];
+const repositories = [PostRepository, PostFilesRepository];
 
-const queryRepository = [QueryPostRepository];
+const queryRepositories = [QueryPostRepository];
 
 @Module({
   imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
   controllers: [PostsController, MainController],
-  providers: [...useCases, ...adapters, ...repository, ...queryRepository],
+  providers: [...useCases, ...adapters, ...repositories, ...queryRepositories],
 })
 export class PostsModule {}

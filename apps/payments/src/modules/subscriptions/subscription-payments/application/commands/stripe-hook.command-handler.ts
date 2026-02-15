@@ -4,6 +4,7 @@ import { StripeAdapter } from '@payments/modules/subscriptions/subscription-paym
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ProcessInitialPaymentCommand } from './process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommand } from './process-recurring-payment.command-handler';
+import { ProcessSubscriptionDeletedCommand } from './process-subscription-deleted.command-handler';
 import Stripe from 'stripe';
 import {
   PaymentStatus,
@@ -43,6 +44,10 @@ export class StripeHookCommandHandler implements ICommandHandler<
 
         case StripeEventType.INVOICE_PAID:
           await this.handleRecurringPayment(event);
+          break;
+
+        case StripeEventType.CUSTOMER_SUBSCRIPTION_DELETED:
+          await this.handleSubscriptionDeleted(event);
           break;
 
         default:
@@ -89,5 +94,9 @@ export class StripeHookCommandHandler implements ICommandHandler<
   private async handleRecurringPayment(event: Stripe.Event) {
     const invoice = event.data.object as Stripe.Invoice;
     await this.commandBus.execute(new ProcessRecurringPaymentCommand(invoice));
+  }
+
+  private async handleSubscriptionDeleted(event: Stripe.Event) {
+    await this.commandBus.execute(new ProcessSubscriptionDeletedCommand(event));
   }
 }

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class InputUploadFilesType {
+export class InputUploadFilesDto {
   @IsString()
   postId: string;
 }

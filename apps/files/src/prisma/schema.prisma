@@ -19,7 +19,7 @@ model PostFile {
   size      Int
   createdAt DateTime  @default(now())
   deletedAt DateTime?
-  postId    Int?
+  postId    String?
 }
 
 model UserAvatar {

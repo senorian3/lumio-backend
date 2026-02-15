@@ -1,7 +1,9 @@
 export class CreateUserAvatarDto {
-  key: string;
-  url: string;
-  mimetype: string;
-  size: number;
-  userId?: number;
+  constructor(
+    public key: string,
+    public url: string,
+    public mimetype: string,
+    public size: number,
+    public userId?: number,
+  ) {}
 }

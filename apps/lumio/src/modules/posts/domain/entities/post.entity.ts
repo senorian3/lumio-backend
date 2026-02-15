@@ -3,7 +3,7 @@ import { Post } from 'generated/prisma-lumio';
 import { PostFileEntity } from '@lumio/modules/posts/domain/entities/post-file.entity';
 
 export class PostEntity implements Post {
-  id: number;
+  id: string;
   description: string;
   createdAt: Date;
   deletedAt: Date | null;

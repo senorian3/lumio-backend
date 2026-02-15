@@ -3,7 +3,7 @@ import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 import { Post } from 'generated/prisma-lumio';
 
 export class PostView {
-  id: number;
+  id: string;
   description: string;
   createdAt: Date;
 
@@ -21,11 +21,7 @@ export class PostView {
 
     view.postFiles = allFiles
       ? allFiles
-          .filter(
-            (file) =>
-              file.postId === post.id ||
-              (file.postId === undefined && file.id === post.id),
-          )
+          .filter((file) => file.postId === post.id)
           .map((f) => new OutputFileType(f.id, f.url, f.postId || post.id))
       : [];
 

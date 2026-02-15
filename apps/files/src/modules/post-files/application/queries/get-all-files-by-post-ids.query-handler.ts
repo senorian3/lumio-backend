@@ -2,20 +2,20 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { QueryFileRepository } from '../../domain/infrastructure/file.query.repository';
 
-export class GetAllFilesByPostUserQuery {
-  constructor(public readonly postId: string) {}
+export class GetAllFilesByPostIdsQuery {
+  constructor(public readonly postIds: string[]) {}
 }
 
-@QueryHandler(GetAllFilesByPostUserQuery)
-export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
-  GetAllFilesByPostUserQuery,
+@QueryHandler(GetAllFilesByPostIdsQuery)
+export class GetAllFilesByPostIdsQueryHandler implements IQueryHandler<
+  GetAllFilesByPostIdsQuery,
   OutputFileType[]
 > {
   constructor(private readonly queryFileRepository: QueryFileRepository) {}
 
-  async execute(query: GetAllFilesByPostUserQuery): Promise<OutputFileType[]> {
-    const files = await this.queryFileRepository.getAllFilesByPostId(
-      query.postId,
+  async execute(query: GetAllFilesByPostIdsQuery): Promise<OutputFileType[]> {
+    const files = await this.queryFileRepository.getAllFilesByPostIds(
+      query.postIds,
     );
 
     const mappedFiles = files.map(

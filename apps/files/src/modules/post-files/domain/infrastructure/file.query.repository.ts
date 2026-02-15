@@ -6,10 +6,29 @@ import { PostFileEntity } from '../entities/post-file.entity';
 export class QueryFileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllFilesByPostId(postId: number): Promise<PostFileEntity[]> {
+  async getAllFilesByPostId(postId: string): Promise<PostFileEntity[]> {
     const files = await this.prisma.postFile.findMany({
       where: {
-        postId: postId,
+        postId,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return files;
+  }
+
+  async getAllFilesByPostIds(postIds: string[]): Promise<PostFileEntity[]> {
+    if (!postIds || postIds.length === 0) {
+      return [];
+    }
+
+    const files = await this.prisma.postFile.findMany({
+      where: {
+        postId: {
+          in: postIds,
+        },
       },
       orderBy: {
         createdAt: 'asc',

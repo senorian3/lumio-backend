@@ -7,7 +7,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 export class GetProfilePostQuery {
   constructor(
     public userId: number,
-    public postId: number,
+    public postId: string,
   ) {}
 }
 
