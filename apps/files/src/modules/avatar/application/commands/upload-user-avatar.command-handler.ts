@@ -34,6 +34,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
     };
 
     let uploadedFiles: PostFileEntity[];
+
     try {
       uploadedFiles = await this.s3FilesHttpAdapter.uploadFiles(
         'users',
@@ -42,9 +43,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       );
     } catch (error) {
       this.logger.error(
-        `Failed to upload avatar to S3 for userId=${userId}: ${error.message}`,
-        error?.stack,
-        UploadUserAvatarCommandHandler.name,
+        `Failed to upload avatar for userId=${userId}: ${error.message}`,
       );
       throw BadRequestDomainException.create(
         'Failed to upload avatar',
@@ -62,28 +61,16 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
         size: file.size,
         userId,
       });
-    } catch (error) {
-      try {
-        await this.s3FilesHttpAdapter.deleteFile(file.key);
-      } catch (deleteError) {
-        this.logger.error(
-          `Critical error during rollback to delete avatar file from S3 for userId=${userId}: ${deleteError.message}`,
-          deleteError?.stack,
-          UploadUserAvatarCommandHandler.name,
-        );
-      }
 
+      return file.url;
+    } catch (error) {
       this.logger.error(
-        `Failed to save avatar in DB for userId=${userId}: ${error.message}`,
-        error?.stack,
-        UploadUserAvatarCommandHandler.name,
+        `Critical error to upload avatar for userId=${userId}: ${error.message}, need to delete file from S3 ${file.key}`,
       );
       throw BadRequestDomainException.create(
         'Failed to upload avatar',
         'avatar',
       );
     }
-
-    return file.url;
   }
 }

@@ -5,9 +5,19 @@ import { Redis } from 'ioredis';
 @Injectable()
 export class IdempotencyService {
   private readonly PREFIX = 'message:id:';
-  private readonly TTL = 86400; // 24 часа в секундах
+  private readonly TTL = 86400;
 
   constructor(@InjectRedis() private readonly redis: Redis) {}
+
+  async tryMarkAsProcessed(messageId: string): Promise<boolean> {
+    if (!messageId) {
+      return false;
+    }
+
+    const key = this.PREFIX + messageId;
+    const result = await this.redis.set(key, 'processed', 'EX', this.TTL, 'NX');
+    return result === 'OK';
+  }
 
   async isMessageProcessed(messageId: string): Promise<boolean> {
     if (!messageId) {
@@ -17,23 +27,5 @@ export class IdempotencyService {
     const key = this.PREFIX + messageId;
     const result = await this.redis.exists(key);
     return result === 1;
-  }
-
-  async markMessageAsProcessed(messageId: string): Promise<void> {
-    if (!messageId) {
-      return;
-    }
-
-    const key = this.PREFIX + messageId;
-    await this.redis.setex(key, this.TTL, 'processed');
-  }
-
-  async clearMessage(messageId: string): Promise<void> {
-    if (!messageId) {
-      return;
-    }
-
-    const key = this.PREFIX + messageId;
-    await this.redis.del(key);
   }
 }

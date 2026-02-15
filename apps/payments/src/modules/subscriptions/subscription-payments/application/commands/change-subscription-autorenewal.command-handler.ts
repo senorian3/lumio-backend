@@ -62,7 +62,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
       );
 
       throw BadRequestDomainException.create(
-        `Failed to change autoRenewal subscription for profileId ${dto.profileId}`,
+        'Failed to change auto renewal subscription',
         'profileId',
       );
     }

@@ -47,14 +47,24 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         if (!currentPayment) {
           this.logger.error(
             `Payment with customPaymentId ${customPaymentId} not found`,
-            null,
+            this.paymentsRepository.findByCustomPaymentId.name,
             ProcessInitialPaymentCommand.name,
           );
           throw new Error();
         }
 
-        const subscriptionDetails =
-          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+        let subscriptionDetails: Stripe.Subscription;
+
+        try {
+          subscriptionDetails =
+            await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+        } catch (error) {
+          this.logger.error(
+            `Failed to retrieve subscription details for subscriptionId ${subscriptionId}: ${error.message}`,
+            error.stack,
+            ProcessInitialPaymentCommand.name,
+          );
+        }
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
           subscriptionDetails.billing_cycle_anchor,
@@ -92,24 +102,28 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         });
       });
-
-      this.logger.log(
-        `Initial payment processed successfully for ${customPaymentId}`,
-        ProcessInitialPaymentCommand.name,
-      );
     } catch (error) {
       this.logger.error(
-        `Critical error processing initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
+        `Failed to process initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
         error.stack,
         ProcessInitialPaymentCommand.name,
       );
-      await this.manualReviewService.createFailedInitialPaymentTask(
-        session,
-        error,
-      );
+      try {
+        await this.manualReviewService.createFailedInitialPaymentTask(
+          session,
+          error,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Critical error processing initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
+          error.stack,
+          ProcessInitialPaymentCommand.name,
+        );
+      }
+
       throw BadRequestDomainException.create(
         'Something went wrong processing initial payment, we are working on it',
-        'customPaymentId',
+        'payment',
       );
     }
   }

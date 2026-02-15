@@ -165,4 +165,14 @@ export class PaymentsRepository {
       },
     });
   }
+
+  async deleteExpiredPendingPayments(createdBefore: Date): Promise<number> {
+    const result = await this.prisma.payment.deleteMany({
+      where: {
+        status: 'pending',
+        createdAt: { lt: createdBefore },
+      },
+    });
+    return result.count;
+  }
 }

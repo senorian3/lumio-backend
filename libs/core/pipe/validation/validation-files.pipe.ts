@@ -5,7 +5,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 export class FileValidationPipe implements PipeTransform {
   private readonly ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private readonly MAX_FILES = 10;
-  private readonly MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+  private readonly MAX_FILE_SIZE = 20 * 1024 * 1024;
 
   transform(files: Array<Express.Multer.File>): Array<Express.Multer.File> {
     if (!files || files.length === 0) {

@@ -93,9 +93,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         CreateSubscriptionPaymentCommandHandler.name,
       );
       try {
-        if (session.id) {
-          await this.stripeAdapter.cancelSession(session.id);
-        }
+        await this.stripeAdapter.cancelSession(session.id);
       } catch (stripeError) {
         this.logger.warn(
           `Could not cancel Stripe session: ${stripeError.message}`,

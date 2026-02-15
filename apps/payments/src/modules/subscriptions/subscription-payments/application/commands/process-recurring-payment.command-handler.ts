@@ -47,7 +47,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
         if (!existingPayment) {
           this.logger.error(
-            `Платеж не найден в БД: subscriptionId=${subscriptionId}`,
+            `Payment with subscriptionId ${subscriptionId} not found`,
             this.paymentsRepository.findBySubscriptionId.name,
             ProcessRecurringPaymentCommandHandler.name,
           );
@@ -137,6 +137,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
       }
       throw BadRequestDomainException.create(
         'Someting went wrong, we are working on it',
+        'payment',
       );
     }
   }

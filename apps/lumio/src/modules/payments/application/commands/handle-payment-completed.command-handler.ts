@@ -53,7 +53,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     if (!profile) {
       throw BadRequestDomainException.create(
         'User profile dont exist',
-        'UserProfile',
+        'profileId',
       );
     }
 

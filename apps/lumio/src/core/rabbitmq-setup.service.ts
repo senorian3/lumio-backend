@@ -69,8 +69,6 @@ export class RabbitMQSetupService implements OnModuleInit {
 
       await channel.close();
       await connection.close();
-
-      this.logger.log('RabbitMQ bindings setup successfully.');
     } catch (error) {
       this.logger.error(
         'Error setting up RabbitMQ bindings:',

@@ -43,7 +43,9 @@ export class DeletedPostFilesCommandHandler implements ICommandHandler<
       }
     } catch (error) {
       this.logger.error(
-        `Critical error to delete files from S3 for postId=${postId}: ${error.message}`,
+        `Critical error to delete files from S3 for postId=${postId}: ${error.message}, need to delete files: ${postFiles.map(
+          (file) => file.key,
+        )}`,
         error?.stack,
         DeletedPostFilesCommand.name,
       );
