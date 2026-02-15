@@ -14,6 +14,7 @@ import { ChangeAutoRenewalSubscriptionCommandHandler } from '@payments/modules/s
 import { StripeHookCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { ProcessInitialPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
+import { ProcessSubscriptionDeletedCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-subscription-deleted.command-handler';
 import { RetryService } from '@payments/modules/subscriptions/subscription-payments/application/retry.service';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { OutboxRepository } from '@payments/modules/subscriptions/outbox/domain/outbox.repository';
@@ -29,6 +30,7 @@ const useCases = [
   CreateSubscriptionPaymentCommandHandler,
   ProcessInitialPaymentCommandHandler,
   ProcessRecurringPaymentCommandHandler,
+  ProcessSubscriptionDeletedCommandHandler,
   ChangeAutoRenewalSubscriptionCommandHandler,
 ];
 

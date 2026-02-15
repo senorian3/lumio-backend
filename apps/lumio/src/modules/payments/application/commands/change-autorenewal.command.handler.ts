@@ -84,7 +84,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
       this.logger.error(
         `Failed to update subscription autorenewal for userId=${command.userId}: ${error.message}`,
         error?.stack,
-        CommandHandler.name,
+        ChangeAutoRenewalCommand.name,
       );
 
       throw BadRequestDomainException.create(
@@ -107,13 +107,13 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
         this.logger.error(
           `Critical error, failed to compensate updatesubscription autorenewal back for userId=${command.userId}: ${error.message}`,
           error?.stack,
-          CommandHandler.name,
+          ChangeAutoRenewalCommand.name,
         );
       }
       this.logger.error(
         `Failed to update subscription autorenewal for userId=${command.userId}: ${error.message}`,
         error?.stack,
-        CommandHandler.name,
+        ChangeAutoRenewalCommand.name,
       );
 
       throw BadRequestDomainException.create(

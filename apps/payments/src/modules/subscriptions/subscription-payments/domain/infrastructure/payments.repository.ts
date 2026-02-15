@@ -3,6 +3,7 @@ import { PrismaService } from '@payments/prisma/prisma.service';
 import { Payment } from 'generated/prisma-payments';
 import { CreatePaymentDomainDto } from '../dto/create-payment.domain.dto';
 import { UpdatePaymentDomainDto } from '../dto/update-payment.domain.dto';
+import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 
 @Injectable()
 export class PaymentsRepository {
@@ -146,6 +147,21 @@ export class PaymentsRepository {
       where: { id },
       data: {
         paymentsUrl,
+      },
+    });
+  }
+
+  async cancelPayment(
+    customPaymentId: string,
+    cancelledAt: Date,
+    tx?: any,
+  ): Promise<Payment> {
+    const client = tx || this.prisma;
+    return client.payment.update({
+      where: { customPaymentId },
+      data: {
+        status: PaymentStatus.CANCELLED,
+        cancelledAt: cancelledAt,
       },
     });
   }

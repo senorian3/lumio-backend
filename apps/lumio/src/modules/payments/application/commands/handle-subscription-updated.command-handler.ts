@@ -1,12 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InputSubscriptionRecurringUpdatedEvent } from '../../api/dto/transfer/subscription-recurring-updated-event.dto';
+import { SubscriptionRecurringUpdatedEvent } from '../../api/dto/transfer/subscription-recurring-updated-event.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class HandleSubscriptionRecurringUpdatedCommand {
-  constructor(public readonly data: InputSubscriptionRecurringUpdatedEvent) {}
+  constructor(public readonly data: SubscriptionRecurringUpdatedEvent) {}
 }
 
 @CommandHandler(HandleSubscriptionRecurringUpdatedCommand)
@@ -28,10 +28,6 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
     );
 
     if (!subscription) {
-      this.appLogger.warn(
-        `Subscription not found for payment ${data.payload.paymentId}`,
-        'HandleSubscriptionUpdatedCommandHandler',
-      );
       return;
     }
 
@@ -63,7 +59,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
       this.appLogger.error(
         `Error processing subscription updated event: ${error.message}`,
         error.stack,
-        'PaymentsRabbitMQ',
+        HandleSubscriptionRecurringUpdatedCommand.name,
       );
       throw error;
     }

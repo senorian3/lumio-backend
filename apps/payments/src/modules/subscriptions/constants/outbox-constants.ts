@@ -17,4 +17,5 @@ export enum OutboxEventType {
   FAILED_INITIAL_PAYMENT_PROCESSING = 'failed.initial.payment.processing',
   FAILED_RECURRING_PAYMENT_PROCESSING = 'failed.recurring.payment.processing',
   FAILED_SUBSCRIPTION_CHANGE_AUTO_RENEWAL_PROCESSING = 'failed.subscription.change.autorenewal.processing',
+  SUBSCRIPTION_DELETED = 'subscription.deleted',
 }

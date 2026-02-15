@@ -28,9 +28,9 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       this.appLogger.error(
         `Error processing payment completed event: ${error.message}`,
         error.stack,
-        'PaymentsRabbitMQ',
+        HandlePaymentCompletedCommand.name,
       );
-      throw error; // This will cause the message to be retried
+      throw error;
     }
   }
 
@@ -88,14 +88,13 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
           tx,
         );
 
-        // Update account type within transaction
         await this.userRepository.updateAccountType(profileId, 'Business', tx);
       });
     } catch (error) {
       this.appLogger.error(
         `Error processing payment completed event: ${error.message}`,
         error.stack,
-        'PaymentsRabbitMQ',
+        HandlePaymentCompletedCommand.name,
       );
       throw error;
     }
