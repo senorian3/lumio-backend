@@ -25,6 +25,7 @@ import {
   PAYMENTS_BASE,
   PAYMENTS_ROUTES,
 } from '@lumio/core/routes/payment-routes';
+import { OutputUserSubscriptionDto } from './dto/output/user-subscription.output.dto';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller(PAYMENTS_BASE)
@@ -66,19 +67,20 @@ export class PaymentsController {
     @Query()
     query: GetUserPaymentsParams,
     @Req() req: any,
-  ): Promise<any> {
-    return await this.queryBus.execute<GetUserPaymentsQuery, void>(
-      new GetUserPaymentsQuery(+req.user.userId, query),
-    );
+  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
+    return await this.queryBus.execute<
+      GetUserPaymentsQuery,
+      PaginatedViewDto<PaymentViewDto[]>
+    >(new GetUserPaymentsQuery(+req.user.userId, query));
   }
 
   @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
   async getUserSubscription(
     @Req() req: any,
-  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
+  ): Promise<OutputUserSubscriptionDto> {
     return await this.queryBus.execute<
       GetUserSubscriptionQuery,
-      PaginatedViewDto<PaymentViewDto[]>
+      OutputUserSubscriptionDto
     >(new GetUserSubscriptionQuery(+req.user.userId));
   }
 }
