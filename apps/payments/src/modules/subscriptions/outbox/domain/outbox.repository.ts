@@ -70,12 +70,14 @@ export class OutboxRepository {
     });
   }
 
-  async cleanupExpiredMessages(): Promise<void> {
-    await this.prisma.outboxMessage.deleteMany({
+  async cleanupExpiredMessages(): Promise<number> {
+    const result = await this.prisma.outboxMessage.deleteMany({
       where: {
         ttl: { lt: new Date() },
       },
     });
+
+    return result.count;
   }
 
   async findMessageById(messageId: number): Promise<OutboxMessage | null> {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { OutboxRepository } from '../domain/outbox.repository';
+import { PaymentsRepository } from '../../subscription-payments/domain/infrastructure/payments.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
@@ -13,6 +14,7 @@ export class OutboxScheduler {
     @Inject('LUMIO_SERVICE')
     private readonly lumioService: ClientProxy,
     private readonly outboxRepository: OutboxRepository,
+    private readonly paymentsRepository: PaymentsRepository,
     private readonly logger: AppLoggerService,
     private readonly externalCallsProcessor: ExternalCallsProcessor,
   ) {}
@@ -106,16 +108,46 @@ export class OutboxScheduler {
     }
   }
 
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async cleanupExpiredPendingPayments(): Promise<void> {
+    try {
+      const expiredBefore = new Date(Date.now() - (60 * 60 * 1000 + 60 * 1000));
+
+      const deletedCount =
+        await this.paymentsRepository.deleteExpiredPendingPayments(
+          expiredBefore,
+        );
+
+      if (deletedCount > 0) {
+        this.logger.log(
+          `Cleaned up ${deletedCount} expired pending payments`,
+          'OutboxScheduler',
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error cleaning up expired pending payments: ${error.message}`,
+        error.stack,
+        OutboxScheduler.name,
+      );
+    }
+  }
+
   @Cron(CronExpression.EVERY_HOUR)
   async cleanupExpiredMessages(): Promise<void> {
     try {
-      await this.outboxRepository.cleanupExpiredMessages();
-      this.logger.log('Cleaned up expired outbox messages', 'OutboxScheduler');
+      const count = await this.outboxRepository.cleanupExpiredMessages();
+      if (count > 0) {
+        this.logger.log(
+          `Cleaned up ${count} expired messages`,
+          'OutboxScheduler',
+        );
+      }
     } catch (error) {
       this.logger.error(
         `Error cleaning up expired messages: ${error.message}`,
         error.stack,
-        'OutboxScheduler',
+        OutboxScheduler.name,
       );
     }
   }
