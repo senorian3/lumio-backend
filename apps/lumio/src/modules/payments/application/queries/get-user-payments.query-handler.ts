@@ -5,6 +5,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { PaymentViewDto } from '@lumio/modules/payments/api/dto/output/user-payment.output.dto';
 
 export class GetUserPaymentsQuery {
   constructor(
@@ -16,7 +17,7 @@ export class GetUserPaymentsQuery {
 @QueryHandler(GetUserPaymentsQuery)
 export class GetUserPaymentsQueryHandler implements IQueryHandler<
   GetUserPaymentsQuery,
-  any // Changed return type
+  PaginatedViewDto<PaymentViewDto[]>
 > {
   constructor(
     private queryPaymentsRepository: QueryPaymentsRepository,
@@ -24,7 +25,9 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
     private subscriptionRepository: SubscriptionRepository,
   ) {}
 
-  async execute(query: GetUserPaymentsQuery): Promise<any> {
+  async execute(
+    query: GetUserPaymentsQuery,
+  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
     const profile =
       await this.externalQueryUserAccountsRepository.getProfileByUserId(
         query.userId,
@@ -40,7 +43,7 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
 
     if (!subscriptions || subscriptions.length === 0) {
       return PaginatedViewDto.mapToView({
-        items: [],
+        items: [] as PaymentViewDto[],
         page: query.query.pageNumber,
         size: query.query.pageSize,
         totalCount: 0,
@@ -49,10 +52,20 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
 
     const subscriptionIds = subscriptions.map((sub) => sub.id);
 
-    return await this.queryPaymentsRepository.findPaymentsBySubscriptionIds(
-      subscriptionIds,
-      query.query,
-      true, // Include subscription to get durationType
-    );
+    const { payments, totalCount } =
+      await this.queryPaymentsRepository.findPaymentsBySubscriptionIds(
+        subscriptionIds,
+        query.query,
+        true,
+      );
+
+    const items: PaymentViewDto[] = PaymentViewDto.mapManyToView(payments);
+
+    return PaginatedViewDto.mapToView({
+      items,
+      page: query.query.pageNumber,
+      size: query.query.pageSize,
+      totalCount,
+    });
   }
 }

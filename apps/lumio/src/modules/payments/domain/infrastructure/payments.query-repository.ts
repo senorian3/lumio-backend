@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
+
+export interface PaymentsWithCount {
+  payments: any[];
+  totalCount: number;
+}
 
 @Injectable()
 export class QueryPaymentsRepository {
@@ -11,7 +15,7 @@ export class QueryPaymentsRepository {
     subscriptionIds: string[],
     query: GetUserPaymentsParams,
     includeSubscription: boolean = true,
-  ): Promise<any> {
+  ): Promise<PaymentsWithCount> {
     const whereOptions = {
       subscriptionId: {
         in: subscriptionIds,
@@ -35,23 +39,6 @@ export class QueryPaymentsRepository {
       this.prisma.payments.count({ where: whereOptions }),
     ]);
 
-    const items = payments.map((payment) => ({
-      id: payment.id,
-      createdAt: payment.createdAt.toISOString(),
-      datePayment: payment.datePayment.toISOString(),
-      endDate: payment.endDate.toISOString(),
-      amount: Number(payment.amount),
-      currency: payment.currency,
-      paymentsService: payment.paymentsService,
-      subscriptionId: payment.subscriptionId,
-      durationType: payment.subscription?.durationType || null,
-    }));
-
-    return PaginatedViewDto.mapToView({
-      items,
-      page: query.pageNumber,
-      size: query.pageSize,
-      totalCount,
-    });
+    return { payments, totalCount };
   }
 }

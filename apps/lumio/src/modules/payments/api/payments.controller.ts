@@ -18,11 +18,16 @@ import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-au
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 import { GetUserPaymentsQuery } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
-import { OutputUserSubscriptionDto } from '@lumio/modules/payments/api/dto/output/user-subscription.output.dto';
 import { GetUserSubscriptionQuery } from '../application/queries/get-user-subscription.query-handler';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { PaymentViewDto } from '@lumio/modules/payments/api/dto/output/user-payment.output.dto';
+import {
+  PAYMENTS_BASE,
+  PAYMENTS_ROUTES,
+} from '@lumio/core/routes/payment-routes';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
-@Controller('payments')
+@Controller(PAYMENTS_BASE)
 export class PaymentsController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -44,7 +49,7 @@ export class PaymentsController {
     return { url };
   }
 
-  @Post('autorenewal')
+  @Post(PAYMENTS_ROUTES.AUTORENEWAL)
   // @ApiChangeAutorenewalSubscription()
   @HttpCode(HttpStatus.OK)
   async updateAutoRenewal(
@@ -56,7 +61,7 @@ export class PaymentsController {
     );
   }
 
-  @Get('my-payments')
+  @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
   async getUserPayments(
     @Query()
     query: GetUserPaymentsParams,
@@ -67,13 +72,13 @@ export class PaymentsController {
     );
   }
 
-  @Get('my-subscription')
+  @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
   async getUserSubscription(
     @Req() req: any,
-  ): Promise<OutputUserSubscriptionDto | null> {
+  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
     return await this.queryBus.execute<
       GetUserSubscriptionQuery,
-      OutputUserSubscriptionDto
+      PaginatedViewDto<PaymentViewDto[]>
     >(new GetUserSubscriptionQuery(+req.user.userId));
   }
 }
