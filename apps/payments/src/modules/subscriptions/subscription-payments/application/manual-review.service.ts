@@ -68,6 +68,19 @@ export class ManualReviewService {
     });
   }
 
+  async createFailedSubscriptionDeletedTask(
+    subscriptionId: string,
+    error: Error,
+  ): Promise<void> {
+    await this.createManualReviewTask({
+      type: OutboxEventType.FAILED_SUBSCRIPTION_DELETED_PROCESSING,
+      subscriptionId,
+      error: error.message,
+      timestamp: new Date().toISOString(),
+      retryCount: 5,
+    });
+  }
+
   private async createManualReviewTask(
     data: ManualReviewTaskData,
   ): Promise<void> {

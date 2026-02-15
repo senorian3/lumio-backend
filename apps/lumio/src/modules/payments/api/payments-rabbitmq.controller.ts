@@ -11,11 +11,6 @@ export class PaymentsRabbitMQController {
     private readonly messageProcessingService: MessageProcessingService,
   ) {}
 
-  @EventPattern('payment.test')
-  async handleSomeText(@Payload() data: any) {
-    console.log("Received 'payment.test' event:", data);
-  }
-
   @EventPattern('payment.completed')
   async handlePaymentCompleted(
     @Payload() data: any,

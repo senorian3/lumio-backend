@@ -52,7 +52,7 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
     return await this.queryPaymentsRepository.findPaymentsBySubscriptionIds(
       subscriptionIds,
       query.query,
-      true, // Include subscription to get durationType
+      true,
     );
   }
 }

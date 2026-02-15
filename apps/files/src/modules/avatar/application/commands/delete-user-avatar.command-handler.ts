@@ -30,10 +30,10 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
     }
 
     try {
-      await this.s3FilesHttpAdapter.deleteFile(avatar.key);
+      await this.profileRepository.deleteAvatar(avatar.id);
     } catch (error) {
       this.logger.error(
-        `Critical error to delete avatar file from S3 for userId=${userId}: ${error.message}`,
+        `Failed to delete avatar from DB for userId=${userId}: ${error.message}`,
         error?.stack,
         DeleteUserAvatarCommandHandler.name,
       );
@@ -44,10 +44,10 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
     }
 
     try {
-      await this.profileRepository.deleteAvatar(avatar.id);
+      await this.s3FilesHttpAdapter.deleteFile(avatar.key);
     } catch (error) {
       this.logger.error(
-        `Critical error to delete avatar record from DB for userId=${userId}: ${error.message}`,
+        `Critical error to delete avatar file from S3 for userId=${userId}: ${error.message}`,
         error?.stack,
         DeleteUserAvatarCommandHandler.name,
       );

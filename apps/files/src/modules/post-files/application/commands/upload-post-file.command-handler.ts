@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { S3FilesHttpAdapter } from '../../../../core/adapters/s3-files-http.adapter';
-import { PostFileEntity } from '../../domain/entities/post-file.entity';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
@@ -27,27 +26,13 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
     postId,
     files,
   }: UploadFilesCreatedPostCommand): Promise<void> {
-    const tempFiles = files.map((file, index) => ({
-      key: `temp_${postId}_${index}_${Date.now()}`,
-      url: '',
-      mimetype: file.originalname,
-      size: 0,
-      postId,
-    }));
+    let uploadedFiles: Array<{
+      key: string;
+      url: string;
+      mimetype: string;
+      size: number;
+    }>;
 
-    let createdFiles: PostFileEntity[];
-    try {
-      createdFiles = await this.fileRepository.createFiles(tempFiles);
-    } catch (error) {
-      this.logger.error(
-        `Failed to create files in DB for postId=${postId}: ${error.message}`,
-        error?.stack,
-        UploadFilesCreatedPostCommandHandler.name,
-      );
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
-    }
-
-    let uploadedFiles: PostFileEntity[];
     try {
       uploadedFiles = await this.s3FilesHttpAdapter.uploadFiles(
         'posts',
@@ -55,53 +40,49 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
         files,
       );
     } catch (error) {
-      try {
-        await this.fileRepository.deleteFilesByIds(
-          createdFiles.map((f) => f.id),
-        );
-      } catch (error) {
-        this.logger.error(
-          `Critical error to delete rollback files in DB for postId=${postId}: ${error.message}`,
-          error?.stack,
-          UploadFilesCreatedPostCommandHandler.name,
-        );
-      }
       this.logger.error(
-        `Failed to upload files to S3, rolled back DB for postId=${postId}: ${error.message}`,
+        `Failed to upload files to S3 for postId=${postId}: ${error.message}`,
         error?.stack,
         UploadFilesCreatedPostCommandHandler.name,
       );
       throw BadRequestDomainException.create('Failed to upload files', 'files');
     }
 
-    const updates = createdFiles.map((file, index) => ({
-      id: file.id,
-      key: uploadedFiles[index].key,
-      url: uploadedFiles[index].url,
-      mimetype: uploadedFiles[index].mimetype,
-      size: uploadedFiles[index].size,
+    const fileDtos = uploadedFiles.map((file) => ({
+      key: file.key,
+      url: file.url,
+      mimetype: file.mimetype,
+      size: file.size,
+      postId,
     }));
 
     try {
-      await this.fileRepository.updateFiles(updates);
+      await this.fileRepository.createFiles(fileDtos);
     } catch (error) {
-      try {
-        await this.fileRepository.deleteFilesByIds(
-          createdFiles.map((f) => f.id),
-        );
-      } catch (error) {
-        this.logger.error(
-          `Critical error to delete rollback files in DB after fail update files for postId=${postId}: ${error.message}`,
-          error?.stack,
-          UploadFilesCreatedPostCommandHandler.name,
-        );
-      }
+      await this.cleanupS3Files(uploadedFiles);
+
       this.logger.error(
-        `Critical error to update files in DB for postId=${postId}: ${error.message}`,
+        `Failed to create files in DB for postId=${postId}, rolled back S3 files: ${error.message}`,
         error?.stack,
         UploadFilesCreatedPostCommandHandler.name,
       );
       throw BadRequestDomainException.create('Failed to upload files', 'files');
+    }
+  }
+
+  private async cleanupS3Files(
+    files: Array<{ key: string; url: string; mimetype: string; size: number }>,
+  ): Promise<void> {
+    try {
+      for (const file of files) {
+        await this.s3FilesHttpAdapter.deleteFile(file.key);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Critical error failed to cleanup S3 files after DB error: ${error.message}. Keys: ${files.map((f) => f.key).join(', ')}`,
+        error?.stack,
+        UploadFilesCreatedPostCommandHandler.name,
+      );
     }
   }
 }

@@ -233,7 +233,7 @@ export class OutboxService {
           eventType: OutboxEventType.FAILED_INITIAL_PAYMENT_PROCESSING,
           scheduledAt: new Date(),
           payload,
-          ttl: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
         },
         tx,
       );

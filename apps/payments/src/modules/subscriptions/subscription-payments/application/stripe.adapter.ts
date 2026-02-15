@@ -1,6 +1,5 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { subscriptionConfigs } from '../../constants/stripe-constants';
 import { CoreConfig } from '@payments/core/core.config';
@@ -68,10 +67,12 @@ export class StripeAdapter {
 
       return session;
     } catch (error) {
-      throw BadRequestDomainException.create(
-        `Failed to create payment session with profileId=${profileId}: ${error.message}`,
-        'createPaymentSession',
+      this.logger.error(
+        `Failed to create subscription payment session: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
       );
+      throw error;
     }
   }
 
@@ -82,16 +83,13 @@ export class StripeAdapter {
         signature,
         this.coreConfig.stripeEndpointSecret,
       );
-    } catch (err) {
+    } catch (error) {
       this.logger.error(
-        `Error verifying webhook: ${err.message}`,
-        err.stack,
-        'StripeService',
+        `Error verifying webhook: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
       );
-      throw BadRequestDomainException.create(
-        'Verification endpoint failed',
-        'verify',
-      );
+      throw error;
     }
   }
 
@@ -101,10 +99,12 @@ export class StripeAdapter {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {
-      throw BadRequestDomainException.create(
-        `Failed to retrieve subscription details: ${error.message}`,
-        'getSubscriptionDetails',
+      this.logger.error(
+        `Failed to retrieve subscription details for subscriptionId ${subscriptionId}: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
       );
+      throw error;
     }
   }
 
@@ -112,15 +112,29 @@ export class StripeAdapter {
     subscriptionId: string,
     autoRenewal: boolean,
   ): Promise<void> {
-    await this.stripe.subscriptions.update(subscriptionId, {
-      cancel_at_period_end: !autoRenewal,
-    });
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: !autoRenewal,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to change subscription auto renewal for subscriptionId ${subscriptionId}: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
+      );
+      throw error;
+    }
   }
 
   async cancelSession(sessionId: string): Promise<void> {
     try {
       await this.stripe.checkout.sessions.expire(sessionId);
     } catch (error) {
+      this.logger.error(
+        `Failed to cancel session ${sessionId}: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
+      );
       throw error;
     }
   }
@@ -129,10 +143,12 @@ export class StripeAdapter {
     try {
       await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      throw BadRequestDomainException.create(
-        `Failed to cancel subscription immediately: ${error.message}`,
-        'cancelSubscriptionImmediately',
+      this.logger.error(
+        `Failed to cancel subscription ${subscriptionId}: ${error.message}`,
+        error.stack,
+        StripeAdapter.name,
       );
+      throw error;
     }
   }
 }

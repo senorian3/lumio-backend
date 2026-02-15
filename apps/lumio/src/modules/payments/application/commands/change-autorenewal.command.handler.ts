@@ -76,9 +76,9 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
     }
 
     try {
-      await this.subscriptionRepository.updateAutoRenewalById(
-        userSubscription.id,
-        command.dto.autoRenewal,
+      await this.paymentsHttpAdapter.updateAutoRenewal<void>(
+        `${GLOBAL_PREFIX}/subscription-payments/autorenewal`,
+        command.dto,
       );
     } catch (error) {
       this.logger.error(
@@ -92,33 +92,17 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
         'subscription',
       );
     }
+
     try {
-      await this.paymentsHttpAdapter.updateAutoRenewal<void>(
-        `${GLOBAL_PREFIX}/subscription-payments/autorenewal`,
-        command.dto,
+      await this.subscriptionRepository.updateAutoRenewalById(
+        userSubscription.id,
+        command.dto.autoRenewal,
       );
     } catch (error) {
-      try {
-        await this.subscriptionRepository.updateAutoRenewalById(
-          userSubscription.id,
-          !command.dto.autoRenewal,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Critical error, failed to compensate updatesubscription autorenewal back for userId=${command.userId}: ${error.message}`,
-          error?.stack,
-          ChangeAutoRenewalCommand.name,
-        );
-      }
       this.logger.error(
-        `Failed to update subscription autorenewal for userId=${command.userId}: ${error.message}`,
+        `Critical error to update subscription autorenewal in DB for userId=${command.userId}: ${error.message}`,
         error?.stack,
         ChangeAutoRenewalCommand.name,
-      );
-
-      throw BadRequestDomainException.create(
-        'Failed to update subscription autorenewal',
-        'subscription',
       );
     }
   }

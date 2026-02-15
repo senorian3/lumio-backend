@@ -67,7 +67,9 @@ export class DeletePostCommandHandler implements ICommandHandler<
       );
     } catch (error) {
       this.logger.error(
-        `Critical error to delete files for postId=${command.postId}: ${error.message}`,
+        `Critical error to delete files for postId=${command.postId}: ${error.message}, need to delete files: ${post.files.map(
+          (file) => file.id,
+        )}`,
         error?.stack,
         DeletePostCommandHandler.name,
       );

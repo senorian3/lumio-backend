@@ -89,7 +89,9 @@ export class CreatePostCommandHandler implements ICommandHandler<
         await this.filesHttpAdapter.deletePostFiles(postId);
       } catch (cleanupError) {
         this.logger.error(
-          `Critical error to delete files from S3 for postId=${postId}: ${cleanupError.message}`,
+          `Critical error to delete files from S3 for postId=${postId}: ${cleanupError.message}, need to delete files: ${mappedFile.map(
+            (file) => file.id,
+          )}`,
           cleanupError?.stack,
           CreatePostCommandHandler.name,
         );
