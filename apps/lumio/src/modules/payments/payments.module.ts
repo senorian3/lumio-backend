@@ -15,6 +15,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { CoreConfig } from '../../core/core.config';
 import { IdempotencyService } from './application/idempotency.service';
 import { DlqNotificationService } from './application/dlq-notification.service';
+import { MessageProcessingService } from './application/message-processing.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
 import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
 import { GetUserPaymentsQueryHandler } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
@@ -41,7 +42,11 @@ const repositories = [
   QueryPaymentsRepository,
 ];
 
-const services = [IdempotencyService, DlqNotificationService];
+const services = [
+  IdempotencyService,
+  DlqNotificationService,
+  MessageProcessingService,
+];
 
 @Module({
   imports: [
