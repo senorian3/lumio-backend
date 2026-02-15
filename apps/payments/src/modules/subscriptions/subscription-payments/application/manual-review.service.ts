@@ -1,30 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { Stripe } from 'stripe';
 import {
   OutboxAggregateType,
   OutboxEventType,
 } from '../../constants/outbox-constants';
 
-export interface ManualReviewTaskData {
-  type: string;
-  profileId?: string;
-  sessionId?: string;
-  subscriptionId?: string;
-  customPaymentId?: string;
-  invoiceId?: string;
-  error?: string;
-  timestamp: string;
-  retryCount: number;
+export class ManualReviewTaskData {
+  constructor(
+    public type: string,
+    public timestamp: string,
+    public retryCount: number,
+    public profileId?: string,
+    public sessionId?: string,
+    public subscriptionId?: string,
+    public customPaymentId?: string,
+    public invoiceId?: string,
+    public error?: string,
+  ) {}
 }
 
 @Injectable()
 export class ManualReviewService {
-  constructor(
-    private readonly outboxService: OutboxService,
-    private readonly logger: AppLoggerService,
-  ) {}
+  constructor(private readonly outboxService: OutboxService) {}
 
   async createFailedInitialPaymentTask(
     session: Stripe.Checkout.Session,

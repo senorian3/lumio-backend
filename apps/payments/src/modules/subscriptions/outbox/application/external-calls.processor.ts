@@ -24,16 +24,12 @@ export class ExternalCallsProcessor {
         payload.autoRenewal,
       );
 
-      this.logger.log(
-        `Successfully changed auto-renewal for ${payload.autoRenewal} for subscription ${payload.subscriptionId}`,
-        'ExternalCallsProcessor',
-      );
       return true;
     } catch (error) {
       this.logger.error(
         `Failed to cancel auto-renewal for subscription ${payload.subscriptionId}: ${error.message}`,
         error.stack,
-        'ExternalCallsProcessor',
+        ExternalCallsProcessor.name,
       );
       return false;
     }
@@ -60,7 +56,7 @@ export class ExternalCallsProcessor {
       this.logger.error(
         `Failed to process manual review task ${message.id}: ${error.message}`,
         error.stack,
-        'ExternalCallsProcessor',
+        ExternalCallsProcessor.name,
       );
       return false;
     }
@@ -87,7 +83,7 @@ export class ExternalCallsProcessor {
       this.logger.error(
         `Failed to process failed recurring payment ${message.id}: ${error.message}`,
         error.stack,
-        'ExternalCallsProcessor',
+        ExternalCallsProcessor.name,
       );
       return false;
     }
@@ -112,7 +108,34 @@ export class ExternalCallsProcessor {
       this.logger.error(
         `Failed to process failed subscription change auto-renewal ${message.id}: ${error.message}`,
         error.stack,
-        'ExternalCallsProcessor',
+        ExternalCallsProcessor.name,
+      );
+      return false;
+    }
+  }
+
+  async processFailedSubscriptionDeleted(
+    message: OutboxMessage,
+  ): Promise<boolean> {
+    const payload = message.payload as {
+      subscriptionId: string;
+      profileId: number;
+      error: string;
+      timestamp: string;
+    };
+
+    try {
+      this.logger.log(
+        `Processing failed subscription deleted: ${payload.subscriptionId}, error: ${payload.error}`,
+        ExternalCallsProcessor.name,
+      );
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to process failed subscription deleted ${message.id}: ${error.message}`,
+        error.stack,
+        ExternalCallsProcessor.name,
       );
       return false;
     }
@@ -137,7 +160,7 @@ export class ExternalCallsProcessor {
       this.logger.error(
         `Failed to process manual review task ${message.id}: ${error.message}`,
         error.stack,
-        'ExternalCallsProcessor',
+        ExternalCallsProcessor.name,
       );
       return false;
     }

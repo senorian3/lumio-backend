@@ -61,6 +61,12 @@ export class OutboxScheduler {
                   message,
                 );
               break;
+            case OutboxEventType.FAILED_SUBSCRIPTION_DELETED_PROCESSING:
+              result =
+                await this.externalCallsProcessor.processFailedSubscriptionDeleted(
+                  message,
+                );
+              break;
             case OutboxEventType.MANUAL_REVIEW_REQUIRED:
               result =
                 await this.externalCallsProcessor.processManualReviewRequired(
@@ -74,10 +80,6 @@ export class OutboxScheduler {
               break;
 
             default:
-              this.logger.warn(
-                `Unknown outbox event type: ${message.eventType}`,
-                OutboxScheduler.name,
-              );
               result = false;
           }
 
@@ -85,10 +87,6 @@ export class OutboxScheduler {
             await this.outboxRepository.markAsCompleted(message.id, new Date());
           } else {
             await this.outboxRepository.incrementRetryCount(message.id);
-            this.logger.warn(
-              `Failed to process outbox message ${message.id} (${message.eventType}), will retry`,
-              OutboxScheduler.name,
-            );
           }
         } catch (error) {
           this.logger.error(
@@ -171,7 +169,7 @@ export class OutboxScheduler {
 
       this.logger.log(
         `Message sent to Lumio with ID: ${messageId}, routing key: ${routingKey}`,
-        'OutboxScheduler',
+        OutboxScheduler.name,
       );
 
       return true;
@@ -179,7 +177,7 @@ export class OutboxScheduler {
       this.logger.error(
         `Failed to send message to Lumio: ${error.message}`,
         error.stack,
-        'OutboxScheduler',
+        OutboxScheduler.name,
       );
       return false;
     }

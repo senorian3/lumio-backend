@@ -40,8 +40,12 @@ export class PaymentsRabbitMQController {
     }
 
     try {
-      // Idempotency check
-      if (await this.idempotencyService.isMessageProcessed(messageId)) {
+      // Атомарная проверка и пометка сообщения как обработанного
+      // Это предотвращает race condition при одновременных запросах
+      const isNewMessage =
+        await this.idempotencyService.tryMarkAsProcessed(messageId);
+
+      if (!isNewMessage) {
         channel.ack(originalMsg);
         this.appLogger.log(
           `Duplicate payment message ignored: ${messageId}`,
@@ -52,9 +56,6 @@ export class PaymentsRabbitMQController {
 
       // Execute the command handler
       await this.commandBus.execute(new HandlePaymentCompletedCommand(data));
-
-      // Mark as processed
-      await this.idempotencyService.markMessageAsProcessed(messageId);
 
       // Confirm successful processing
       channel.ack(originalMsg);
@@ -131,8 +132,11 @@ export class PaymentsRabbitMQController {
     }
 
     try {
-      // Idempotency check
-      if (await this.idempotencyService.isMessageProcessed(messageId)) {
+      // Атомарная проверка и пометка сообщения как обработанного
+      const isNewMessage =
+        await this.idempotencyService.tryMarkAsProcessed(messageId);
+
+      if (!isNewMessage) {
         channel.ack(originalMsg);
         this.appLogger.log(
           `Duplicate subscription updated message ignored: ${messageId}`,
@@ -145,9 +149,6 @@ export class PaymentsRabbitMQController {
       await this.commandBus.execute(
         new HandleSubscriptionRecurringUpdatedCommand(data),
       );
-
-      // Mark as processed
-      await this.idempotencyService.markMessageAsProcessed(messageId);
 
       // Confirm successful processing
       channel.ack(originalMsg);
@@ -192,7 +193,6 @@ export class PaymentsRabbitMQController {
           'PaymentsRabbitMQ',
         );
       } else {
-        // Increment retry count and requeue
         if (!originalMsg.properties.headers) {
           originalMsg.properties.headers = {};
         }
@@ -224,8 +224,10 @@ export class PaymentsRabbitMQController {
     }
 
     try {
-      // Idempotency check
-      if (await this.idempotencyService.isMessageProcessed(messageId)) {
+      const isNewMessage =
+        await this.idempotencyService.tryMarkAsProcessed(messageId);
+
+      if (!isNewMessage) {
         channel.ack(originalMsg);
         this.appLogger.log(
           `Duplicate subscription deleted message ignored: ${messageId}`,
@@ -236,9 +238,6 @@ export class PaymentsRabbitMQController {
 
       // Execute the command handler
       await this.commandBus.execute(new HandleSubscriptionDeletedCommand(data));
-
-      // Mark as processed
-      await this.idempotencyService.markMessageAsProcessed(messageId);
 
       // Confirm successful processing
       channel.ack(originalMsg);
