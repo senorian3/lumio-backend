@@ -67,7 +67,6 @@ export class HttpService {
     files: Array<Express.Multer.File>,
   ): Promise<T> {
     const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
-    console.log('Урл запроса на файлы: ', url);
     const formData = new FormData();
 
     formData.append('postId', postId.toString());
@@ -79,20 +78,15 @@ export class HttpService {
       });
     });
 
-    console.log('Форма запроса на файлы: ', formData);
-
     const headers = {
       'X-Internal-API-Key': this.coreConfig.internalApiKey,
       ...formData.getHeaders(),
     };
 
     try {
-      console.log('Пошел запрос на файлы с датой: ', url, formData, headers);
       const response = await axios.post<T>(url, formData, { headers });
-      console.log('Получил ответ на файлы: ', response);
       return response.data;
     } catch (error) {
-      console.log('Ошибка при запросе на файлы: ', error);
       this.loggerService.error(
         `Failed to POST to ${url}:`,
         error?.stack,

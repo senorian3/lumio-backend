@@ -35,20 +35,15 @@ export class FilesController {
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() dto: InputUploadFilesType,
   ): Promise<OutputFileType[]> {
-    console.log('Файлы которые пришли в контроллер', files);
     await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
     >(new UploadFilesCreatedPostCommand(+dto.postId, files));
 
-    console.log('Файлы после загрузкой в S3 и создание записей в БД files');
-
-    console.log('Начинаю получение файлов');
     const filesMap = await this.queryBus.execute<
       GetAllFilesByPostUserQuery,
       OutputFileType[]
     >(new GetAllFilesByPostUserQuery(+dto.postId));
-    console.log('Отдаю файлы:', filesMap);
     return filesMap;
   }
 

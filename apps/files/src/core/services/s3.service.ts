@@ -48,8 +48,6 @@ export class FilesService {
   ): Promise<PostFileEntity[]> {
     const uploadedFiles = [];
 
-    console.log('Файлы которые пришли в сервис', files);
-
     for (let i = 0; i < files.length; i++) {
       const { buffer, originalname } = files[i];
 
@@ -59,8 +57,6 @@ export class FilesService {
         this.logger,
       );
 
-      console.log('fileBuffer', fileBuffer);
-
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
       const uniqueId = randomUUID().split('-')[0];
@@ -68,9 +64,6 @@ export class FilesService {
       const fileKey = `content/${type}/${id}/${fileName}`;
 
       try {
-        console.log(
-          `Загружаю ${fileName}, mimeTpye ${mimeType}, fileKey ${fileKey}, size ${fileBuffer.length}, originalname ${originalname} id ${id}, type ${type}`,
-        );
         const uploadCommand = new PutObjectCommand({
           Bucket: this.bucketName,
           Key: fileKey,
@@ -78,15 +71,9 @@ export class FilesService {
           ContentType: mimeType,
         });
 
-        console.log('Пошла загрузка в s3');
-
         await this.s3.send(uploadCommand);
 
-        console.log('Загрузилась в s3');
-
         const fileUrl = `https://${this.bucketName}.storage.yandexcloud.net/${fileKey}`;
-
-        console.log('fileUrl', fileUrl);
 
         uploadedFiles.push({
           key: fileKey,
@@ -95,10 +82,7 @@ export class FilesService {
           mimetype: mimeType,
           size: fileBuffer.length,
         });
-
-        console.log('uploadedFiles', uploadedFiles);
       } catch (exception) {
-        console.log('Упала ошибка', exception);
         this.logger.error(
           `Error uploading file ${fileName}`,
           exception?.stack,

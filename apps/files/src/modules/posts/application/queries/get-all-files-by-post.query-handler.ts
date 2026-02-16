@@ -14,12 +14,9 @@ export class GetAllFilesByPostUserQueryHandler implements IQueryHandler<
   constructor(private readonly queryFileRepository: QueryFileRepository) {}
 
   async execute(query: GetAllFilesByPostUserQuery): Promise<OutputFileType[]> {
-    console.log('Начинаю получение файлов', query.postId);
     const files = await this.queryFileRepository.getAllFilesByPostId(
       query.postId,
     );
-
-    console.log('Полученные файлы из БД: ', files);
 
     const mappedFiles = files.map(
       (file) => new OutputFileType(file.id, file.url, file.postId),

@@ -24,17 +24,13 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
     postId,
     files,
   }: UploadFilesCreatedPostCommand): Promise<void> {
-    console.log('Файлы перед загрузкой в S3: ', files);
     const uploadedFiles: PostFileEntity[] = await this.filesService.uploadFiles(
       'posts',
       postId,
       files,
     );
 
-    console.log('Файлы после загрузкой в S3: ', uploadedFiles);
-
     for (const file of uploadedFiles) {
-      console.log('Начинаю создание файла в БД files');
       await this.fileRepository.createFile({
         key: file.key,
         url: file.url,
