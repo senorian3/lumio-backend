@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -63,7 +64,7 @@ export class PostsController {
   @ApiGetProfilePost()
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query('postId') postId: string,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<

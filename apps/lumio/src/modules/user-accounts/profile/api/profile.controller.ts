@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
@@ -42,7 +43,9 @@ export class ProfileController {
   @Get(':userId')
   @ApiGetProfile()
   @HttpCode(HttpStatus.OK)
-  async getProfile(@Param('userId') userId: number): Promise<ProfileView> {
+  async getProfile(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<ProfileView> {
     const profile = await this.queryBus.execute<GetProfileQuery, ProfileView>(
       new GetProfileQuery(userId),
     );
@@ -70,7 +73,7 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async fillProfile(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputFillProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {
@@ -87,7 +90,7 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updateProfile(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputEditProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {

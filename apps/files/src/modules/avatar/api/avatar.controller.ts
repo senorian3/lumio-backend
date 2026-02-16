@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   UploadedFile,
   UseGuards,
@@ -41,7 +42,9 @@ export class AvatarController {
 
   @Delete(AVATAR_FILES_ROUTES.DELETE_USER_AVATAR)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUserAvatar(@Param('userId') userId: string): Promise<void> {
-    await this.commandBus.execute(new DeleteUserAvatarCommand(+userId));
+  async deleteUserAvatar(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<void> {
+    await this.commandBus.execute(new DeleteUserAvatarCommand(userId));
   }
 }
