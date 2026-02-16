@@ -17,6 +17,7 @@ import { UploadUserAvatarCommandHandler } from '@files/modules/avatar/applicatio
 import { DeleteUserAvatarCommandHandler } from '@files/modules/avatar/application/commands/delete-user-avatar.command-handler';
 import { AvatarController } from '@files/modules/avatar/api/avatar.controller';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
+import { TestingModule } from '@files/modules/tests/testing.module';
 
 const commandHandlers = [
   UploadFilesCreatedPostCommandHandler,
@@ -65,6 +66,7 @@ export class FilesModule {
           useValue: coreConfig,
         },
       ],
+      imports: coreConfig.includeTestingModule ? [TestingModule] : [],
     };
   }
 }

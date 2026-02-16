@@ -79,6 +79,9 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable PAYMENTS_FRONTEND_URL' })
   paymentsFrontendUrl: string = this.configService.get('PAYMENTS_FRONTEND_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',
+  })
   @IsNumber(
     {},
     {
@@ -87,6 +90,9 @@ export class CoreConfig {
   )
   throttlerTtl: number = Number(this.configService.get('THROTTLER_TTL'));
 
+  @IsNotEmpty({
+    message: 'Set Env variable THROTTLER_LIMIT, example: 5',
+  })
   @IsNumber({}, { message: 'Set Env variable THROTTLER_LIMIT, example: 5' })
   throttlerLimit: number = Number(this.configService.get('THROTTLER_LIMIT'));
 

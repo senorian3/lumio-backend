@@ -22,6 +22,7 @@ import { OutboxService } from '@payments/modules/subscriptions/outbox/applicatio
 import { OutboxScheduler } from '@payments/modules/subscriptions/outbox/application/outbox.scheduler';
 import { ExternalCallsProcessor } from '@payments/modules/subscriptions/outbox/application/external-calls.processor';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TestingModule } from '@payments/modules/tests/testing.module';
 
 const adapters = [StripeAdapter];
 
@@ -105,6 +106,7 @@ export class PaymentsModule {
           useValue: coreConfig,
         },
       ],
+      imports: coreConfig.includeTestingModule ? [TestingModule] : [],
     };
   }
 }

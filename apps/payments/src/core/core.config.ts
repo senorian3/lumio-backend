@@ -72,6 +72,14 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
+  })
+  includeTestingModule: boolean = configValidationUtility.convertToBoolean(
+    this.configService.get('INCLUDE_TESTING_MODULE'),
+  ) as boolean;
+
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }

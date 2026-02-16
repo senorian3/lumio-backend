@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TestingController } from './testing.controller';
-import { CoreConfig } from '@lumio/core/core.config';
+import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 
 @Module({
   imports: [],
   controllers: [TestingController],
-  providers: [CoreConfig],
+  providers: [S3FilesHttpAdapter],
 })
 export class TestingModule {}

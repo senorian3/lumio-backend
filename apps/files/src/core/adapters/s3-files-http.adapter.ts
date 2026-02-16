@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -112,6 +113,38 @@ export class S3FilesHttpAdapter {
         S3FilesHttpAdapter.name,
       );
       throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
+    }
+  }
+
+  async deleteAllFiles(): Promise<void> {
+    try {
+      let continuationToken: string | undefined;
+
+      do {
+        const listCommand = new ListObjectsV2Command({
+          Bucket: this.bucketName,
+          ContinuationToken: continuationToken,
+        });
+
+        const response = await this.s3.send(listCommand);
+
+        if (response.Contents && response.Contents.length > 0) {
+          for (const object of response.Contents) {
+            if (object.Key) {
+              await this.deleteFile(object.Key);
+            }
+          }
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } while (continuationToken);
+    } catch (error) {
+      this.logger.error(
+        `Error deleting all files from S3 bucket`,
+        error?.stack,
+        S3FilesHttpAdapter.name,
+      );
+      throw error;
     }
   }
 }
