@@ -30,13 +30,14 @@ describe('GetAllUserPostsQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    accountType: 'free',
     userId: mockUserId,
     user: {} as any,
   };
 
   const mockPosts: PostEntity[] = [
     {
-      id: 1,
+      id: '1',
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
@@ -53,7 +54,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       files: [],
     },
     {
-      id: 2,
+      id: '2',
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
       deletedAt: null,

@@ -4,8 +4,9 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
+import { AppLoggerService } from '@libs/logger/logger.service';
 import {
   UpdatePostCommandHandler,
   UpdatePostCommand,
@@ -15,11 +16,12 @@ import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 
 describe('UpdatePostCommandHandler', () => {
   let handler: UpdatePostCommandHandler;
-  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPostRepository: jest.Mocked<PostRepository>;
+  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockUserId = 1;
-  const mockPostId = 100;
+  const mockPostId = '100';
   const mockDescription = 'Updated post description';
 
   const mockUser = {
@@ -69,9 +71,9 @@ describe('UpdatePostCommandHandler', () => {
       providers: [
         UpdatePostCommandHandler,
         {
-          provide: ExternalQueryUserRepository,
+          provide: ExternalQueryUserAccountsRepository,
           useValue: {
-            findById: jest.fn(),
+            findUserId: jest.fn(),
           },
         },
         {
@@ -81,12 +83,21 @@ describe('UpdatePostCommandHandler', () => {
             updateDescription: jest.fn(),
           },
         },
+        {
+          provide: AppLoggerService,
+          useValue: {
+            error: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     handler = module.get<UpdatePostCommandHandler>(UpdatePostCommandHandler);
-    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
+    mockExternalQueryUserRepository = module.get(
+      ExternalQueryUserAccountsRepository,
+    );
     mockPostRepository = module.get(PostRepository);
+    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -102,7 +113,7 @@ describe('UpdatePostCommandHandler', () => {
         mockDescription,
       );
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPost);
       mockPostRepository.updateDescription.mockResolvedValue(mockUpdatedPost);
 
@@ -113,7 +124,7 @@ describe('UpdatePostCommandHandler', () => {
       const result = await handler.execute(command);
 
       // Assert
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
@@ -133,7 +144,7 @@ describe('UpdatePostCommandHandler', () => {
         mockDescription,
       );
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(null);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
@@ -149,7 +160,7 @@ describe('UpdatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('userId');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
@@ -164,7 +175,7 @@ describe('UpdatePostCommandHandler', () => {
         mockDescription,
       );
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
@@ -181,7 +192,7 @@ describe('UpdatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('post');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
@@ -200,7 +211,7 @@ describe('UpdatePostCommandHandler', () => {
         userId: 999, // Different user
       };
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(otherUserPost);
 
       // Act & Assert
@@ -219,10 +230,42 @@ describe('UpdatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('post');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
+      expect(mockPostRepository.updateDescription).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundDomainException when post is deleted', async () => {
+      // Arrange
+      const command = new UpdatePostCommand(
+        mockPostId,
+        mockUserId,
+        mockDescription,
+      );
+      const deletedPost = {
+        ...mockPost,
+        deletedAt: new Date(),
+      };
+
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
+      mockPostRepository.findById.mockResolvedValue(deletedPost);
+
+      // Act & Assert
+      await expect(handler.execute(command)).rejects.toThrow(
+        NotFoundDomainException,
+      );
+
+      try {
+        await handler.execute(command);
+        fail('Should have thrown an exception');
+      } catch (error: any) {
+        expect(error.message).toBe('Not Found');
+        expect(error.extensions[0]?.message).toBe('Post does not exist');
+        expect(error.extensions[0]?.field).toBe('post');
+      }
+
       expect(mockPostRepository.updateDescription).not.toHaveBeenCalled();
     });
 
@@ -235,12 +278,12 @@ describe('UpdatePostCommandHandler', () => {
       );
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findById.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.findUserId.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
@@ -255,13 +298,13 @@ describe('UpdatePostCommandHandler', () => {
       );
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
@@ -277,14 +320,14 @@ describe('UpdatePostCommandHandler', () => {
       );
       const dbError = new Error('Cannot update post');
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPost);
       mockPostRepository.updateDescription.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
@@ -292,6 +335,7 @@ describe('UpdatePostCommandHandler', () => {
         mockPostId,
         mockDescription,
       );
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

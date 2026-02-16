@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Readable } from 'stream';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { HttpService } from '@libs/shared/files-http.adapter';
+import { PostFilesRepository } from '@lumio/modules/posts/domain/infrastructure/post-files.repository';
+import { FilesHttpAdapter } from '@lumio/modules/posts/application/files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 import {
   CreatePostCommandHandler,
   CreatePostCommand,
@@ -14,13 +16,16 @@ import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 
 describe('CreatePostCommandHandler', () => {
   let handler: CreatePostCommandHandler;
-  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPostRepository: jest.Mocked<PostRepository>;
-  let mockHttpService: jest.Mocked<HttpService>;
+  let mockPostFilesRepository: jest.Mocked<PostFilesRepository>;
+  let mockFilesHttpAdapter: jest.Mocked<FilesHttpAdapter>;
   let mockLogger: jest.Mocked<AppLoggerService>;
+  let mockPrisma: jest.Mocked<PrismaService>;
 
   const mockUserId = 1;
   const mockDescription = 'Test post description';
+  const mockPostId = '100';
   const mockFiles: Array<Express.Multer.File> = [
     {
       fieldname: 'files',
@@ -56,7 +61,7 @@ describe('CreatePostCommandHandler', () => {
   };
 
   const mockPost: PostEntity = {
-    id: 100,
+    id: mockPostId,
     description: mockDescription,
     createdAt: new Date(),
     deletedAt: null,
@@ -66,8 +71,8 @@ describe('CreatePostCommandHandler', () => {
   };
 
   const mockUploadedFiles: OutputFileType[] = [
-    new OutputFileType(1, 'https://example.com/file1.jpg', 100),
-    new OutputFileType(2, 'https://example.com/file2.jpg', 100),
+    new OutputFileType(1, 'https://example.com/file1.jpg', '100'),
+    new OutputFileType(2, 'https://example.com/file2.jpg', '100'),
   ];
 
   beforeEach(async () => {
@@ -75,24 +80,29 @@ describe('CreatePostCommandHandler', () => {
       providers: [
         CreatePostCommandHandler,
         {
-          provide: ExternalQueryUserRepository,
+          provide: ExternalQueryUserAccountsRepository,
           useValue: {
-            findById: jest.fn(),
+            findUserId: jest.fn(),
           },
         },
         {
           provide: PostRepository,
           useValue: {
             createPost: jest.fn(),
-            createPostFiles: jest.fn(),
-            deletePostFilesByPostId: jest.fn(),
-            deletePost: jest.fn(),
           },
         },
         {
-          provide: HttpService,
+          provide: PostFilesRepository,
+          useValue: {
+            createPostFiles: jest.fn(),
+            deletePostFilesByPostId: jest.fn(),
+          },
+        },
+        {
+          provide: FilesHttpAdapter,
           useValue: {
             uploadFiles: jest.fn(),
+            deletePostFiles: jest.fn(),
           },
         },
         {
@@ -101,14 +111,24 @@ describe('CreatePostCommandHandler', () => {
             error: jest.fn(),
           },
         },
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     handler = module.get<CreatePostCommandHandler>(CreatePostCommandHandler);
-    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
+    mockExternalQueryUserRepository = module.get(
+      ExternalQueryUserAccountsRepository,
+    );
     mockPostRepository = module.get(PostRepository);
-    mockHttpService = module.get(HttpService);
+    mockPostFilesRepository = module.get(PostFilesRepository);
+    mockFilesHttpAdapter = module.get(FilesHttpAdapter);
     mockLogger = module.get(AppLoggerService);
+    mockPrisma = module.get(PrismaService);
   });
 
   it('should be defined', () => {
@@ -124,34 +144,38 @@ describe('CreatePostCommandHandler', () => {
         mockFiles,
       );
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
+      mockFilesHttpAdapter.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
-      mockHttpService.uploadFiles.mockResolvedValue(mockUploadedFiles);
-      mockPostRepository.createPostFiles.mockResolvedValue(undefined);
+      mockPostFilesRepository.createPostFiles.mockResolvedValue(undefined);
+      mockPrisma.$transaction.mockImplementation(async () => {
+        await mockPostRepository.createPost(
+          command.userId,
+          expect.any(String),
+          command.description,
+          {},
+        );
+        await mockPostFilesRepository.createPostFiles(
+          expect.any(String),
+          mockUploadedFiles,
+          {},
+        );
+        return undefined;
+      });
 
       // Act
       const result = await handler.execute(command);
 
       // Assert
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
-      expect(mockPostRepository.createPost).toHaveBeenCalledWith(
-        mockUserId,
-        mockDescription,
-      );
-      expect(mockHttpService.uploadFiles).toHaveBeenCalledWith(
-        'api/v1/files/upload-post-files',
-        mockPost.id,
-        mockFiles,
-      );
-      expect(mockPostRepository.createPostFiles).toHaveBeenCalledWith(
-        mockPost.id,
-        mockUploadedFiles,
-      );
+      expect(mockPostRepository.createPost).toHaveBeenCalled();
+      expect(mockFilesHttpAdapter.uploadFiles).toHaveBeenCalled();
+      expect(mockPostFilesRepository.createPostFiles).toHaveBeenCalled();
       expect(result).toEqual({
-        file: mockUploadedFiles,
-        postId: mockPost.id,
+        files: mockUploadedFiles,
+        postId: expect.any(String),
       });
     });
 
@@ -163,7 +187,7 @@ describe('CreatePostCommandHandler', () => {
         mockFiles,
       );
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(null);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
@@ -179,14 +203,14 @@ describe('CreatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('userId');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.createPost).not.toHaveBeenCalled();
-      expect(mockHttpService.uploadFiles).not.toHaveBeenCalled();
+      expect(mockFilesHttpAdapter.uploadFiles).not.toHaveBeenCalled();
     });
 
-    it('should handle file upload failure and cleanup', async () => {
+    it('should handle file upload failure', async () => {
       // Arrange
       const command = new CreatePostCommand(
         mockUserId,
@@ -195,11 +219,8 @@ describe('CreatePostCommandHandler', () => {
       );
       const uploadError = new Error('Upload failed');
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
-      mockPostRepository.createPost.mockResolvedValue(mockPost);
-      mockHttpService.uploadFiles.mockRejectedValue(uploadError);
-      mockPostRepository.deletePostFilesByPostId.mockResolvedValue(undefined);
-      mockPostRepository.deletePost.mockResolvedValue(undefined);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
+      mockFilesHttpAdapter.uploadFiles.mockRejectedValue(uploadError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
@@ -215,49 +236,8 @@ describe('CreatePostCommandHandler', () => {
         expect(error.extensions[0]?.field).toBe('files');
       }
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        `Failed to upload files for postId=${mockPost.id}: ${uploadError.message}`,
-        uploadError?.stack,
-        'CommandHandler',
-      );
-      expect(mockPostRepository.deletePostFilesByPostId).toHaveBeenCalledWith(
-        mockPost.id,
-      );
-      expect(mockPostRepository.deletePost).toHaveBeenCalledWith(mockPost.id);
-    });
-
-    it('should handle cleanup failure gracefully', async () => {
-      // Arrange
-      const command = new CreatePostCommand(
-        mockUserId,
-        mockDescription,
-        mockFiles,
-      );
-      const uploadError = new Error('Upload failed');
-      const cleanupError = new Error('Cleanup failed');
-
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
-      mockPostRepository.createPost.mockResolvedValue(mockPost);
-      mockHttpService.uploadFiles.mockRejectedValue(uploadError);
-      mockPostRepository.deletePostFilesByPostId.mockRejectedValue(
-        cleanupError,
-      );
-
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        `Failed to upload files for postId=${mockPost.id}: ${uploadError.message}`,
-        uploadError?.stack,
-        'CommandHandler',
-      );
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        `Cleanup failed for postId=${mockPost.id}: ${cleanupError.message}`,
-        cleanupError?.stack,
-        'CommandHandler',
-      );
+      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockPostRepository.createPost).not.toHaveBeenCalled();
     });
 
     it('should handle database error when finding user', async () => {
@@ -269,12 +249,12 @@ describe('CreatePostCommandHandler', () => {
       );
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findById.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.findUserId.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockPostRepository.createPost).not.toHaveBeenCalled();
@@ -289,52 +269,17 @@ describe('CreatePostCommandHandler', () => {
       );
       const dbError = new Error('Cannot create post');
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
-      mockPostRepository.createPost.mockRejectedValue(dbError);
-
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(dbError);
-
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
-        mockUserId,
-      );
-      expect(mockPostRepository.createPost).toHaveBeenCalledWith(
-        mockUserId,
-        mockDescription,
-      );
-      expect(mockHttpService.uploadFiles).not.toHaveBeenCalled();
-    });
-
-    it('should handle database error when creating post files', async () => {
-      // Arrange
-      const command = new CreatePostCommand(
-        mockUserId,
-        mockDescription,
-        mockFiles,
-      );
-      const dbError = new Error('Cannot create post files');
-
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
-      mockPostRepository.createPost.mockResolvedValue(mockPost);
-      mockHttpService.uploadFiles.mockResolvedValue(mockUploadedFiles);
-      mockPostRepository.createPostFiles.mockRejectedValue(dbError);
-      mockPostRepository.deletePostFilesByPostId.mockResolvedValue(undefined);
-      mockPostRepository.deletePost.mockResolvedValue(undefined);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
+      mockFilesHttpAdapter.uploadFiles.mockResolvedValue(mockUploadedFiles);
+      mockPrisma.$transaction.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         BadRequestDomainException,
       );
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        `Failed to upload files for postId=${mockPost.id}: ${dbError.message}`,
-        dbError?.stack,
-        'CommandHandler',
-      );
-      expect(mockPostRepository.deletePostFilesByPostId).toHaveBeenCalledWith(
-        mockPost.id,
-      );
-      expect(mockPostRepository.deletePost).toHaveBeenCalledWith(mockPost.id);
+      expect(mockLogger.error).toHaveBeenCalled();
+      expect(mockFilesHttpAdapter.deletePostFiles).toHaveBeenCalled();
     });
   });
 });

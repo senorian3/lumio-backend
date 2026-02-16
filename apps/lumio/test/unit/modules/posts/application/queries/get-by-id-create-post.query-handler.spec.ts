@@ -13,7 +13,7 @@ describe('GetCreatePostQueryHandler', () => {
   let handler: GetCreatePostQueryHandler;
   let mockQueryPostRepository: jest.Mocked<QueryPostRepository>;
 
-  const mockPostId = 100;
+  const mockPostId = '100';
   const mockFiles: OutputFileType[] = [
     new OutputFileType(1, 'https://example.com/file1.jpg', mockPostId),
     new OutputFileType(2, 'https://example.com/file2.jpg', mockPostId),
@@ -31,6 +31,7 @@ describe('GetCreatePostQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    accountType: 'free',
     userId: 1,
     user: {} as any,
   };
