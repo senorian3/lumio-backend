@@ -20,7 +20,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       size: 1024,
       createdAt: new Date('2023-01-01'),
       deletedAt: null,
-      postId: 123,
+      postId: '123',
     },
     {
       id: 2,
@@ -30,13 +30,13 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       size: 2048,
       createdAt: new Date('2023-01-02'),
       deletedAt: null,
-      postId: 123,
+      postId: '123',
     },
   ];
 
   const expectedOutputFiles: OutputFileType[] = [
-    { id: 1, url: 'https://example.com/file1.jpg', postId: 123 },
-    { id: 2, url: 'https://example.com/file2.png', postId: 123 },
+    { id: 1, url: 'https://example.com/file1.jpg', postId: '123' },
+    { id: 2, url: 'https://example.com/file2.png', postId: '123' },
   ];
 
   beforeEach(async () => {
@@ -65,7 +65,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
   describe('execute', () => {
     it('should return mapped files for given post ID', async () => {
       // Arrange
-      const query = new GetAllFilesByPostUserQuery(123);
+      const query = new GetAllFilesByPostUserQuery('123');
       (mockQueryRepository.getAllFilesByPostId as jest.Mock).mockResolvedValue(
         mockPostFiles,
       );
@@ -74,13 +74,15 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockQueryRepository.getAllFilesByPostId).toHaveBeenCalledWith(123);
+      expect(mockQueryRepository.getAllFilesByPostId).toHaveBeenCalledWith(
+        '123',
+      );
       expect(result).toEqual(expectedOutputFiles);
     });
 
     it('should return empty array when no files found', async () => {
       // Arrange
-      const query = new GetAllFilesByPostUserQuery(456);
+      const query = new GetAllFilesByPostUserQuery('456');
       (mockQueryRepository.getAllFilesByPostId as jest.Mock).mockResolvedValue(
         [],
       );
@@ -89,13 +91,15 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockQueryRepository.getAllFilesByPostId).toHaveBeenCalledWith(456);
+      expect(mockQueryRepository.getAllFilesByPostId).toHaveBeenCalledWith(
+        '456',
+      );
       expect(result).toEqual([]);
     });
 
     it('should handle repository error', async () => {
       // Arrange
-      const query = new GetAllFilesByPostUserQuery(123);
+      const query = new GetAllFilesByPostUserQuery('123');
       const error = new Error('Database query failed');
       (mockQueryRepository.getAllFilesByPostId as jest.Mock).mockRejectedValue(
         error,
@@ -109,7 +113,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
 
     it('should correctly map file entities to output DTOs', async () => {
       // Arrange
-      const query = new GetAllFilesByPostUserQuery(123);
+      const query = new GetAllFilesByPostUserQuery('123');
       const singleFile = [mockPostFiles[0]];
       (mockQueryRepository.getAllFilesByPostId as jest.Mock).mockResolvedValue(
         singleFile,
