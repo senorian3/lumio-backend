@@ -11,16 +11,5 @@ services:
     volumes:
       - postgres_data_payments:/var/lib/postgresql/data
 
-  redis:
-    image: redis:7-alpine
-    container_name: lumio_payments_redis
-    ports:
-      - '6380:6379'
-    volumes:
-      - redis_data_payments:/data
-    command: redis-server --appendonly yes
-    restart: unless-stopped
-
 volumes:
   postgres_data_payments:
-  redis_data_payments:
