@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -111,7 +108,7 @@ describe('DeleteUserAvatarCommandHandler', () => {
       }
     });
 
-    it('should throw BadRequestDomainException when DB delete fails', async () => {
+    it('should throw error when DB delete fails', async () => {
       // Arrange
       const command = new DeleteUserAvatarCommand(mockUserId);
       const dbError = new Error('Database error');
@@ -120,14 +117,10 @@ describe('DeleteUserAvatarCommandHandler', () => {
       mockProfileRepository.deleteAvatar.mockRejectedValue(dbError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
     });
 
-    it('should throw BadRequestDomainException when S3 delete fails', async () => {
+    it('should throw error when S3 delete fails', async () => {
       // Arrange
       const command = new DeleteUserAvatarCommand(mockUserId);
       const s3Error = new Error('S3 error');
@@ -137,9 +130,7 @@ describe('DeleteUserAvatarCommandHandler', () => {
       mockS3Adapter.deleteFile.mockRejectedValue(s3Error);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(s3Error);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });

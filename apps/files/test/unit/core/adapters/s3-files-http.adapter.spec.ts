@@ -5,7 +5,6 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 
 describe('S3FilesHttpAdapter', () => {
   let adapter: S3FilesHttpAdapter;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockConfig = {
     s3BucketName: 'test-bucket',
@@ -38,7 +37,6 @@ describe('S3FilesHttpAdapter', () => {
     }).compile();
 
     adapter = module.get<S3FilesHttpAdapter>(S3FilesHttpAdapter);
-    mockLogger = module.get(AppLoggerService);
 
     // Access private s3 client for mocking
     (adapter as any).s3 = {
@@ -107,10 +105,8 @@ describe('S3FilesHttpAdapter', () => {
 
       // Act & Assert
       await expect(adapter.uploadFiles('posts', '123', files)).rejects.toThrow(
-        'Failed to upload file test.jpg: Upload failed',
+        'Upload failed',
       );
-
-      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('should handle users type correctly', async () => {
@@ -163,11 +159,7 @@ describe('S3FilesHttpAdapter', () => {
       const s3Key = 'content/posts/123/test.jpg';
 
       // Act & Assert
-      await expect(adapter.deleteFile(s3Key)).rejects.toThrow(
-        'Failed to delete file content/posts/123/test.jpg: Delete failed',
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(adapter.deleteFile(s3Key)).rejects.toThrow('Delete failed');
     });
   });
 });

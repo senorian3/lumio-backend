@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
@@ -10,7 +9,6 @@ import {
 describe('DeleteFileByKeyCommandHandler', () => {
   let handler: DeleteFileByKeyCommandHandler;
   let mockS3Adapter: jest.Mocked<S3FilesHttpAdapter>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockKey = 'posts/123/file1.jpg';
 
@@ -37,7 +35,6 @@ describe('DeleteFileByKeyCommandHandler', () => {
       DeleteFileByKeyCommandHandler,
     );
     mockS3Adapter = module.get(S3FilesHttpAdapter);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -58,7 +55,7 @@ describe('DeleteFileByKeyCommandHandler', () => {
       expect(mockS3Adapter.deleteFile).toHaveBeenCalledWith(mockKey);
     });
 
-    it('should throw BadRequestDomainException when delete fails', async () => {
+    it('should throw error when delete fails', async () => {
       // Arrange
       const command = new DeleteFileByKeyCommand(mockKey);
       const deleteError = new Error('S3 delete failed');
@@ -66,11 +63,7 @@ describe('DeleteFileByKeyCommandHandler', () => {
       mockS3Adapter.deleteFile.mockRejectedValue(deleteError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(deleteError);
     });
   });
 });

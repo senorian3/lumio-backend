@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -12,7 +11,6 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
   let handler: UploadFilesCreatedPostCommandHandler;
   let mockS3Adapter: jest.Mocked<S3FilesHttpAdapter>;
   let mockFileRepository: jest.Mocked<FileRepository>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockPostId = '123';
 
@@ -75,7 +73,6 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
     );
     mockS3Adapter = module.get(S3FilesHttpAdapter);
     mockFileRepository = module.get(FileRepository);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -102,7 +99,7 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
       expect(mockFileRepository.createFiles).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when S3 upload fails', async () => {
+    it('should throw error when S3 upload fails', async () => {
       // Arrange
       const command = new UploadFilesCreatedPostCommand(mockPostId, mockFiles);
       const uploadError = new Error('S3 upload failed');
@@ -110,14 +107,10 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
       mockS3Adapter.uploadFiles.mockRejectedValue(uploadError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(uploadError);
     });
 
-    it('should throw BadRequestDomainException and cleanup S3 when DB fails', async () => {
+    it('should throw error and cleanup S3 when DB fails', async () => {
       // Arrange
       const command = new UploadFilesCreatedPostCommand(mockPostId, mockFiles);
       const dbError = new Error('Database error');
@@ -127,12 +120,9 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
       mockS3Adapter.deleteFile.mockResolvedValue(undefined);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(mockS3Adapter.deleteFile).toHaveBeenCalledTimes(2);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

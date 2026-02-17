@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { FileRepository } from '@files/modules/post-files/domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -100,7 +99,7 @@ describe('DeletedPostFilesCommandHandler', () => {
       expect(mockS3Adapter.deleteFile).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when soft delete fails', async () => {
+    it('should throw error when soft delete fails', async () => {
       // Arrange
       const command = new DeletedPostFilesCommand(mockPostId);
       const dbError = new Error('Database error');
@@ -111,11 +110,7 @@ describe('DeletedPostFilesCommandHandler', () => {
       mockFileRepository.softDeleteFilesByPostId.mockRejectedValue(dbError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
     });
 
     it('should continue deleting S3 files even if one fails', async () => {

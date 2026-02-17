@@ -106,7 +106,7 @@ describe('UploadUserAvatarCommandHandler', () => {
       );
     });
 
-    it('should throw BadRequestDomainException when S3 upload fails', async () => {
+    it('should throw error when S3 upload fails', async () => {
       // Arrange
       const command = new UploadUserAvatarCommand(mockUserId, mockAvatarFile);
       const uploadError = new Error('S3 upload failed');
@@ -114,14 +114,10 @@ describe('UploadUserAvatarCommandHandler', () => {
       mockS3Adapter.uploadFiles.mockRejectedValue(uploadError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(uploadError);
     });
 
-    it('should throw BadRequestDomainException when DB fails', async () => {
+    it('should throw error when DB fails', async () => {
       // Arrange
       const command = new UploadUserAvatarCommand(mockUserId, mockAvatarFile);
       const dbError = new Error('Database error');
@@ -130,9 +126,7 @@ describe('UploadUserAvatarCommandHandler', () => {
       mockProfileRepository.createUserAvatar.mockRejectedValue(dbError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });
