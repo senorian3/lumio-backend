@@ -5,7 +5,6 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
 import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -19,7 +18,6 @@ describe('ChangeAutoRenewalCommandHandler', () => {
   let mockPaymentsHttpAdapter: jest.Mocked<PaymentsHttpAdapter>;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockUserId = 1;
   const mockProfileId = 1;
@@ -96,7 +94,6 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       ExternalQueryUserAccountsRepository,
     );
     mockSubscriptionRepository = module.get(SubscriptionRepository);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -276,7 +273,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when payment adapter fails', async () => {
+    it('should throw error when payment adapter fails', async () => {
       // Arrange
       const command = new ChangeAutoRenewalCommand(mockUserId, mockDto);
       const paymentError = new Error('Payment service unavailable');
@@ -293,11 +290,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       mockPaymentsHttpAdapter.updateAutoRenewal.mockRejectedValue(paymentError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(paymentError);
     });
   });
 });

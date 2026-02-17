@@ -3,7 +3,10 @@ import { AuthService } from '@lumio/modules/user-accounts/auth/application/auth.
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
-import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  ForbiddenDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -89,12 +92,12 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw ForbiddenDomainException when user not found', async () => {
+    it('should throw BadRequestDomainException when user not found', async () => {
       userRepository.findUserByEmail.mockResolvedValue(null);
 
       await expect(
         authService.checkUserCredentials('nonexistent@example.com', 'password'),
-      ).rejects.toThrow(ForbiddenDomainException);
+      ).rejects.toThrow(BadRequestDomainException);
 
       expect(userRepository.findUserByEmail).toHaveBeenCalledWith(
         'nonexistent@example.com',

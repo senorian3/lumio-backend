@@ -7,8 +7,8 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
 import { ProfileView } from '@lumio/modules/user-accounts/profile/api/dto/output/profile.output.dto';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
+  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 
 describe('UpdateProfileCommandHandler', () => {
@@ -129,7 +129,7 @@ describe('UpdateProfileCommandHandler', () => {
       expect(result).toEqual(mockProfileView);
     });
 
-    it('should throw BadRequestDomainException when user not found', async () => {
+    it('should throw NotFoundDomainException when user not found', async () => {
       // Arrange
       const userId = 999;
       const requestUserId = 999;
@@ -143,13 +143,13 @@ describe('UpdateProfileCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
       expect(mockUserRepository.updateProfile).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when profile not filled', async () => {
+    it('should throw ForbiddenDomainException when profile not filled', async () => {
       // Arrange
       const userId = 1;
       const requestUserId = 1;
@@ -172,7 +172,7 @@ describe('UpdateProfileCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        ForbiddenDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
       expect(mockUserRepository.findUserProfileByUserId).toHaveBeenCalledWith(

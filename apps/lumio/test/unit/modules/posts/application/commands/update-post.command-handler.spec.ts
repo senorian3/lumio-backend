@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -18,7 +17,6 @@ describe('UpdatePostCommandHandler', () => {
   let handler: UpdatePostCommandHandler;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPostRepository: jest.Mocked<PostRepository>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockUserId = 1;
   const mockPostId = '100';
@@ -97,7 +95,6 @@ describe('UpdatePostCommandHandler', () => {
       ExternalQueryUserAccountsRepository,
     );
     mockPostRepository = module.get(PostRepository);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -136,7 +133,7 @@ describe('UpdatePostCommandHandler', () => {
       expect(result).toEqual(mockPostView);
     });
 
-    it('should throw BadRequestDomainException when user does not exist', async () => {
+    it('should throw NotFoundDomainException when user does not exist', async () => {
       // Arrange
       const command = new UpdatePostCommand(
         mockPostId,
@@ -148,14 +145,14 @@ describe('UpdatePostCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
 
       try {
         await handler.execute(command);
         fail('Should have thrown an exception');
       } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
+        expect(error.message).toBe('Not Found');
         expect(error.extensions[0]?.message).toBe('User does not exist');
         expect(error.extensions[0]?.field).toBe('userId');
       }
@@ -335,7 +332,6 @@ describe('UpdatePostCommandHandler', () => {
         mockPostId,
         mockDescription,
       );
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

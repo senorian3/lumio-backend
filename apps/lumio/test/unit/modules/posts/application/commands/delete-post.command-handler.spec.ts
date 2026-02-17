@@ -8,7 +8,6 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { FilesHttpAdapter } from '@lumio/modules/posts/application/files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -117,7 +116,7 @@ describe('DeletePostCommandHandler', () => {
       expect(mockFilesHttpAdapter.delete).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when user does not exist', async () => {
+    it('should throw NotFoundDomainException when user does not exist', async () => {
       // Arrange
       const command = new DeletePostCommand(mockUserId, mockPostId);
 
@@ -125,14 +124,14 @@ describe('DeletePostCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
 
       try {
         await handler.execute(command);
         fail('Should have thrown an exception');
       } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
+        expect(error.message).toBe('Not Found');
         expect(error.extensions[0]?.message).toBe('User does not exist');
         expect(error.extensions[0]?.field).toBe('user');
       }
@@ -201,11 +200,8 @@ describe('DeletePostCommandHandler', () => {
       mockPostRepository.softDeletePostById.mockRejectedValue(dbError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockLogger.error).toHaveBeenCalled();
       expect(mockFilesHttpAdapter.delete).not.toHaveBeenCalled();
     });
 
@@ -220,9 +216,7 @@ describe('DeletePostCommandHandler', () => {
       mockFilesHttpAdapter.delete.mockRejectedValue(deleteError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(deleteError);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });

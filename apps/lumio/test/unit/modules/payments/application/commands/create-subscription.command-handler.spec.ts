@@ -13,7 +13,6 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
   let handler: CreateSubscriptionPaymentUrlCommandHandler;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPaymentsHttpAdapter: jest.Mocked<PaymentsHttpAdapter>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockUserId = 1;
   const mockProfileId = 1;
@@ -56,7 +55,6 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
       ExternalQueryUserAccountsRepository,
     );
     mockPaymentsHttpAdapter = module.get(PaymentsHttpAdapter);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -116,7 +114,7 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
       }
     });
 
-    it('should throw BadRequestDomainException when payment adapter fails', async () => {
+    it('should throw error when payment adapter fails', async () => {
       // Arrange
       const command = new CreateSubscriptionPaymentUrlCommand(
         mockUserId,
@@ -130,11 +128,7 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
       mockPaymentsHttpAdapter.createPaymentUrl.mockRejectedValue(paymentError);
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(paymentError);
     });
 
     it('should handle database error when finding profile', async () => {

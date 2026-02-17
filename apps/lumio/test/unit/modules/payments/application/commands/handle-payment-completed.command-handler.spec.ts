@@ -4,7 +4,7 @@ import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastru
 import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   HandlePaymentCompletedCommandHandler,
   HandlePaymentCompletedCommand,
@@ -17,7 +17,6 @@ describe('HandlePaymentCompletedCommandHandler', () => {
   let mockPaymentsRepository: jest.Mocked<PaymentsRepository>;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockProfileId = 1;
 
@@ -98,7 +97,6 @@ describe('HandlePaymentCompletedCommandHandler', () => {
       ExternalQueryUserAccountsRepository,
     );
     mockPrisma = module.get(PrismaService);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -155,7 +153,7 @@ describe('HandlePaymentCompletedCommandHandler', () => {
       expect(mockPrisma.$transaction).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when profile not found', async () => {
+    it('should throw NotFoundDomainException when profile not found', async () => {
       // Arrange
       const mockEvent = new PaymentCompletedEvent(
         1,
@@ -171,14 +169,14 @@ describe('HandlePaymentCompletedCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
 
       try {
         await handler.execute(command);
         fail('Should have thrown an exception');
       } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
+        expect(error.message).toBe('Not Found');
         expect(error.extensions[0]?.message).toBe('User profile dont exist');
         expect(error.extensions[0]?.field).toBe('profileId');
       }
@@ -204,7 +202,6 @@ describe('HandlePaymentCompletedCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

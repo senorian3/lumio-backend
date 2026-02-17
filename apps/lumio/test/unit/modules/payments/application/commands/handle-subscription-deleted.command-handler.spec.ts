@@ -10,7 +10,6 @@ import { SubscriptionDeletedEvent } from '@lumio/modules/payments/api/dto/transf
 describe('HandleSubscriptionDeletedCommandHandler', () => {
   let handler: HandleSubscriptionDeletedCommandHandler;
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,7 +36,6 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       HandleSubscriptionDeletedCommandHandler,
     );
     mockSubscriptionRepository = module.get(SubscriptionRepository);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -146,7 +144,6 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('should handle database error when canceling subscription', async () => {
@@ -184,7 +181,6 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

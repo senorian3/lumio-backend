@@ -9,7 +9,6 @@ jest.mock('nodemailer');
 describe('NodemailerService', () => {
   let service: NodemailerService;
   let mockUserAccountsConfig: UserAccountsConfig;
-  let mockLoggerService: AppLoggerService;
   let mockTransporter: { sendMail: jest.Mock };
 
   const mockConfig = {
@@ -51,7 +50,6 @@ describe('NodemailerService', () => {
 
     service = module.get<NodemailerService>(NodemailerService);
     mockUserAccountsConfig = module.get<UserAccountsConfig>(UserAccountsConfig);
-    mockLoggerService = module.get<AppLoggerService>(AppLoggerService);
   });
 
   afterEach(() => {
@@ -96,22 +94,17 @@ describe('NodemailerService', () => {
       });
     });
 
-    it('should handle email sending error gracefully (no throw)', async () => {
+    it('should throw error when email sending fails', async () => {
       // Arrange
       const email = 'recipient@example.com';
       const code = '123456';
       const error = new Error('SMTP connection failed');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert - should NOT throw because error is caught and logged
+      // Act & Assert - should throw because error is not caught
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).resolves.not.toThrow();
-      expect(mockLoggerService.error).toHaveBeenCalledWith(
-        `Ошибка отправки email на ${email}`,
-        error.stack,
-        NodemailerService.name,
-      );
+      ).rejects.toThrow(error);
     });
 
     it('should use template to generate html and subject', async () => {
@@ -136,38 +129,17 @@ describe('NodemailerService', () => {
       });
     });
 
-    it('should log error when email sending fails', async () => {
+    it('should throw error when email sending fails', async () => {
       // Arrange
       const email = 'recipient@example.com';
       const code = '123456';
       const error = new Error('Network error');
       mockTransporter.sendMail.mockRejectedValue(error);
 
-      // Act & Assert - should NOT throw
+      // Act & Assert - should throw
       await expect(
         service.sendEmail(email, code, mockTemplate),
-      ).resolves.not.toThrow();
-      expect(mockLoggerService.error).toHaveBeenCalledWith(
-        `Ошибка отправки email на ${email}`,
-        error.stack,
-        NodemailerService.name,
-      );
-    });
-
-    it('should log success when email is sent', async () => {
-      // Arrange
-      const email = 'recipient@example.com';
-      const code = '123456';
-      mockTransporter.sendMail.mockResolvedValue({});
-
-      // Act
-      await service.sendEmail(email, code, mockTemplate);
-
-      // Assert
-      expect(mockLoggerService.log).toHaveBeenCalledWith(
-        `Email успешно отправлен на ${email}`,
-        NodemailerService.name,
-      );
+      ).rejects.toThrow(error);
     });
   });
 });

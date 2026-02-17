@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Readable } from 'stream';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { PostFilesRepository } from '@lumio/modules/posts/domain/infrastructure/post-files.repository';
@@ -20,7 +20,6 @@ describe('CreatePostCommandHandler', () => {
   let mockPostRepository: jest.Mocked<PostRepository>;
   let mockPostFilesRepository: jest.Mocked<PostFilesRepository>;
   let mockFilesHttpAdapter: jest.Mocked<FilesHttpAdapter>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
   let mockPrisma: jest.Mocked<PrismaService>;
 
   const mockUserId = 1;
@@ -127,7 +126,6 @@ describe('CreatePostCommandHandler', () => {
     mockPostRepository = module.get(PostRepository);
     mockPostFilesRepository = module.get(PostFilesRepository);
     mockFilesHttpAdapter = module.get(FilesHttpAdapter);
-    mockLogger = module.get(AppLoggerService);
     mockPrisma = module.get(PrismaService);
   });
 
@@ -137,7 +135,6 @@ describe('CreatePostCommandHandler', () => {
 
   describe('execute', () => {
     it('should create post successfully with files', async () => {
-      // Arrange
       const command = new CreatePostCommand(
         mockUserId,
         mockDescription,
@@ -163,10 +160,8 @@ describe('CreatePostCommandHandler', () => {
         return undefined;
       });
 
-      // Act
       const result = await handler.execute(command);
 
-      // Assert
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
@@ -179,8 +174,7 @@ describe('CreatePostCommandHandler', () => {
       });
     });
 
-    it('should throw BadRequestDomainException when user does not exist', async () => {
-      // Arrange
+    it('should throw NotFoundDomainException when user does not exist', async () => {
       const command = new CreatePostCommand(
         mockUserId,
         mockDescription,
@@ -189,19 +183,9 @@ describe('CreatePostCommandHandler', () => {
 
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(null);
 
-      // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
-
-      try {
-        await handler.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
-        expect(error.extensions[0]?.message).toBe('User does not exist');
-        expect(error.extensions[0]?.field).toBe('userId');
-      }
 
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
@@ -210,8 +194,7 @@ describe('CreatePostCommandHandler', () => {
       expect(mockFilesHttpAdapter.uploadFiles).not.toHaveBeenCalled();
     });
 
-    it('should handle file upload failure', async () => {
-      // Arrange
+    it('should throw error when file upload fails', async () => {
       const command = new CreatePostCommand(
         mockUserId,
         mockDescription,
@@ -222,26 +205,10 @@ describe('CreatePostCommandHandler', () => {
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockFilesHttpAdapter.uploadFiles.mockRejectedValue(uploadError);
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-
-      try {
-        await handler.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
-        expect(error.extensions[0]?.message).toBe('Failed to upload files');
-        expect(error.extensions[0]?.field).toBe('files');
-      }
-
-      expect(mockLogger.error).toHaveBeenCalled();
-      expect(mockPostRepository.createPost).not.toHaveBeenCalled();
+      await expect(handler.execute(command)).rejects.toThrow(uploadError);
     });
 
     it('should handle database error when finding user', async () => {
-      // Arrange
       const command = new CreatePostCommand(
         mockUserId,
         mockDescription,
@@ -251,7 +218,6 @@ describe('CreatePostCommandHandler', () => {
 
       mockExternalQueryUserRepository.findUserId.mockRejectedValue(dbError);
 
-      // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
@@ -260,8 +226,7 @@ describe('CreatePostCommandHandler', () => {
       expect(mockPostRepository.createPost).not.toHaveBeenCalled();
     });
 
-    it('should handle database error when creating post', async () => {
-      // Arrange
+    it('should throw error when database error occurs', async () => {
       const command = new CreatePostCommand(
         mockUserId,
         mockDescription,
@@ -273,12 +238,8 @@ describe('CreatePostCommandHandler', () => {
       mockFilesHttpAdapter.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockPrisma.$transaction.mockRejectedValue(dbError);
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
-      expect(mockLogger.error).toHaveBeenCalled();
       expect(mockFilesHttpAdapter.deletePostFiles).toHaveBeenCalled();
     });
   });

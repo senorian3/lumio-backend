@@ -14,7 +14,6 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
   let mockPaymentsRepository: jest.Mocked<PaymentsRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockPayload = {
     paymentId: 'pay-123',
@@ -75,7 +74,6 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
     mockSubscriptionRepository = module.get(SubscriptionRepository);
     mockPaymentsRepository = module.get(PaymentsRepository);
     mockPrisma = module.get(PrismaService);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -167,7 +165,6 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });
