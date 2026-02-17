@@ -46,11 +46,9 @@ export class ProfileController {
   async getProfile(
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<ProfileView> {
-    const profile = await this.queryBus.execute<GetProfileQuery, ProfileView>(
+    return await this.queryBus.execute<GetProfileQuery, ProfileView>(
       new GetProfileQuery(userId),
     );
-
-    return profile;
   }
 
   @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
@@ -77,12 +75,9 @@ export class ProfileController {
     @Body() dto: InputFillProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {
-    const filledProfile = await this.commandBus.execute<
-      FillProfileCommand,
-      ProfileView
-    >(new FillProfileCommand(dto, userId, req.user.userId));
-
-    return filledProfile;
+    return await this.commandBus.execute<FillProfileCommand, ProfileView>(
+      new FillProfileCommand(dto, userId, req.user.userId),
+    );
   }
 
   @Put(':userId')
@@ -94,11 +89,8 @@ export class ProfileController {
     @Body() dto: InputEditProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {
-    const updatedProfile = await this.commandBus.execute<
-      UpdateProfileCommand,
-      ProfileView
-    >(new UpdateProfileCommand(dto, userId, req.user.userId));
-
-    return updatedProfile;
+    return await this.commandBus.execute<UpdateProfileCommand, ProfileView>(
+      new UpdateProfileCommand(dto, userId, req.user.userId),
+    );
   }
 }

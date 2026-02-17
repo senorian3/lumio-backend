@@ -1,13 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class UpdatePostCommand {
   constructor(
@@ -25,7 +23,6 @@ export class UpdatePostCommandHandler implements ICommandHandler<
   constructor(
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
-    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<PostView> {
@@ -34,7 +31,7 @@ export class UpdatePostCommandHandler implements ICommandHandler<
     );
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'userId');
+      throw NotFoundDomainException.create('User does not exist', 'userId');
     }
 
     const post = await this.postRepository.findById(command.postId);
@@ -57,11 +54,6 @@ export class UpdatePostCommandHandler implements ICommandHandler<
       );
       return PostView.fromPrisma(updatedPost);
     } catch (error) {
-      this.logger.error(
-        `Failed to update post for postId=${command.postId}: ${error.message}`,
-        error?.stack,
-        UpdatePostCommandHandler.name,
-      );
       throw error;
     }
   }

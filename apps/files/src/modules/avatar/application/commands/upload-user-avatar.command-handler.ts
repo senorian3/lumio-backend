@@ -42,13 +42,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
         [fileData],
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to upload avatar for userId=${userId}: ${error.message}`,
-      );
-      throw BadRequestDomainException.create(
-        'Failed to upload avatar',
-        'avatar',
-      );
+      throw error;
     }
 
     const file = uploadedFiles[0];
@@ -67,10 +61,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       this.logger.error(
         `Critical error to upload avatar for userId=${userId}: ${error.message}, need to delete file from S3 ${file.key}`,
       );
-      throw BadRequestDomainException.create(
-        'Failed to upload avatar',
-        'avatar',
-      );
+      throw error;
     }
   }
 }

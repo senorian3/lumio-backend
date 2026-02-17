@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -34,7 +33,7 @@ export class DeletePostCommandHandler implements ICommandHandler<
       command.userId,
     );
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'user');
+      throw NotFoundDomainException.create('User does not exist', 'user');
     }
 
     const post = await this.postRepository.findById(command.postId);
@@ -53,12 +52,7 @@ export class DeletePostCommandHandler implements ICommandHandler<
     try {
       await this.postRepository.softDeletePostById(command.postId);
     } catch (error) {
-      this.logger.error(
-        `Failed to soft delete post for postId=${command.postId}: ${error.message}`,
-        error?.stack,
-        DeletePostCommandHandler.name,
-      );
-      throw BadRequestDomainException.create('Failed to delete post', 'post');
+      throw error;
     }
 
     try {
@@ -73,7 +67,7 @@ export class DeletePostCommandHandler implements ICommandHandler<
         error?.stack,
         DeletePostCommandHandler.name,
       );
-      throw BadRequestDomainException.create('Failed to delete post', 'post');
+      throw error;
     }
   }
 }

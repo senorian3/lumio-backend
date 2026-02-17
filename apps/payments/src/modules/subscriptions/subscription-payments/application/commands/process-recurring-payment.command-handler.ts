@@ -7,7 +7,6 @@ import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-
 import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
 import { ManualReviewService } from '../manual-review.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { RetryService } from '../retry.service';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 
@@ -118,11 +117,6 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         });
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to process recurring payment after retries: ${command.invoice.id}: ${error.message}`,
-        error.stack,
-        ProcessRecurringPaymentCommandHandler.name,
-      );
       try {
         await this.manualReviewService.createFailedRecurringPaymentTask(
           command.invoice,
@@ -135,10 +129,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           ProcessRecurringPaymentCommandHandler.name,
         );
       }
-      throw BadRequestDomainException.create(
-        'Someting went wrong, we are working on it',
-        'payment',
-      );
+      throw error;
     }
   }
 }

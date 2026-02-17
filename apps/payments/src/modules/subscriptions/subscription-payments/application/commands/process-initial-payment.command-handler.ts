@@ -8,7 +8,6 @@ import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.dto';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { RetryService } from '../retry.service';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 
@@ -53,18 +52,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           throw new Error();
         }
 
-        let subscriptionDetails: Stripe.Subscription;
-
-        try {
-          subscriptionDetails =
-            await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
-        } catch (error) {
-          this.logger.error(
-            `Failed to retrieve subscription details for subscriptionId ${subscriptionId}: ${error.message}`,
-            error.stack,
-            ProcessInitialPaymentCommand.name,
-          );
-        }
+        const subscriptionDetails: Stripe.Subscription =
+          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
           subscriptionDetails.billing_cycle_anchor,
@@ -103,11 +92,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         });
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to process initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
-        error.stack,
-        ProcessInitialPaymentCommand.name,
-      );
       try {
         await this.manualReviewService.createFailedInitialPaymentTask(
           session,
@@ -121,10 +105,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         );
       }
 
-      throw BadRequestDomainException.create(
-        'Something went wrong processing initial payment, we are working on it',
-        'payment',
-      );
+      throw error;
     }
   }
 

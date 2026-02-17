@@ -61,10 +61,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         ChangeAutoRenewalSubscriptionCommandHandler.name,
       );
 
-      throw BadRequestDomainException.create(
-        'Failed to change auto renewal subscription',
-        'profileId',
-      );
+      throw error;
     }
   }
 }

@@ -36,7 +36,6 @@ export class PaymentsController {
   ) {}
 
   @Post()
-  //@ApiGetSubscriptionPaymentUrl()
   @HttpCode(HttpStatus.OK)
   async getSubscriptionPaymentUrl(
     @Req() req: any,
@@ -51,7 +50,6 @@ export class PaymentsController {
   }
 
   @Post(PAYMENTS_ROUTES.AUTORENEWAL)
-  // @ApiChangeAutorenewalSubscription()
   @HttpCode(HttpStatus.OK)
   async updateAutoRenewal(
     @Req() req: any,

@@ -90,11 +90,9 @@ export class PostsController {
       { files: OutputFileType[]; postId: string }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
-    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
+    return await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
       new GetCreatePostUserQuery(postFile.postId, postFile.files),
     );
-
-    return post;
   }
 
   @Put(':postId')

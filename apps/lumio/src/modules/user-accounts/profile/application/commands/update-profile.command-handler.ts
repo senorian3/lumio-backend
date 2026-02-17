@@ -2,8 +2,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { EditProfileTransferDto } from '@lumio/modules/user-accounts/profile/api/dto/transfer/edit-profile.transfer.dto';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
+  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { ProfileView } from '../../api/dto/output/profile.output.dto';
 
@@ -26,7 +26,7 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User is not found', 'userId');
+      throw NotFoundDomainException.create('User is not found', 'userId');
     }
 
     const userProfile = await this.userRepository.findUserProfileByUserId(
@@ -34,7 +34,7 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
     );
 
     if (!userProfile) {
-      throw BadRequestDomainException.create(
+      throw ForbiddenDomainException.create(
         'Profile is not filled',
         'profileFilled',
       );
@@ -47,10 +47,14 @@ export class UpdateProfileCommandHandler implements ICommandHandler<
       );
     }
 
-    const updatedProfile = await this.userRepository.updateProfile(
-      command.userId,
-      { ...command.profileInformation, profileUpdatedAt: new Date() },
-    );
+    const updatedProfile = await this.userRepository
+      .updateProfile(command.userId, {
+        ...command.profileInformation,
+        profileUpdatedAt: new Date(),
+      })
+      .catch((error) => {
+        throw error;
+      });
 
     return ProfileView.fromEntity(user, updatedProfile);
   }

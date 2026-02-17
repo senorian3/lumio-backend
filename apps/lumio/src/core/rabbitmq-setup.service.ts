@@ -1,14 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { CoreConfig } from './core.config';
-import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class RabbitMQSetupService implements OnModuleInit {
-  constructor(
-    private readonly coreConfig: CoreConfig,
-    private readonly logger: AppLoggerService,
-  ) {}
+  constructor(private readonly coreConfig: CoreConfig) {}
 
   async onModuleInit() {
     await this.setupBindings();
@@ -70,11 +66,7 @@ export class RabbitMQSetupService implements OnModuleInit {
       await channel.close();
       await connection.close();
     } catch (error) {
-      this.logger.error(
-        'Error setting up RabbitMQ bindings:',
-        error?.stack,
-        RabbitMQSetupService.name,
-      );
+      throw error;
     }
   }
 }

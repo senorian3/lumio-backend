@@ -2,10 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class DeleteUserAvatarCommand {
   constructor(public readonly userId: number) {}
@@ -32,15 +29,7 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
     try {
       await this.profileRepository.deleteAvatar(avatar.id);
     } catch (error) {
-      this.logger.error(
-        `Failed to delete avatar from DB for userId=${userId}: ${error.message}`,
-        error?.stack,
-        DeleteUserAvatarCommandHandler.name,
-      );
-      throw BadRequestDomainException.create(
-        'Failed to delete avatar',
-        'avatar',
-      );
+      throw error;
     }
 
     try {
@@ -51,10 +40,7 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
         error?.stack,
         DeleteUserAvatarCommandHandler.name,
       );
-      throw BadRequestDomainException.create(
-        'Failed to delete avatar',
-        'avatar',
-      );
+      throw error;
     }
   }
 }

@@ -21,10 +21,11 @@ export class CreateUserCommandHandler implements ICommandHandler<
       createDto.password,
     );
 
-    const newUser = await this.userRepository.createUser(
-      createDto,
-      hashedPassword,
-    );
+    const newUser = await this.userRepository
+      .createUser(createDto, hashedPassword)
+      .catch((error) => {
+        throw error;
+      });
 
     return newUser.id;
   }

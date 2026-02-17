@@ -3,7 +3,6 @@ import { PaymentsHttpAdapter } from '../payments-http.adapter';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
@@ -81,16 +80,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
         command.dto,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to update subscription autorenewal for userId=${command.userId}: ${error.message}`,
-        error?.stack,
-        ChangeAutoRenewalCommand.name,
-      );
-
-      throw BadRequestDomainException.create(
-        'Failed to update subscription autorenewal',
-        'subscription',
-      );
+      throw error;
     }
 
     try {
@@ -104,6 +94,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
         error?.stack,
         ChangeAutoRenewalCommand.name,
       );
+      throw error;
     }
   }
 }

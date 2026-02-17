@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsHttpAdapter } from '../payments-http.adapter';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
@@ -20,7 +19,6 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
 > {
   constructor(
     private readonly paymentsHttpAdapter: PaymentsHttpAdapter,
-    private readonly logger: AppLoggerService,
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
   ) {}
 
@@ -47,16 +45,7 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
 
       return urlData.url;
     } catch (error) {
-      this.logger.error(
-        `Failed to get subscription payment url for userId=${command.userId}: ${error.message}`,
-        error?.stack,
-        CreateSubscriptionPaymentUrlCommand.name,
-      );
-
-      throw BadRequestDomainException.create(
-        'Failed to get subscription payment url',
-        'subscription',
-      );
+      throw error;
     }
   }
 }

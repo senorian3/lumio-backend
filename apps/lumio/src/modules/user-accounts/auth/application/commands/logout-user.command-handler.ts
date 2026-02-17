@@ -23,12 +23,16 @@ export class LogoutUserCommandHandler implements ICommandHandler<LogoutUserComma
 
     if (!foundSessionByDeviceIdAndUserId) return;
 
-    await this.sessionRepository.updateSession({
-      sessionId: foundSessionByDeviceIdAndUserId.id,
-      iat: foundSessionByDeviceIdAndUserId.createdAt,
-      exp: foundSessionByDeviceIdAndUserId.expiresAt,
-      tokenVersion: foundSessionByDeviceIdAndUserId.tokenVersion + 1,
-    });
+    await this.sessionRepository
+      .updateSession({
+        sessionId: foundSessionByDeviceIdAndUserId.id,
+        iat: foundSessionByDeviceIdAndUserId.createdAt,
+        exp: foundSessionByDeviceIdAndUserId.expiresAt,
+        tokenVersion: foundSessionByDeviceIdAndUserId.tokenVersion + 1,
+      })
+      .catch((error) => {
+        throw error;
+      });
 
     return;
   }

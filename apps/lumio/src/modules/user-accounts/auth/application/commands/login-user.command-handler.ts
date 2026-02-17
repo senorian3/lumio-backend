@@ -59,7 +59,9 @@ export class LoginUserCommandHandler implements ICommandHandler<
       deviceId,
       deviceName,
       ip,
-    );
+    ).catch((error) => {
+      throw error;
+    });
 
     const accessToken = this.createAccessToken(userId, deviceId, tokenVersion);
 

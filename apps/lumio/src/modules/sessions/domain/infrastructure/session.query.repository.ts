@@ -6,10 +6,8 @@ export class QuerySessionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllSessions(userId: number): Promise<SessionEntity[]> {
-    const allSessions: SessionEntity[] = await this.prisma.session.findMany({
+    return await this.prisma.session.findMany({
       where: { user: { id: userId }, deletedAt: null },
     });
-
-    return allSessions;
   }
 }

@@ -2,7 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { S3FilesHttpAdapter } from '../../../../core/adapters/s3-files-http.adapter';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class DeletedPostFilesCommand {
   constructor(public readonly postId: string) {}
@@ -29,12 +28,7 @@ export class DeletedPostFilesCommandHandler implements ICommandHandler<
     try {
       await this.fileRepository.softDeleteFilesByPostId(postId);
     } catch (error) {
-      this.logger.error(
-        `Failed to soft delete files in DB for postId=${postId}: ${error.message}`,
-        error?.stack,
-        DeletedPostFilesCommand.name,
-      );
-      throw BadRequestDomainException.create('Failed to delete files', 'files');
+      throw error;
     }
 
     try {

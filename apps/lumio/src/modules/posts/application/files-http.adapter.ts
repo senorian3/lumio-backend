@@ -1,4 +1,3 @@
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
@@ -6,10 +5,7 @@ import FormData from 'form-data';
 
 @Injectable()
 export class FilesHttpAdapter {
-  constructor(
-    private readonly coreConfig: CoreConfig,
-    private readonly loggerService: AppLoggerService,
-  ) {}
+  constructor(private readonly coreConfig: CoreConfig) {}
 
   private getHeaders(additionalHeaders?: Record<string, string>) {
     return {
@@ -30,11 +26,6 @@ export class FilesHttpAdapter {
       const response = await axios.delete<T>(url, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to DELETE from ${url}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }
@@ -65,11 +56,6 @@ export class FilesHttpAdapter {
       const response = await axios.post<T>(url, formData, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to POST to ${url}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }
@@ -97,11 +83,6 @@ export class FilesHttpAdapter {
       const response = await axios.post<T>(url, formData, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to upload avatar to ${url}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }
@@ -114,11 +95,6 @@ export class FilesHttpAdapter {
       const response = await axios.delete<T>(url, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to delete avatar for userId=${userId}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }
@@ -131,11 +107,6 @@ export class FilesHttpAdapter {
       const response = await axios.post<T>(url, { key }, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to delete file with key=${key}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }
@@ -148,11 +119,6 @@ export class FilesHttpAdapter {
       const response = await axios.delete<T>(url, { headers });
       return response.data;
     } catch (error) {
-      this.loggerService.error(
-        `Failed to delete files for postId=${postId}:`,
-        error?.stack,
-        FilesHttpAdapter.name,
-      );
       throw error;
     }
   }

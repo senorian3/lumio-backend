@@ -2,7 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { S3FilesHttpAdapter } from '../../../../core/adapters/s3-files-http.adapter';
 import { FileRepository } from '../../domain/infrastructure/file.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class UploadFilesCreatedPostCommand {
   constructor(
@@ -40,12 +39,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
         files,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to upload files to S3 for postId=${postId}: ${error.message}`,
-        error?.stack,
-        UploadFilesCreatedPostCommandHandler.name,
-      );
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
+      throw error;
     }
 
     const fileDtos = uploadedFiles.map((file) => ({
@@ -60,13 +54,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
       await this.fileRepository.createFiles(fileDtos);
     } catch (error) {
       await this.cleanupS3Files(uploadedFiles);
-
-      this.logger.error(
-        `Failed to create files in DB for postId=${postId}, rolled back S3 files: ${error.message}`,
-        error?.stack,
-        UploadFilesCreatedPostCommandHandler.name,
-      );
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
+      throw error;
     }
   }
 

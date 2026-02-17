@@ -8,7 +8,6 @@ import {
 import { randomUUID } from 'crypto';
 import { lookup } from 'mime-types';
 import { CoreConfig } from '@files/core/core.config';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { PostFileEntity } from '../../modules/post-files/domain/entities/post-file.entity';
 import { validateAndConvertBuffer } from '../utils/buffer-validation.utils';
 
@@ -21,10 +20,7 @@ export class S3FilesHttpAdapter {
   private readonly accessKeyId: string;
   private readonly secretAccessKey: string;
 
-  constructor(
-    private readonly coreConfig: CoreConfig,
-    private readonly logger: AppLoggerService,
-  ) {
+  constructor(private readonly coreConfig: CoreConfig) {
     this.bucketName = this.coreConfig.s3BucketName;
     this.region = this.coreConfig.s3Region;
     this.endpoint = this.coreConfig.s3Endpoint;
@@ -52,11 +48,7 @@ export class S3FilesHttpAdapter {
     for (let i = 0; i < files.length; i++) {
       const { buffer, originalname } = files[i];
 
-      const fileBuffer = validateAndConvertBuffer(
-        buffer,
-        originalname,
-        this.logger,
-      );
+      const fileBuffer = validateAndConvertBuffer(buffer);
 
       const fileExtension = originalname.split('.').pop() || 'png';
       const mimeType = lookup(originalname) || 'image/png';
@@ -83,15 +75,8 @@ export class S3FilesHttpAdapter {
           mimetype: mimeType,
           size: fileBuffer.length,
         });
-      } catch (exception) {
-        this.logger.error(
-          `Error uploading file ${fileName}`,
-          exception?.stack,
-          S3FilesHttpAdapter.name,
-        );
-        throw new Error(
-          `Failed to upload file ${originalname}: ${exception.message}`,
-        );
+      } catch (error) {
+        throw error;
       }
     }
 
@@ -107,12 +92,7 @@ export class S3FilesHttpAdapter {
 
       await this.s3.send(command);
     } catch (error) {
-      this.logger.error(
-        `Error deleting file ${s3key}`,
-        error?.stack,
-        S3FilesHttpAdapter.name,
-      );
-      throw new Error(`Failed to delete file ${s3key}: ${error.message}`);
+      throw error;
     }
   }
 
@@ -139,11 +119,6 @@ export class S3FilesHttpAdapter {
         continuationToken = response.NextContinuationToken;
       } while (continuationToken);
     } catch (error) {
-      this.logger.error(
-        `Error deleting all files from S3 bucket`,
-        error?.stack,
-        S3FilesHttpAdapter.name,
-      );
       throw error;
     }
   }

@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SubscriptionRecurringUpdatedEvent } from '../../api/dto/transfer/subscription-recurring-updated-event.dto';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
@@ -12,7 +11,6 @@ export class HandleSubscriptionRecurringUpdatedCommand {
 @CommandHandler(HandleSubscriptionRecurringUpdatedCommand)
 export class HandleSubscriptionRecurringUpdatedCommandHandler implements ICommandHandler<HandleSubscriptionRecurringUpdatedCommand> {
   constructor(
-    private readonly appLogger: AppLoggerService,
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly prisma: PrismaService,
@@ -56,11 +54,6 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
         );
       });
     } catch (error) {
-      this.appLogger.error(
-        `Error processing subscription updated event: ${error.message}`,
-        error.stack,
-        HandleSubscriptionRecurringUpdatedCommand.name,
-      );
       throw error;
     }
   }

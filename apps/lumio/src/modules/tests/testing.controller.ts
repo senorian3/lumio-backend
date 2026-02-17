@@ -7,7 +7,6 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  Post,
 } from '@nestjs/common';
 
 @Controller('testing')
@@ -49,39 +48,5 @@ export class TestingController {
       console.error(error);
       throw new Error('Failed to delete all data in lumio');
     }
-  }
-
-  @Post('create-users-with-posts')
-  @HttpCode(HttpStatus.CREATED)
-  async createUsersWithPosts(): Promise<void> {
-    await this.prismaService.$transaction(async (prisma) => {
-      for (let i = 1; i <= 4; i++) {
-        const user = await prisma.user.create({
-          data: {
-            username: `hellotestuser${i}`,
-            email: `hellotestuser${i}@example.com`,
-            password: `Password${i}`,
-          },
-        });
-
-        const post = await prisma.post.create({
-          data: {
-            id: `post-${i}-${Date.now()}`,
-            description: `Пост пользователя ${i}`,
-            user: { connect: { id: user.id } },
-          },
-        });
-
-        const photoCount = i === 4 ? 3 : 1;
-        for (let j = 1; j <= photoCount; j++) {
-          await prisma.postFile.create({
-            data: {
-              post: { connect: { id: post.id } },
-              url: `https://test-bucket-lumio.storage.yandexcloud.net/content/posts/1/1_image_1_c915352c.png`,
-            },
-          });
-        }
-      }
-    });
   }
 }

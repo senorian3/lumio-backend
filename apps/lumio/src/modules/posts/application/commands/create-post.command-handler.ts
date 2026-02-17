@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
@@ -41,7 +41,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
     );
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'userId');
+      throw NotFoundDomainException.create('User does not exist', 'userId');
     }
 
     const postId = uuidv4();
@@ -54,13 +54,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
         command.files,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to upload files for postId=${postId}: ${error.message}`,
-        error?.stack,
-        CreatePostCommandHandler.name,
-      );
-
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
+      throw error;
     }
 
     try {
@@ -79,12 +73,6 @@ export class CreatePostCommandHandler implements ICommandHandler<
       });
       return { files: mappedFile, postId };
     } catch (error) {
-      this.logger.error(
-        `Failed to create post with post files in DB for postId=${postId}: ${error.message}`,
-        error?.stack,
-        CreatePostCommandHandler.name,
-      );
-
       try {
         await this.filesHttpAdapter.deletePostFiles(postId);
       } catch (cleanupError) {
@@ -97,7 +85,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
         );
       }
 
-      throw BadRequestDomainException.create('Failed to create post', 'post');
+      throw error;
     }
   }
 }

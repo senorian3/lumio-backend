@@ -1,5 +1,8 @@
 import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  ForbiddenDomainException,
+  NotFoundDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { EmailService } from '@lumio/modules/user-accounts/adapters/nodemailer/template/email-examples';
 import { CreateUserCommand } from '@lumio/modules/user-accounts/users/application/commands/create-user.command-handler';
@@ -21,7 +24,7 @@ export class RegisterUserCommandHandler implements ICommandHandler<
     private readonly nodemailerService: NodemailerService,
     private readonly emailService: EmailService,
     private readonly commandBus: CommandBus,
-    private readonly loggerService: AppLoggerService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute({ registerDto }: RegisterUserCommand): Promise<void> {
@@ -31,12 +34,12 @@ export class RegisterUserCommandHandler implements ICommandHandler<
     );
     if (user) {
       if (user.username === registerDto.username) {
-        throw BadRequestDomainException.create(
+        throw ForbiddenDomainException.create(
           'User with this username is already registered',
           'username',
         );
       } else {
-        throw BadRequestDomainException.create(
+        throw ForbiddenDomainException.create(
           'User with this email is already registered',
           'email',
         );
@@ -53,7 +56,7 @@ export class RegisterUserCommandHandler implements ICommandHandler<
       });
 
     if (!emailConfirmation) {
-      throw BadRequestDomainException.create(
+      throw NotFoundDomainException.create(
         'Email confirmation not found',
         'emailConfirmation',
       );
@@ -66,8 +69,8 @@ export class RegisterUserCommandHandler implements ICommandHandler<
         this.emailService.registrationEmail.bind(this.emailService),
       )
       .catch((error) => {
-        this.loggerService.error(
-          `Ошибка отправки email: ${error.message}`,
+        this.logger.error(
+          `Failed to send email: ${error.message}`,
           error.stack,
           RegisterUserCommandHandler.name,
         );
