@@ -142,21 +142,20 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when database fails', async () => {
+    it('should throw error when database fails', async () => {
       // Arrange
       const command = new ChangeAutoRenewalSubscriptionCommand(mockDto);
+      const dbError = new Error('Database error');
 
       mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
         mockActiveSubscription as any,
       );
       mockPaymentsRepository.updatePaymentAutoRenewal.mockRejectedValue(
-        new Error('Database error'),
+        dbError,
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });

@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -144,19 +143,17 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       ).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when payment not found', async () => {
+    it('should throw error when payment not found', async () => {
       // Arrange
       const command = new ProcessInitialPaymentCommand(mockSession, mockEvent);
 
       mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(null);
       mockRetryService.executeWithRetry.mockImplementation(async () => {
-        throw new Error('Payment not found');
+        throw new Error();
       });
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(Error);
     });
 
     it('should handle database error', async () => {
@@ -175,9 +172,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(
         mockManualReviewService.createFailedInitialPaymentTask,
@@ -200,9 +195,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(processError);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });

@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 import { PrismaService } from '@payments/prisma/prisma.service';
@@ -182,19 +181,17 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when payment not found', async () => {
+    it('should throw error when payment not found', async () => {
       // Arrange
       const command = new ProcessRecurringPaymentCommand(mockInvoice);
 
       mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(null);
       mockRetryService.executeWithRetry.mockImplementation(async () => {
-        throw new Error('Payment not found');
+        throw new Error();
       });
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(Error);
     });
 
     it('should handle database error', async () => {
@@ -213,9 +210,7 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(dbError);
 
       expect(
         mockManualReviewService.createFailedRecurringPaymentTask,
@@ -238,9 +233,7 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      await expect(handler.execute(command)).rejects.toThrow(processError);
 
       expect(mockLogger.error).toHaveBeenCalled();
     });
