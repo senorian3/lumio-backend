@@ -9,11 +9,11 @@ import { LoggerModule } from '@libs/logger/logger.module';
 import { PaymentsHttpAdapter } from './application/payments-http.adapter';
 import { PaymentsRepository } from './domain/infrastructure/payments.repository';
 import { SubscriptionRepository } from './domain/infrastructure/subscription.repository';
+import { IdempotencyKeyRepository } from './domain/infrastructure/idempotency-key.repository';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CoreConfig } from '../../core/core.config';
-import { IdempotencyService } from './application/idempotency.service';
 import { DlqNotificationService } from './application/dlq-notification.service';
 import { MessageProcessingService } from './application/message-processing.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
@@ -40,13 +40,10 @@ const repositories = [
   PaymentsRepository,
   SubscriptionRepository,
   QueryPaymentsRepository,
+  IdempotencyKeyRepository,
 ];
 
-const services = [
-  IdempotencyService,
-  DlqNotificationService,
-  MessageProcessingService,
-];
+const services = [DlqNotificationService, MessageProcessingService];
 
 @Module({
   imports: [

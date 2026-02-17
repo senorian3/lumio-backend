@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { RmqContext } from '@nestjs/microservices';
-import { IdempotencyService } from './idempotency.service';
 import { DlqNotificationService } from './dlq-notification.service';
+import { IdempotencyKeyRepository } from '../domain/infrastructure/idempotency-key.repository';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 @Injectable()
 export class MessageProcessingService {
   private readonly MAX_RETRIES = 3;
+  private readonly TTL_SECONDS = 86400;
 
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly idempotencyService: IdempotencyService,
     private readonly dlqNotificationService: DlqNotificationService,
+    private readonly idempotencyKeyRepository: IdempotencyKeyRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async processMessage(
@@ -32,19 +35,31 @@ export class MessageProcessingService {
       messageId = `${messageIdPrefix}-${Date.now()}`;
     }
 
+    let shouldAck = false;
+
     try {
-      const isNewMessage =
-        await this.idempotencyService.tryMarkAsProcessed(messageId);
+      await this.prisma.$transaction(async (tx) => {
+        const existing = await this.idempotencyKeyRepository.findById(
+          messageId,
+          tx,
+        );
 
-      if (!isNewMessage) {
+        if (existing && existing.expiresAt > new Date()) {
+          return;
+        }
+
+        const expiresAt = new Date(Date.now() + this.TTL_SECONDS * 1000);
+
+        await this.idempotencyKeyRepository.upsert(messageId, expiresAt, tx);
+
+        await this.commandBus.execute(command);
+
+        shouldAck = true;
+      });
+
+      if (shouldAck) {
         channel.ack(originalMsg);
-
-        return;
       }
-
-      await this.commandBus.execute(command);
-
-      channel.ack(originalMsg);
     } catch (error) {
       let retryCount = originalMsg.properties.headers?.['x-retry-count'] || 0;
       if (

@@ -132,3 +132,11 @@ model PostFile {
 
   post Post @relation(fields: [postId], references: [id])
 }
+
+model IdempotencyKey {
+  id        String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
