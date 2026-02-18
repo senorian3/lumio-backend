@@ -37,11 +37,14 @@ export class TestingController {
 
     try {
       await this.prismaService.$transaction([
+        this.prismaService.payments.deleteMany(),
+        this.prismaService.subscription.deleteMany(),
         this.prismaService.session.deleteMany(),
         this.prismaService.emailConfirmation.deleteMany(),
         this.prismaService.yandex.deleteMany(),
         this.prismaService.postFile.deleteMany(),
         this.prismaService.post.deleteMany(),
+        this.prismaService.userProfile.deleteMany(),
         this.prismaService.user.deleteMany(),
       ]);
     } catch (error) {

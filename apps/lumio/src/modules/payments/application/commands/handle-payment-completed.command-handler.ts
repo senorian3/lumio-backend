@@ -5,6 +5,7 @@ import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -71,7 +72,11 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
           tx,
         );
 
-        await this.userRepository.updateAccountType(profileId, 'Business', tx);
+        await this.userRepository.updateAccountType(
+          profileId,
+          AccountType.BUSINESS,
+          tx,
+        );
       });
     } catch (error) {
       throw error;
