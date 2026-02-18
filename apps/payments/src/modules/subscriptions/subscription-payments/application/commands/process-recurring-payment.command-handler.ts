@@ -53,6 +53,10 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           throw new Error();
         }
 
+        if (existingPayment.autoRenewal === false) {
+          return;
+        }
+
         const invoiceLine = invoice.lines.data[0];
 
         await this.prisma.$transaction(async (tx) => {

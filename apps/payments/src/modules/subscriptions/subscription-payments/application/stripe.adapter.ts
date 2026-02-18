@@ -1,16 +1,12 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { subscriptionConfigs } from '../../constants/stripe-constants';
 import { CoreConfig } from '@payments/core/core.config';
 
 @Injectable()
 export class StripeAdapter {
   private stripe: Stripe;
-  constructor(
-    private readonly logger: AppLoggerService,
-    private readonly coreConfig: CoreConfig,
-  ) {
+  constructor(private readonly coreConfig: CoreConfig) {
     this.stripe = new Stripe(this.coreConfig.stripeApiKey, {
       apiVersion: '2025-12-15.clover',
       appInfo: {
@@ -67,11 +63,6 @@ export class StripeAdapter {
 
       return session;
     } catch (error) {
-      this.logger.error(
-        `Failed to create subscription payment session: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }
@@ -84,11 +75,6 @@ export class StripeAdapter {
         this.coreConfig.stripeEndpointSecret,
       );
     } catch (error) {
-      this.logger.error(
-        `Error verifying webhook: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }
@@ -99,11 +85,6 @@ export class StripeAdapter {
     try {
       return await this.stripe.subscriptions.retrieve(subscriptionId);
     } catch (error) {
-      this.logger.error(
-        `Failed to retrieve subscription details for subscriptionId ${subscriptionId}: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }
@@ -117,11 +98,6 @@ export class StripeAdapter {
         cancel_at_period_end: !autoRenewal,
       });
     } catch (error) {
-      this.logger.error(
-        `Failed to change subscription auto renewal for subscriptionId ${subscriptionId}: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }
@@ -130,11 +106,6 @@ export class StripeAdapter {
     try {
       await this.stripe.checkout.sessions.expire(sessionId);
     } catch (error) {
-      this.logger.error(
-        `Failed to cancel session ${sessionId}: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }
@@ -143,11 +114,6 @@ export class StripeAdapter {
     try {
       await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
-      this.logger.error(
-        `Failed to cancel subscription ${subscriptionId}: ${error.message}`,
-        error.stack,
-        StripeAdapter.name,
-      );
       throw error;
     }
   }

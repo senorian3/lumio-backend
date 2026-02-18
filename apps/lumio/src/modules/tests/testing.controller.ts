@@ -46,6 +46,7 @@ export class TestingController {
         this.prismaService.post.deleteMany(),
         this.prismaService.userProfile.deleteMany(),
         this.prismaService.user.deleteMany(),
+        this.prismaService.idempotencyKey.deleteMany(),
       ]);
     } catch (error) {
       console.error(error);
