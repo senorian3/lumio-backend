@@ -26,6 +26,10 @@ import {
   PAYMENTS_ROUTES,
 } from '@lumio/core/routes/payment-routes';
 import { OutputUserSubscriptionDto } from './dto/output/user-subscription.output.dto';
+import { ApiCreateSubscriptionPaymentUrl } from '@lumio/core/decorators/swagger/payment/create-payment-url.decorator';
+import { ApiUpdateAutoRenewal } from '@lumio/core/decorators/swagger/payment/update-auto-renewal.decorator';
+import { ApiGetUserPayments } from '@lumio/core/decorators/swagger/payment/get-user-payments.decorator';
+import { ApiGetUserSubscription } from '@lumio/core/decorators/swagger/payment/get-user-subscription.decorator';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller(PAYMENTS_BASE)
@@ -37,6 +41,7 @@ export class PaymentsController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @ApiCreateSubscriptionPaymentUrl()
   async getSubscriptionPaymentUrl(
     @Req() req: any,
     @Body() dto: InputCreateSubscriptionPaymentDto,
@@ -51,6 +56,7 @@ export class PaymentsController {
 
   @Post(PAYMENTS_ROUTES.AUTORENEWAL)
   @HttpCode(HttpStatus.OK)
+  @ApiUpdateAutoRenewal()
   async updateAutoRenewal(
     @Req() req: any,
     @Body() dto: InputChangeAutorenewalSubscriptionDto,
@@ -61,6 +67,7 @@ export class PaymentsController {
   }
 
   @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
+  @ApiGetUserPayments()
   async getUserPayments(
     @Query()
     query: GetUserPaymentsParams,
@@ -73,6 +80,7 @@ export class PaymentsController {
   }
 
   @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
+  @ApiGetUserSubscription()
   async getUserSubscription(
     @Req() req: any,
   ): Promise<OutputUserSubscriptionDto> {
