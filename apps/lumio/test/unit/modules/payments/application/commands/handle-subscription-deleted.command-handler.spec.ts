@@ -6,10 +6,12 @@ import {
   HandleSubscriptionDeletedCommand,
 } from '@lumio/modules/payments/application/commands/handle-subscription-deleted.command-handler';
 import { SubscriptionDeletedEvent } from '@lumio/modules/payments/api/dto/transfer/subscription-deleted-event.dto';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 describe('HandleSubscriptionDeletedCommandHandler', () => {
   let handler: HandleSubscriptionDeletedCommandHandler;
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
+  let mockUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +22,12 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
           useValue: {
             findSubscriptionById: jest.fn(),
             cancelSubscription: jest.fn(),
+          },
+        },
+        {
+          provide: ExternalQueryUserAccountsRepository,
+          useValue: {
+            updateAccountType: jest.fn(),
           },
         },
         {
@@ -36,6 +44,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       HandleSubscriptionDeletedCommandHandler,
     );
     mockSubscriptionRepository = module.get(SubscriptionRepository);
+    mockUserRepository = module.get(ExternalQueryUserAccountsRepository);
   });
 
   it('should be defined', () => {
@@ -76,6 +85,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       mockSubscriptionRepository.cancelSubscription.mockResolvedValue(
         undefined,
       );
+      mockUserRepository.updateAccountType.mockResolvedValue({} as any);
 
       // Act
       await handler.execute(command);
@@ -87,6 +97,10 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       expect(
         mockSubscriptionRepository.cancelSubscription,
       ).toHaveBeenCalledWith('sub-123', expect.any(Date));
+      expect(mockUserRepository.updateAccountType).toHaveBeenCalledWith(
+        1,
+        expect.any(String),
+      );
     });
 
     it('should return early when subscription not found', async () => {
@@ -118,6 +132,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       expect(
         mockSubscriptionRepository.cancelSubscription,
       ).not.toHaveBeenCalled();
+      expect(mockUserRepository.updateAccountType).not.toHaveBeenCalled();
     });
 
     it('should handle database error when finding subscription', async () => {
