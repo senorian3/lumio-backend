@@ -38,6 +38,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
+import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by-post-id.decorator';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -127,6 +128,7 @@ export class PostsController {
   }
 
   @Get('post/:postId')
+  @ApiGetPostById()
   @UseGuards(JwtAuthGuard)
   async getPostById(
     @Param('postId') postId: string,
