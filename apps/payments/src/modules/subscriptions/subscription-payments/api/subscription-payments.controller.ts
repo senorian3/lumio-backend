@@ -17,12 +17,18 @@ import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
 import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
+import { ApiCreateSubscriptionPayment } from '@payments/core/decorators/swagger/subscription-payments/create-subscription-payment.decorator';
+import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscription-payments/change-autorenewal.decorator';
+import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
+import { ApiPaymentSuccess } from '@payments/core/decorators/swagger/subscription-payments/payment-success.decorator';
+import { ApiPaymentError } from '@payments/core/decorators/swagger/subscription-payments/payment-error.decorator';
 
 @Controller('subscription-payments')
 export class SubscriptionPaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Post()
+  @ApiCreateSubscriptionPayment()
   @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
     @Body() payload: InputCreateSubscriptionPaymentDto,
@@ -36,6 +42,7 @@ export class SubscriptionPaymentsController {
   }
 
   @Put('autorenewal')
+  @ApiChangeAutorenewal()
   @UseGuards(InternalApiGuard)
   async changeAutorenwal(
     @Body() payload: InputChangeAutorenewalSubscriptionDto,
@@ -46,16 +53,19 @@ export class SubscriptionPaymentsController {
   }
 
   @Get('success')
+  @ApiPaymentSuccess()
   success(): string {
     return 'Success url';
   }
 
   @Get('error')
+  @ApiPaymentError()
   error(): string {
     return 'Error url';
   }
 
   @Post('stripe-hook')
+  @ApiStripeHook()
   async stripeHook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
