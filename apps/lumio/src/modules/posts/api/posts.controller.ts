@@ -36,6 +36,7 @@ import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
+import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -123,6 +124,17 @@ export class PostsController {
   ): Promise<void> {
     return await this.commandBus.execute<DeletePostCommand, void>(
       new DeletePostCommand(req.user.userId, postId),
+    );
+  }
+
+  @Get('post/:postId')
+  @UseGuards(JwtAuthGuard)
+  async getPostById(
+    @Param('postId') postId: string,
+    @Req() req: any,
+  ): Promise<PostView> {
+    return await this.queryBus.execute<GetPostByIdQuery, PostView>(
+      new GetPostByIdQuery(postId, req.user.userId),
     );
   }
 }
