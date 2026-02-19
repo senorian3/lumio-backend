@@ -1,20 +1,22 @@
 import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { CoreConfig } from '../core/core.config';
-import { TestingModule } from '../modules/tests/testing.module';
+import { TestingModule } from '@lumio/modules/features/tests/testing.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CoreModule } from '../core/core.module';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';
-import { throttlerModule } from '../core/guards/throttler/throttler.module';
+import { throttlerModule } from '@lumio/modules/features/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
+import { HealthModule } from '@lumio/modules/features/health/health.module';
 
 @Module({
   imports: [
     configModule,
     throttlerModule,
+    HealthModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
         const logger = new AppLoggerService();

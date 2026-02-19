@@ -1,5 +1,5 @@
 import { ThrottlerModule } from '@nestjs/throttler';
-import { CoreConfig } from '../../core.config';
+import { CoreConfig } from '@lumio/core/core.config';
 
 export const throttlerModule = ThrottlerModule.forRootAsync({
   imports: [],
