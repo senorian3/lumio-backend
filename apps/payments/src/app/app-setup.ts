@@ -5,6 +5,7 @@ import { globalPrefixSetup } from '@libs/settings/global-prefix.setup';
 import { pipesSetup } from '@libs/settings/pipes.setup';
 import { proxySetup } from '@libs/settings/proxy-setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
+import { swaggerSetup } from '@payments/core/settings/swagger.setup';
 import { DynamicModule, INestApplication } from '@nestjs/common';
 import { enableCorsSetup } from '@payments/core/settings/enable-cors.setup';
 
@@ -20,4 +21,5 @@ export function appSetup(
   validationConstraintsSetup(app, DynamicAppModule);
   exceptionFilterSetup(app, coreConfig);
   cookieParserSetup(app);
+  swaggerSetup(app, coreConfig.isSwaggerEnabled);
 }
