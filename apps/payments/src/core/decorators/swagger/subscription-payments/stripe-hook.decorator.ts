@@ -29,5 +29,9 @@ export function ApiStripeHook() {
         },
       },
     }),
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized - invalid or missing signature',
+    }),
   );
 }

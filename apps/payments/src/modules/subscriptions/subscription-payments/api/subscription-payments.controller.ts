@@ -15,6 +15,7 @@ import { Request } from 'express';
 import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
 import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
+import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
 import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ApiCreateSubscriptionPayment } from '@payments/core/decorators/swagger/subscription-payments/create-subscription-payment.decorator';
@@ -69,6 +70,7 @@ export class SubscriptionPaymentsController {
   }
 
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.STRIPE_HOOK)
+  @UseGuards(StripeWebhookGuard)
   @ApiStripeHook()
   async stripeHook(
     @Req() req: RawBodyRequest<Request>,
