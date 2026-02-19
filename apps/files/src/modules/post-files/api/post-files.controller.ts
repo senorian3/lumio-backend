@@ -25,6 +25,10 @@ import {
   POST_FILES_BASE,
   POST_FILES_ROUTES,
 } from '@files/core/routes/post-files-routes';
+import { ApiGetPostFiles } from '@files/core/decorators/swagger/post-files/get-post-files.decorator';
+import { ApiUploadPostFiles } from '@files/core/decorators/swagger/post-files/upload-post-files.decorator';
+import { ApiDeletePostFiles } from '@files/core/decorators/swagger/post-files/delete-post-files.decorator';
+import { ApiDeleteFileByKey } from '@files/core/decorators/swagger/post-files/delete-file-by-key.decorator';
 
 @Controller(POST_FILES_BASE)
 @UseGuards(InternalApiGuard)
@@ -35,6 +39,7 @@ export class PostFilesController {
   ) {}
 
   @Get()
+  @ApiGetPostFiles()
   async getAllUserPostsFiles(
     @Body()
     data: InputGetUserPostsDto,
@@ -45,6 +50,7 @@ export class PostFilesController {
   }
 
   @Post(POST_FILES_ROUTES.UPLOAD_POST_FILES)
+  @ApiUploadPostFiles()
   @UseInterceptors(FilesInterceptor('files'))
   async uploadPostFiles(
     @UploadedFiles() files: Array<Express.Multer.File>,
@@ -62,6 +68,7 @@ export class PostFilesController {
   }
 
   @Delete(POST_FILES_ROUTES.DELETE_POST_FILES)
+  @ApiDeletePostFiles()
   async deletePostFiles(@Param('postId') postId: string): Promise<void> {
     return await this.commandBus.execute<DeletedPostFilesCommand, void>(
       new DeletedPostFilesCommand(postId),
@@ -69,6 +76,7 @@ export class PostFilesController {
   }
 
   @Post(POST_FILES_ROUTES.DELETE_FILE)
+  @ApiDeleteFileByKey()
   async deleteFile(@Body() dto: { key: string }): Promise<void> {
     return await this.commandBus.execute<DeleteFileByKeyCommand, void>(
       new DeleteFileByKeyCommand(dto.key),
