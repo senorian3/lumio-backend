@@ -61,7 +61,7 @@ export function ApiGetUserPayments() {
         invalid_session: {
           summary: 'Invalid session or JWT',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have active session",
                 field: 'session',
@@ -72,7 +72,7 @@ export function ApiGetUserPayments() {
         invalid_token: {
           summary: 'Token is invalid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Invalid user data in JWT',
                 field: 'user',
@@ -90,7 +90,7 @@ export function ApiGetUserPayments() {
         profile_not_found: {
           summary: 'Profile not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile not found',
                 field: 'profile',
@@ -108,7 +108,7 @@ export function ApiGetUserPayments() {
         too_many_requests: {
           summary: 'Request limit exceeded',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Too many requests',
               },

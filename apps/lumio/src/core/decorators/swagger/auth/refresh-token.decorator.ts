@@ -37,7 +37,7 @@ export function ApiRefreshToken() {
         no_refresh_token: {
           summary: 'No refresh token in request',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'There is no refresh token in request',
                 field: 'refreshToken',
@@ -48,7 +48,7 @@ export function ApiRefreshToken() {
         no_session: {
           summary: 'Session not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'deviceId',
@@ -59,7 +59,7 @@ export function ApiRefreshToken() {
         wrong_payload_validation: {
           summary: 'Wrong payload validation',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'session',
@@ -70,7 +70,7 @@ export function ApiRefreshToken() {
         invalid_refresh_token: {
           summary: 'Invalid refresh token',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'There is no such session',
                 field: 'InvalidRefreshToken',
@@ -81,7 +81,7 @@ export function ApiRefreshToken() {
         token_version_mismatch: {
           summary: 'Token version mismatch',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch',
                 field: 'tokenVersion',

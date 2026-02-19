@@ -40,7 +40,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         profile_not_found: {
           summary: 'User profile does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile does not exist',
                 field: 'userId',
@@ -51,7 +51,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         invalid_subscription_type: {
           summary: 'Invalid subscription type',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'Invalid subscription type. Must be one of: 1 week, 2 weeks, 1 month, 3 months, 1 year',
@@ -63,7 +63,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         profile_id_required: {
           summary: 'Profile ID is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile ID is required',
                 field: 'profileId',
@@ -74,7 +74,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         profile_id_invalid: {
           summary: 'Profile ID must be a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile ID must be a string',
                 field: 'profileId',
@@ -85,7 +85,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         currency_required: {
           summary: 'Currency is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Currency is required',
                 field: 'currency',
@@ -96,7 +96,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         currency_invalid: {
           summary: 'Currency must be a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Currency must be a string',
                 field: 'currency',
@@ -107,7 +107,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         subscription_type_required: {
           summary: 'Subscription type is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Subscription type is required',
                 field: 'subscriptionType',
@@ -118,7 +118,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         subscription_type_invalid: {
           summary: 'Subscription type must be a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Subscription type must be a string',
                 field: 'subscriptionType',
@@ -129,7 +129,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         payment_provider_required: {
           summary: 'Payment provider is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Payment provider is required',
                 field: 'paymentProvider',
@@ -140,7 +140,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         payment_provider_invalid: {
           summary: 'Payment provider must be a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Payment provider must be a string',
                 field: 'paymentProvider',
@@ -158,7 +158,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         invalid_session: {
           summary: 'Invalid session or JWT',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have active session",
                 field: 'session',
@@ -169,7 +169,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         invalid_token: {
           summary: 'Token is invalid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Invalid user data in JWT',
                 field: 'user',
@@ -187,7 +187,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
         too_many_requests: {
           summary: 'Request limit exceeded',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Too many requests',
               },

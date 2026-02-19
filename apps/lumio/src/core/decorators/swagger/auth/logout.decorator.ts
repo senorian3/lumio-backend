@@ -22,7 +22,7 @@ export function ApiLogout() {
         no_refresh_token: {
           summary: 'No accessToken token in request',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'There is no access token in request',
                 field: 'accessToken',
@@ -33,7 +33,7 @@ export function ApiLogout() {
         no_session: {
           summary: 'Session not found',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'deviceId',
@@ -45,7 +45,7 @@ export function ApiLogout() {
         wrong_payload_validation: {
           summary: 'Wrong payload validation',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have session",
                 field: 'session',

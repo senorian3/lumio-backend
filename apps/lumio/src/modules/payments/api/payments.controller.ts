@@ -26,10 +26,10 @@ import {
   PAYMENTS_ROUTES,
 } from '@lumio/core/routes/payment-routes';
 import { OutputUserSubscriptionDto } from './dto/output/user-subscription.output.dto';
-import { ApiCreateSubscriptionPaymentUrl } from '@lumio/core/decorators/swagger/payment/create-payment-url.decorator';
-import { ApiUpdateAutoRenewal } from '@lumio/core/decorators/swagger/payment/update-auto-renewal.decorator';
-import { ApiGetUserPayments } from '@lumio/core/decorators/swagger/payment/get-user-payments.decorator';
-import { ApiGetUserSubscription } from '@lumio/core/decorators/swagger/payment/get-user-subscription.decorator';
+import { ApiCreateSubscriptionPaymentUrl } from '@lumio/core/decorators/swagger/payments/create-payment-url.decorator';
+import { ApiUpdateAutoRenewal } from '@lumio/core/decorators/swagger/payments/update-auto-renewal.decorator';
+import { ApiGetUserPayments } from '@lumio/core/decorators/swagger/payments/get-user-payments.decorator';
+import { ApiGetUserSubscription } from '@lumio/core/decorators/swagger/payments/get-user-subscription.decorator';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller(PAYMENTS_BASE)

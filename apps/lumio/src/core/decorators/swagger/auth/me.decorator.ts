@@ -32,7 +32,7 @@ export function ApiGetCurrentUser() {
         no_access_token: {
           summary: 'No access token in request',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'There is no access token in request',
                 field: 'accessToken',

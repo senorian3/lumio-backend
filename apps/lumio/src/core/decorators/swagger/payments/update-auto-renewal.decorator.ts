@@ -38,7 +38,7 @@ export function ApiUpdateAutoRenewal() {
         profile_id_required: {
           summary: 'Profile ID is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile ID is required',
                 field: 'profileId',
@@ -49,7 +49,7 @@ export function ApiUpdateAutoRenewal() {
         profile_id_invalid: {
           summary: 'Profile ID must be a string',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile ID must be a string',
                 field: 'profileId',
@@ -60,7 +60,7 @@ export function ApiUpdateAutoRenewal() {
         auto_renewal_required: {
           summary: 'Auto-renewal is required',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Auto-renewal is required',
                 field: 'autoRenewal',
@@ -71,7 +71,7 @@ export function ApiUpdateAutoRenewal() {
         auto_renewal_invalid: {
           summary: 'Auto-renewal must be a boolean value',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Auto-renewal must be a boolean value',
                 field: 'autoRenewal',
@@ -89,7 +89,7 @@ export function ApiUpdateAutoRenewal() {
         invalid_session: {
           summary: 'Invalid session or JWT',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: "User doesn't have active session",
                 field: 'session',
@@ -100,7 +100,7 @@ export function ApiUpdateAutoRenewal() {
         invalid_token: {
           summary: 'Token is invalid',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Invalid user data in JWT',
                 field: 'user',
@@ -118,7 +118,7 @@ export function ApiUpdateAutoRenewal() {
         user_has_no_profile: {
           summary: 'User has no profile',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User has no profile',
                 field: 'userId',
@@ -129,7 +129,7 @@ export function ApiUpdateAutoRenewal() {
         cannot_change_another_user: {
           summary: 'User cannot change autorenewal for another user',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User cannot change autorenewal for another user',
                 field: 'profileId',
@@ -147,7 +147,7 @@ export function ApiUpdateAutoRenewal() {
         profile_not_found: {
           summary: 'Profile does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Profile does not exist',
                 field: 'profileId',
@@ -158,7 +158,7 @@ export function ApiUpdateAutoRenewal() {
         no_active_subscription: {
           summary: 'User has no active subscription',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'User has no active subscription',
                 field: 'profileId',
@@ -176,7 +176,7 @@ export function ApiUpdateAutoRenewal() {
         too_many_requests: {
           summary: 'Request limit exceeded',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Too many requests',
               },

@@ -46,13 +46,13 @@ export function ApiUploadUserAvatar() {
         no_file_uploaded: {
           summary: 'No file uploaded',
           value: {
-            errorMessages: [{ message: 'No file uploaded', field: 'file' }],
+            errorsMessages: [{ message: 'No file uploaded', field: 'file' }],
           },
         },
         file_too_large: {
           summary: 'File exceeds maximum size',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'File "avatar.jpg" exceeds maximum size of 10MB',
                 field: 'file',
@@ -63,7 +63,7 @@ export function ApiUploadUserAvatar() {
         invalid_mime_type: {
           summary: 'Invalid file MIME type',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File "avatar.gif" has invalid MIME type (image/gif). Only JPEG and PNG files are allowed',
@@ -75,7 +75,7 @@ export function ApiUploadUserAvatar() {
         invalid_extension: {
           summary: 'Invalid file extension',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File "avatar.bmp" has invalid extension (.bmp). Only .jpg, .jpeg, and .png are allowed',
@@ -87,7 +87,7 @@ export function ApiUploadUserAvatar() {
         mime_extension_mismatch: {
           summary: 'MIME type and extension mismatch',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File "avatar.jpg" has mismatched MIME type and extension',
@@ -99,7 +99,7 @@ export function ApiUploadUserAvatar() {
         user_not_found: {
           summary: 'User does not exist',
           value: {
-            errorMessages: [
+            errorsMessages: [
               { message: 'User does not exist', field: 'userId' },
             ],
           },
@@ -107,7 +107,7 @@ export function ApiUploadUserAvatar() {
         upload_failed: {
           summary: 'Avatar upload failed',
           value: {
-            errorMessages: [
+            errorsMessages: [
               { message: 'Failed to upload avatar', field: 'user' },
             ],
           },
@@ -121,7 +121,7 @@ export function ApiUploadUserAvatar() {
         expired_token: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',

@@ -53,7 +53,7 @@ export function ApiGetMyPosts() {
         files_not_found: {
           summary: 'Failed to fetch files',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Failed to fetch files',
                 field: 'files',
@@ -71,7 +71,7 @@ export function ApiGetMyPosts() {
         expired_token_version: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',

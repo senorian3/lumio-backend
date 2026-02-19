@@ -91,19 +91,19 @@ export function ApiCreatePost() {
         user_does_not_exist: {
           summary: 'User does not exist',
           value: {
-            errorMessages: [{ message: 'User does not exist', field: 'user' }],
+            errorsMessages: [{ message: 'User does not exist', field: 'user' }],
           },
         },
         post_does_not_exist: {
           summary: 'Post does not exist',
           value: {
-            errorMessages: [{ message: 'Post does not exist', field: 'post' }],
+            errorsMessages: [{ message: 'Post does not exist', field: 'post' }],
           },
         },
         files_not_uploaded: {
           summary: 'No files uploaded',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Failed to upload files',
                 field: 'file',
@@ -114,7 +114,7 @@ export function ApiCreatePost() {
         files_too_many: {
           summary: 'Too many files',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum 10 files allowed, but received {count}',
                 field: 'file',
@@ -125,7 +125,7 @@ export function ApiCreatePost() {
         file_too_large: {
           summary: 'File exceeds maximum size',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File {index} filename}.{extension} exceeds maximum size of 20MB',
@@ -137,7 +137,7 @@ export function ApiCreatePost() {
         files_invalid_type: {
           summary: 'File type not supported',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File {index} filename}.{extension} has invalid type. Only JPEG and PNG files are allowed',
@@ -149,7 +149,7 @@ export function ApiCreatePost() {
         files_invalid_extension: {
           summary: 'File extension not supported',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message:
                   'File {index} {filename}.{extension} has invalid extension. Only .jpg, .jpeg, and .png are allowed',
@@ -161,7 +161,7 @@ export function ApiCreatePost() {
         description_too_long: {
           summary: 'Description too long',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Maximum number of characters 500',
                 field: 'description',
@@ -179,7 +179,7 @@ export function ApiCreatePost() {
         expired_token_version: {
           summary: 'Token version is expired',
           value: {
-            errorMessages: [
+            errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
