@@ -35,6 +35,11 @@ module.exports = {
             message:
               'Use relative imports or aliases (@files/*) instead of absolute paths.',
           },
+          {
+            group: ['apps/payments/src/*'],
+            message:
+              'Use relative imports or aliases (@payments/*) instead of absolute paths.',
+          },
         ],
       },
     ],
