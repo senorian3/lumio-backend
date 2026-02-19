@@ -75,11 +75,11 @@ export class PostFilesController {
     );
   }
 
-  @Post(POST_FILES_ROUTES.DELETE_FILE)
+  @Delete(POST_FILES_ROUTES.DELETE_FILE)
   @ApiDeleteFileByKey()
-  async deleteFile(@Body() dto: { key: string }): Promise<void> {
+  async deleteFile(@Param('key') key: string): Promise<void> {
     return await this.commandBus.execute<DeleteFileByKeyCommand, void>(
-      new DeleteFileByKeyCommand(dto.key),
+      new DeleteFileByKeyCommand(key),
     );
   }
 }

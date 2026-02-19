@@ -100,11 +100,11 @@ export class FilesHttpAdapter {
   }
 
   async deleteFile<T>(key: string): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-file`;
+    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-file/${key}`;
     const headers = this.getHeaders();
 
     try {
-      const response = await axios.post<T>(url, { key }, { headers });
+      const response = await axios.delete<T>(url, { headers });
       return response.data;
     } catch (error) {
       throw error;

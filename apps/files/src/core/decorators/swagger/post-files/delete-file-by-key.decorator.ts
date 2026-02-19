@@ -2,7 +2,7 @@ import { applyDecorators } from '@nestjs/common';
 import {
   ApiOperation,
   ApiResponse,
-  ApiBody,
+  ApiParam,
   ApiSecurity,
 } from '@nestjs/swagger';
 
@@ -14,19 +14,11 @@ export function ApiDeleteFileByKey() {
       description: 'Internal endpoint for deleting a specific file by its key.',
       operationId: 'deleteFileByKey',
     }),
-    ApiBody({
-      description: 'File key to delete',
-      schema: {
-        type: 'object',
-        properties: {
-          key: {
-            type: 'string',
-            description: 'File key/path',
-            example: 'content/posts/uuid/image.jpg',
-          },
-        },
-        required: ['key'],
-      },
+    ApiParam({
+      name: 'key',
+      description: 'File key/path',
+      type: String,
+      example: 'content/posts/uuid/image.jpg',
     }),
     ApiResponse({
       status: 204,
