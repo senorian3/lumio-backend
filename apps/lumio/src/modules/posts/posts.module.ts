@@ -15,6 +15,7 @@ import { GetMainPageQueryHandler } from './application/queries/get-main-page.que
 import { SharedModule } from '@libs/shared/shared.module';
 import { GetProfilePostQueryHandler } from './application/queries/get-profile-post.query-handler';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
+import { GetPostByIdQueryHandler } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -25,6 +26,7 @@ const useCases = [
   GetCreatePostQueryHandler,
   GetAllUserPostsQueryHandler,
   GetProfilePostQueryHandler,
+  GetPostByIdQueryHandler,
 ];
 
 const repository = [PostRepository];
