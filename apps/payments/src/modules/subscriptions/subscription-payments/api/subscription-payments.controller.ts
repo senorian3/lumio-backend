@@ -2,12 +2,12 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   RawBodyRequest,
   Req,
   Headers,
   UseGuards,
-  Put,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
@@ -22,12 +22,16 @@ import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscrip
 import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
 import { ApiPaymentSuccess } from '@payments/core/decorators/swagger/subscription-payments/payment-success.decorator';
 import { ApiPaymentError } from '@payments/core/decorators/swagger/subscription-payments/payment-error.decorator';
+import {
+  SUBSCRIPTION_PAYMENTS_BASE,
+  SUBSCRIPTION_PAYMENTS_ROUTES,
+} from '@payments/core/routes/subscription-payments-routes';
 
-@Controller('subscription-payments')
+@Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
   constructor(private readonly commandBus: CommandBus) {}
 
-  @Post()
+  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
   @ApiCreateSubscriptionPayment()
   @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
@@ -41,7 +45,7 @@ export class SubscriptionPaymentsController {
     return { url: paymentsUrl };
   }
 
-  @Put('autorenewal')
+  @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
   @ApiChangeAutorenewal()
   @UseGuards(InternalApiGuard)
   async changeAutorenwal(
@@ -52,19 +56,19 @@ export class SubscriptionPaymentsController {
     );
   }
 
-  @Get('success')
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.SUCCESS)
   @ApiPaymentSuccess()
   success(): string {
     return 'Success url';
   }
 
-  @Get('error')
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ERROR)
   @ApiPaymentError()
   error(): string {
     return 'Error url';
   }
 
-  @Post('stripe-hook')
+  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.STRIPE_HOOK)
   @ApiStripeHook()
   async stripeHook(
     @Req() req: RawBodyRequest<Request>,

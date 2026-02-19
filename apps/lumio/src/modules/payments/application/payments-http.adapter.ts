@@ -41,7 +41,7 @@ export class PaymentsHttpAdapter {
     const headers = this.getHeaders(additionalHeaders);
 
     try {
-      await axios.put<T>(url, dto, { headers });
+      await axios.patch<T>(url, dto, { headers });
     } catch (error) {
       throw error;
     }

@@ -13,7 +13,7 @@ export function ApiCreateSubscriptionPayment() {
       summary: 'Create subscription payment URL',
       description:
         'Internal endpoint for creating a Stripe payment URL for subscription.',
-      operationId: 'createSubscriptionPayment',
+      operationId: 'createSubscriptionPaymentUrl',
     }),
     ApiBody({
       description: 'Subscription payment creation payload',

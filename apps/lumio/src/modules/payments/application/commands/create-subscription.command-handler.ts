@@ -38,7 +38,7 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
     try {
       const urlData = await this.paymentsHttpAdapter.createPaymentUrl<{
         url: string;
-      }>(`${GLOBAL_PREFIX}/subscription-payments`, {
+      }>(`${GLOBAL_PREFIX}/subscription-payments/create-url`, {
         ...command.dto,
         profileId: profileId.toString(),
       });
