@@ -16,6 +16,7 @@ import { GetProfilePostQueryHandler } from './application/queries/get-profile-po
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 import { FilesHttpAdapter } from './application/files-http.adapter';
 import { PostFilesRepository } from './domain/infrastructure/post-files.repository';
+import { GetPostByIdQueryHandler } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -26,6 +27,7 @@ const useCases = [
   GetCreatePostQueryHandler,
   GetAllUserPostsQueryHandler,
   GetProfilePostQueryHandler,
+  GetPostByIdQueryHandler,
 ];
 
 const adapters = [FilesHttpAdapter];
