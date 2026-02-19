@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Query,
   Req,
@@ -54,7 +55,7 @@ export class PaymentsController {
     return { url };
   }
 
-  @Post(PAYMENTS_ROUTES.AUTORENEWAL)
+  @Patch(PAYMENTS_ROUTES.AUTORENEWAL)
   @HttpCode(HttpStatus.OK)
   @ApiUpdateAutoRenewal()
   async updateAutoRenewal(
