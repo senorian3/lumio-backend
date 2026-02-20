@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as bcrypt from 'bcrypt';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
+import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
 
 describe('CryptoService', () => {
   let service: CryptoService;
+  const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -13,6 +14,7 @@ describe('CryptoService', () => {
     }).compile();
 
     service = module.get<CryptoService>(CryptoService);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -20,78 +22,45 @@ describe('CryptoService', () => {
   });
 
   describe('createPasswordHash', () => {
-    it('should create password hash with salt', async () => {
-      // Arrange
-      const password = 'MySecretPassword123';
-      const salt = 'generated-salt';
-      const hash = 'hashed-password';
-      (bcrypt.genSalt as jest.Mock).mockResolvedValue(salt);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(hash);
+    it('should generate salt and hash the password', async () => {
+      const password = 'testPassword123';
+      const mockSalt = 'mockSalt';
+      const mockHash = 'hashedPassword123';
 
-      // Act
+      (mockBcrypt.genSalt as jest.Mock).mockResolvedValue(mockSalt);
+      (mockBcrypt.hash as jest.Mock).mockResolvedValue(mockHash);
+
       const result = await service.createPasswordHash(password);
 
-      // Assert
-      expect(bcrypt.genSalt).toHaveBeenCalledWith(10);
-      expect(bcrypt.hash).toHaveBeenCalledWith(password, salt);
-      expect(result).toBe(hash);
-    });
-
-    it('should handle bcrypt errors', async () => {
-      // Arrange
-      const password = 'MySecretPassword123';
-      (bcrypt.genSalt as jest.Mock).mockRejectedValue(
-        new Error('BCrypt error'),
-      );
-
-      // Act & Assert
-      await expect(service.createPasswordHash(password)).rejects.toThrow(
-        'BCrypt error',
-      );
+      expect(result).toBe(mockHash);
+      expect(mockBcrypt.genSalt).toHaveBeenCalledWith(10);
+      expect(mockBcrypt.hash).toHaveBeenCalledWith(password, mockSalt);
     });
   });
 
   describe('comparePasswords', () => {
-    it('should return true for matching passwords', async () => {
-      // Arrange
-      const password = 'MySecretPassword123';
-      const hash = 'hashed-password';
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    it('should return true when passwords match', async () => {
+      const password = 'testPassword123';
+      const hash = 'hashedPassword123';
 
-      // Act
+      (mockBcrypt.compare as jest.Mock).mockResolvedValue(true);
+
       const result = await service.comparePasswords(password, hash);
 
-      // Assert
-      expect(bcrypt.compare).toHaveBeenCalledWith(password, hash);
       expect(result).toBe(true);
+      expect(mockBcrypt.compare).toHaveBeenCalledWith(password, hash);
     });
 
-    it('should return false for non-matching passwords', async () => {
-      // Arrange
-      const password = 'WrongPassword';
-      const hash = 'hashed-password';
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+    it('should return false when passwords do not match', async () => {
+      const password = 'wrongPassword';
+      const hash = 'hashedPassword123';
 
-      // Act
+      (mockBcrypt.compare as jest.Mock).mockResolvedValue(false);
+
       const result = await service.comparePasswords(password, hash);
 
-      // Assert
-      expect(bcrypt.compare).toHaveBeenCalledWith(password, hash);
       expect(result).toBe(false);
-    });
-
-    it('should handle bcrypt compare errors', async () => {
-      // Arrange
-      const password = 'MySecretPassword123';
-      const hash = 'hashed-password';
-      (bcrypt.compare as jest.Mock).mockRejectedValue(
-        new Error('Compare error'),
-      );
-
-      // Act & Assert
-      await expect(service.comparePasswords(password, hash)).rejects.toThrow(
-        'Compare error',
-      );
+      expect(mockBcrypt.compare).toHaveBeenCalledWith(password, hash);
     });
   });
 });

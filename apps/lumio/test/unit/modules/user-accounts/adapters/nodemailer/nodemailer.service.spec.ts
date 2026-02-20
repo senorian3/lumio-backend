@@ -1,28 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as nodemailer from 'nodemailer';
 import { NodemailerService } from '@lumio/modules/user-accounts/adapters/nodemailer/nodemailer.service';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { AppLoggerService } from '@libs/logger/logger.service';
+import * as nodemailer from 'nodemailer';
 
 jest.mock('nodemailer');
 
 describe('NodemailerService', () => {
   let service: NodemailerService;
-  let mockUserAccountsConfig: UserAccountsConfig;
   let mockTransporter: { sendMail: jest.Mock };
-
-  const mockConfig = {
-    smtpHost: 'smtp.example.com',
-    smtpPort: 587,
-    smtpSecure: false,
-    smtpUser: 'user@example.com',
-    smtpPassword: 'password123',
-  };
-
-  const mockTemplate = (code: string) => ({
-    html: `<p>Your code is: ${code}</p>`,
-    subject: 'Test Email',
-  });
 
   beforeEach(async () => {
     mockTransporter = {
@@ -36,110 +21,65 @@ describe('NodemailerService', () => {
         NodemailerService,
         {
           provide: UserAccountsConfig,
-          useValue: mockConfig,
-        },
-        {
-          provide: AppLoggerService,
           useValue: {
-            log: jest.fn(),
-            error: jest.fn(),
+            smtpHost: 'smtp.test.com',
+            smtpPort: 587,
+            smtpSecure: false,
+            smtpUser: 'test@test.com',
+            smtpPassword: 'password123',
           },
         },
       ],
     }).compile();
 
     service = module.get<NodemailerService>(NodemailerService);
-    mockUserAccountsConfig = module.get<UserAccountsConfig>(UserAccountsConfig);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-    expect(mockUserAccountsConfig).toBeDefined();
   });
 
-  describe('constructor', () => {
-    it('should create transporter with correct configuration', () => {
-      expect(nodemailer.createTransport).toHaveBeenCalledWith({
-        host: mockConfig.smtpHost,
-        port: mockConfig.smtpPort,
-        secure: mockConfig.smtpSecure,
-        auth: {
-          user: mockConfig.smtpUser,
-          pass: mockConfig.smtpPassword,
-        },
-      });
+  it('should create transporter with correct config', () => {
+    expect(nodemailer.createTransport).toHaveBeenCalledWith({
+      host: 'smtp.test.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'test@test.com',
+        pass: 'password123',
+      },
     });
   });
 
   describe('sendEmail', () => {
-    it('should send email successfully', async () => {
-      // Arrange
-      const email = 'recipient@example.com';
-      const code = '123456';
-      mockTransporter.sendMail.mockResolvedValue({});
+    const email = 'user@example.com';
+    const code = '123456';
+    const template = (code: string) => ({
+      html: `<p>Your code: ${code}</p>`,
+      subject: 'Verification Code',
+    });
 
-      // Act
-      await service.sendEmail(email, code, mockTemplate);
+    it('should send email with correct parameters', async () => {
+      mockTransporter.sendMail.mockResolvedValue({ messageId: 'test-id' });
 
-      // Assert
+      await service.sendEmail(email, code, template);
+
       expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: `"Techgram" <${mockConfig.smtpUser}>`,
+        from: '"Techgram" <test@test.com>',
         to: email,
-        subject: 'Test Email',
-        html: `<p>Your code is: ${code}</p>`,
+        subject: 'Verification Code',
+        html: '<p>Your code: 123456</p>',
       });
     });
 
-    it('should throw error when email sending fails', async () => {
-      // Arrange
-      const email = 'recipient@example.com';
-      const code = '123456';
-      const error = new Error('SMTP connection failed');
-      mockTransporter.sendMail.mockRejectedValue(error);
+    it('should throw error when sendMail fails', async () => {
+      mockTransporter.sendMail.mockRejectedValue(
+        new Error('SMTP connection failed'),
+      );
 
-      // Act & Assert - should throw because error is not caught
-      await expect(
-        service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow(error);
-    });
-
-    it('should use template to generate html and subject', async () => {
-      // Arrange
-      const email = 'recipient@example.com';
-      const code = 'ABCDEF';
-      const customTemplate = (code: string) => ({
-        html: `<h1>Custom: ${code}</h1>`,
-        subject: 'Custom Subject',
-      });
-      mockTransporter.sendMail.mockResolvedValue({});
-
-      // Act
-      await service.sendEmail(email, code, customTemplate);
-
-      // Assert
-      expect(mockTransporter.sendMail).toHaveBeenCalledWith({
-        from: `"Techgram" <${mockConfig.smtpUser}>`,
-        to: email,
-        subject: 'Custom Subject',
-        html: `<h1>Custom: ${code}</h1>`,
-      });
-    });
-
-    it('should throw error when email sending fails', async () => {
-      // Arrange
-      const email = 'recipient@example.com';
-      const code = '123456';
-      const error = new Error('Network error');
-      mockTransporter.sendMail.mockRejectedValue(error);
-
-      // Act & Assert - should throw
-      await expect(
-        service.sendEmail(email, code, mockTemplate),
-      ).rejects.toThrow(error);
+      await expect(service.sendEmail(email, code, template)).rejects.toThrow(
+        'SMTP connection failed',
+      );
     });
   });
 });
