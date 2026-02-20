@@ -29,10 +29,11 @@ export class OutboxRepository {
   }
 
   async findPendingMessages(limit: number): Promise<OutboxMessage[]> {
+    const now = new Date();
     return this.prisma.outboxMessage.findMany({
       where: {
         status: OutboxMessageStatus.PENDING,
-        scheduledAt: { lte: new Date() },
+        scheduledAt: { lte: now },
         retryCount: { lt: 5 },
       },
       orderBy: { scheduledAt: 'asc' },
@@ -71,9 +72,10 @@ export class OutboxRepository {
   }
 
   async cleanupExpiredMessages(): Promise<number> {
+    const now = new Date();
     const result = await this.prisma.outboxMessage.deleteMany({
       where: {
-        ttl: { lt: new Date() },
+        ttl: { lt: now },
       },
     });
 
