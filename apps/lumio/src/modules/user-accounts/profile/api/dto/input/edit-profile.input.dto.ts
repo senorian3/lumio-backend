@@ -19,6 +19,7 @@ export class InputEditProfileDto {
     maxLength: 100,
     minLength: 1,
   })
+  @IsOptional()
   @IsString({ message: 'First name must be a string' })
   @MinLength(1, { message: 'Minimum number of characters 1' })
   @MaxLength(100, { message: 'Maximum number of characters 100' })
@@ -33,6 +34,7 @@ export class InputEditProfileDto {
     maxLength: 100,
     minLength: 1,
   })
+  @IsOptional()
   @IsString({ message: 'Last name must be a string' })
   @MinLength(1, { message: 'Minimum number of characters 1' })
   @MaxLength(100, { message: 'Maximum number of characters 100' })

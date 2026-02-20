@@ -31,6 +31,19 @@ export function ApiGetProfile() {
     }),
 
     ApiResponse({
+      status: 400,
+      description: 'Validation error (e.g., invalid userId format)',
+      examples: {
+        invalid_id_format: {
+          summary: 'UserId is not a valid number',
+          value: {
+            errorsMessages: [],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
       status: 404,
       description: 'Not found',
       examples: {

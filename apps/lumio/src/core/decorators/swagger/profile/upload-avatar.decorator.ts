@@ -41,7 +41,7 @@ export function ApiUploadUserAvatar() {
     }),
     ApiResponse({
       status: 400,
-      description: 'Validation error or business rule violation',
+      description: 'Validation error or file processing violation',
       examples: {
         no_file_uploaded: {
           summary: 'No file uploaded',
@@ -96,19 +96,11 @@ export function ApiUploadUserAvatar() {
             ],
           },
         },
-        user_not_found: {
-          summary: 'User does not exist',
-          value: {
-            errorsMessages: [
-              { message: 'User does not exist', field: 'userId' },
-            ],
-          },
-        },
         upload_failed: {
           summary: 'Avatar upload failed',
           value: {
             errorsMessages: [
-              { message: 'Failed to upload avatar', field: 'user' },
+              { message: 'Failed to upload avatar', field: 'file' },
             ],
           },
         },
@@ -116,8 +108,30 @@ export function ApiUploadUserAvatar() {
     }),
     ApiResponse({
       status: 401,
-      description: 'Unauthorized - invalid or expired token',
+      description: 'Unauthorized - invalid token or session',
       examples: {
+        invalid_user_data: {
+          summary: 'Invalid user data in JWT',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Invalid user data in JWT',
+                field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: "User doesn't have active session",
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
+              },
+            ],
+          },
+        },
         expired_token: {
           summary: 'Token version is expired',
           value: {
@@ -126,6 +140,20 @@ export function ApiUploadUserAvatar() {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
               },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'User not found',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorsMessages: [
+              { message: 'User does not exist', field: 'userId' },
             ],
           },
         },
