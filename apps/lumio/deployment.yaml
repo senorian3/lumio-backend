@@ -60,11 +60,11 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: INCLUDE_TESTING_MODULE
-            - name: SMTP_FROM_GMAIL
+            - name: SMTP_FROM_MAIL
               valueFrom:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
-                  key: SMTP_FROM_GMAIL
+                  key: SMTP_FROM_MAIL
             - name: ACCESS_TOKEN_EXPIRE_IN
               valueFrom:
                 secretKeyRef:

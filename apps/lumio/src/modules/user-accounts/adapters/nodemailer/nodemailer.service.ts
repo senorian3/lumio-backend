@@ -10,7 +10,7 @@ export class NodemailerService {
     const host = this.userAccountsConfig.smtpHost;
     const port = this.userAccountsConfig.smtpPort;
     const secure = this.userAccountsConfig.smtpSecure;
-    const user = this.userAccountsConfig.smtpUser;
+    const mail = this.userAccountsConfig.smtpMail;
     const password = this.userAccountsConfig.smtpPassword;
 
     this.transporter = nodemailer.createTransport({
@@ -18,7 +18,7 @@ export class NodemailerService {
       port,
       secure,
       auth: {
-        user,
+        user: mail,
         pass: password,
       },
     });
@@ -33,7 +33,7 @@ export class NodemailerService {
 
     try {
       await this.transporter.sendMail({
-        from: `"Techgram" <${this.userAccountsConfig.smtpUser}>`,
+        from: `"Techgram" <${this.userAccountsConfig.smtpMail}>`,
         to: email,
         subject,
         html,
