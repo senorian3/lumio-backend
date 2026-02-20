@@ -1,15 +1,15 @@
 import { applyDecorators } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiConsumes,
   ApiBody,
-  ApiSecurity,
 } from '@nestjs/swagger';
 
 export function ApiCreatePost() {
   return applyDecorators(
-    ApiSecurity('bearer'),
+    ApiBearerAuth(),
     ApiOperation({
       summary: 'Create new post',
       description:

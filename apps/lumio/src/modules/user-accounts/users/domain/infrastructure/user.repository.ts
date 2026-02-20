@@ -31,8 +31,10 @@ export class UserRepository {
     dto: CreateUserDomainDto,
     passwordHash: string,
     isConfirmed?: boolean,
+    tx?: any,
   ): Promise<UserEntity> {
-    return this.prisma.user.create({
+    const client = tx || this.prisma;
+    return client.user.create({
       data: {
         username: dto.username,
         email: dto.email,
@@ -70,8 +72,9 @@ export class UserRepository {
     });
   }
 
-  async findUserByEmail(email: string): Promise<UserEntity | null> {
-    return this.prisma.user.findFirst({
+  async findUserByEmail(email: string, tx?: any): Promise<UserEntity | null> {
+    const client = tx || this.prisma;
+    return client.user.findFirst({
       where: {
         email: email,
       },
@@ -98,8 +101,13 @@ export class UserRepository {
     return;
   }
 
-  async updatePassword(userId: number, newPasswordHash: string): Promise<void> {
-    await this.prisma.user.update({
+  async updatePassword(
+    userId: number,
+    newPasswordHash: string,
+    tx?: any,
+  ): Promise<void> {
+    const client = tx || this.prisma;
+    await client.user.update({
       where: { id: userId },
       data: {
         password: newPasswordHash,
@@ -109,8 +117,9 @@ export class UserRepository {
     return;
   }
 
-  async findUserById(id: number): Promise<User | null> {
-    return this.prisma.user.findUnique({
+  async findUserById(id: number, tx?: any): Promise<User | null> {
+    const client = tx || this.prisma;
+    return client.user.findUnique({
       where: { id },
       include: {
         emailConfirmation: true,
@@ -153,8 +162,12 @@ export class UserRepository {
     return;
   }
 
-  async findYandexByYandexId(yandexId: string): Promise<YandexEntity | null> {
-    return this.prisma.yandex.findUnique({
+  async findYandexByYandexId(
+    yandexId: string,
+    tx?: any,
+  ): Promise<YandexEntity | null> {
+    const client = tx || this.prisma;
+    return client.yandex.findUnique({
       where: { yandexId },
       include: {
         user: true,
@@ -162,13 +175,17 @@ export class UserRepository {
     });
   }
 
-  async createYandex(data: {
-    yandexId: string;
-    email: string;
-    username: string;
-    userId: number;
-  }) {
-    return this.prisma.yandex.create({
+  async createYandex(
+    data: {
+      yandexId: string;
+      email: string;
+      username: string;
+      userId: number;
+    },
+    tx?: any,
+  ) {
+    const client = tx || this.prisma;
+    return client.yandex.create({
       data: {
         yandexId: data.yandexId,
         email: data.email,
@@ -185,8 +202,10 @@ export class UserRepository {
       email?: string;
       username?: string;
     },
+    tx?: any,
   ): Promise<void> {
-    await this.prisma.yandex.update({
+    const client = tx || this.prisma;
+    await client.yandex.update({
       where: { id },
       data,
     });

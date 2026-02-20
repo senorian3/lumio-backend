@@ -9,6 +9,7 @@ import { ProfileView } from '@lumio/modules/user-accounts/profile/api/dto/output
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
+  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 
 describe('FillProfileCommandHandler', () => {
@@ -35,7 +36,7 @@ describe('FillProfileCommandHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
-    accountType: 'regular',
+    accountType: 'free',
     userId: 1,
     user: {} as any,
   };
@@ -132,7 +133,7 @@ describe('FillProfileCommandHandler', () => {
       expect(result).toEqual(mockProfileView);
     });
 
-    it('should throw BadRequestDomainException when user not found', async () => {
+    it('should throw NotFoundDomainException when user not found', async () => {
       // Arrange
       const userId = 999;
       const requestUserId = 999;
@@ -146,7 +147,7 @@ describe('FillProfileCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
       expect(mockUserRepository.findUserById).toHaveBeenCalledWith(userId);
       expect(mockUserRepository.fillProfile).not.toHaveBeenCalled();

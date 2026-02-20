@@ -3,11 +3,13 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { CoreConfig } from '@lumio/core/core.config';
 
 class RecaptchaResponse {
-  action: string;
-  challenge_ts: string;
-  hostname: string;
-  score: number;
-  success: boolean;
+  constructor(
+    public action: string,
+    public challenge_ts: string,
+    public hostname: string,
+    public score: number,
+    public success: boolean,
+  ) {}
 }
 
 @Injectable()

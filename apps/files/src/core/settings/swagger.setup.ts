@@ -7,21 +7,23 @@ import {
 } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
-export function swaggerSetup(
-  app: INestApplication,
-  isSwaggerEnabled: boolean,
-  port: number,
-) {
+export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
   if (isSwaggerEnabled) {
-    const swaggerPath = 'swagger';
+    const swaggerPath = '/api/v1/swagger';
 
     const builder = new DocumentBuilder()
-      .setTitle('LUMIO FILES API')
+      .setTitle('FILES API')
       .addBearerAuth()
+      .addServer('https://lumio.su', 'Testing')
+      .addServer('http://localhost:3001', 'Local')
       .setVersion('1.0')
-      .setDescription('Lumio files backend API documentation')
-      .addServer(`localhost:${port}', 'Lumio files (development)`)
-      .addServer('https://files.lumio.su/api/v1', 'Lumio files (production)')
+      .setDescription('Lumio Files API documentation')
+      .addSecurity('internal', {
+        type: 'apiKey',
+        name: 'x-internal-api-key',
+        in: 'header',
+        description: 'Internal API key for service-to-service communication',
+      })
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',
@@ -34,11 +36,11 @@ export function swaggerSetup(
       autoTagControllers: true,
     };
 
-    const theme = new SwaggerTheme().getBuffer(SwaggerThemeNameEnum.NEWSPAPER);
+    const theme = new SwaggerTheme().getBuffer(SwaggerThemeNameEnum.MUTED);
 
     const SwaggerCustomOptions: SwaggerCustomOptions = {
       raw: ['json'],
-      customSiteTitle: 'Lumio swagger',
+      customSiteTitle: 'Files swagger',
       customCss: theme,
       jsonDocumentUrl: 'api/v1/swagger/json',
       swaggerOptions: {

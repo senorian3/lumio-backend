@@ -1,9 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { NewPasswordTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/new-password.transfer.dto';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class NewPasswordCommand {
   constructor(public newPasswordDto: NewPasswordTransferDto) {}
@@ -18,6 +19,7 @@ export class NewPasswordCommandHandler implements ICommandHandler<
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,
     private readonly sessionRepository: SessionRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute({ newPasswordDto }: NewPasswordCommand): Promise<void> {
@@ -27,21 +29,29 @@ export class NewPasswordCommandHandler implements ICommandHandler<
       });
 
     if (!emailConfirmation) {
-      throw BadRequestDomainException.create('User does not exist', 'code');
+      throw NotFoundDomainException.create('User does not exist', 'code');
     }
 
     const newPasswordHash = await this.cryptoService.createPasswordHash(
       newPasswordDto.password,
     );
 
-    await this.userRepository.updatePassword(
-      emailConfirmation.userId,
-      newPasswordHash,
-    );
+    await this.prisma
+      .$transaction(async (tx) => {
+        await this.userRepository.updatePassword(
+          emailConfirmation.userId,
+          newPasswordHash,
+          tx,
+        );
 
-    await this.sessionRepository.deleteAllSessionsForUser(
-      emailConfirmation.userId,
-    );
+        await this.sessionRepository.deleteAllSessionsForUser(
+          emailConfirmation.userId,
+          tx,
+        );
+      })
+      .catch((error) => {
+        throw error;
+      });
 
     return;
   }

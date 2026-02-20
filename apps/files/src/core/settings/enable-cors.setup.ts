@@ -14,18 +14,8 @@ export function enableCorsSetup(app: INestApplication) {
       'Content-Type',
       'Authorization',
       'Accept',
-      'Content-Range',
-      'Range',
-      'X-File-Name',
-      'X-File-Size',
       'X-Internal-API-Key',
     ],
-    exposedHeaders: [
-      'Content-Disposition',
-      'Content-Length',
-      'X-File-Name',
-      'X-File-Size',
-      'ETag',
-    ],
+    exposedHeaders: ['Content-Disposition', 'Content-Length', 'ETag'],
   });
 }

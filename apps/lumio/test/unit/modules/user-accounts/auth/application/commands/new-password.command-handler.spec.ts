@@ -7,6 +7,7 @@ import {
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 describe('NewPasswordUseCase', () => {
   let useCase: NewPasswordCommandHandler;
@@ -48,6 +49,12 @@ describe('NewPasswordUseCase', () => {
           provide: SessionRepository,
           useValue: {
             deleteAllSessionsForUser: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((callback) => callback({})),
           },
         },
       ],
@@ -95,13 +102,14 @@ describe('NewPasswordUseCase', () => {
       expect(mockUserRepository.updatePassword).toHaveBeenCalledWith(
         mockEmailConfirmation.userId,
         newPasswordHash,
+        expect.anything(),
       );
       expect(
         mockSessionRepository.deleteAllSessionsForUser,
-      ).toHaveBeenCalledWith(mockEmailConfirmation.userId);
+      ).toHaveBeenCalledWith(mockEmailConfirmation.userId, expect.anything());
     });
 
-    it('should throw BadRequestDomainException when email confirmation not found', async () => {
+    it('should throw NotFoundDomainException when email confirmation not found', async () => {
       // Arrange
       const command = new NewPasswordCommand(mockNewPasswordDto);
       (
@@ -117,7 +125,7 @@ describe('NewPasswordUseCase', () => {
       } catch (error) {
         const domainException = error as DomainException;
         // Основное сообщение
-        expect(domainException.message).toBe('Bad Request');
+        expect(domainException.message).toBe('Not Found');
         // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'User does not exist',

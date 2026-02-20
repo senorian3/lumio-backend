@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import {
   GetMainPageQueryHandler,
   GetMainPageQuery,
@@ -13,7 +13,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 describe('GetMainPageQueryHandler', () => {
   let handler: GetMainPageQueryHandler;
   let mockPostRepository: jest.Mocked<PostRepository>;
-  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   const mockPaginationParams = new GetMainPageInputDto();
   mockPaginationParams.pageNumber = 1;
@@ -21,15 +21,15 @@ describe('GetMainPageQueryHandler', () => {
 
   const mockPostsFromDb = [
     {
-      id: 1,
+      id: '1',
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
       userId: 1,
-      files: [{ id: 1, url: 'https://example.com/file1.jpg', postId: 1 }],
+      files: [{ id: 1, url: 'https://example.com/file1.jpg', postId: '1' }],
     },
     {
-      id: 2,
+      id: '2',
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
       deletedAt: null,
@@ -40,14 +40,14 @@ describe('GetMainPageQueryHandler', () => {
 
   const mockPostViews: PostView[] = [
     {
-      id: 1,
+      id: '1',
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       userId: 1,
-      postFiles: [{ id: 1, url: 'https://example.com/file1.jpg', postId: 1 }],
+      postFiles: [{ id: 1, url: 'https://example.com/file1.jpg', postId: '1' }],
     },
     {
-      id: 2,
+      id: '2',
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
       userId: 2,
@@ -76,7 +76,7 @@ describe('GetMainPageQueryHandler', () => {
           },
         },
         {
-          provide: ExternalQueryUserRepository,
+          provide: ExternalQueryUserAccountsRepository,
           useValue: {
             getAllRegisteredUsersCount: jest.fn(),
           },
@@ -86,7 +86,9 @@ describe('GetMainPageQueryHandler', () => {
 
     handler = module.get<GetMainPageQueryHandler>(GetMainPageQueryHandler);
     mockPostRepository = module.get(PostRepository);
-    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
+    mockExternalQueryUserRepository = module.get(
+      ExternalQueryUserAccountsRepository,
+    );
   });
 
   it('should be defined', () => {

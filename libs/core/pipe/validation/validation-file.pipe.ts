@@ -5,7 +5,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 export class SingleFileValidationPipe implements PipeTransform {
   private readonly ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private readonly ALLOWED_EXTENSIONS = ['jpeg', 'png'];
-  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024;
   private readonly MAX_SIZE_READABLE = '10MB';
 
   transform(file: Express.Multer.File | undefined): Express.Multer.File {

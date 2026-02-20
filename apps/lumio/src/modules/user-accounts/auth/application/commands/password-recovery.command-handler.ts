@@ -23,7 +23,7 @@ export class PasswordRecoveryCommandHandler implements ICommandHandler<
     private readonly nodemailerService: NodemailerService,
     private readonly emailService: EmailService,
     private readonly recaptchaService: RecaptchaService,
-    private readonly loggerService: AppLoggerService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute({
@@ -51,11 +51,15 @@ export class PasswordRecoveryCommandHandler implements ICommandHandler<
     const newConfirmationCode = randomUUID();
     const newExpirationDate = add(new Date(), { hours: 1 });
 
-    await this.userRepository.updateCodeAndExpirationDate(
-      user.id,
-      newConfirmationCode,
-      newExpirationDate,
-    );
+    await this.userRepository
+      .updateCodeAndExpirationDate(
+        user.id,
+        newConfirmationCode,
+        newExpirationDate,
+      )
+      .catch((error) => {
+        throw error;
+      });
 
     this.nodemailerService
       .sendEmail(
@@ -63,13 +67,13 @@ export class PasswordRecoveryCommandHandler implements ICommandHandler<
         newConfirmationCode,
         this.emailService.passwordRecovery.bind(this.emailService),
       )
-      .catch((error) =>
-        this.loggerService.error(
-          `Ошибка отправки email:${error}`,
-          error.stack,
-          NodemailerService.name,
-        ),
-      );
+      .catch((error) => {
+        this.logger.error(
+          `Failed to send password recovery email: ${error}`,
+          error?.stack,
+          PasswordRecoveryCommandHandler.name,
+        );
+      });
 
     return;
   }

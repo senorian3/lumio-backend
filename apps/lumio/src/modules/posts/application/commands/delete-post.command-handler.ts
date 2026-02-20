@@ -1,19 +1,18 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { HttpService } from '@libs/shared/http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { FilesHttpAdapter } from '../files-http.adapter';
 
 export class DeletePostCommand {
   constructor(
     public readonly userId: number,
-    public readonly postId: number,
+    public readonly postId: string,
   ) {}
 }
 
@@ -23,18 +22,18 @@ export class DeletePostCommandHandler implements ICommandHandler<
   void
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
-    private readonly httpService: HttpService,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
-    const user = await this.externalQueryUserRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'user');
+      throw NotFoundDomainException.create('User does not exist', 'user');
     }
 
     const post = await this.postRepository.findById(command.postId);
@@ -50,19 +49,25 @@ export class DeletePostCommandHandler implements ICommandHandler<
       );
     }
 
-    await this.postRepository.softDeletePostById(command.postId);
+    try {
+      await this.postRepository.softDeletePostById(command.postId);
+    } catch (error) {
+      throw error;
+    }
 
     try {
-      await this.httpService.delete(
+      await this.filesHttpAdapter.delete(
         `${GLOBAL_PREFIX}/files/delete-post-files/${command.postId}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to delete files for postId=${command.postId}: ${error.message}`,
+        `Critical error to delete files for postId=${command.postId}: ${error.message}, need to delete files: ${post.files.map(
+          (file) => file.id,
+        )}`,
         error?.stack,
-        CommandHandler.name,
+        DeletePostCommandHandler.name,
       );
-      throw BadRequestDomainException.create('Failed to delete files', 'files');
+      throw error;
     }
   }
 }

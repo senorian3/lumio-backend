@@ -12,7 +12,10 @@ export class DeleteSessionCommand {
 }
 
 @CommandHandler(DeleteSessionCommand)
-export class DeleteSessionCommandHandler implements ICommandHandler<DeleteSessionCommand> {
+export class DeleteSessionCommandHandler implements ICommandHandler<
+  DeleteSessionCommand,
+  void
+> {
   constructor(private readonly sessionRepository: SessionRepository) {}
 
   async execute({ deleteSessionDto }: DeleteSessionCommand): Promise<void> {
@@ -47,7 +50,5 @@ export class DeleteSessionCommandHandler implements ICommandHandler<DeleteSessio
       sessionId: foundSessionByParamDeviceId.id,
       deletedAt: new Date(),
     });
-
-    return;
   }
 }

@@ -209,9 +209,11 @@ describe('PasswordRecoveryUseCase', () => {
 
       // Проверяем, что loggerService.error был вызван
       expect(mockLoggerService.error).toHaveBeenCalledWith(
-        expect.stringContaining('Ошибка отправки email:Error: SMTP error'),
+        expect.stringContaining(
+          'Failed to send password recovery email: Error: SMTP error',
+        ),
         expect.any(String),
-        'NodemailerService',
+        'PasswordRecoveryCommandHandler',
       );
     });
   });

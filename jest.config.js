@@ -42,6 +42,27 @@ module.exports = {
       moduleFileExtensions: ['ts', 'js', 'json'],
       testEnvironment: 'node',
     },
+    {
+      displayName: 'payments',
+      rootDir: './apps/payments',
+      moduleNameMapper: {
+        '^@payments/(.*)$': '<rootDir>/src/$1',
+        '^@libs/(.*)$': '<rootDir>/../../libs/$1',
+        '^@lumio/(.*)$': '<rootDir>/../../apps/lumio/src/$1',
+        '^generated/(.*)$': '<rootDir>/../../generated/$1',
+      },
+      testMatch: ['**/*.spec.ts'],
+      transform: {
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: '<rootDir>/tsconfig.spec.json',
+          },
+        ],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+      testEnvironment: 'node',
+    },
   ],
   collectCoverage: false,
   coverageDirectory: './coverage',

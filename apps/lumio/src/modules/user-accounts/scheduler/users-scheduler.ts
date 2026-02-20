@@ -8,7 +8,10 @@ export class UserSchedulerService {
 
   @Cron('0 * * * *')
   async deleteExpiredUserRegistration() {
-    const date = new Date();
-    await this.userRepository.deleteExpiredUserRegistration(date);
+    await this.userRepository
+      .deleteExpiredUserRegistration(new Date())
+      .catch((error) => {
+        throw error;
+      });
   }
 }

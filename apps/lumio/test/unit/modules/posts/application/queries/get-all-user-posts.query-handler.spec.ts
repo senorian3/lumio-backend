@@ -11,6 +11,7 @@ import {
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { SortDirection } from '@libs/core/dto/pagination/base.query-params.input-dto';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
+import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 
 describe('GetAllUserPostsQueryHandler', () => {
   let handler: GetAllUserPostsQueryHandler;
@@ -18,25 +19,28 @@ describe('GetAllUserPostsQueryHandler', () => {
 
   const mockUserId = 1;
 
-  // Mock format that PostView.fromPrisma expects (similar to Prisma model)
-  const mockPrismaPosts = [
+  const mockPrismaPosts: PostEntity[] = [
     {
-      id: 1,
+      id: '1',
       description: 'First post',
       createdAt: new Date('2024-01-01'),
+      deletedAt: null,
       userId: 1,
+      user: {} as any,
       files: [],
     },
     {
-      id: 2,
+      id: '2',
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
+      deletedAt: null,
       userId: 1,
+      user: {} as any,
       files: [],
     },
   ];
 
-  const mockPaginatedResult: PaginatedViewDto<any[]> = {
+  const mockPaginatedResult: PaginatedViewDto<PostView[]> = {
     page: 1,
     pageSize: 10,
     pagesCount: 1,
@@ -100,9 +104,9 @@ describe('GetAllUserPostsQueryHandler', () => {
 
       // Check that items are PostView instances
       expect(result.items[0]).toBeInstanceOf(PostView);
-      expect(result.items[0].id).toBe(1);
+      expect(result.items[0].id).toBe('1');
       expect(result.items[0].description).toBe('First post');
-      expect(result.items[1].id).toBe(2);
+      expect(result.items[1].id).toBe('2');
       expect(result.items[1].description).toBe('Second post');
     });
 

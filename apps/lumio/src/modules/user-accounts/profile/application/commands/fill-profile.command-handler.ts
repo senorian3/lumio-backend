@@ -3,6 +3,7 @@ import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infras
 import {
   BadRequestDomainException,
   ForbiddenDomainException,
+  NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { ProfileView } from '../../api/dto/output/profile.output.dto';
 import { FillProfileTransferDto } from '../../api/dto/transfer/fill-profile.transfer.dto';
@@ -26,7 +27,7 @@ export class FillProfileCommandHandler implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User is not found', 'userId');
+      throw NotFoundDomainException.create('User is not found', 'userId');
     }
 
     const userProfile = await this.userRepository.findUserProfileByUserId(
@@ -47,11 +48,15 @@ export class FillProfileCommandHandler implements ICommandHandler<
       );
     }
 
-    const filleProfile = await this.userRepository.fillProfile(command.userId, {
-      ...command.profileInformation,
-      profileFilledAt: new Date(),
-      profileFilled: true,
-    });
+    const filleProfile = await this.userRepository
+      .fillProfile(command.userId, {
+        ...command.profileInformation,
+        profileFilledAt: new Date(),
+        profileFilled: true,
+      })
+      .catch((error) => {
+        throw error;
+      });
 
     return ProfileView.fromEntity(user, filleProfile);
   }

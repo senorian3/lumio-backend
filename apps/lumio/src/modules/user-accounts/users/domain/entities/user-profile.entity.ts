@@ -1,7 +1,8 @@
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
-import { PaymentsEntity } from '@lumio/modules/user-accounts/users/domain/entities/payments.entity';
+import { SubscriptionEntity } from '@lumio/modules/user-accounts/users/domain/entities/subscription.entity';
+import { UserProfile } from 'generated/prisma-lumio';
 
-export class UserProfileEntity {
+export class UserProfileEntity implements UserProfile {
   id: number;
 
   firstName: string | null;
@@ -21,5 +22,5 @@ export class UserProfileEntity {
   userId: number;
   user: UserEntity;
 
-  payments?: PaymentsEntity[];
+  subscriptions?: SubscriptionEntity[];
 }

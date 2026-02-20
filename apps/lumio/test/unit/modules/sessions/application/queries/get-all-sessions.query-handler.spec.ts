@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { QuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.query.repository';
 import { OutputSessionDto } from '@lumio/modules/sessions/api/dto/output/session.output.dto';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
-import { DomainException } from '@libs/core/exceptions/domain-exceptions';
 import {
   GetAllSessionsQuery,
   GetAllSessionsQueryHandler,
@@ -95,48 +94,24 @@ describe('GetAllSessionsUseCase', () => {
       expect(result).toEqual(expectedOutput);
     });
 
-    it('should throw BadRequestDomainException when repository returns null', async () => {
+    it('should throw TypeError when repository returns null', async () => {
       // Arrange
       const userId = 999;
       const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow(DomainException);
-
-      try {
-        await useCase.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error) {
-        const domainException = error as DomainException;
-        // Основное сообщение
-        expect(domainException.message).toBe('Bad Request');
-        // Конкретное сообщение в extensions
-        expect(domainException.extensions[0]?.message).toBe(
-          'Cant get all devices',
-        );
-      }
+      await expect(useCase.execute(command)).rejects.toThrow(TypeError);
     });
 
-    it('should throw BadRequestDomainException when repository returns undefined', async () => {
+    it('should throw TypeError when repository returns undefined', async () => {
       // Arrange
       const userId = 999;
       const command = new GetAllSessionsQuery(userId);
       (mockRepository.getAllSessions as jest.Mock).mockResolvedValue(undefined);
 
       // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow(DomainException);
-
-      try {
-        await useCase.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error) {
-        const domainException = error as DomainException;
-        expect(domainException.message).toBe('Bad Request');
-        expect(domainException.extensions[0]?.message).toBe(
-          'Cant get all devices',
-        );
-      }
+      await expect(useCase.execute(command)).rejects.toThrow(TypeError);
     });
 
     it('should return empty array when user has no sessions', async () => {

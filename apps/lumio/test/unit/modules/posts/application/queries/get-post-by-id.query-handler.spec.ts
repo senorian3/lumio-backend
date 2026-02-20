@@ -3,7 +3,7 @@ import {
   BadRequestDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import {
   GetPostByIdQueryHandler,
@@ -14,7 +14,7 @@ import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 describe('GetPostByIdQueryHandler', () => {
   let handler: GetPostByIdQueryHandler;
   let mockQueryPostRepository: jest.Mocked<QueryPostRepository>;
-  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserRepository>;
+  let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   const mockUserId = 1;
   const mockPostId = '100';
@@ -44,9 +44,9 @@ describe('GetPostByIdQueryHandler', () => {
           },
         },
         {
-          provide: ExternalQueryUserRepository,
+          provide: ExternalQueryUserAccountsRepository,
           useValue: {
-            findById: jest.fn(),
+            findUserId: jest.fn(),
           },
         },
       ],
@@ -54,7 +54,9 @@ describe('GetPostByIdQueryHandler', () => {
 
     handler = module.get<GetPostByIdQueryHandler>(GetPostByIdQueryHandler);
     mockQueryPostRepository = module.get(QueryPostRepository);
-    mockExternalQueryUserRepository = module.get(ExternalQueryUserRepository);
+    mockExternalQueryUserRepository = module.get(
+      ExternalQueryUserAccountsRepository,
+    );
   });
 
   it('should be defined', () => {
@@ -66,19 +68,17 @@ describe('GetPostByIdQueryHandler', () => {
       // Arrange
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(mockPost as any);
 
       // Act
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
-      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(
-        Number(mockPostId),
-      );
+      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(mockPostId);
 
       expect(result).toBeInstanceOf(PostView);
       expect(result.id).toBe(100);
@@ -95,7 +95,7 @@ describe('GetPostByIdQueryHandler', () => {
       };
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(
         postWithoutFiles as any,
       );
@@ -111,7 +111,7 @@ describe('GetPostByIdQueryHandler', () => {
       // Arrange
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(null);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(null);
 
       // Act & Assert
       try {
@@ -124,7 +124,7 @@ describe('GetPostByIdQueryHandler', () => {
         expect(error.extensions[0]?.field).toBe('userId');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockQueryPostRepository.findById).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe('GetPostByIdQueryHandler', () => {
       // Arrange
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(null);
 
       // Act & Assert
@@ -148,29 +148,26 @@ describe('GetPostByIdQueryHandler', () => {
         expect(error.extensions[0]?.field).toBe('post');
       }
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
-      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(
-        Number(mockPostId),
-      );
+      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(mockPostId);
     });
 
-    it('should convert postId string to number when calling repository', async () => {
+    it('should pass postId as string to repository', async () => {
       // Arrange
       const stringPostId = '200';
       const query = new GetPostByIdQuery(stringPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(mockPost as any);
 
       // Act
       await handler.execute(query);
 
       // Assert
-      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(200);
       expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(
-        Number(stringPostId),
+        stringPostId,
       );
     });
 
@@ -179,12 +176,12 @@ describe('GetPostByIdQueryHandler', () => {
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findById.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.findUserId.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
       expect(mockQueryPostRepository.findById).not.toHaveBeenCalled();
@@ -195,18 +192,16 @@ describe('GetPostByIdQueryHandler', () => {
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findById).toHaveBeenCalledWith(
+      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
-      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(
-        Number(mockPostId),
-      );
+      expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(mockPostId);
     });
 
     it('should correctly map multiple files to post view', async () => {
@@ -221,7 +216,7 @@ describe('GetPostByIdQueryHandler', () => {
       };
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(
         postWithMultipleFiles as any,
       );
@@ -247,7 +242,7 @@ describe('GetPostByIdQueryHandler', () => {
       };
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      mockExternalQueryUserRepository.findById.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(
         postWithUndefinedFiles as any,
       );
@@ -266,7 +261,7 @@ describe('GetPostByIdQueryHandler', () => {
       // Set up to track order of calls
       const callOrder: string[] = [];
 
-      mockExternalQueryUserRepository.findById.mockImplementation(() => {
+      mockExternalQueryUserRepository.findUserId.mockImplementation(() => {
         callOrder.push('user');
         return Promise.resolve(mockUserId);
       });

@@ -23,7 +23,7 @@ describe('GetProfileQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
-    accountType: 'regular',
+    accountType: 'free',
     userId: 1,
     user: {} as any,
   };

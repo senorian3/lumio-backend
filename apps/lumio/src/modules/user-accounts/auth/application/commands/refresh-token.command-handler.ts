@@ -58,12 +58,16 @@ export class RefreshTokenCommandHandler implements ICommandHandler<
       );
     }
 
-    await this.sessionRepository.updateSession({
-      sessionId: sessionExists.id,
-      iat: new Date(refreshTokenVerify.iat * 1000),
-      exp: new Date(refreshTokenVerify.exp * 1000),
-      tokenVersion: sessionExists.tokenVersion + 1,
-    });
+    await this.sessionRepository
+      .updateSession({
+        sessionId: sessionExists.id,
+        iat: new Date(refreshTokenVerify.iat * 1000),
+        exp: new Date(refreshTokenVerify.exp * 1000),
+        tokenVersion: sessionExists.tokenVersion + 1,
+      })
+      .catch((error) => {
+        throw error;
+      });
 
     const accessToken = this.accessTokenContext.sign({ userId, deviceId });
     return { accessToken, refreshToken };

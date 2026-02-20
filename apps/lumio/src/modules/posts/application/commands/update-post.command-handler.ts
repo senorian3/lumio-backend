@@ -1,16 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import {
-  BadRequestDomainException,
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
-import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class UpdatePostCommand {
   constructor(
-    public postId: number,
+    public postId: string,
     public userId: number,
     public description: string,
   ) {}
@@ -22,17 +21,17 @@ export class UpdatePostCommandHandler implements ICommandHandler<
   PostView
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<PostView> {
-    const user = await this.externalQueryUserRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'userId');
+      throw NotFoundDomainException.create('User does not exist', 'userId');
     }
 
     const post = await this.postRepository.findById(command.postId);
@@ -48,11 +47,14 @@ export class UpdatePostCommandHandler implements ICommandHandler<
       );
     }
 
-    const updatedPost = await this.postRepository.updateDescription(
-      command.postId,
-      command.description,
-    );
-
-    return PostView.fromPrisma(updatedPost);
+    try {
+      const updatedPost = await this.postRepository.updateDescription(
+        command.postId,
+        command.description,
+      );
+      return PostView.fromPrisma(updatedPost);
+    } catch (error) {
+      throw error;
+    }
   }
 }

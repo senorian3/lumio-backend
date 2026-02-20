@@ -24,10 +24,6 @@ export class MainController {
   async getMainPage(
     @Query() queryParams: GetMainPageInputDto,
   ): Promise<MainPageView> {
-    const mainPageData: MainPageView = await this.queryBus.execute(
-      new GetMainPageQuery(queryParams),
-    );
-
-    return mainPageData;
+    return await this.queryBus.execute(new GetMainPageQuery(queryParams));
   }
 }

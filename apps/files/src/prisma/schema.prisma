@@ -19,7 +19,10 @@ model PostFile {
   size      Int
   createdAt DateTime  @default(now())
   deletedAt DateTime?
-  postId    Int?
+  postId    String?
+
+  @@index([postId])
+  @@index([deletedAt])
 }
 
 model UserAvatar {
@@ -31,5 +34,8 @@ model UserAvatar {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
   userId    Int?
+
+  @@index([userId])
+  @@index([deletedAt])
 }
 

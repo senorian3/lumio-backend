@@ -5,7 +5,7 @@ import {
   BadRequestDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { ExternalQueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class GetPostByIdQuery {
   constructor(
@@ -21,11 +21,11 @@ export class GetPostByIdQueryHandler implements IQueryHandler<
 > {
   constructor(
     private readonly queryPostRepository: QueryPostRepository,
-    private readonly externalQueryUserAccountsRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
   ) {}
 
   async execute(query: GetPostByIdQuery): Promise<PostView> {
-    const user = await this.externalQueryUserAccountsRepository.findById(
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       query.userId,
     );
 
@@ -33,7 +33,7 @@ export class GetPostByIdQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Profile is not found', 'userId');
     }
 
-    const post = await this.queryPostRepository.findById(+query.postId);
+    const post = await this.queryPostRepository.findById(query.postId);
 
     if (!post) {
       throw BadRequestDomainException.create('Post does not exist', 'post');
