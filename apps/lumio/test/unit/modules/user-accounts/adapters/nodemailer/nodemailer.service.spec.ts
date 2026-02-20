@@ -25,7 +25,7 @@ describe('NodemailerService', () => {
             smtpHost: 'smtp.test.com',
             smtpPort: 587,
             smtpSecure: false,
-            smtpUser: 'test@test.com',
+            smtpMail: 'test@test.com',
             smtpPassword: 'password123',
           },
         },
