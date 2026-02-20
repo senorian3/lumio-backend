@@ -31,6 +31,10 @@ model Payment {
   periodEnd         DateTime?
   paymentsUrl       String
 
+  @@index([profileId])
+  @@index([status, profileId])
+  @@index([subscriptionId])
+  @@index([status])
 }
 
 model OutboxMessage {

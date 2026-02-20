@@ -25,6 +25,8 @@ model User {
   sessions          Session[]
   yandex            Yandex?
   posts             Post[]
+
+  @@index([deletedAt])
 }
 
 model UserProfile {
@@ -45,7 +47,7 @@ model UserProfile {
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  subscriptions    Subscription[] // Пользователь может иметь несколько подписок
+  subscriptions    Subscription[]
 }
 
 model Payments {
@@ -61,6 +63,8 @@ model Payments {
 
   subscriptionId  String?     
   subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId])
 }
 
 model Subscription {
@@ -69,12 +73,14 @@ model Subscription {
   startDate    DateTime  @db.Timestamp(0)
   endDate      DateTime  @db.Timestamp(0)
   autoRenewal  Boolean   @default(false)
-  cancelledAt     DateTime?    @db.Timestamp(0)
+  cancelledAt  DateTime? @db.Timestamp(0)
 
   userProfileId Int
   userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
   payments     Payments[]
+
+  @@index([userProfileId])
 }
 
 model Session {
@@ -87,7 +93,11 @@ model Session {
   ip           String    @db.VarChar(50)
   tokenVersion Int       @default(1)
   userId       Int
-  user         User      @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([deletedAt])
 }
 
 model EmailConfirmation {
@@ -97,7 +107,7 @@ model EmailConfirmation {
   isConfirmed      Boolean
   userId           Int      @unique
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Yandex {
@@ -107,7 +117,7 @@ model Yandex {
   yandexId String @unique @db.VarChar(100)
 
   userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Post {
@@ -118,9 +128,12 @@ model Post {
   deletedAt DateTime?
 
   userId Int
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   files PostFile[]
+
+  @@index([userId])
+  @@index([deletedAt])
 }
 
 model PostFile {
@@ -130,7 +143,10 @@ model PostFile {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
-  post Post @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([deletedAt])
 }
 
 model IdempotencyKey {
