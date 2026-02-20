@@ -22,7 +22,8 @@
       "@payments/*": ["apps/payments/src/*"],
       "@files/*": ["apps/files/src/*"],
       "@lumio/*": ["apps/lumio/src/*"],
-      "@libs/*": ["libs/*"]
+      "@libs/*": ["libs/*"],
+      "@generated/*": ["generated/*"]
     }
   }
 }

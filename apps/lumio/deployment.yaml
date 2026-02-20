@@ -81,11 +81,11 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: THROTTLER_LIMIT
-            - name: SMPT_COM_PASS
+            - name: SMTP_COM_PASS
               valueFrom:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
-                  key: SMPT_COM_PASS
+                  key: SMTP_COM_PASS
             - name: SMTP_HOST
               valueFrom:
                 secretKeyRef:
