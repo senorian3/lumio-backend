@@ -129,7 +129,7 @@ describe('RegisterUserCommandHandler', () => {
       );
     });
 
-    it('should throw BadRequestDomainException when username already exists', async () => {
+    it('should throw ForbiddenDomainException when username already exists', async () => {
       // Arrange
       const command = new RegisterUserCommand(mockRegisterDto);
       (
@@ -148,7 +148,7 @@ describe('RegisterUserCommandHandler', () => {
       } catch (error) {
         const domainException = error as DomainException;
         // Основное сообщение
-        expect(domainException.message).toBe('Bad Request');
+        expect(domainException.message).toBe('Forbidden');
         // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'User with this username is already registered',
@@ -159,7 +159,7 @@ describe('RegisterUserCommandHandler', () => {
       expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when email already exists', async () => {
+    it('should throw ForbiddenDomainException when email already exists', async () => {
       // Arrange
       const command = new RegisterUserCommand(mockRegisterDto);
       (
@@ -177,7 +177,7 @@ describe('RegisterUserCommandHandler', () => {
         throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        expect(domainException.message).toBe('Bad Request');
+        expect(domainException.message).toBe('Forbidden');
         expect(domainException.extensions[0]?.message).toBe(
           'User with this email is already registered',
         );
@@ -187,7 +187,7 @@ describe('RegisterUserCommandHandler', () => {
       expect(mockNodemailerService.sendEmail).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when email confirmation not found', async () => {
+    it('should throw NotFoundDomainException when email confirmation not found', async () => {
       // Arrange
       const command = new RegisterUserCommand(mockRegisterDto);
       (
@@ -206,7 +206,7 @@ describe('RegisterUserCommandHandler', () => {
         throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        expect(domainException.message).toBe('Bad Request');
+        expect(domainException.message).toBe('Not Found');
         expect(domainException.extensions[0]?.message).toBe(
           'Email confirmation not found',
         );
@@ -235,7 +235,7 @@ describe('RegisterUserCommandHandler', () => {
 
       // Проверяем, что loggerService.error был вызван
       expect(mockLoggerService.error).toHaveBeenCalledWith(
-        `Ошибка отправки email: SMTP error`,
+        `Failed to send email: SMTP error`,
         expect.any(String),
         'RegisterUserCommandHandler',
       );

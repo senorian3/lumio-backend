@@ -76,14 +76,12 @@ describe('RegistrationConfirmationUserCommandHandler', () => {
       );
     });
 
-    it('should throw BadRequestDomainException when confirmation code not found', async () => {
-      // Arrange
+    it('should throw NotFoundDomainException when confirmation code not found', async () => {
       const command = new RegistrationConfirmationUserCommand(mockConfirmCode);
       (
         mockUserRepository.findByCodeOrIdEmailConfirmation as jest.Mock
       ).mockResolvedValue(null);
 
-      // Act & Assert
       await expect(useCase.execute(command)).rejects.toThrow(DomainException);
 
       try {
@@ -91,7 +89,7 @@ describe('RegistrationConfirmationUserCommandHandler', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        expect(domainException.message).toBe('Bad Request');
+        expect(domainException.message).toBe('Not Found');
         expect(domainException.extensions[0]?.message).toBe(
           'Confirmation code not found',
         );

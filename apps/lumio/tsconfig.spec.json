@@ -6,6 +6,7 @@
       "@libs/*": ["../../libs/*"],
       "@lumio/*": ["src/*"],
       "@files/*": ["../../apps/files/src/*"],
+      "@payments/*": ["../../apps/payments/src/*"],
       "generated/*": ["../../generated/*"]
     },
     "types": ["jest", "node", "@types/multer"],

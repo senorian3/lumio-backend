@@ -1,9 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiSecurity } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function ApiFillProfile() {
   return applyDecorators(
-    ApiSecurity('bearer'),
+    ApiBearerAuth(),
     ApiOperation({
       summary: 'Fill profile',
       description: 'Endpoint for fill profile',

@@ -36,8 +36,9 @@ import { UpdateProfileCommandHandler } from '@lumio/modules/user-accounts/profil
 import { GetProfileQueryHandler } from './profile/application/queries/get-profile.query-handler';
 import { UploadUserAvatarCommandHandler } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
 import { FillProfileCommandHandler } from './profile/application/commands/fill-profile.command-handler';
-import { ExternalQueryUserRepository } from './users/domain/infrastructure/user.external-query.repository';
-import { SharedModule } from '@libs/shared/shared.module';
+import { ExternalQueryUserAccountsRepository } from './users/domain/infrastructure/user.external-query.repository';
+import { FilesHttpAdapter } from '../posts/application/files-http.adapter';
+import { ExternalQuerySessionsRepository } from '../sessions/domain/infrastructure/session.external-query.repository';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -93,11 +94,12 @@ const services = [
   AuthService,
 ];
 
+const adapters = [FilesHttpAdapter];
+
 const strategies = [JwtStrategy, YandexStrategy];
 
 @Module({
   imports: [
-    SharedModule,
     PassportModule,
     SessionsModule,
     JwtModule,
@@ -112,12 +114,18 @@ const strategies = [JwtStrategy, YandexStrategy];
     UserSchedulerService,
     AboutUserQueryHandler,
     QueryUserRepository,
-    ExternalQueryUserRepository,
+    ExternalQueryUserAccountsRepository,
+    ExternalQuerySessionsRepository,
     ...useCases,
     ...services,
+    ...adapters,
     ...strategies,
     ...jwtProviders,
   ],
-  exports: [UserAccountsConfig, ExternalQueryUserRepository],
+  exports: [
+    UserAccountsConfig,
+    ExternalQueryUserAccountsRepository,
+    ExternalQuerySessionsRepository,
+  ],
 })
 export class UserAccountsModule {}

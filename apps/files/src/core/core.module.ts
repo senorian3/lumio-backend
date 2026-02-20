@@ -9,4 +9,4 @@ import { CoreConfig } from './core.config';
   providers: [CoreConfig, ConfigService],
   exports: [CoreConfig, CqrsModule],
 })
-export class CoreModule {}
+export class FilesCoreModule {}

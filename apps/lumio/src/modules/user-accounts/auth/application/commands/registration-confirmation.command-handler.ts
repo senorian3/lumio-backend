@@ -1,6 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  NotFoundDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 
 export class RegistrationConfirmationUserCommand {
   constructor(public confirmCode: string) {}
@@ -21,7 +24,7 @@ export class RegistrationConfirmationUserCommandHandler implements ICommandHandl
       });
 
     if (!userEmailConfirmation) {
-      throw BadRequestDomainException.create(
+      throw NotFoundDomainException.create(
         'Confirmation code not found',
         'confirmationCode',
       );
@@ -39,8 +42,10 @@ export class RegistrationConfirmationUserCommandHandler implements ICommandHandl
       );
     }
 
-    await this.userRepository.confirmEmail(userEmailConfirmation.userId);
-
-    return;
+    await this.userRepository
+      .confirmEmail(userEmailConfirmation.userId)
+      .catch((error) => {
+        throw error;
+      });
   }
 }

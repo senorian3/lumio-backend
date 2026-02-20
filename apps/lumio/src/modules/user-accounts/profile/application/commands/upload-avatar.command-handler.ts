@@ -1,10 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { HttpService } from '@libs/shared/http.service';
-
+import { FilesHttpAdapter } from '@lumio/modules/posts/application/files-http.adapter';
 export class UploadUserAvatarCommand {
   constructor(
     public readonly userId: number,
@@ -19,7 +18,7 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
 > {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly httpService: HttpService,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -27,31 +26,37 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
     const user = await this.userRepository.findUserById(command.userId);
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'userId');
+      throw NotFoundDomainException.create('User does not exist', 'userId');
     }
+    let avatarUrl: string;
 
     try {
-      const formData = new FormData();
-      formData.append('userId', command.userId.toString());
-
-      const response = await this.httpService.uploadUserAvatar<any>(
+      const response = await this.filesHttpAdapter.uploadUserAvatar<any>(
         `${GLOBAL_PREFIX}/profile/upload-user-avatar`,
         command.userId,
         command.avatar,
       );
 
-      const avatarUrl = response.url;
+      avatarUrl = response.url;
+    } catch (error) {
+      throw error;
+    }
 
+    try {
       await this.userRepository.updateAvatarUrl(command.userId, avatarUrl);
       return { url: avatarUrl };
     } catch (error) {
-      this.logger.error(
-        `Avatar upload failed for user ${command.userId}`,
-        error.stack || JSON.stringify(error),
-        CommandHandler.name,
-      );
+      try {
+        await this.filesHttpAdapter.deleteUserAvatar(command.userId);
+      } catch (rollbackError) {
+        this.logger.error(
+          `Critical error to rollback avatar upload for user ${command.userId}: ${rollbackError.message}`,
+          rollbackError?.stack,
+          UploadUserAvatarCommandHandler.name,
+        );
+      }
 
-      throw BadRequestDomainException.create('Failed to upload avatar', 'user');
+      throw error;
     }
   }
 }

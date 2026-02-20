@@ -6,7 +6,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 
 export class GetCreatePostUserQuery {
   constructor(
-    public readonly postId: number,
+    public readonly postId: string,
     public readonly files: OutputFileType[],
   ) {}
 }
@@ -25,8 +25,6 @@ export class GetCreatePostQueryHandler implements IQueryHandler<
       throw BadRequestDomainException.create('Post does not exist', 'post');
     }
 
-    const view = PostView.fromEntity(post, command.files);
-
-    return view;
+    return PostView.fromEntity(post, command.files);
   }
 }

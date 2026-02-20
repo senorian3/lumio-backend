@@ -96,6 +96,17 @@ export function ApiRegistration() {
             ],
           },
         },
+        username_cyrillic_not_allowed: {
+          summary: 'Username contains Cyrillic characters',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Username must not contain Cyrillic characters',
+                field: 'username',
+              },
+            ],
+          },
+        },
         password_min_length: {
           summary: 'Password too short',
           value: {

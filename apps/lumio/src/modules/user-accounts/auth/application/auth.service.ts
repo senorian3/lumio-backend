@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  ForbiddenDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
-import { UserEntity } from '../../users/domain/entities/user.entity';
 import { UserRepository } from '../../users/domain/infrastructure/user.repository';
+import { User } from 'generated/prisma-lumio';
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly cryptoService: CryptoService,
   ) {}
-  async checkUserCredentials(
-    email: string,
-    password: string,
-  ): Promise<UserEntity> {
+  async checkUserCredentials(email: string, password: string): Promise<User> {
     const user = await this.userRepository.findUserByEmail(email);
 
     if (!user) {
-      throw ForbiddenDomainException.create(
+      throw BadRequestDomainException.create(
         'The email must match the format example@example.com',
         'email',
       );

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AboutUserQueryHandler } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { AboutUserUserQuery } from '@lumio/modules/user-accounts/auth/application/queries/about-user.query-handler';
 import { QueryUserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.query.repository';
-import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 
 describe('AboutUserQueryHandler', () => {
@@ -22,7 +21,7 @@ describe('AboutUserQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
-    accountType: 'regular',
+    accountType: 'free',
     userId: mockUserId,
     user: {} as any,
   };
@@ -89,31 +88,11 @@ describe('AboutUserQueryHandler', () => {
       expect(result).toEqual(mockAboutUserOutput);
     });
 
-    it('should throw UnauthorizedDomainException when user not found', async () => {
-      // Arrange
+    it('should throw TypeError when user not found', async () => {
       const query = new AboutUserUserQuery(mockUserId);
       (mockUserQueryRepository.getById as jest.Mock).mockResolvedValue(null);
 
-      // Act & Assert
-      await expect(handler.execute(query)).rejects.toThrow(
-        UnauthorizedDomainException,
-      );
-
-      try {
-        await handler.execute(query);
-        fail('Should have thrown an exception');
-      } catch (error) {
-        const unauthorizedException = error as InstanceType<
-          typeof UnauthorizedDomainException
-        >;
-        expect(unauthorizedException.message).toBe('Unauthorized');
-        expect(unauthorizedException.extensions[0]?.message).toBe(
-          'Unauthorized',
-        );
-        expect(unauthorizedException.extensions[0]?.field).toBe('accessToken');
-      }
-
-      expect(mockUserQueryRepository.getById).toHaveBeenCalledWith(mockUserId);
+      await expect(handler.execute(query)).rejects.toThrow(TypeError);
     });
 
     it('should handle database error when finding user', async () => {

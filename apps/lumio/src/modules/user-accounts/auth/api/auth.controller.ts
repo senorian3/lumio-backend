@@ -62,12 +62,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async me(@Req() req: any): Promise<AboutUserOutputDto> {
-    const user = await this.queryBus.execute<
-      AboutUserUserQuery,
-      AboutUserOutputDto
-    >(new AboutUserUserQuery(req.user.userId));
-
-    return user;
+    return await this.queryBus.execute<AboutUserUserQuery, AboutUserOutputDto>(
+      new AboutUserUserQuery(req.user.userId),
+    );
   }
 
   @Get(AUTH_ROUTES.YANDEX)

@@ -10,6 +10,7 @@ import {
 } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { SortDirection } from '@libs/core/dto/pagination/base.query-params.input-dto';
+import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 
 describe('GetAllUserPostsQueryHandler', () => {
@@ -18,66 +19,33 @@ describe('GetAllUserPostsQueryHandler', () => {
 
   const mockUserId = 1;
 
-  const mockUserProfile = {
-    id: mockUserId,
-    firstName: 'John',
-    lastName: 'Doe',
-    dateOfBirth: new Date('1990-01-01'),
-    country: 'USA',
-    city: 'NY',
-    aboutMe: 'Test user',
-    avatarUrl: null,
-    profileFilled: false,
-    profileFilledAt: null,
-    profileUpdatedAt: null,
-    accountType: 'regular',
-    userId: mockUserId,
-    user: {} as any,
-  };
-
-  const mockPosts: PostEntity[] = [
+  const mockPrismaPosts: PostEntity[] = [
     {
-      id: 1,
+      id: '1',
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
-      userId: mockUserId,
-      user: {
-        id: mockUserId,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'hashed',
-        createdAt: new Date(),
-        deletedAt: null,
-        profile: mockUserProfile,
-      },
+      userId: 1,
+      user: {} as any,
       files: [],
     },
     {
-      id: 2,
+      id: '2',
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
       deletedAt: null,
-      userId: mockUserId,
-      user: {
-        id: mockUserId,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'hashed',
-        createdAt: new Date(),
-        deletedAt: null,
-        profile: mockUserProfile,
-      },
+      userId: 1,
+      user: {} as any,
       files: [],
     },
   ];
 
-  const mockPaginatedResult: PaginatedViewDto<PostEntity[]> = {
+  const mockPaginatedResult: PaginatedViewDto<PostView[]> = {
     page: 1,
     pageSize: 10,
     pagesCount: 1,
     totalCount: 2,
-    items: mockPosts,
+    items: mockPrismaPosts,
   };
 
   const mockQueryParams = new GetPostsQueryParams();
@@ -126,19 +94,26 @@ describe('GetAllUserPostsQueryHandler', () => {
         mockUserId,
         mockQueryParams,
       );
-      expect(result).toEqual({
-        page: mockPaginatedResult.page,
-        pageSize: mockPaginatedResult.pageSize,
-        pagesCount: mockPaginatedResult.pagesCount,
-        totalCount: mockPaginatedResult.totalCount,
-        items: mockPaginatedResult.items,
-      });
+
+      // Result should contain PostView objects (transformed by handler)
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(10);
+      expect(result.pagesCount).toBe(1);
+      expect(result.totalCount).toBe(2);
+      expect(result.items).toHaveLength(2);
+
+      // Check that items are PostView instances
+      expect(result.items[0]).toBeInstanceOf(PostView);
+      expect(result.items[0].id).toBe('1');
+      expect(result.items[0].description).toBe('First post');
+      expect(result.items[1].id).toBe('2');
+      expect(result.items[1].description).toBe('Second post');
     });
 
     it('should return empty result when no posts found', async () => {
       // Arrange
       const query = new GetAllUserPostsQuery(mockUserId, mockQueryParams);
-      const emptyResult: PaginatedViewDto<PostEntity[]> = {
+      const emptyResult: PaginatedViewDto<any[]> = {
         page: 1,
         pageSize: 10,
         pagesCount: 0,
@@ -170,12 +145,12 @@ describe('GetAllUserPostsQueryHandler', () => {
       customQueryParams.sortDirection = SortDirection.Asc;
 
       const query = new GetAllUserPostsQuery(mockUserId, customQueryParams);
-      const paginatedResult: PaginatedViewDto<PostEntity[]> = {
+      const paginatedResult: PaginatedViewDto<any[]> = {
         page: 2,
         pageSize: 5,
         pagesCount: 2,
         totalCount: 8,
-        items: [mockPosts[0]], // Only one item for page 2
+        items: [mockPrismaPosts[0]], // Only one item for page 2
       };
 
       mockQueryPostRepository.findUserPosts.mockResolvedValue(paginatedResult);

@@ -1,12 +1,15 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
 import { PostEntity } from '../../domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/ouput/file-ouput';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { HttpService } from '@libs/shared/http.service';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
-import { ExternalQueryUserRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { FilesHttpAdapter } from '../files-http.adapter';
+import { PostFilesRepository } from '../../domain/infrastructure/post-files.repository';
+import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class CreatePostCommand {
   constructor(
@@ -19,60 +22,70 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostCommandHandler implements ICommandHandler<
   CreatePostCommand,
-  { file: OutputFileType[]; postId: number }
+  { files: OutputFileType[]; postId: string }
 > {
   constructor(
-    private readonly externalQueryUserRepository: ExternalQueryUserRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly postRepository: PostRepository,
-    private readonly httpService: HttpService,
+    private readonly postFilesRepository: PostFilesRepository,
+    private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(
     command: CreatePostCommand,
-  ): Promise<{ file: OutputFileType[]; postId: number }> {
-    const user = await this.externalQueryUserRepository.findById(
+  ): Promise<{ files: OutputFileType[]; postId: string }> {
+    const user = await this.externalQueryUserAccountsRepository.findUserId(
       command.userId,
     );
 
     if (!user) {
-      throw BadRequestDomainException.create('User does not exist', 'userId');
+      throw NotFoundDomainException.create('User does not exist', 'userId');
     }
 
-    const newPost: PostEntity = await this.postRepository.createPost(
-      command.userId,
-      command.description,
-    );
+    const postId = uuidv4();
 
+    let mappedFile: OutputFileType[];
     try {
-      const mappedFile = await this.httpService.uploadFiles<OutputFileType[]>(
+      mappedFile = await this.filesHttpAdapter.uploadFiles<OutputFileType[]>(
         `${GLOBAL_PREFIX}/files/upload-post-files`,
-        newPost.id,
+        postId,
         command.files,
       );
-
-      await this.postRepository.createPostFiles(newPost.id, mappedFile);
-
-      return { file: mappedFile, postId: newPost.id };
     } catch (error) {
-      this.logger.error(
-        `Failed to upload files for postId=${newPost.id}: ${error.message}`,
-        error?.stack,
-        CommandHandler.name,
-      );
+      throw error;
+    }
 
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const newPost: PostEntity = await this.postRepository.createPost(
+          command.userId,
+          postId,
+          command.description,
+          tx,
+        );
+        await this.postFilesRepository.createPostFiles(
+          newPost.id,
+          mappedFile,
+          tx,
+        );
+      });
+      return { files: mappedFile, postId };
+    } catch (error) {
       try {
-        await this.postRepository.deletePostFilesByPostId(newPost.id);
-        await this.postRepository.deletePost(newPost.id);
+        await this.filesHttpAdapter.deletePostFiles(postId);
       } catch (cleanupError) {
         this.logger.error(
-          `Cleanup failed for postId=${newPost.id}: ${cleanupError.message}`,
+          `Critical error to delete files from S3 for postId=${postId}: ${cleanupError.message}, need to delete files: ${mappedFile.map(
+            (file) => file.id,
+          )}`,
           cleanupError?.stack,
-          CommandHandler.name,
+          CreatePostCommandHandler.name,
         );
       }
 
-      throw BadRequestDomainException.create('Failed to upload files', 'files');
+      throw error;
     }
   }
 }

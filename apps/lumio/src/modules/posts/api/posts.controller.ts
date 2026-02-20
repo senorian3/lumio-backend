@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -36,6 +37,8 @@ import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
+import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
+import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by-post-id.decorator';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -63,8 +66,8 @@ export class PostsController {
   @ApiGetProfilePost()
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
-    @Param('userId') userId: number,
-    @Query('postId') postId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('postId') postId: string,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
@@ -86,14 +89,12 @@ export class PostsController {
   ): Promise<PostView> {
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
-      { file: OutputFileType[]; postId: number }
+      { files: OutputFileType[]; postId: string }
     >(new CreatePostCommand(req.user.userId, dto.description, files));
 
-    const post = await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
-      new GetCreatePostUserQuery(postFile.postId, postFile.file),
+    return await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
+      new GetCreatePostUserQuery(postFile.postId, postFile.files),
     );
-
-    return post;
   }
 
   @Put(':postId')
@@ -101,7 +102,7 @@ export class PostsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updatePost(
-    @Param('postId') postId: number,
+    @Param('postId') postId: string,
     @Body() dto: InputUpdatePostDto,
     @Req() req: any,
   ): Promise<PostView> {
@@ -118,11 +119,23 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   async deletePost(
-    @Param('postId') postId: number,
+    @Param('postId') postId: string,
     @Req() req: any,
   ): Promise<void> {
     return await this.commandBus.execute<DeletePostCommand, void>(
       new DeletePostCommand(req.user.userId, postId),
+    );
+  }
+
+  @Get('post/:postId')
+  @ApiGetPostById()
+  @UseGuards(JwtAuthGuard)
+  async getPostById(
+    @Param('postId') postId: string,
+    @Req() req: any,
+  ): Promise<PostView> {
+    return await this.queryBus.execute<GetPostByIdQuery, PostView>(
+      new GetPostByIdQuery(postId, req.user.userId),
     );
   }
 }

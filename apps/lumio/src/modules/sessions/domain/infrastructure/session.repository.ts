@@ -10,12 +10,16 @@ import { SessionEntity } from '../session.entity';
 export class SessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSession(filters: {
-    id?: number;
-    userId?: number;
-    deviceId?: string;
-    deviceName?: string;
-  }): Promise<SessionEntity | null> {
+  async findSession(
+    filters: {
+      id?: number;
+      userId?: number;
+      deviceId?: string;
+      deviceName?: string;
+    },
+    tx?: any,
+  ): Promise<SessionEntity | null> {
+    const client = tx || this.prisma;
     const where: any = { deletedAt: null };
 
     if (filters.id !== undefined) {
@@ -31,10 +35,14 @@ export class SessionRepository {
       where.deviceName = filters.deviceName;
     }
 
-    return this.prisma.session.findFirst({ where });
+    return client.session.findFirst({ where });
   }
 
-  async updateSession(dto: UpdateSessionDomainDto): Promise<SessionEntity> {
+  async updateSession(
+    dto: UpdateSessionDomainDto,
+    tx?: any,
+  ): Promise<SessionEntity> {
+    const client = tx || this.prisma;
     const updateData: any = {
       createdAt: dto.iat,
       expiresAt: dto.exp,
@@ -44,14 +52,18 @@ export class SessionRepository {
       updateData.tokenVersion = dto.tokenVersion;
     }
 
-    return this.prisma.session.update({
+    return client.session.update({
       where: { id: dto.sessionId },
       data: updateData,
     });
   }
 
-  async createSession(dto: CreateSessionDomainDto): Promise<SessionEntity> {
-    return this.prisma.session.create({
+  async createSession(
+    dto: CreateSessionDomainDto,
+    tx?: any,
+  ): Promise<SessionEntity> {
+    const client = tx || this.prisma;
+    return client.session.create({
       data: {
         userId: dto.userId,
         deviceId: dto.deviceId,
@@ -93,8 +105,9 @@ export class SessionRepository {
     return;
   }
 
-  async deleteAllSessionsForUser(userId: number): Promise<void> {
-    await this.prisma.session.deleteMany({
+  async deleteAllSessionsForUser(userId: number, tx?: any): Promise<void> {
+    const client = tx || this.prisma;
+    await client.session.deleteMany({
       where: {
         userId: userId,
       },

@@ -6,12 +6,13 @@ import {
   PostsSortBy,
 } from '../../api/dto/input/get-all-user-posts.query.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { PostView } from '../../api/dto/output/post.output.dto';
 
 @Injectable()
 export class QueryPostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(postId: number): Promise<PostEntity | null> {
+  async findById(postId: string): Promise<PostEntity | null> {
     return this.prisma.post.findFirst({
       where: { id: postId },
       include: {
@@ -24,7 +25,7 @@ export class QueryPostRepository {
   async findUserPosts(
     userId: number,
     query: GetPostsQueryParams,
-  ): Promise<any> {
+  ): Promise<PaginatedViewDto<PostView[]>> {
     const whereOptions = { userId, deletedAt: null };
     const sortDirection = query.sortDirection === 'asc' ? 'asc' : 'desc';
     const sortBy = query.sortBy === PostsSortBy.CREATED_AT ? 'createdAt' : '';

@@ -25,6 +25,11 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable RMQ_URL, example: amqp://localhost:5672',
+  })
+  rmqUrl: string = this.configService.get('RMQ_URL');
+
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
@@ -66,6 +71,12 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
   filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable PAYMENTS_FRONTEND_URL' })
+  paymentsFrontendUrl: string = this.configService.get('PAYMENTS_FRONTEND_URL');
+
+  @IsNotEmpty({
+    message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',
+  })
   @IsNumber(
     {},
     {
@@ -74,6 +85,9 @@ export class CoreConfig {
   )
   throttlerTtl: number = Number(this.configService.get('THROTTLER_TTL'));
 
+  @IsNotEmpty({
+    message: 'Set Env variable THROTTLER_LIMIT, example: 5',
+  })
   @IsNumber({}, { message: 'Set Env variable THROTTLER_LIMIT, example: 5' })
   throttlerLimit: number = Number(this.configService.get('THROTTLER_LIMIT'));
 

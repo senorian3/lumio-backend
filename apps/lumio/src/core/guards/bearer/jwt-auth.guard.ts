@@ -1,11 +1,13 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly sessionRepository: SessionRepository) {
+  constructor(
+    private readonly externalQuerySessionRepository: ExternalQuerySessionsRepository,
+  ) {
     super();
   }
 
@@ -25,10 +27,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
 
-    const session = await this.sessionRepository.findSession({
-      userId: user.userId,
-      deviceId: user.deviceId,
-    });
+    const session =
+      await this.externalQuerySessionRepository.getSessionByUserAndDeviceId(
+        user.userId,
+        user.deviceId,
+      );
 
     if (!session) {
       throw UnauthorizedDomainException.create(

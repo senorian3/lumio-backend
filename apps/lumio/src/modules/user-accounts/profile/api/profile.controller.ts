@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Req,
@@ -42,12 +43,12 @@ export class ProfileController {
   @Get(':userId')
   @ApiGetProfile()
   @HttpCode(HttpStatus.OK)
-  async getProfile(@Param('userId') userId: number): Promise<ProfileView> {
-    const profile = await this.queryBus.execute<GetProfileQuery, ProfileView>(
+  async getProfile(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<ProfileView> {
+    return await this.queryBus.execute<GetProfileQuery, ProfileView>(
       new GetProfileQuery(userId),
     );
-
-    return profile;
   }
 
   @Post(PROFILE_ROUTES.UPLOAD_AVATAR)
@@ -59,12 +60,10 @@ export class ProfileController {
     @Req() req: any,
     @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
   ): Promise<{ url: string }> {
-    const avatarUrl = await this.commandBus.execute<
+    return await this.commandBus.execute<
       UploadUserAvatarCommand,
       { url: string }
     >(new UploadUserAvatarCommand(req.user.userId, avatar));
-
-    return avatarUrl;
   }
 
   @Put(PROFILE_ROUTES.FILL_PROFILE)
@@ -72,16 +71,13 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async fillProfile(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputFillProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {
-    const filledProfile = await this.commandBus.execute<
-      FillProfileCommand,
-      ProfileView
-    >(new FillProfileCommand(dto, userId, req.user.userId));
-
-    return filledProfile;
+    return await this.commandBus.execute<FillProfileCommand, ProfileView>(
+      new FillProfileCommand(dto, userId, req.user.userId),
+    );
   }
 
   @Put(':userId')
@@ -89,15 +85,12 @@ export class ProfileController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updateProfile(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputEditProfileDto,
     @Req() req: any,
   ): Promise<ProfileView> {
-    const updatedProfile = await this.commandBus.execute<
-      UpdateProfileCommand,
-      ProfileView
-    >(new UpdateProfileCommand(dto, userId, req.user.userId));
-
-    return updatedProfile;
+    return await this.commandBus.execute<UpdateProfileCommand, ProfileView>(
+      new UpdateProfileCommand(dto, userId, req.user.userId),
+    );
   }
 }
