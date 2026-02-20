@@ -20,9 +20,7 @@ export function ApiDeleteSessionByDeviceId() {
       name: 'deviceId',
       required: true,
       description: 'Unique identifier of the device session to be terminated',
-      example: {
-        deviceId: 'deviceId',
-      },
+      example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
     }),
 
     ApiResponse({
@@ -32,7 +30,7 @@ export function ApiDeleteSessionByDeviceId() {
 
     ApiResponse({
       status: 401,
-      description: 'Unauthorized',
+      description: 'Unauthorized - invalid or missing refresh token',
       examples: {
         no_refresh_token: {
           summary: 'No refresh token in request',
@@ -46,7 +44,7 @@ export function ApiDeleteSessionByDeviceId() {
           },
         },
         session_not_found: {
-          summary: 'Session not found for device',
+          summary: 'Session not found for device (from JWT)',
           value: {
             errorsMessages: [
               {
@@ -57,7 +55,7 @@ export function ApiDeleteSessionByDeviceId() {
           },
         },
         session_mismatch: {
-          summary: 'Session mismatch',
+          summary: 'Session data mismatch (user, device or expiry)',
           value: {
             errorsMessages: [
               {
