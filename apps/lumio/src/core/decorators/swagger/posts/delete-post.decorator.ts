@@ -14,47 +14,40 @@ export function ApiDeletePost() {
       status: 204,
       description: 'Post successfully deleted',
     }),
-    ApiResponse({
-      status: 400,
-      description: 'Validation error',
-      examples: {
-        user_not_found: {
-          summary: 'User does not exist',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User does not exist',
-                field: 'userId',
-              },
-            ],
-          },
-        },
-
-        file_not_deleted: {
-          summary: 'Failed to delete files',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Failed to delete files',
-                field: 'files',
-              },
-            ],
-          },
-        },
-      },
-    }),
 
     ApiResponse({
       status: 401,
       description: 'Unauthorized',
       examples: {
-        expired_token_version: {
+        token_version_mismatch: {
           summary: 'Token version is expired',
           value: {
             errorsMessages: [
               {
                 message: 'Token version mismatch - token is invalidated',
                 field: 'tokenVersion',
+              },
+            ],
+          },
+        },
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Invalid user data in JWT',
+                field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: 'User does not have active session',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
               },
             ],
           },
@@ -84,13 +77,24 @@ export function ApiDeletePost() {
       status: 404,
       description: 'Not found',
       examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User does not exist',
+                field: 'user',
+              },
+            ],
+          },
+        },
         post_not_found: {
           summary: 'Post does not exist',
           value: {
             errorsMessages: [
               {
                 message: 'Post does not exist',
-                field: 'postId',
+                field: 'post',
               },
             ],
           },

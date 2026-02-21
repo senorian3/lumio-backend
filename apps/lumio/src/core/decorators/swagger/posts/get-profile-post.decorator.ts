@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 
 export function ApiGetProfilePost() {
   return applyDecorators(
@@ -9,6 +9,20 @@ export function ApiGetProfilePost() {
       operationId: 'getProfilePost',
     }),
 
+    ApiParam({
+      name: 'userId',
+      type: Number,
+      description: 'ID of the user',
+      example: 46,
+    }),
+    ApiQuery({
+      name: 'postId',
+      type: String,
+      description: 'ID of the post',
+      required: true,
+      example: '1',
+    }),
+
     ApiResponse({
       status: 200,
       description: 'Profile post successfully fetched',
@@ -16,7 +30,7 @@ export function ApiGetProfilePost() {
         get_post: {
           summary: 'Example response for post',
           value: {
-            id: 1,
+            id: 'a16e733a-30a4-49c8-a923-61e34928aace',
             description: 'Test post',
             createdAt: '2026-01-10T20:23:35.435Z',
             userId: 46,
@@ -26,12 +40,20 @@ export function ApiGetProfilePost() {
                 url: 'https://example.com/file1.jpg',
                 postId: 1,
               },
-              {
-                id: 2,
-                url: 'https://example.com/file2.jpg',
-                postId: 1,
-              },
             ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 400,
+      description: 'Validation error (e.g., invalid userId format)',
+      examples: {
+        invalid_id_format: {
+          summary: 'UserId is not a valid number',
+          value: {
+            errorsMessages: [],
           },
         },
       },
