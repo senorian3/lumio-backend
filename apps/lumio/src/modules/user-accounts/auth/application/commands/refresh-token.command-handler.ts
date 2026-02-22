@@ -1,11 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Inject, UnauthorizedException } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
 import { JwtService } from '@nestjs/jwt';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
+import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class RefreshTokenCommand {
   constructor(
@@ -52,7 +53,7 @@ export class RefreshTokenCommandHandler implements ICommandHandler<
     const refreshTokenVerify = this.refreshTokenContext.verify(refreshToken);
 
     if (!refreshTokenVerify) {
-      throw new UnauthorizedException(
+      throw UnauthorizedDomainException.create(
         'There is no such session',
         'InvalidRefreshToken',
       );

@@ -10,23 +10,32 @@ export function ApiYandexCallback() {
     }),
 
     ApiResponse({
-      status: 200,
-      description: 'User successfully login via yandex',
-      examples: {
-        user_logined_via_yandex: {
-          summary: 'User successfully login via yandex',
-          value: {
-            accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
-          },
-        },
-      },
+      status: 302, // Изменено с 200 на 302, так как используется res.redirect()
+      description:
+        'Redirects to frontend URL with accessToken in query params and refreshToken in cookie',
       headers: {
         'Set-Cookie': {
           description: 'HTTP-only refresh token cookie',
           schema: {
             type: 'string',
-            example: 'refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+            example:
+              'refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...; Path=/; HttpOnly',
           },
+        },
+        Location: {
+          description: 'Frontend URL with accessToken in query string',
+          schema: {
+            type: 'string',
+            example:
+              'https://frontend.com/auth/oauth-success?accessToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+          },
+        },
+      },
+
+      examples: {
+        redirect_success: {
+          summary: 'Redirect to frontend',
+          value: {},
         },
       },
     }),

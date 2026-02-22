@@ -102,6 +102,7 @@ export function ApiPasswordRecovery() {
         errorsMessages: [
           {
             message: 'Too many requests',
+            field: null,
           },
         ],
       },

@@ -5,52 +5,25 @@ export function ApiRegistration() {
   return applyDecorators(
     ApiOperation({
       summary: 'User registration',
-      description: 'Endpoint for user registration',
+      description:
+        'Endpoint for user registration. Sends confirmation email on success.',
       operationId: 'registerUser',
     }),
 
     ApiResponse({
       status: 201,
       description: 'User successfully registered',
+      content: {
+        'application/json': {
+          example: {},
+        },
+      },
     }),
 
     ApiResponse({
       status: 400,
-      description: 'Validation error',
+      description: 'Validation error - Input data does not meet requirements',
       examples: {
-        user_already_registered: {
-          summary: 'User already registered',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User with this username is already registered',
-                field: 'username',
-              },
-            ],
-          },
-        },
-        email_already_registered: {
-          summary: 'Email already registered',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User with this email is already registered',
-                field: 'email',
-              },
-            ],
-          },
-        },
-        email_confirmation_not_found: {
-          summary: 'Email confirmation not found',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Email confirmation not found',
-                field: 'emailConfirmation',
-              },
-            ],
-          },
-        },
         username_min_length: {
           summary: 'Username too short',
           value: {
@@ -73,7 +46,7 @@ export function ApiRegistration() {
             ],
           },
         },
-        usename_not_string: {
+        username_not_string: {
           summary: 'Username is not a string',
           value: {
             errorsMessages: [
@@ -222,14 +195,67 @@ export function ApiRegistration() {
     }),
 
     ApiResponse({
+      status: 403,
+      description: 'Forbidden - Business logic validation failed',
+      examples: {
+        user_already_registered_username: {
+          summary: 'User already registered',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User with this username is already registered',
+                field: 'username',
+              },
+            ],
+          },
+        },
+        user_already_registered_email: {
+          summary: 'Email already registered',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User with this email is already registered',
+                field: 'email',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 404,
+      description: 'Not found - Email confirmation not found',
+      examples: {
+        email_confirmation_not_found: {
+          summary: 'Email confirmation not found',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Email confirmation not found',
+                field: 'emailConfirmation',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
       status: 429,
       description: 'Too many requests',
-      example: {
-        errorsMessages: [
-          {
-            message: 'Too many requests',
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+                field: null,
+              },
+            ],
           },
-        ],
+        },
       },
     }),
   );
