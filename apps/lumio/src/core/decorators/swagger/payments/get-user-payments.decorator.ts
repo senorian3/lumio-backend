@@ -58,24 +58,41 @@ export function ApiGetUserPayments() {
       status: 401,
       description: 'Unauthorized',
       examples: {
-        invalid_session: {
-          summary: 'Invalid session or JWT',
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version is expired',
           value: {
             errorsMessages: [
               {
-                message: "User doesn't have active session",
-                field: 'session',
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
               },
             ],
           },
         },
-        invalid_token: {
-          summary: 'Token is invalid',
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
           value: {
             errorsMessages: [
               {
                 message: 'Invalid user data in JWT',
                 field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: 'User does not have active session',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
               },
             ],
           },

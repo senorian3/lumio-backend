@@ -110,6 +110,12 @@ export function ApiUploadUserAvatar() {
       status: 401,
       description: 'Unauthorized - invalid token or session',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         invalid_user_data: {
           summary: 'Invalid user data in JWT',
           value: {

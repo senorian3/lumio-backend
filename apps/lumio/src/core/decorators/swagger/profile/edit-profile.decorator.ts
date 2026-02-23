@@ -30,7 +30,6 @@ export function ApiUpdateProfile() {
       status: 400,
       description: 'Validation error (DTO)',
       examples: {
-        // --- firstName ---
         validation_error_first_name_type: {
           summary: 'DTO validation failed (firstName type)',
           value: {
@@ -65,7 +64,6 @@ export function ApiUpdateProfile() {
           },
         },
 
-        // --- lastName ---
         validation_error_last_name_type: {
           summary: 'DTO validation failed (lastName type)',
           value: {
@@ -100,7 +98,6 @@ export function ApiUpdateProfile() {
           },
         },
 
-        // --- dateOfBirth ---
         validation_error_date_of_birth_format: {
           summary: 'DTO validation failed (dateOfBirth format)',
           value: {
@@ -125,7 +122,6 @@ export function ApiUpdateProfile() {
           },
         },
 
-        // --- country ---
         validation_error_country: {
           summary: 'DTO validation failed (country)',
           value: {
@@ -149,7 +145,6 @@ export function ApiUpdateProfile() {
           },
         },
 
-        // --- city ---
         validation_error_city: {
           summary: 'DTO validation failed (city)',
           value: {
@@ -173,7 +168,6 @@ export function ApiUpdateProfile() {
           },
         },
 
-        // --- aboutMe ---
         validation_error_about_me: {
           summary: 'DTO validation failed (aboutMe)',
           value: {
@@ -203,6 +197,12 @@ export function ApiUpdateProfile() {
       status: 401,
       description: 'Unauthorized - invalid token or session',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         invalid_jwt_data: {
           summary: 'Invalid user data in JWT',
           value: {

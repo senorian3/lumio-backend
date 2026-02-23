@@ -19,6 +19,12 @@ export function ApiDeletePost() {
       status: 401,
       description: 'Unauthorized',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         token_version_mismatch: {
           summary: 'Token version is expired',
           value: {

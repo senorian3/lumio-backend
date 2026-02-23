@@ -30,7 +30,6 @@ export function ApiFillProfile() {
       status: 400,
       description: 'Validation error or business rule violation',
       examples: {
-        // --- firstName ---
         validation_error_first_name_type: {
           summary: 'DTO validation failed (firstName type)',
           value: {
@@ -65,7 +64,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- lastName ---
         validation_error_last_name_type: {
           summary: 'DTO validation failed (lastName type)',
           value: {
@@ -125,7 +123,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- country ---
         validation_error_country: {
           summary: 'DTO validation failed (country)',
           value: {
@@ -149,7 +146,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- city ---
         validation_error_city: {
           summary: 'DTO validation failed (city)',
           value: {
@@ -173,7 +169,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- aboutMe ---
         validation_error_about_me: {
           summary: 'DTO validation failed (aboutMe)',
           value: {
@@ -197,7 +192,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- Business rules ---
         profile_already_filled: {
           summary: 'User already filled profile',
           value: {
@@ -216,6 +210,12 @@ export function ApiFillProfile() {
       status: 401,
       description: 'Unauthorized - invalid token or session',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         invalid_user_data: {
           summary: 'Invalid user data in JWT',
           value: {

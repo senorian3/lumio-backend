@@ -146,37 +146,15 @@ export function ApiCreatePost() {
       },
     }),
     ApiResponse({
-      status: 404,
-      description: 'Not found',
-      examples: {
-        user_not_found: {
-          summary: 'User does not exist',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User does not exist',
-                field: 'userId',
-              },
-            ],
-          },
-        },
-        post_not_found: {
-          summary: 'Post does not exist (after creation)',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Post does not exist',
-                field: 'post',
-              },
-            ],
-          },
-        },
-      },
-    }),
-    ApiResponse({
       status: 401,
       description: 'Unauthorized',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         token_version_mismatch: {
           summary: 'Token version is expired',
           value: {
@@ -206,6 +184,34 @@ export function ApiCreatePost() {
               {
                 message: "User doesn't have active session",
                 field: 'session',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Not found',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User does not exist',
+                field: 'userId',
+              },
+            ],
+          },
+        },
+        post_not_found: {
+          summary: 'Post does not exist (after creation)',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post does not exist',
+                field: 'post',
               },
             ],
           },
