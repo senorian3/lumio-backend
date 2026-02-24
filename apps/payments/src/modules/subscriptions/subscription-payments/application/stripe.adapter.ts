@@ -53,8 +53,6 @@ export class StripeAdapter {
           },
         ],
         mode: 'subscription',
-        client_reference_id: profileId.toString(),
-
         billing_address_collection: 'auto',
         payment_method_types: ['card'],
 
@@ -113,6 +111,20 @@ export class StripeAdapter {
   async cancelSubscriptionImmediately(subscriptionId: string): Promise<void> {
     try {
       await this.stripe.subscriptions.cancel(subscriptionId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCustmerSubscriptionEndDate(
+    subscriptionId: string,
+    customPeriodDateEnd: number,
+  ): Promise<void> {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        trial_end: customPeriodDateEnd,
+        proration_behavior: 'none',
+      });
     } catch (error) {
       throw error;
     }
