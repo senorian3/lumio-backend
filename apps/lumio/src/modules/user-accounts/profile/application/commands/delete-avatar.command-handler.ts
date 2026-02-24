@@ -25,22 +25,28 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
       throw NotFoundDomainException.create('User does not exist', 'userId');
     }
 
+    const userProfile = await this.userRepository.findUserProfileByUserId(
+      command.userId,
+    );
+
+    if (!userProfile.avatarUrl) {
+      return;
+    }
+
+    await this.filesHttpAdapter
+      .deleteUserAvatar(command.userId)
+      .catch((error) => {
+        this.logger.error(
+          `Critical error deleting avatar from Files microservice for user ${command.userId}: ${error.message}`,
+          error?.stack,
+          DeleteUserAvatarCommandHandler.name,
+        );
+      });
+
     await this.userRepository
       .updateAvatarUrl(command.userId, null)
       .catch((error) => {
         throw error;
       });
-
-    try {
-      await this.filesHttpAdapter.deleteUserAvatar(command.userId);
-    } catch (error) {
-      this.logger.error(
-        `Critical error deleting avatar from Files microservice for user ${command.userId}: ${error.message}`,
-        error?.stack,
-        DeleteUserAvatarCommandHandler.name,
-      );
-
-      throw error;
-    }
   }
 }

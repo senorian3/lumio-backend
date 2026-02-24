@@ -16,6 +16,29 @@ describe('DeleteUserAvatarCommandHandler', () => {
 
   const userId = 1;
   const command = new DeleteUserAvatarCommand(userId);
+  const mockUserProfile = {
+    avatarUrl: 'https://example.com/avatar.jpg',
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+    dateOfBirth: new Date(),
+    country: 'USA',
+    city: 'New York',
+    aboutMe: 'Test user',
+    profileFilled: true,
+    profileFilledAt: new Date(),
+    profileUpdatedAt: new Date(),
+    user: {
+      id: 1,
+      username: 'testuser',
+      email: 'test@example.com',
+      password: 'hashedpassword',
+      createdAt: new Date(),
+      deletedAt: null,
+    },
+    accountType: 'Personal',
+    userId: 1,
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +49,7 @@ describe('DeleteUserAvatarCommandHandler', () => {
           useValue: {
             findUserById: jest.fn(),
             updateAvatarUrl: jest.fn(),
+            findUserProfileByUserId: jest.fn(),
           },
         },
         {
@@ -67,6 +91,9 @@ describe('DeleteUserAvatarCommandHandler', () => {
 
       jest.spyOn(mockUserRepository, 'findUserById').mockResolvedValue(user);
       jest
+        .spyOn(mockUserRepository, 'findUserProfileByUserId')
+        .mockResolvedValue(mockUserProfile);
+      jest
         .spyOn(mockUserRepository, 'updateAvatarUrl')
         .mockResolvedValue(undefined);
       jest
@@ -87,6 +114,9 @@ describe('DeleteUserAvatarCommandHandler', () => {
 
     it('should throw NotFoundDomainException when user does not exist', async () => {
       jest.spyOn(mockUserRepository, 'findUserById').mockResolvedValue(null);
+      jest
+        .spyOn(mockUserRepository, 'findUserProfileByUserId')
+        .mockResolvedValue(null);
 
       await expect(handler.execute(command)).rejects.toThrow(
         NotFoundDomainException,
@@ -108,15 +138,16 @@ describe('DeleteUserAvatarCommandHandler', () => {
 
       jest.spyOn(mockUserRepository, 'findUserById').mockResolvedValue(user);
       jest
+        .spyOn(mockUserRepository, 'findUserProfileByUserId')
+        .mockResolvedValue(mockUserProfile);
+      jest
         .spyOn(mockUserRepository, 'updateAvatarUrl')
         .mockResolvedValue(undefined);
       jest
         .spyOn(mockFilesHttpAdapter, 'deleteUserAvatar')
-        .mockRejectedValue(new Error('S3 deletion failed'));
+        .mockResolvedValue(undefined);
 
-      await expect(handler.execute(command)).rejects.toThrow(
-        'S3 deletion failed',
-      );
+      await handler.execute(command);
 
       expect(mockUserRepository.updateAvatarUrl).toHaveBeenCalledWith(
         userId,

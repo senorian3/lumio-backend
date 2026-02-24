@@ -88,7 +88,7 @@ export class FilesHttpAdapter {
   }
 
   async deleteUserAvatar<T>(userId: number): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/profile/delete-user-avatar/${userId}`;
+    const url = `${this.coreConfig.filesFrontendUrl}/api/v1/profile/${userId}`;
     const headers = this.getHeaders();
 
     try {
@@ -100,7 +100,7 @@ export class FilesHttpAdapter {
   }
 
   async deleteFile<T>(key: string): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-file/${key}`;
+    const url = `${this.coreConfig.filesFrontendUrl}/api/v1/files/delete-file/${key}`;
     const headers = this.getHeaders();
 
     try {
@@ -112,7 +112,7 @@ export class FilesHttpAdapter {
   }
 
   async deletePostFiles<T>(postId: string): Promise<T> {
-    const url = `${this.coreConfig.filesFrontendUrl}/files/delete-post-files/${postId}`;
+    const url = `${this.coreConfig.filesFrontendUrl}/api/v1/files/delete-post-files/${postId}`;
     const headers = this.getHeaders();
 
     try {

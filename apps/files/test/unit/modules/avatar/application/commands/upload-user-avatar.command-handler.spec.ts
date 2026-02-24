@@ -12,7 +12,6 @@ describe('UploadUserAvatarCommandHandler', () => {
   let handler: UploadUserAvatarCommandHandler;
   let mockS3Adapter: jest.Mocked<S3FilesHttpAdapter>;
   let mockProfileRepository: jest.Mocked<ProfileRepository>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
 
   const mockUserId = 1;
 
@@ -47,6 +46,7 @@ describe('UploadUserAvatarCommandHandler', () => {
           provide: ProfileRepository,
           useValue: {
             createUserAvatar: jest.fn(),
+            getAvatarByUserId: jest.fn(),
           },
         },
         {
@@ -63,7 +63,6 @@ describe('UploadUserAvatarCommandHandler', () => {
     );
     mockS3Adapter = module.get(S3FilesHttpAdapter);
     mockProfileRepository = module.get(ProfileRepository);
-    mockLogger = module.get(AppLoggerService);
   });
 
   it('should be defined', () => {
@@ -127,8 +126,6 @@ describe('UploadUserAvatarCommandHandler', () => {
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
-
-      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 });

@@ -33,9 +33,8 @@ model UserAvatar {
   size      Int
   createdAt DateTime  @default(now())
   deletedAt DateTime?
-  userId    Int?
+  userId    Int?      @unique
 
-  @@index([userId])
   @@index([deletedAt])
 }
 

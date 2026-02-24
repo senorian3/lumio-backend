@@ -26,20 +26,16 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
       throw NotFoundDomainException.create('Avatar is not found', 'avatar');
     }
 
-    try {
-      await this.profileRepository.deleteAvatar(avatar.id);
-    } catch (error) {
+    await this.profileRepository.deleteAvatar(avatar.id).catch((error) => {
       throw error;
-    }
+    });
 
-    try {
-      await this.s3FilesHttpAdapter.deleteFile(avatar.key);
-    } catch (error) {
+    await this.s3FilesHttpAdapter.deleteFile(avatar.key).catch((error) => {
       this.logger.error(
-        `Critical error deleting avatar file from S3 for userId=${userId}, key=${avatar.key}: ${error.message}`,
+        `Critical error deleting avatar from S3 for userId=${userId}, key=${avatar.key}: ${error.message}`,
         error?.stack,
         DeleteUserAvatarCommandHandler.name,
       );
-    }
+    });
   }
 }

@@ -34,9 +34,8 @@ export class ProfileRepository {
   }
 
   async getAvatarByUserId(userId: number): Promise<UserAvatar | null> {
-    return await this.prisma.userAvatar.findFirst({
+    return await this.prisma.userAvatar.findUnique({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
     });
   }
 }
