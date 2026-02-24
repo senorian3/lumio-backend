@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -23,6 +24,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadUserAvatarCommand } from '@lumio/modules/user-accounts/profile/application/commands/upload-avatar.command-handler';
 import { InputFillProfileDto } from './dto/input/fill-profile.input.dto';
 import { FillProfileCommand } from '../application/commands/fill-profile.command-handler';
+import { DeleteUserAvatarCommand } from '../application/commands/delete-avatar.command-handler';
 import {
   PROFILE_BASE,
   PROFILE_ROUTES,
@@ -32,6 +34,7 @@ import { ApiFillProfile } from '@lumio/core/decorators/swagger/profile/fill-prof
 import { ApiUpdateProfile } from '@lumio/core/decorators/swagger/profile/edit-profile.decorator';
 import { SingleFileValidationPipe } from '@libs/core/pipe/validation/validation-file.pipe';
 import { ApiUploadUserAvatar } from '@lumio/core/decorators/swagger/profile/upload-avatar.decorator';
+import { ApiDeleteUserAvatar } from '@lumio/core/decorators/swagger/profile/delete-avatar.decorator';
 
 @Controller(PROFILE_BASE)
 export class ProfileController {
@@ -91,6 +94,16 @@ export class ProfileController {
   ): Promise<ProfileView> {
     return await this.commandBus.execute<UpdateProfileCommand, ProfileView>(
       new UpdateProfileCommand(dto, userId, req.user.userId),
+    );
+  }
+
+  @Delete(PROFILE_ROUTES.DELETE_AVATAR)
+  @ApiDeleteUserAvatar()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  async deleteUserAvatar(@Req() req: any): Promise<void> {
+    return await this.commandBus.execute(
+      new DeleteUserAvatarCommand(req.user.userId),
     );
   }
 }

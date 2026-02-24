@@ -120,7 +120,7 @@ describe('DeleteUserAvatarCommandHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow(dbError);
     });
 
-    it('should throw error when S3 delete fails', async () => {
+    it('should log error when S3 delete fails', async () => {
       // Arrange
       const command = new DeleteUserAvatarCommand(mockUserId);
       const s3Error = new Error('S3 error');
@@ -129,10 +129,15 @@ describe('DeleteUserAvatarCommandHandler', () => {
       mockProfileRepository.deleteAvatar.mockResolvedValue(undefined);
       mockS3Adapter.deleteFile.mockRejectedValue(s3Error);
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(s3Error);
+      // Act
+      await handler.execute(command);
 
-      expect(mockLogger.error).toHaveBeenCalled();
+      // Assert
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `Critical error deleting avatar file from S3 for userId=${mockUserId}, key=${mockAvatar.key}: ${s3Error.message}`,
+        s3Error?.stack,
+        DeleteUserAvatarCommandHandler.name,
+      );
     });
   });
 });

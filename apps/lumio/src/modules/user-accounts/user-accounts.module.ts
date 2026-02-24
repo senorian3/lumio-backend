@@ -39,6 +39,7 @@ import { FillProfileCommandHandler } from './profile/application/commands/fill-p
 import { ExternalQueryUserAccountsRepository } from './users/domain/infrastructure/user.external-query.repository';
 import { FilesHttpAdapter } from '../posts/application/files-http.adapter';
 import { ExternalQuerySessionsRepository } from '../sessions/domain/infrastructure/session.external-query.repository';
+import { DeleteUserAvatarCommandHandler } from './profile/application/commands/delete-avatar.command-handler';
 
 const createJwtServiceProvider = (
   provide: string | symbol,
@@ -84,6 +85,7 @@ const useCases = [
   FillProfileCommandHandler,
   GetProfileQueryHandler,
   UploadUserAvatarCommandHandler,
+  DeleteUserAvatarCommandHandler,
 ];
 
 const services = [

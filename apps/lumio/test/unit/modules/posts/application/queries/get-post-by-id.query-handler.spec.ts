@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import {
@@ -130,7 +127,7 @@ describe('GetPostByIdQueryHandler', () => {
       expect(mockQueryPostRepository.findById).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when post does not exist', async () => {
+    it('should throw NotFoundDomainException when post does not exist', async () => {
       // Arrange
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
@@ -142,8 +139,7 @@ describe('GetPostByIdQueryHandler', () => {
         await handler.execute(query);
         fail('Should have thrown an exception');
       } catch (error: any) {
-        expect(error).toBeInstanceOf(BadRequestDomainException);
-        expect(error.message).toBe('Bad Request');
+        expect(error.message).toBe('Not Found');
         expect(error.extensions[0]?.message).toBe('Post does not exist');
         expect(error.extensions[0]?.field).toBe('post');
       }

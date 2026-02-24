@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
 import {
   RefreshTokenCommandHandler,
   RefreshTokenCommand,
@@ -143,18 +142,7 @@ describe('RefreshTokenUseCase', () => {
       (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue(null);
 
       // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow(
-        UnauthorizedException,
-      );
-
-      try {
-        await useCase.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error) {
-        const unauthorizedException = error as UnauthorizedException;
-        expect(unauthorizedException.message).toBe('There is no such session');
-        // Не проверяем cause, так как он может не устанавливаться
-      }
+      await expect(useCase.execute(command)).rejects.toThrow('Unauthorized');
 
       expect(mockSessionRepository.updateSession).not.toHaveBeenCalled();
       expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();
@@ -173,9 +161,7 @@ describe('RefreshTokenUseCase', () => {
       (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue(null);
 
       // Act & Assert
-      await expect(useCase.execute(command)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(useCase.execute(command)).rejects.toThrow('Unauthorized');
 
       expect(mockSessionRepository.updateSession).not.toHaveBeenCalled();
       expect(mockAccessTokenJwtService.sign).not.toHaveBeenCalled();

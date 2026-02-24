@@ -257,7 +257,10 @@ export class UserRepository {
     });
   }
 
-  async updateAvatarUrl(userId: number, avatarUrl: string): Promise<void> {
+  async updateAvatarUrl(
+    userId: number,
+    avatarUrl: string | null,
+  ): Promise<void> {
     await this.prisma.userProfile.update({
       where: {
         userId: userId,
