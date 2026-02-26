@@ -112,6 +112,13 @@ export class StripeAdapter {
 
   async cancelSubscriptionImmediately(subscriptionId: string): Promise<void> {
     try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        metadata: {
+          cancelled_by: 'system',
+          cancelled_at: new Date().toISOString(),
+        },
+      });
+
       await this.stripe.subscriptions.cancel(subscriptionId);
     } catch (error) {
       throw error;

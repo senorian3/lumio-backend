@@ -8,6 +8,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { CreateSubscriptionDeletedMessageDto } from '@libs/dto/transfer/create-subscription-deleted-message.dto';
 import { RetryService } from '../retry.service';
 import { ManualReviewService } from '../manual-review.service';
+import { StripeAdapter } from '../stripe.adapter';
 
 export class ProcessSubscriptionDeletedCommand {
   constructor(public readonly event: Stripe.Event) {}
@@ -25,6 +26,7 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
     private readonly prisma: PrismaService,
     private readonly retryService: RetryService,
     private readonly manualReviewService: ManualReviewService,
+    private readonly stripeAdapter: StripeAdapter,
   ) {}
 
   async execute(command: ProcessSubscriptionDeletedCommand): Promise<void> {
@@ -33,6 +35,16 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
     const subscriptionId = subscription.id;
 
     try {
+      const subscriptionDetails =
+        await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+      if (subscriptionDetails.metadata.cancelled_by === 'system') {
+        this.logger.log(
+          `Skipping webhook for subscription ${subscriptionId} - cancelled by system`,
+          ProcessSubscriptionDeletedCommandHandler.name,
+        );
+        return;
+      }
+
       await this.retryService.executeWithRetry(async () => {
         const payment =
           await this.paymentsRepository.findBySubscriptionId(subscriptionId);

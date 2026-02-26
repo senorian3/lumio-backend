@@ -84,10 +84,28 @@ export class ManualReviewService {
   private async createManualReviewTask(
     data: ManualReviewTaskData,
   ): Promise<void> {
+    let aggregateId: string;
+    let aggregateType: OutboxAggregateType;
+
+    switch (data.type) {
+      case OutboxEventType.FAILED_RECURRING_PAYMENT_PROCESSING:
+      case OutboxEventType.FAILED_SUBSCRIPTION_DELETED_PROCESSING:
+        aggregateId = data.subscriptionId;
+        aggregateType = OutboxAggregateType.SUBSCRIPTION;
+        break;
+      case OutboxEventType.FAILED_SUBSCRIPTION_CHANGE_AUTO_RENEWAL_PROCESSING:
+        aggregateId = data.customPaymentId || data.subscriptionId;
+        aggregateType = OutboxAggregateType.PAYMENT;
+        break;
+      default:
+        aggregateId = data.customPaymentId;
+        aggregateType = OutboxAggregateType.PAYMENT;
+    }
+
     await this.outboxService.createManualReviewTask(
       data,
-      data.customPaymentId,
-      OutboxAggregateType.PAYMENT,
+      aggregateId,
+      aggregateType,
     );
   }
 }
