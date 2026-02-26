@@ -87,13 +87,23 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
           if (isExtensionSub) {
-            await this.stripeAdapter.updateCustomerSubscriptionEndDate(
-              activeSubscription.subscriptionId,
-              periodEnd.getTime() / 1000,
+            await this.outboxService.createUpdateCustomerSubscriptionEndDateMessage(
+              {
+                subscriptionId: activeSubscription.subscriptionId,
+                periodEndDate: periodEnd.getTime() / 1000,
+                timestamp: new Date().toISOString(),
+              },
+              tx,
             );
-            await this.stripeAdapter.cancelSubscriptionImmediately(
-              subscriptionId,
+
+            await this.outboxService.createCancelSubscriptionImmediatelyMessage(
+              {
+                subscriptionId,
+                timestamp: new Date().toISOString(),
+              },
+              tx,
             );
+
             await this.paymentsRepository.updateSubPeriodEndDate(
               activeSubscription.customPaymentId,
               periodEnd,

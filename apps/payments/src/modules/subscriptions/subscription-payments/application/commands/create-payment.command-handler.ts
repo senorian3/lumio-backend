@@ -66,7 +66,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       profileId: +dto.profileId,
       status: 'pending',
       subscriptionType: dto.subscriptionType,
-      autoRenewal: true,
+      autoRenewal: false,
       subscriptionId: null,
       periodStart: null,
       periodEnd: null,

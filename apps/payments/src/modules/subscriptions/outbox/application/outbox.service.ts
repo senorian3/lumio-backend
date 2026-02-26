@@ -8,6 +8,8 @@ import {
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 import { CreateSubscriptionDeletedMessageDto } from '@libs/dto/transfer/create-subscription-deleted-message.dto';
+import { UpdateCustomerSubscriptionEndDateDto } from '@libs/dto/transfer/update-customer-subscription-end-date.dto';
+import { CancelSubscriptionImmediatelyDto } from '@libs/dto/transfer/cancel-subscription-immediately.dto';
 
 @Injectable()
 export class OutboxService {
@@ -215,6 +217,93 @@ export class OutboxService {
     });
   }
 
+  async createUpdateCustomerSubscriptionEndDateMessage(
+    payload: UpdateCustomerSubscriptionEndDateDto,
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType:
+            OutboxEventType.UPDATE_CUSTOMER_SUBSCRIPTION_END_DATE_STRIPE,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for updating customer subscription end date ${payload.subscriptionId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
+
+      try {
+        await this.createFailedUpdateCustomerSubscriptionEndDateMessage(
+          {
+            subscriptionId: payload.subscriptionId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+          tx,
+        );
+      } catch (innerError) {
+        this.logger.error(
+          `Critical error creating outbox message for updating customer subscription end date ${payload.subscriptionId}: ${innerError.message}`,
+          innerError.stack,
+          OutboxService.name,
+        );
+        throw error;
+      }
+    }
+  }
+
+  async createCancelSubscriptionImmediatelyMessage(
+    payload: CancelSubscriptionImmediatelyDto,
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType: OutboxEventType.CANCEL_SUBSCRIPTION_IMMEDIATELY_STRIPE,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for canceling subscription immediately ${payload.subscriptionId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
+
+      try {
+        await this.createFailedCancelSubscriptionImmediatelyMessage(
+          {
+            subscriptionId: payload.subscriptionId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+          tx,
+        );
+      } catch (innerError) {
+        this.logger.error(
+          `Critical error creating outbox message for canceling subscription immediately ${payload.subscriptionId}: ${innerError.message}`,
+          innerError.stack,
+          OutboxService.name,
+        );
+        throw error;
+      }
+    }
+  }
+
   private async createFailedInitialPaymentProcessingMessage(
     payload: {
       profileId: string;
@@ -309,6 +398,58 @@ export class OutboxService {
           aggregateId: payload.subscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.FAILED_SUBSCRIPTION_DELETED_PROCESSING,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async createFailedUpdateCustomerSubscriptionEndDateMessage(
+    payload: {
+      subscriptionId: string;
+      error: string;
+      timestamp: string;
+    },
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType:
+            OutboxEventType.FAILED_UPDATE_CUSTOMER_SUBSCRIPTION_END_DATE_PROCESSING,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async createFailedCancelSubscriptionImmediatelyMessage(
+    payload: {
+      subscriptionId: string;
+      error: string;
+      timestamp: string;
+    },
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType:
+            OutboxEventType.FAILED_CANCEL_SUBSCRIPTION_IMMEDIATELY_PROCESSING,
           scheduledAt: new Date(),
           payload,
           ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
