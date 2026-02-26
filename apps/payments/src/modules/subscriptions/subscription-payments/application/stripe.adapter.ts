@@ -124,7 +124,7 @@ export class StripeAdapter {
   ): Promise<void> {
     try {
       await this.stripe.subscriptions.update(subscriptionId, {
-        trial_end: customPeriodDateEnd,
+        cancel_at: customPeriodDateEnd,
         proration_behavior: 'none',
       });
     } catch (error) {

@@ -38,7 +38,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
 
-    const isExtensionSub = session.metadata.extensionSub === 'true';
+    const isExtensionSub: boolean = session.metadata.extensionSub === 'true';
 
     try {
       await this.retryService.executeWithRetry(async () => {
@@ -75,30 +75,29 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
-            status: PaymentStatus.SUCCESSFUL,
+            status: isExtensionSub
+              ? PaymentStatus.EXTENSION
+              : PaymentStatus.SUCCESSFUL,
             periodStart,
             periodEnd,
-            nextPaymentDate: periodEnd,
+            nextPaymentDate: isExtensionSub ? null : periodEnd,
             autoRenewal: isExtensionSub ? false : true,
           };
 
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
           if (isExtensionSub) {
-            await this.paymentsRepository.updateForExtension(
-              customPaymentId,
-              new Date(),
-            );
             await this.stripeAdapter.updateCustomerSubscriptionEndDate(
               activeSubscription.subscriptionId,
               periodEnd.getTime() / 1000,
             );
+            await this.stripeAdapter.cancelSubscriptionImmediately(
+              subscriptionId,
+            );
             await this.paymentsRepository.updateSubPeriodEndDate(
               activeSubscription.customPaymentId,
               periodEnd,
-            );
-            await this.stripeAdapter.cancelSubscriptionImmediately(
-              subscriptionId,
+              tx,
             );
           }
 
