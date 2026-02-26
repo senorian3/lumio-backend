@@ -21,6 +21,7 @@ export class StripeAdapter {
     amount: number,
     profileId: string,
     currency: string,
+    extensionSub: boolean,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
@@ -32,8 +33,10 @@ export class StripeAdapter {
         success_url: this.coreConfig.stripeSuccessUrl,
         cancel_url: this.coreConfig.stripeCancelUrl,
         metadata: {
+          profileId: profileId,
           customPaymentId: `${profileId}-${nowDate}`,
           subscriptionType: subscriptionType,
+          extensionSub: extensionSub.toString(),
         },
         line_items: [
           {
@@ -41,7 +44,7 @@ export class StripeAdapter {
               currency: currency.toLowerCase(),
               product_data: {
                 name: 'Бизнес подписка',
-                description: `Подписка на ${config.description} с автоматическим продлением`,
+                description: `Подписка на ${config.description}`,
               },
               unit_amount: Math.round(amount * 100),
               recurring: {
@@ -55,7 +58,6 @@ export class StripeAdapter {
         mode: 'subscription',
         billing_address_collection: 'auto',
         payment_method_types: ['card'],
-
         expires_at: expiresAt,
       });
 
@@ -116,7 +118,7 @@ export class StripeAdapter {
     }
   }
 
-  async updateCustmerSubscriptionEndDate(
+  async updateCustomerSubscriptionEndDate(
     subscriptionId: string,
     customPeriodDateEnd: number,
   ): Promise<void> {

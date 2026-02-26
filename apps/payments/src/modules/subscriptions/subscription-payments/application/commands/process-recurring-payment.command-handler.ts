@@ -38,6 +38,8 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         )
           return;
 
+        if (invoice.metadata?.extensionSub === 'true') return;
+
         const subscriptionId = invoice.parent.subscription_details
           .subscription as string;
 

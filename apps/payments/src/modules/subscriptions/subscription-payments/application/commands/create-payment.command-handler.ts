@@ -31,11 +31,10 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         +dto.profileId,
       );
 
+    let extensionSub = false;
+
     if (activeSubscription) {
-      throw BadRequestDomainException.create(
-        `User with profileId ${activeSubscription.profileId} already has active subscription: ${activeSubscription.subscriptionType}`,
-        'profileId',
-      );
+      extensionSub = true;
     }
 
     const amount: number = SUBSCRIPTION_PRICES[dto.subscriptionType];
@@ -48,6 +47,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         amount,
         dto.profileId,
         dto.currency,
+        extensionSub,
       );
     } catch (error) {
       throw BadRequestDomainException.create(

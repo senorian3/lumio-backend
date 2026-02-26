@@ -8,6 +8,7 @@ export enum PaymentStatus {
   SUCCESSFUL = 'successful',
   CANCELLED = `cancelled`,
   COMPLETED = 'completed',
+  EXTENSION = 'extension',
 }
 
 export const subscriptionConfigs = {

@@ -10,5 +10,6 @@ export class CreatePaymentCompleteMessageDto {
     public periodEnd: Date,
     public timestamp: string,
     public paymentsService: string,
+    public isExtensionSub: boolean,
   ) {}
 }

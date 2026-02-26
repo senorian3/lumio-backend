@@ -133,7 +133,7 @@ export class PaymentsRepository {
         cancelledAt: null,
         nextPaymentDate: { gt: now },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
@@ -166,6 +166,21 @@ export class PaymentsRepository {
     });
   }
 
+  async updateForExtension(
+    customPaymentId: string,
+    cancelledAt: Date,
+    tx?: any,
+  ): Promise<Payment> {
+    const client = tx || this.prisma;
+    return client.payment.update({
+      where: { customPaymentId },
+      data: {
+        status: PaymentStatus.EXTENSION,
+        cancelledAt: cancelledAt,
+      },
+    });
+  }
+
   async deleteExpiredPendingPayments(createdBefore: Date): Promise<number> {
     const result = await this.prisma.payment.deleteMany({
       where: {
@@ -174,5 +189,17 @@ export class PaymentsRepository {
       },
     });
     return result.count;
+  }
+
+  async updateSubPeriodEndDate(
+    customPaymentId: string,
+    periodEnd: Date,
+  ): Promise<Payment> {
+    return this.prisma.payment.update({
+      where: { customPaymentId },
+      data: {
+        periodEnd,
+      },
+    });
   }
 }

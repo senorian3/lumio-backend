@@ -38,8 +38,15 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
 
+    const isExtensionSub = session.metadata.extensionSub === 'true';
+
     try {
       await this.retryService.executeWithRetry(async () => {
+        const activeSubscription =
+          await this.paymentsRepository.findActiveSubscriptionByProfileId(
+            +session.metadata.profileId,
+          );
+
         const currentPayment =
           await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
 
@@ -55,8 +62,12 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
+        const startDate = isExtensionSub
+          ? activeSubscription.nextPaymentDate
+          : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
+
         const { periodStart, periodEnd } = this.calculatePeriodDates(
-          subscriptionDetails.billing_cycle_anchor,
+          startDate,
           currentPayment.subscriptionType,
         );
 
@@ -68,9 +79,28 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             periodStart,
             periodEnd,
             nextPaymentDate: periodEnd,
+            autoRenewal: isExtensionSub ? false : true,
           };
 
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
+
+          if (isExtensionSub) {
+            await this.paymentsRepository.updateForExtension(
+              customPaymentId,
+              new Date(),
+            );
+            await this.stripeAdapter.updateCustomerSubscriptionEndDate(
+              activeSubscription.subscriptionId,
+              periodEnd.getTime() / 1000,
+            );
+            await this.paymentsRepository.updateSubPeriodEndDate(
+              activeSubscription.customPaymentId,
+              periodEnd,
+            );
+            await this.stripeAdapter.cancelSubscriptionImmediately(
+              subscriptionId,
+            );
+          }
 
           const createPaymentData: CreatePaymentCompleteMessageDto = {
             paymentId: customPaymentId,
@@ -83,6 +113,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             periodEnd,
             timestamp: new Date().toISOString(),
             paymentsService: currentPayment.paymentProvider,
+            isExtensionSub,
           };
 
           await this.outboxService.createPaymentCompletedMessage(
@@ -110,11 +141,9 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   }
 
   private calculatePeriodDates(
-    billingCycleAnchor: number,
+    periodStart: Date,
     subscriptionType: string,
   ): { periodStart: Date; periodEnd: Date } {
-    const periodStart = new Date(billingCycleAnchor * 1000);
-
     let periodDuration: number;
 
     if (subscriptionType.includes('week')) {
