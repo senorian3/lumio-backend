@@ -27,10 +27,14 @@ import {
   SUBSCRIPTION_PAYMENTS_BASE,
   SUBSCRIPTION_PAYMENTS_ROUTES,
 } from '@payments/core/routes/subscription-payments-routes';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly stripeAdapter: StripeAdapter,
+  ) {}
 
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
   @ApiCreateSubscriptionPayment()

@@ -9,6 +9,7 @@ import { ManualReviewService } from '../manual-review.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { RetryService } from '../retry.service';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 
 export class ProcessRecurringPaymentCommand {
   constructor(public readonly invoice: Stripe.Invoice) {}
@@ -26,6 +27,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
     private readonly manualReviewService: ManualReviewService,
     private readonly logger: AppLoggerService,
     private readonly retryService: RetryService,
+    private readonly stripeAdapter: StripeAdapter,
   ) {}
 
   async execute(command: ProcessRecurringPaymentCommand): Promise<void> {
@@ -38,10 +40,15 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         )
           return;
 
-        if (invoice.metadata?.extensionSub === 'true') return;
-
         const subscriptionId = invoice.parent.subscription_details
           .subscription as string;
+
+        const isExtension =
+          await this.stripeAdapter.isExtensionSubscription(subscriptionId);
+
+        if (isExtension) {
+          return;
+        }
 
         const existingPayment =
           await this.paymentsRepository.findBySubscriptionId(subscriptionId);

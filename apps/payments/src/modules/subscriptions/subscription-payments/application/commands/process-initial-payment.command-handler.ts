@@ -37,7 +37,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const { session } = command;
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
-
     const isExtensionSub: boolean = session.metadata.extensionSub === 'true';
 
     try {
@@ -51,19 +50,16 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
 
         if (!currentPayment) {
-          this.logger.error(
+          throw new Error(
             `Payment with customPaymentId ${customPaymentId} not found`,
-            this.paymentsRepository.findByCustomPaymentId.name,
-            ProcessInitialPaymentCommand.name,
           );
-          throw new Error();
         }
 
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
         const startDate = isExtensionSub
-          ? activeSubscription.nextPaymentDate
+          ? activeSubscription!.periodEnd || activeSubscription!.nextPaymentDate
           : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
@@ -80,34 +76,33 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
               : PaymentStatus.SUCCESSFUL,
             periodStart,
             periodEnd,
-            nextPaymentDate: isExtensionSub ? null : periodEnd,
+            nextPaymentDate: periodEnd,
             autoRenewal: isExtensionSub ? false : true,
           };
 
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
           if (isExtensionSub) {
+            await this.paymentsRepository.updateSubPeriodEndDate(
+              activeSubscription!.customPaymentId,
+              periodEnd,
+              tx,
+            );
+
             await this.outboxService.createUpdateCustomerSubscriptionEndDateMessage(
               {
-                subscriptionId: activeSubscription.subscriptionId,
+                subscriptionId: activeSubscription!.subscriptionId,
                 periodEndDate: periodEnd.getTime() / 1000,
                 timestamp: new Date().toISOString(),
               },
               tx,
             );
 
-            await this.outboxService.createCancelSubscriptionImmediatelyMessage(
+            await this.stripeAdapter.updateSubscriptionMetadata(
+              activeSubscription.subscriptionId,
               {
-                subscriptionId,
-                timestamp: new Date().toISOString(),
+                extensionSub: 'true',
               },
-              tx,
-            );
-
-            await this.paymentsRepository.updateSubPeriodEndDate(
-              activeSubscription.customPaymentId,
-              periodEnd,
-              tx,
             );
           }
 
@@ -117,7 +112,9 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             amount: currentPayment.amount,
             currency: currentPayment.currency,
             subscriptionId,
-            subscriptionType: currentPayment.subscriptionType,
+            subscriptionType: isExtensionSub
+              ? activeSubscription.subscriptionId
+              : currentPayment.subscriptionType,
             periodStart,
             periodEnd,
             timestamp: new Date().toISOString(),
@@ -132,19 +129,10 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         });
       });
     } catch (error) {
-      try {
-        await this.manualReviewService.createFailedInitialPaymentTask(
-          session,
-          error,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Critical error processing initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
-          error.stack,
-          ProcessInitialPaymentCommand.name,
-        );
-      }
-
+      await this.manualReviewService.createFailedInitialPaymentTask(
+        session,
+        error,
+      );
       throw error;
     }
   }

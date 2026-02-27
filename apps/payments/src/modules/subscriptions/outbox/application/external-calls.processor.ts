@@ -175,7 +175,7 @@ export class ExternalCallsProcessor {
       message.payload as unknown as UpdateCustomerSubscriptionEndDateDto;
 
     try {
-      await this.stripeAdapter.updateCustomerSubscriptionEndDate(
+      await this.stripeAdapter.updateCustmerSubscriptionEndDate(
         payload.subscriptionId,
         payload.periodEndDate,
       );

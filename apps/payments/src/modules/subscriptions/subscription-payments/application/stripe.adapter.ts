@@ -138,4 +138,41 @@ export class StripeAdapter {
       throw error;
     }
   }
+
+  async updateCustmerSubscriptionEndDate(
+    subscriptionId: string,
+    customPeriodDateEnd: number,
+  ): Promise<void> {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        trial_end: customPeriodDateEnd,
+        proration_behavior: 'none',
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async isExtensionSubscription(subscriptionId: string): Promise<boolean> {
+    try {
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
+      return subscription.metadata?.extensionSub === 'true';
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateSubscriptionMetadata(
+    subscriptionId: string,
+    metadata: Record<string, string>,
+  ): Promise<void> {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        metadata,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 }
