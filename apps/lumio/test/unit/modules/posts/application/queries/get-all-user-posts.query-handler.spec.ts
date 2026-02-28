@@ -80,7 +80,11 @@ describe('GetAllUserPostsQueryHandler', () => {
   describe('execute', () => {
     it('should return paginated posts successfully', async () => {
       // Arrange
-      const query = new GetAllUserPostsQuery(mockUserId, mockQueryParams);
+      const query = new GetAllUserPostsQuery(
+        mockUserId,
+        mockQueryParams,
+        mockUserId,
+      );
 
       mockQueryPostRepository.findUserPosts.mockResolvedValue(
         mockPaginatedResult,
@@ -112,7 +116,11 @@ describe('GetAllUserPostsQueryHandler', () => {
 
     it('should return empty result when no posts found', async () => {
       // Arrange
-      const query = new GetAllUserPostsQuery(mockUserId, mockQueryParams);
+      const query = new GetAllUserPostsQuery(
+        mockUserId,
+        mockQueryParams,
+        mockUserId,
+      );
       const emptyResult: PaginatedViewDto<any[]> = {
         page: 1,
         pageSize: 10,
@@ -133,6 +141,7 @@ describe('GetAllUserPostsQueryHandler', () => {
         pagesCount: 0,
         totalCount: 0,
         items: [],
+        role: 'author',
       });
     });
 
@@ -144,7 +153,11 @@ describe('GetAllUserPostsQueryHandler', () => {
       customQueryParams.sortBy = PostsSortBy.CREATED_AT;
       customQueryParams.sortDirection = SortDirection.Asc;
 
-      const query = new GetAllUserPostsQuery(mockUserId, customQueryParams);
+      const query = new GetAllUserPostsQuery(
+        mockUserId,
+        customQueryParams,
+        mockUserId,
+      );
       const paginatedResult: PaginatedViewDto<any[]> = {
         page: 2,
         pageSize: 5,
@@ -172,7 +185,11 @@ describe('GetAllUserPostsQueryHandler', () => {
 
     it('should handle database error when finding posts', async () => {
       // Arrange
-      const query = new GetAllUserPostsQuery(mockUserId, mockQueryParams);
+      const query = new GetAllUserPostsQuery(
+        mockUserId,
+        mockQueryParams,
+        mockUserId,
+      );
       const dbError = new Error('Database connection failed');
 
       mockQueryPostRepository.findUserPosts.mockRejectedValue(dbError);
@@ -194,7 +211,11 @@ describe('GetAllUserPostsQueryHandler', () => {
       sortQueryParams.sortBy = PostsSortBy.CREATED_AT;
       sortQueryParams.sortDirection = SortDirection.Asc;
 
-      const query = new GetAllUserPostsQuery(mockUserId, sortQueryParams);
+      const query = new GetAllUserPostsQuery(
+        mockUserId,
+        sortQueryParams,
+        mockUserId,
+      );
 
       mockQueryPostRepository.findUserPosts.mockResolvedValue(
         mockPaginatedResult,

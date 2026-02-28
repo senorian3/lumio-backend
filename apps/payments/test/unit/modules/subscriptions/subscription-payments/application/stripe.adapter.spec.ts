@@ -80,6 +80,7 @@ describe('StripeAdapter', () => {
         1000,
         '1',
         'RUB',
+        false,
       );
 
       // Assert
@@ -95,7 +96,7 @@ describe('StripeAdapter', () => {
 
       // Act & Assert
       await expect(
-        adapter.createPaymentSession('1 month', 1000, '1', 'RUB'),
+        adapter.createPaymentSession('1 month', 1000, '1', 'RUB', false),
       ).rejects.toThrow('Stripe error');
     });
   });

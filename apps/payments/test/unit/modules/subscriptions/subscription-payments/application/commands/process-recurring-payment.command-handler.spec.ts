@@ -5,12 +5,12 @@ import { PrismaService } from '@payments/prisma/prisma.service';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { RetryService } from '@payments/modules/subscriptions/subscription-payments/application/retry.service';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import {
   ProcessRecurringPaymentCommandHandler,
   ProcessRecurringPaymentCommand,
 } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
 import Stripe from 'stripe';
-
 describe('ProcessRecurringPaymentCommandHandler', () => {
   let handler: ProcessRecurringPaymentCommandHandler;
   let mockPaymentsRepository: jest.Mocked<PaymentsRepository>;
@@ -100,9 +100,15 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
             executeWithRetry: jest.fn((fn) => fn()),
           },
         },
+        {
+          provide: StripeAdapter,
+          useValue: {
+            getSubscriptionDetails: jest.fn(),
+            isExtensionSubscription: jest.fn(),
+          },
+        },
       ],
     }).compile();
-
     handler = module.get<ProcessRecurringPaymentCommandHandler>(
       ProcessRecurringPaymentCommandHandler,
     );

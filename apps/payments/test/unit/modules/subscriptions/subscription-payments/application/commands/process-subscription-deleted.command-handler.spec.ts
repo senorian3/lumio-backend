@@ -10,6 +10,7 @@ import {
   ProcessSubscriptionDeletedCommandHandler,
   ProcessSubscriptionDeletedCommand,
 } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-subscription-deleted.command-handler';
+import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import Stripe from 'stripe';
 
 describe('ProcessSubscriptionDeletedCommandHandler', () => {
@@ -20,6 +21,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
   let mockPrisma: any;
   let mockRetryService: jest.Mocked<RetryService>;
   let mockManualReviewService: jest.Mocked<ManualReviewService>;
+  let mockStripeAdapter: jest.Mocked<StripeAdapter>;
 
   const mockEvent = {
     id: 'evt_123',
@@ -80,6 +82,12 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
             createFailedSubscriptionDeletedTask: jest.fn(),
           },
         },
+        {
+          provide: StripeAdapter,
+          useValue: {
+            getSubscriptionDetails: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -91,6 +99,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
     mockOutboxService = module.get(OutboxService);
     mockRetryService = module.get(RetryService);
     mockManualReviewService = module.get(ManualReviewService);
+    mockStripeAdapter = module.get(StripeAdapter);
   });
 
   it('should be defined', () => {
@@ -102,6 +111,15 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       // Arrange
       const command = new ProcessSubscriptionDeletedCommand(mockEvent);
 
+      const mockSubscriptionDetails = {
+        metadata: {
+          cancelled_by: 'user',
+        },
+      } as any;
+
+      mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
+        mockSubscriptionDetails,
+      );
       mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
         mockPayment as any,
       );
@@ -114,6 +132,9 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       await handler.execute(command);
 
       // Assert
+      expect(mockStripeAdapter.getSubscriptionDetails).toHaveBeenCalledWith(
+        'sub_123',
+      );
       expect(mockPaymentsRepository.findBySubscriptionId).toHaveBeenCalledWith(
         'sub_123',
       );

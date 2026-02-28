@@ -48,6 +48,7 @@ describe('HandlePaymentCompletedCommandHandler', () => {
     periodEnd: new Date('2024-02-01'),
     timestamp: new Date().toISOString(),
     paymentsService: 'yookassa',
+    isExtensionSub: false,
   };
 
   beforeEach(async () => {

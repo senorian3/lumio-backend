@@ -65,6 +65,11 @@ describe('ManualReviewService', () => {
       // Arrange
       const mockInvoice = {
         id: 'in_test_123',
+        parent: {
+          subscription_details: {
+            subscription: 'sub_123',
+          },
+        },
         lines: {
           data: [{ subscription: 'sub_123' }],
         },
@@ -81,12 +86,12 @@ describe('ManualReviewService', () => {
         expect.objectContaining({
           type: OutboxEventType.FAILED_RECURRING_PAYMENT_PROCESSING,
           invoiceId: mockInvoice.id,
-          subscriptionId: 'sub_123',
+          subscriptionId: mockInvoice.parent.subscription_details.subscription,
           error: error.message,
           retryCount: 5,
         }),
-        undefined,
-        'payment',
+        mockInvoice.parent.subscription_details.subscription,
+        'subscription',
       );
     });
   });
@@ -141,8 +146,8 @@ describe('ManualReviewService', () => {
           error: error.message,
           retryCount: 5,
         }),
-        undefined,
-        'payment',
+        subscriptionId,
+        'subscription',
       );
     });
   });

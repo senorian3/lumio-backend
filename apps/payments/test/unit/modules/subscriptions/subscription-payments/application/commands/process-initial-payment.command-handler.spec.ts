@@ -16,7 +16,6 @@ describe('ProcessInitialPaymentCommandHandler', () => {
   let handler: ProcessInitialPaymentCommandHandler;
   let mockPaymentsRepository: jest.Mocked<PaymentsRepository>;
   let mockStripeAdapter: jest.Mocked<StripeAdapter>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
   let mockOutboxService: jest.Mocked<OutboxService>;
   let mockPrisma: any;
   let mockManualReviewService: jest.Mocked<ManualReviewService>;
@@ -60,12 +59,14 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           useValue: {
             findByCustomPaymentId: jest.fn(),
             updatePayment: jest.fn(),
+            findActiveSubscriptionByProfileId: jest.fn(),
           },
         },
         {
           provide: StripeAdapter,
           useValue: {
             getSubscriptionDetails: jest.fn(),
+            isExtensionSubscription: jest.fn(),
           },
         },
         {
@@ -104,7 +105,6 @@ describe('ProcessInitialPaymentCommandHandler', () => {
     );
     mockPaymentsRepository = module.get(PaymentsRepository);
     mockStripeAdapter = module.get(StripeAdapter);
-    mockLogger = module.get(AppLoggerService);
     mockOutboxService = module.get(OutboxService);
     mockManualReviewService = module.get(ManualReviewService);
     mockRetryService = module.get(RetryService);
@@ -191,13 +191,15 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         throw processError;
       });
       mockManualReviewService.createFailedInitialPaymentTask.mockRejectedValue(
-        new Error('Manual review error'),
+        new Error('Processing error'),
       );
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(processError);
 
-      expect(mockLogger.error).toHaveBeenCalled();
+      expect(
+        mockManualReviewService.createFailedInitialPaymentTask,
+      ).toHaveBeenCalled();
     });
   });
 });
