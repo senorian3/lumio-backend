@@ -21,11 +21,7 @@ export function ApiGetUserPosts() {
             page: 1,
             pageSize: 10,
             totalCount: 5,
-            role: {
-              type: 'string',
-              example: 'viewer',
-              enum: ['viewer', 'author'],
-            },
+            role: 'viewer',
             items: [
               {
                 id: 'a16e733a-30a4-49c8-a923-61e34928aace',
