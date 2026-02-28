@@ -39,6 +39,8 @@ import { GetProfilePostQuery } from '../application/queries/get-profile-post.que
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
 import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by-post-id.decorator';
+import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
+import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
 
 @Controller(POST_BASE)
 export class PostsController {
@@ -47,32 +49,33 @@ export class PostsController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get(POST_ROUTES.GET_MY_POSTS)
+  @Get(':userId')
   @ApiGetMyPosts()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   async getAllUserPosts(
+    @Param('userId') userId: number,
     @Query()
     query: GetPostsQueryParams,
     @Req() req: any,
-  ): Promise<PaginatedViewDto<PostView[]>> {
+  ): Promise<PaginatedPostViewDto> {
     return await this.queryBus.execute<
       GetAllUserPostsQuery,
-      PaginatedViewDto<PostView[]>
-    >(new GetAllUserPostsQuery(req.user.userId, query));
+      PaginatedPostViewDto
+    >(new GetAllUserPostsQuery(req.user?.userId ?? null, query, userId));
   }
 
-  @Get(':userId')
+  @Get(':profileId')
   @ApiGetProfilePost()
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('profileId', ParseIntPipe) profileId: number,
     @Query('postId') postId: string,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
       PostView
-    >(new GetProfilePostQuery(userId, postId));
+    >(new GetProfilePostQuery(profileId, postId));
 
     return profilePost;
   }

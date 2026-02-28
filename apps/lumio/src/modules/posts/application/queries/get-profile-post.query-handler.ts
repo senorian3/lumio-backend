@@ -6,7 +6,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 
 export class GetProfilePostQuery {
   constructor(
-    public userId: number,
+    public profileId: number,
     public postId: string,
   ) {}
 }
@@ -22,12 +22,21 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
   ) {}
 
   async execute(query: GetProfilePostQuery): Promise<PostView> {
+    const profile =
+      await this.externalQueryUserAccountsRepository.getProfileById(
+        query.profileId,
+      );
+
+    if (!profile) {
+      throw NotFoundDomainException.create('Profile is not found', 'profileId');
+    }
+
     const user = await this.externalQueryUserAccountsRepository.findUserId(
-      query.userId,
+      profile.userId,
     );
 
-    if (!user) {
-      throw NotFoundDomainException.create('Profile is not found', 'userId');
+    if (!profile) {
+      throw NotFoundDomainException.create('User is not found', 'userId');
     }
 
     if (!query.postId) {
@@ -36,7 +45,7 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
 
     const post = await this.postRepository.findById(query.postId);
 
-    if (!post || post.deletedAt !== null || post.userId !== query.userId) {
+    if (!post || post.deletedAt !== null || post.userId !== profile.userId) {
       throw NotFoundDomainException.create('Post is not found', 'postId');
     }
 
