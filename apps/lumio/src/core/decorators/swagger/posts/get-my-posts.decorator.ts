@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
-export function ApiGetMyPosts() {
+export function ApiGetUserPosts() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
@@ -21,6 +21,11 @@ export function ApiGetMyPosts() {
             page: 1,
             pageSize: 10,
             totalCount: 5,
+            role: {
+              type: 'string',
+              example: 'viewer',
+              enum: ['viewer', 'author'],
+            },
             items: [
               {
                 id: 'a16e733a-30a4-49c8-a923-61e34928aace',
@@ -34,52 +39,6 @@ export function ApiGetMyPosts() {
                     postId: 65,
                   },
                 ],
-              },
-            ],
-          },
-        },
-      },
-    }),
-
-    ApiResponse({
-      status: 401,
-      description: 'Unauthorized',
-      examples: {
-        no_access_token: {
-          summary: 'No access token in request',
-          value: {
-            errorsMessages: [],
-          },
-        },
-        token_version_mismatch: {
-          summary: 'Token version is expired',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Token version mismatch - token is invalidated',
-                field: 'tokenVersion',
-              },
-            ],
-          },
-        },
-        invalid_jwt_data: {
-          summary: 'Invalid user data in JWT',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Invalid user data in JWT',
-                field: 'user',
-              },
-            ],
-          },
-        },
-        no_active_session: {
-          summary: 'User does not have active session',
-          value: {
-            errorsMessages: [
-              {
-                message: "User doesn't have active session",
-                field: 'session',
               },
             ],
           },

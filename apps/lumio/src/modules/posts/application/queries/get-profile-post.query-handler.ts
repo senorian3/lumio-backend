@@ -35,8 +35,8 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
       profile.userId,
     );
 
-    if (!profile) {
-      throw NotFoundDomainException.create('User is not found', 'userId');
+    if (!user) {
+      throw NotFoundDomainException.create('User is not found', 'profileId');
     }
 
     if (!query.postId) {

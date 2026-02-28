@@ -29,12 +29,11 @@ import { InputUpdatePostDto } from './dto/input/update-post.input.dto';
 import { PostView } from './dto/output/post.output.dto';
 import { ApiUpdatePost } from '@lumio/core/decorators/swagger/posts/update-post.decorator';
 import { ApiDeletePost } from '@lumio/core/decorators/swagger/posts/delete-post.decorator';
-import { ApiGetMyPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
+import { ApiGetUserPosts } from '@lumio/core/decorators/swagger/posts/get-my-posts.decorator';
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
-import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
-import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { POST_BASE } from '@lumio/core/routes/post-routes';
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
@@ -50,7 +49,7 @@ export class PostsController {
   ) {}
 
   @Get(':userId')
-  @ApiGetMyPosts()
+  @ApiGetUserPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(OptionalJwtAuthGuard)
   async getAllUserPosts(
