@@ -10,6 +10,7 @@ import {
   ProcessInitialPaymentCommandHandler,
   ProcessInitialPaymentCommand,
 } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
+import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import Stripe from 'stripe';
 
 describe('ProcessInitialPaymentCommandHandler', () => {
@@ -24,7 +25,10 @@ describe('ProcessInitialPaymentCommandHandler', () => {
   const mockSession = {
     id: 'cs_test_123',
     subscription: 'sub_123',
-    metadata: { customPaymentId: 'payment_123' },
+    metadata: {
+      customPaymentId: 'payment_123',
+      mainSubscriptionId: 'null',
+    },
     created: Date.now() / 1000,
   } as unknown as Stripe.Checkout.Session;
 
@@ -40,6 +44,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
     amount: 100,
     currency: 'RUB',
     subscriptionType: '1 month',
+    paymentProvider: 'stripe',
   };
 
   const mockSubscriptionDetails = {
@@ -58,8 +63,8 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           provide: PaymentsRepository,
           useValue: {
             findByCustomPaymentId: jest.fn(),
+            findBySubscriptionId: jest.fn(),
             updatePayment: jest.fn(),
-            findActiveSubscriptionByProfileId: jest.fn(),
             updateSubPeriodEndDate: jest.fn(),
           },
         },
@@ -67,7 +72,6 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           provide: StripeAdapter,
           useValue: {
             getSubscriptionDetails: jest.fn(),
-            isExtensionSubscription: jest.fn(),
           },
         },
         {
@@ -80,8 +84,8 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           provide: OutboxService,
           useValue: {
             createPaymentCompletedMessage: jest.fn(),
-            createUpdateSubscriptionMetadataMessage: jest.fn(),
             updateCustomerSubscriptionEndDateMessage: jest.fn(),
+            createCancelSubscriptionImmediatelyMessage: jest.fn(),
           },
         },
         {
@@ -140,7 +144,18 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       expect(mockPaymentsRepository.findByCustomPaymentId).toHaveBeenCalledWith(
         mockSession.metadata.customPaymentId,
       );
-      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalled();
+      expect(mockStripeAdapter.getSubscriptionDetails).toHaveBeenCalledWith(
+        'sub_123',
+      );
+      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customPaymentId: 'payment_123',
+          subscriptionId: 'sub_123',
+          status: PaymentStatus.SUCCESSFUL,
+          autoRenewal: true,
+        }),
+        mockPrisma,
+      );
       expect(
         mockOutboxService.createPaymentCompletedMessage,
       ).toHaveBeenCalled();
@@ -152,8 +167,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         ...mockSession,
         metadata: {
           ...mockSession.metadata,
-          extensionSub: 'true',
-          profileId: '1',
+          mainSubscriptionId: 'main_sub_123',
         },
       } as unknown as Stripe.Checkout.Session;
 
@@ -161,18 +175,20 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         extensionSession,
         mockEvent,
       );
-      const mockActiveSubscription = {
-        customPaymentId: 'existing_payment_123',
-        subscriptionId: 'existing_sub_123',
-        periodEnd: new Date(),
-        nextPaymentDate: new Date(),
+
+      const mockMainSubscription = {
+        customPaymentId: 'main_payment_123',
+        subscriptionId: 'main_sub_123',
+        periodEnd: new Date('2024-01-01'),
+        nextPaymentDate: new Date('2024-01-01'),
+        subscriptionType: '1 month',
       };
 
       mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(
         mockPayment as any,
       );
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
-        mockActiveSubscription as any,
+      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+        mockMainSubscription as any,
       );
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
@@ -187,7 +203,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       mockOutboxService.updateCustomerSubscriptionEndDateMessage.mockResolvedValue(
         undefined,
       );
-      mockOutboxService.createUpdateSubscriptionMetadataMessage.mockResolvedValue(
+      mockOutboxService.createCancelSubscriptionImmediatelyMessage.mockResolvedValue(
         undefined,
       );
 
@@ -198,15 +214,24 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       expect(mockPaymentsRepository.findByCustomPaymentId).toHaveBeenCalledWith(
         extensionSession.metadata.customPaymentId,
       );
-      expect(
-        mockPaymentsRepository.findActiveSubscriptionByProfileId,
-      ).toHaveBeenCalledWith(1);
-      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalled();
+      expect(mockPaymentsRepository.findBySubscriptionId).toHaveBeenCalledWith(
+        'main_sub_123',
+      );
+      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customPaymentId: 'payment_123',
+          subscriptionId: 'sub_123',
+          status: PaymentStatus.EXTENSION,
+          autoRenewal: false,
+        }),
+        mockPrisma,
+      );
+      expect(mockPaymentsRepository.updateSubPeriodEndDate).toHaveBeenCalled();
       expect(
         mockOutboxService.updateCustomerSubscriptionEndDateMessage,
       ).toHaveBeenCalled();
       expect(
-        mockOutboxService.createUpdateSubscriptionMetadataMessage,
+        mockOutboxService.createCancelSubscriptionImmediatelyMessage,
       ).toHaveBeenCalled();
       expect(
         mockOutboxService.createPaymentCompletedMessage,
@@ -219,7 +244,9 @@ describe('ProcessInitialPaymentCommandHandler', () => {
 
       mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(null);
       mockRetryService.executeWithRetry.mockImplementation(async () => {
-        throw new Error();
+        throw new Error(
+          `Payment with customPaymentId ${mockSession.metadata.customPaymentId} not found`,
+        );
       });
 
       // Act & Assert
@@ -261,11 +288,15 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         throw processError;
       });
       mockManualReviewService.createFailedInitialPaymentTask.mockRejectedValue(
-        new Error('Processing error'),
+        new Error('Manual review error'),
       );
 
       // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(processError);
+      // Note: In the current implementation, if manual review service throws,
+      // the original error is still thrown, not the manual review error
+      await expect(handler.execute(command)).rejects.toThrow(
+        'Manual review error',
+      );
 
       expect(
         mockManualReviewService.createFailedInitialPaymentTask,

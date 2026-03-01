@@ -100,7 +100,35 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         SUBSCRIPTION_PRICES[mockDto.subscriptionType],
         mockDto.profileId,
         mockDto.currency,
-        false,
+        'null',
+      );
+      expect(result).toBe(mockSession.url);
+    });
+
+    it('should create payment session with existing subscription', async () => {
+      // Arrange
+      const command = new CreateSubscriptionPaymentCommand(mockDto);
+      const mockActiveSubscription = {
+        subscriptionId: 'sub_123',
+      };
+
+      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+        mockActiveSubscription as any,
+      );
+      mockStripeAdapter.createPaymentSession.mockResolvedValue(mockSession);
+      mockPaymentsRepository.createPayment.mockResolvedValue({
+        paymentsUrl: mockSession.url,
+      } as any);
+      // Act
+      const result = await handler.execute(command);
+
+      // Assert
+      expect(mockStripeAdapter.createPaymentSession).toHaveBeenCalledWith(
+        mockDto.subscriptionType,
+        SUBSCRIPTION_PRICES[mockDto.subscriptionType],
+        mockDto.profileId,
+        mockDto.currency,
+        'sub_123',
       );
       expect(result).toBe(mockSession.url);
     });
