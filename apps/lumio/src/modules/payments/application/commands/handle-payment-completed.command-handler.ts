@@ -6,6 +6,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -18,6 +19,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly paymentsRepository: PaymentsRepository,
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -30,7 +32,14 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       periodStart,
       periodEnd,
       paymentsService,
+      mainSubscriptionId,
     } = command.data.payload;
+
+    const isExtension = !!mainSubscriptionId;
+
+    const targetSubscriptionId = isExtension
+      ? mainSubscriptionId
+      : subscriptionId;
 
     const profile = await this.userRepository.getProfileById(profileId);
 
@@ -41,15 +50,41 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       );
     }
 
+    console.log(mainSubscriptionId);
+
+    if (isExtension) {
+      const existingSubscription =
+        await this.subscriptionRepository.findSubscriptionById(
+          targetSubscriptionId,
+        );
+
+      if (!existingSubscription) {
+        this.logger.error(
+          `Subscription for extension not found. ID: ${targetSubscriptionId}, Profile: ${profileId}`,
+          undefined,
+          HandlePaymentCompletedCommandHandler.name,
+        );
+        return;
+      }
+    }
+
     const startDate = new Date(periodStart);
     const endDate = new Date(periodEnd);
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        const subscription =
+        if (isExtension) {
+          await this.subscriptionRepository.updateSubscriptionWithNewPayment(
+            targetSubscriptionId,
+            subscriptionType,
+            endDate,
+            true,
+            tx,
+          );
+        } else {
           await this.subscriptionRepository.createSubscription(
             {
-              subscriptionId,
+              subscriptionId: targetSubscriptionId,
               durationType: subscriptionType,
               startDate,
               endDate,
@@ -58,6 +93,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             },
             tx,
           );
+        }
 
         await this.paymentsRepository.createPayment(
           {
@@ -65,7 +101,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             amount,
             currency,
             paymentsService: paymentsService,
-            subscriptionId: subscription.id,
+            subscriptionId: targetSubscriptionId,
             datePayment: startDate,
             endDate: endDate,
           },
@@ -79,6 +115,11 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
         );
       });
     } catch (error) {
+      this.logger.error(
+        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${targetSubscriptionId}, Error: ${error.messages}`,
+        error instanceof Error ? error.stack : undefined,
+        HandlePaymentCompletedCommand.name,
+      );
       throw error;
     }
   }
