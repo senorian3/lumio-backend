@@ -9,6 +9,7 @@ import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-su
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
 import { CreateSubscriptionDeletedMessageDto } from '@libs/dto/transfer/create-subscription-deleted-message.dto';
 import { UpdateCustomerSubscriptionEndDateDto } from '@libs/dto/transfer/update-customer-subscription-end-date.dto';
+import { UpdateSubscriptionMetadataDto } from '@libs/dto/transfer/update-subscription-metadata.dto';
 import { CancelSubscriptionImmediatelyDto } from '@libs/dto/transfer/cancel-subscription-immediately.dto';
 
 @Injectable()
@@ -217,7 +218,7 @@ export class OutboxService {
     });
   }
 
-  async createUpdateCustomerSubscriptionEndDateMessage(
+  async updateCustomerSubscriptionEndDateMessage(
     payload: UpdateCustomerSubscriptionEndDateDto,
     tx?: any,
   ): Promise<void> {
@@ -296,6 +297,49 @@ export class OutboxService {
       } catch (innerError) {
         this.logger.error(
           `Critical error creating outbox message for canceling subscription immediately ${payload.subscriptionId}: ${innerError.message}`,
+          innerError.stack,
+          OutboxService.name,
+        );
+        throw error;
+      }
+    }
+  }
+
+  async updateSubscriptionMetadataMessage(
+    payload: UpdateSubscriptionMetadataDto,
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType: OutboxEventType.UPDATE_SUBSCRIPTION_METADATA_STRIPE,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to create outbox message for updating subscription metadata ${payload.subscriptionId}: ${error.message}`,
+        error.stack,
+        OutboxService.name,
+      );
+
+      try {
+        await this.createFailedUpdateSubscriptionMetadataMessage(
+          {
+            subscriptionId: payload.subscriptionId,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+          tx,
+        );
+      } catch (innerError) {
+        this.logger.error(
+          `Critical error creating outbox message for updating subscription metadata ${payload.subscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );
@@ -450,6 +494,32 @@ export class OutboxService {
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType:
             OutboxEventType.FAILED_CANCEL_SUBSCRIPTION_IMMEDIATELY_PROCESSING,
+          scheduledAt: new Date(),
+          payload,
+          ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        tx,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async createFailedUpdateSubscriptionMetadataMessage(
+    payload: {
+      subscriptionId: string;
+      error: string;
+      timestamp: string;
+    },
+    tx?: any,
+  ): Promise<void> {
+    try {
+      await this.outboxRepository.createOutboxMessage(
+        {
+          aggregateId: payload.subscriptionId,
+          aggregateType: OutboxAggregateType.SUBSCRIPTION,
+          eventType:
+            OutboxEventType.FAILED_UPDATE_SUBSCRIPTION_METADATA_PROCESSING,
           scheduledAt: new Date(),
           payload,
           ttl: new Date(Date.now() + 24 * 60 * 60 * 1000),

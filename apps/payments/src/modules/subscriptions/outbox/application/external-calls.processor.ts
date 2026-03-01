@@ -3,6 +3,7 @@ import { StripeAdapter } from '@payments/modules/subscriptions/subscription-paym
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { OutboxMessage } from 'generated/prisma-payments';
 import { UpdateCustomerSubscriptionEndDateDto } from '@libs/dto/transfer/update-customer-subscription-end-date.dto';
+import { UpdateSubscriptionMetadataDto } from '@libs/dto/transfer/update-subscription-metadata.dto';
 import { CancelSubscriptionImmediatelyDto } from '@libs/dto/transfer/cancel-subscription-immediately.dto';
 
 @Injectable()
@@ -175,7 +176,7 @@ export class ExternalCallsProcessor {
       message.payload as unknown as UpdateCustomerSubscriptionEndDateDto;
 
     try {
-      await this.stripeAdapter.updateCustmerSubscriptionEndDate(
+      await this.stripeAdapter.updateCustomerSubscriptionEndDate(
         payload.subscriptionId,
         payload.periodEndDate,
       );
@@ -206,6 +207,28 @@ export class ExternalCallsProcessor {
     } catch (error) {
       this.logger.error(
         `Failed to cancel subscription immediately for subscription ${payload.subscriptionId}: ${error.message}`,
+        error.stack,
+        ExternalCallsProcessor.name,
+      );
+      return false;
+    }
+  }
+
+  async processUpdateSubscriptionMetadata(
+    message: OutboxMessage,
+  ): Promise<boolean> {
+    const payload = message.payload as unknown as UpdateSubscriptionMetadataDto;
+
+    try {
+      await this.stripeAdapter.updateSubscriptionMetadata(
+        payload.subscriptionId,
+        payload.metadata,
+      );
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `Failed to update subscription metadata for subscription ${payload.subscriptionId}: ${error.message}`,
         error.stack,
         ExternalCallsProcessor.name,
       );

@@ -2,7 +2,6 @@ import { Stripe } from 'stripe';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
 import { StripeAdapter } from '../stripe.adapter';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
@@ -26,7 +25,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   constructor(
     private readonly paymentsRepository: PaymentsRepository,
     private readonly stripeAdapter: StripeAdapter,
-    private readonly logger: AppLoggerService,
     private readonly outboxService: OutboxService,
     private readonly prisma: PrismaService,
     private readonly manualReviewService: ManualReviewService,
@@ -37,14 +35,18 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const { session } = command;
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
-    const isExtensionSub: boolean = session.metadata.extensionSub === 'true';
+    const mainSubscriptionId: string | null =
+      session.metadata.mainSubscriptionId !== 'null'
+        ? session.metadata.mainSubscriptionId
+        : null;
 
     try {
       await this.retryService.executeWithRetry(async () => {
-        const activeSubscription =
-          await this.paymentsRepository.findActiveSubscriptionByProfileId(
-            +session.metadata.profileId,
-          );
+        const mainSubscription = mainSubscriptionId
+          ? await this.paymentsRepository.findBySubscriptionId(
+              mainSubscriptionId,
+            )
+          : null;
 
         const currentPayment =
           await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
@@ -58,8 +60,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
-        const startDate = isExtensionSub
-          ? activeSubscription!.periodEnd || activeSubscription!.nextPaymentDate
+        const startDate = mainSubscription
+          ? mainSubscription.periodEnd || mainSubscription.nextPaymentDate
           : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
@@ -71,39 +73,44 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
-            status: isExtensionSub
+            status: mainSubscription
               ? PaymentStatus.EXTENSION
               : PaymentStatus.SUCCESSFUL,
             periodStart,
             periodEnd,
             nextPaymentDate: periodEnd,
-            autoRenewal: isExtensionSub ? false : true,
+            autoRenewal: mainSubscription ? false : true,
           };
 
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 
-          if (isExtensionSub) {
+          if (mainSubscription) {
             await this.paymentsRepository.updateSubPeriodEndDate(
-              activeSubscription!.customPaymentId,
+              mainSubscription.customPaymentId,
+              subscriptionId,
               periodEnd,
               tx,
             );
 
-            await this.outboxService.createUpdateCustomerSubscriptionEndDateMessage(
+            await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
-                subscriptionId: activeSubscription!.subscriptionId,
+                subscriptionId: mainSubscription.subscriptionId,
                 periodEndDate: periodEnd.getTime() / 1000,
                 timestamp: new Date().toISOString(),
               },
               tx,
             );
 
-            await this.stripeAdapter.updateSubscriptionMetadata(
-              activeSubscription.subscriptionId,
-              {
-                extensionSub: 'true',
-              },
-            );
+            // await this.outboxService.updateSubscriptionMetadataMessage(
+            //   {
+            //     subscriptionId: mainSubscription.subscriptionId,
+            //     metadata: {
+            //       extensionSub: 'true',
+            //     },
+            //     timestamp: new Date().toISOString(),
+            //   },
+            //   tx,
+            // );
           }
 
           const createPaymentData: CreatePaymentCompleteMessageDto = {
@@ -111,15 +118,17 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             profileId: currentPayment.profileId,
             amount: currentPayment.amount,
             currency: currentPayment.currency,
-            subscriptionId,
-            subscriptionType: isExtensionSub
-              ? activeSubscription.subscriptionId
+            subscriptionId: mainSubscription
+              ? mainSubscription.subscriptionId
+              : subscriptionId,
+            subscriptionType: mainSubscription
+              ? mainSubscription.subscriptionType
               : currentPayment.subscriptionType,
             periodStart,
             periodEnd,
             timestamp: new Date().toISOString(),
             paymentsService: currentPayment.paymentProvider,
-            isExtensionSub,
+            mainSubscriptionId: mainSubscriptionId,
           };
 
           await this.outboxService.createPaymentCompletedMessage(

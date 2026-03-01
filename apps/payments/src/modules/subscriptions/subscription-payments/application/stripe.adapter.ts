@@ -21,7 +21,7 @@ export class StripeAdapter {
     amount: number,
     profileId: string,
     currency: string,
-    extensionSub: boolean,
+    subscriptionId: string,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
@@ -36,7 +36,7 @@ export class StripeAdapter {
           profileId: profileId,
           customPaymentId: `${profileId}-${nowDate}`,
           subscriptionType: subscriptionType,
-          extensionSub: extensionSub.toString(),
+          mainSubscriptionId: subscriptionId,
         },
         line_items: [
           {
@@ -125,21 +125,21 @@ export class StripeAdapter {
     }
   }
 
-  async updateCustomerSubscriptionEndDate(
-    subscriptionId: string,
-    customPeriodDateEnd: number,
-  ): Promise<void> {
-    try {
-      await this.stripe.subscriptions.update(subscriptionId, {
-        cancel_at: customPeriodDateEnd,
-        proration_behavior: 'none',
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
+  // async updateCustomerSubscriptionEndDate(
+  //   subscriptionId: string,
+  //   customPeriodDateEnd: number,
+  // ): Promise<void> {
+  //   try {
+  //     await this.stripe.subscriptions.update(subscriptionId, {
+  //       cancel_at: customPeriodDateEnd,
+  //       proration_behavior: 'none',
+  //     });
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  async updateCustmerSubscriptionEndDate(
+  async updateCustomerSubscriptionEndDate(
     subscriptionId: string,
     customPeriodDateEnd: number,
   ): Promise<void> {

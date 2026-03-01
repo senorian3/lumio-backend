@@ -1,12 +1,17 @@
 export enum StripeEventType {
-  SESSION_COMPLETED = 'checkout.session.completed',
   INVOICE_PAID = 'invoice.paid',
+  CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed',
   CUSTOMER_SUBSCRIPTION_DELETED = 'customer.subscription.deleted',
+}
+
+export enum StripeBillingReason {
+  SUBSCRIPTION_CREATE = 'subscription_create',
+  SUBSCRIPTION_CYCLE = 'subscription_cycle',
 }
 
 export enum PaymentStatus {
   SUCCESSFUL = 'successful',
-  CANCELLED = `cancelled`,
+  CANCELLED = 'cancelled',
   COMPLETED = 'completed',
   EXTENSION = 'extension',
 }

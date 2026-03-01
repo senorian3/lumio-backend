@@ -9,6 +9,7 @@ import Stripe from 'stripe';
 import {
   PaymentStatus,
   StripeEventType,
+  StripeBillingReason,
 } from '@payments/modules/subscriptions/constants/stripe-constants';
 
 export class StripeHookCommand {
@@ -37,25 +38,25 @@ export class StripeHookCommandHandler implements ICommandHandler<
         command.signature,
       );
 
-      switch (event.type) {
-        case StripeEventType.SESSION_COMPLETED:
-          await this.handleInitialPayment(event);
-          break;
+      if (event.type === StripeEventType.CHECKOUT_SESSION_COMPLETED) {
+        console.log('CHECKOUT_SESSION_COMPLETED');
+        await this.handleInitialPayment(event);
+      }
 
-        case StripeEventType.INVOICE_PAID:
-          await this.handleRecurringPayment(event);
-          break;
+      if (event.type === StripeEventType.CUSTOMER_SUBSCRIPTION_DELETED) {
+        console.log('CUSTOMER_SUBSCRIPTION_DELETED');
+        await this.handleSubscriptionDeleted(event);
+      }
 
-        case StripeEventType.CUSTOMER_SUBSCRIPTION_DELETED:
-          await this.handleSubscriptionDeleted(event);
-          break;
+      if (
+        event.type === StripeEventType.INVOICE_PAID &&
+        event.data.object.billing_reason ===
+          StripeBillingReason.SUBSCRIPTION_CYCLE
+      ) {
+        console.log('SUBSCRIPTION_CYCLE');
+        await this.handleRecurringPayment(event);
 
-        default:
-          this.logger.verbose(
-            `Пропущено событие: ${event.type}`,
-            'StripeWebhook',
-          );
-          return;
+        return;
       }
     } catch (error) {
       this.logger.error(
@@ -67,8 +68,10 @@ export class StripeHookCommandHandler implements ICommandHandler<
     }
   }
 
-  private async handleInitialPayment(event: Stripe.Event) {
-    const session = event.data.object as Stripe.Checkout.Session;
+  private async handleInitialPayment(
+    event: Stripe.CheckoutSessionCompletedEvent,
+  ) {
+    const session = event.data.object;
 
     if (session.payment_status !== 'paid') {
       return;

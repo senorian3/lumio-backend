@@ -60,6 +60,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
             findByCustomPaymentId: jest.fn(),
             updatePayment: jest.fn(),
             findActiveSubscriptionByProfileId: jest.fn(),
+            updateSubPeriodEndDate: jest.fn(),
           },
         },
         {
@@ -79,6 +80,8 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           provide: OutboxService,
           useValue: {
             createPaymentCompletedMessage: jest.fn(),
+            createUpdateSubscriptionMetadataMessage: jest.fn(),
+            updateCustomerSubscriptionEndDateMessage: jest.fn(),
           },
         },
         {
@@ -138,6 +141,73 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         mockSession.metadata.customPaymentId,
       );
       expect(mockPaymentsRepository.updatePayment).toHaveBeenCalled();
+      expect(
+        mockOutboxService.createPaymentCompletedMessage,
+      ).toHaveBeenCalled();
+    });
+
+    it('should process extension subscription payment successfully', async () => {
+      // Arrange
+      const extensionSession = {
+        ...mockSession,
+        metadata: {
+          ...mockSession.metadata,
+          extensionSub: 'true',
+          profileId: '1',
+        },
+      } as unknown as Stripe.Checkout.Session;
+
+      const command = new ProcessInitialPaymentCommand(
+        extensionSession,
+        mockEvent,
+      );
+      const mockActiveSubscription = {
+        customPaymentId: 'existing_payment_123',
+        subscriptionId: 'existing_sub_123',
+        periodEnd: new Date(),
+        nextPaymentDate: new Date(),
+      };
+
+      mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(
+        mockPayment as any,
+      );
+      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+        mockActiveSubscription as any,
+      );
+      mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
+        mockSubscriptionDetails,
+      );
+      mockPaymentsRepository.updatePayment.mockResolvedValue(undefined);
+      mockPaymentsRepository.updateSubPeriodEndDate.mockResolvedValue(
+        undefined,
+      );
+      mockOutboxService.createPaymentCompletedMessage.mockResolvedValue(
+        undefined,
+      );
+      mockOutboxService.updateCustomerSubscriptionEndDateMessage.mockResolvedValue(
+        undefined,
+      );
+      mockOutboxService.createUpdateSubscriptionMetadataMessage.mockResolvedValue(
+        undefined,
+      );
+
+      // Act
+      await handler.execute(command);
+
+      // Assert
+      expect(mockPaymentsRepository.findByCustomPaymentId).toHaveBeenCalledWith(
+        extensionSession.metadata.customPaymentId,
+      );
+      expect(
+        mockPaymentsRepository.findActiveSubscriptionByProfileId,
+      ).toHaveBeenCalledWith(1);
+      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalled();
+      expect(
+        mockOutboxService.updateCustomerSubscriptionEndDateMessage,
+      ).toHaveBeenCalled();
+      expect(
+        mockOutboxService.createUpdateSubscriptionMetadataMessage,
+      ).toHaveBeenCalled();
       expect(
         mockOutboxService.createPaymentCompletedMessage,
       ).toHaveBeenCalled();
