@@ -125,20 +125,6 @@ export class StripeAdapter {
     }
   }
 
-  // async updateCustomerSubscriptionEndDate(
-  //   subscriptionId: string,
-  //   customPeriodDateEnd: number,
-  // ): Promise<void> {
-  //   try {
-  //     await this.stripe.subscriptions.update(subscriptionId, {
-  //       cancel_at: customPeriodDateEnd,
-  //       proration_behavior: 'none',
-  //     });
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
   async updateCustomerSubscriptionEndDate(
     subscriptionId: string,
     customPeriodDateEnd: number,

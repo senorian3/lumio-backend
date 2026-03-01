@@ -24,7 +24,7 @@ describe('BasicAuthGuard', () => {
         switchToHttp: () => ({
           getRequest: () => ({
             headers: {
-              authorization: 'Basic YWRtaW46cXdlcnR5', // admin:qwerty
+              authorization: 'Basic YWRtaW46cXdlcnR5',
             },
           }),
         }),
@@ -69,7 +69,7 @@ describe('BasicAuthGuard', () => {
         switchToHttp: () => ({
           getRequest: () => ({
             headers: {
-              authorization: 'Basic dXNlcjpxd2VydHk=', // user:qwerty
+              authorization: 'Basic dXNlcjpxd2VydHk=',
             },
           }),
         }),
@@ -85,7 +85,7 @@ describe('BasicAuthGuard', () => {
         switchToHttp: () => ({
           getRequest: () => ({
             headers: {
-              authorization: 'Basic YWRtaW46d3Jvbmc=', // admin:wrong
+              authorization: 'Basic YWRtaW46d3Jvbmc=',
             },
           }),
         }),

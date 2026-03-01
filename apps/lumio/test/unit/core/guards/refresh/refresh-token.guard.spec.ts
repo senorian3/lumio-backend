@@ -128,7 +128,6 @@ describe('RefreshTokenGuard', () => {
       expect(mockSessionRepository.findSession).not.toHaveBeenCalled();
     });
 
-    // ИЗМЕНЕНИЕ ЗДЕСЬ: Guard не оборачивает JWT ошибки
     it('should throw Error when JWT verification fails', async () => {
       // Arrange
       const cookies = { refreshToken: 'invalid-token' };
@@ -139,7 +138,6 @@ describe('RefreshTokenGuard', () => {
       });
 
       // Act & Assert
-      // Guard пробрасывает ошибку JWT как есть, не оборачивая в DomainException
       await expect(guard.canActivate(context)).rejects.toThrow('Invalid token');
       await expect(guard.canActivate(context)).rejects.toThrow(Error);
 

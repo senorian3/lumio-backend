@@ -90,7 +90,6 @@ describe('GetCreatePostQueryHandler', () => {
 
       mockQueryPostRepository.findById.mockResolvedValue(mockPost);
 
-      // Mock PostView.fromEntity
       jest.spyOn(PostView, 'fromEntity').mockReturnValue(mockPostView);
 
       // Act
@@ -135,7 +134,6 @@ describe('GetCreatePostQueryHandler', () => {
 
       mockQueryPostRepository.findById.mockResolvedValue(mockPost);
 
-      // Mock PostView.fromEntity
       jest.spyOn(PostView, 'fromEntity').mockReturnValue(emptyFilesPostView);
 
       // Act
@@ -169,7 +167,6 @@ describe('GetCreatePostQueryHandler', () => {
 
       mockQueryPostRepository.findById.mockResolvedValue(mockPost);
 
-      // Mock PostView.fromEntity
       jest.spyOn(PostView, 'fromEntity').mockReturnValue(mockPostView);
 
       // Act

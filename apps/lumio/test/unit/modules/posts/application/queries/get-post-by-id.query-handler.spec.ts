@@ -254,7 +254,6 @@ describe('GetPostByIdQueryHandler', () => {
       // Arrange
       const query = new GetPostByIdQuery(mockPostId, mockUserId);
 
-      // Set up to track order of calls
       const callOrder: string[] = [];
 
       mockExternalQueryUserRepository.findUserId.mockImplementation(() => {

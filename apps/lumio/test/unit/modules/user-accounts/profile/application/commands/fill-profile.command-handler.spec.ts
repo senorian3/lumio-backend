@@ -188,7 +188,7 @@ describe('FillProfileCommandHandler', () => {
     it('should throw ForbiddenDomainException when user tries to fill profile for another user', async () => {
       // Arrange
       const userId = 1;
-      const requestUserId = 2; // Different user
+      const requestUserId = 2;
       const command = new FillProfileCommand(
         mockFillProfileDto,
         userId,

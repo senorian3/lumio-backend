@@ -98,7 +98,6 @@ export function ApiFillProfile() {
           },
         },
 
-        // --- dateOfBirth ---
         validation_error_date_of_birth_format: {
           summary: 'DTO validation failed (dateOfBirth format)',
           value: {

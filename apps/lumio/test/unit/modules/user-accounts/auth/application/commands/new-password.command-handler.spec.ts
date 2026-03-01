@@ -124,9 +124,7 @@ describe('NewPasswordUseCase', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение
         expect(domainException.message).toBe('Not Found');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'User does not exist',
         );

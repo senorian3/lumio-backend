@@ -98,7 +98,6 @@ describe('MessageProcessingService', () => {
       mockIdempotencyKeyRepository.upsert.mockResolvedValue({} as any);
       mockCommandBus.execute.mockResolvedValue(undefined);
 
-      // Override $transaction to actually call the callback
       mockPrismaService.$transaction.mockImplementation(
         async (callback: any) => {
           const tx = {};

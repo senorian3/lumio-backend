@@ -6,14 +6,11 @@ import { CoreConfig } from '@payments/core/core.config';
 describe('StripeAdapter', () => {
   let adapter: StripeAdapter;
   let mockCoreConfig: jest.Mocked<CoreConfig>;
-
-  // Mock Stripe instance
   let mockStripeCheckout: any;
   let mockStripeWebhooks: any;
   let mockStripeSubscriptions: any;
 
   beforeEach(async () => {
-    // Create mock methods
     mockStripeCheckout = {
       sessions: {
         create: jest.fn(),
@@ -53,7 +50,6 @@ describe('StripeAdapter', () => {
     adapter = module.get<StripeAdapter>(StripeAdapter);
     mockCoreConfig = module.get(CoreConfig);
 
-    // Replace the internal stripe client with our mocks
     (adapter as any).stripe = {
       checkout: mockStripeCheckout,
       webhooks: mockStripeWebhooks,

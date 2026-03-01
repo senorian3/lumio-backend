@@ -157,7 +157,6 @@ describe('RefreshTokenUseCase', () => {
       (mockRefreshTokenJwtService.sign as jest.Mock).mockReturnValue(
         mockRefreshToken,
       );
-      // Возвращаем null, чтобы сработала проверка !refreshTokenVerify
       (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue(null);
 
       // Act & Assert
@@ -170,7 +169,7 @@ describe('RefreshTokenUseCase', () => {
     it('should update session with correct dates when iat/exp are numbers', async () => {
       // Arrange
       const command = new RefreshTokenCommand(deviceName, ip, userId, deviceId);
-      const iatNum = 1734256800; // конкретное время
+      const iatNum = 1734256800;
       const expNum = iatNum + 3600;
       (mockSessionRepository.findSession as jest.Mock).mockResolvedValue(
         mockSession,

@@ -97,7 +97,6 @@ describe('GetProfilePostQueryHandler', () => {
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPostFromDb);
 
-      // Mock PostView.fromPrisma
       jest.spyOn(PostView, 'fromPrisma').mockReturnValue(mockPostView);
 
       // Act
@@ -211,8 +210,8 @@ describe('GetProfilePostQueryHandler', () => {
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
       const otherUserPost = {
         ...mockPostFromDb,
-        userId: 999, // Different user
-        user: { ...mockUser, id: 999 }, // Different user
+        userId: 999,
+        user: { ...mockUser, id: 999 },
       };
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue({

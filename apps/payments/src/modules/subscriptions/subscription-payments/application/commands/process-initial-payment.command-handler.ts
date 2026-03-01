@@ -94,23 +94,20 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
-                subscriptionId: mainSubscription.subscriptionId,
+                subscriptionId,
                 periodEndDate: periodEnd.getTime() / 1000,
                 timestamp: new Date().toISOString(),
               },
               tx,
             );
 
-            // await this.outboxService.updateSubscriptionMetadataMessage(
-            //   {
-            //     subscriptionId: mainSubscription.subscriptionId,
-            //     metadata: {
-            //       extensionSub: 'true',
-            //     },
-            //     timestamp: new Date().toISOString(),
-            //   },
-            //   tx,
-            // );
+            await this.outboxService.createCancelSubscriptionImmediatelyMessage(
+              {
+                subscriptionId: mainSubscription.subscriptionId,
+                timestamp: new Date().toISOString(),
+              },
+              tx,
+            );
           }
 
           const createPaymentData: CreatePaymentCompleteMessageDto = {

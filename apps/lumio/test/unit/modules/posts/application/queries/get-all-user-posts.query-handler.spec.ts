@@ -99,7 +99,6 @@ describe('GetAllUserPostsQueryHandler', () => {
         mockQueryParams,
       );
 
-      // Result should contain PostView objects (transformed by handler)
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(10);
       expect(result.pagesCount).toBe(1);
@@ -163,7 +162,7 @@ describe('GetAllUserPostsQueryHandler', () => {
         pageSize: 5,
         pagesCount: 2,
         totalCount: 8,
-        items: [mockPrismaPosts[0]], // Only one item for page 2
+        items: [mockPrismaPosts[0]],
       };
 
       mockQueryPostRepository.findUserPosts.mockResolvedValue(paginatedResult);
