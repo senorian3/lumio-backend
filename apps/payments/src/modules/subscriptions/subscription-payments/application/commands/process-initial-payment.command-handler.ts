@@ -57,6 +57,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         }
 
+        //изменить вместо get sub details просто класть в payment date время начала подписки (startdate)
+
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
@@ -81,6 +83,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             nextPaymentDate: periodEnd,
             autoRenewal: mainSubscription ? false : true,
           };
+
+          //проверка на idempotency
 
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
 

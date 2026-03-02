@@ -45,7 +45,6 @@ export class MessageProcessingService {
         );
 
         if (existing && existing.expiresAt > new Date()) {
-          // shouldAck = true; // Важно: подтверждаем сообщение, даже если оно уже обработано
           return;
         }
 

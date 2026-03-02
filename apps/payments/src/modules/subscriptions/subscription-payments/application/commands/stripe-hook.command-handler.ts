@@ -39,12 +39,10 @@ export class StripeHookCommandHandler implements ICommandHandler<
       );
 
       if (event.type === StripeEventType.CHECKOUT_SESSION_COMPLETED) {
-        console.log('CHECKOUT_SESSION_COMPLETED');
         await this.handleInitialPayment(event);
       }
 
       if (event.type === StripeEventType.CUSTOMER_SUBSCRIPTION_DELETED) {
-        console.log('CUSTOMER_SUBSCRIPTION_DELETED');
         await this.handleSubscriptionDeleted(event);
       }
 
@@ -53,7 +51,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
         event.data.object.billing_reason ===
           StripeBillingReason.SUBSCRIPTION_CYCLE
       ) {
-        console.log('SUBSCRIPTION_CYCLE');
         await this.handleRecurringPayment(event);
 
         return;
