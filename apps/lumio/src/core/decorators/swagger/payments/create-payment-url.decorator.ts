@@ -43,7 +43,7 @@ export function ApiCreateSubscriptionPaymentUrl() {
             errorsMessages: [
               {
                 message: 'Profile does not exist',
-                field: 'userId',
+                field: 'profileId',
               },
             ],
           },
