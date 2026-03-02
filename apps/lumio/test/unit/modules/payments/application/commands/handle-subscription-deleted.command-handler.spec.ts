@@ -7,11 +7,14 @@ import {
 } from '@lumio/modules/payments/application/commands/handle-subscription-deleted.command-handler';
 import { SubscriptionDeletedEvent } from '@lumio/modules/payments/api/dto/transfer/subscription-deleted-event.dto';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { PrismaService } from '@lumio/prisma/prisma.service';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 
 describe('HandleSubscriptionDeletedCommandHandler', () => {
   let handler: HandleSubscriptionDeletedCommandHandler;
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
   let mockUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
+  let mockPrisma: jest.Mocked<PrismaService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,7 +23,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
         {
           provide: SubscriptionRepository,
           useValue: {
-            findSubscriptionById: jest.fn(),
+            findActiveSubscriptionByProfileId: jest.fn(),
             cancelSubscription: jest.fn(),
           },
         },
@@ -28,6 +31,12 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
           provide: ExternalQueryUserAccountsRepository,
           useValue: {
             updateAccountType: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn(),
           },
         },
         {
@@ -45,6 +54,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
     );
     mockSubscriptionRepository = module.get(SubscriptionRepository);
     mockUserRepository = module.get(ExternalQueryUserAccountsRepository);
+    mockPrisma = module.get(PrismaService);
   });
 
   it('should be defined', () => {
@@ -79,27 +89,32 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
         userProfileId: 1,
       };
 
-      mockSubscriptionRepository.findSubscriptionById.mockResolvedValue(
+      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
-      mockSubscriptionRepository.cancelSubscription.mockResolvedValue(
-        undefined,
-      );
-      mockUserRepository.updateAccountType.mockResolvedValue({} as any);
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        await callback({
+          subscriptionRepository: mockSubscriptionRepository,
+          userRepository: mockUserRepository,
+        } as any);
+        return undefined;
+      });
 
       // Act
       await handler.execute(command);
 
       // Assert
       expect(
-        mockSubscriptionRepository.findSubscriptionById,
-      ).toHaveBeenCalledWith('sub-123');
+        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+      ).toHaveBeenCalledWith(1);
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
       expect(
         mockSubscriptionRepository.cancelSubscription,
-      ).toHaveBeenCalledWith('sub-123', expect.any(Date));
+      ).toHaveBeenCalledWith('sub-123', expect.any(Date), expect.any(Object));
       expect(mockUserRepository.updateAccountType).toHaveBeenCalledWith(
         1,
-        expect.any(String),
+        AccountType.PERSONAL,
+        expect.any(Object),
       );
     });
 
@@ -120,48 +135,25 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       );
       const command = new HandleSubscriptionDeletedCommand(mockEvent);
 
-      mockSubscriptionRepository.findSubscriptionById.mockResolvedValue(null);
+      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+        null,
+      );
 
       // Act
       await handler.execute(command);
 
       // Assert
       expect(
-        mockSubscriptionRepository.findSubscriptionById,
-      ).toHaveBeenCalledWith('sub-not-found');
+        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+      ).toHaveBeenCalledWith(1);
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
       expect(
         mockSubscriptionRepository.cancelSubscription,
       ).not.toHaveBeenCalled();
       expect(mockUserRepository.updateAccountType).not.toHaveBeenCalled();
     });
 
-    it('should handle database error when finding subscription', async () => {
-      // Arrange
-      const mockPayload = {
-        subscriptionId: 'sub-123',
-        profileId: 1,
-        timestamp: new Date().toISOString(),
-      };
-      const mockEvent = new SubscriptionDeletedEvent(
-        1,
-        'aggregate-1',
-        'Subscription',
-        'SubscriptionDeleted',
-        mockPayload,
-        new Date(),
-      );
-      const command = new HandleSubscriptionDeletedCommand(mockEvent);
-      const dbError = new Error('Database connection failed');
-
-      mockSubscriptionRepository.findSubscriptionById.mockRejectedValue(
-        dbError,
-      );
-
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(dbError);
-    });
-
-    it('should handle database error when canceling subscription', async () => {
+    it('should handle database error when processing transaction', async () => {
       // Arrange
       const mockPayload = {
         subscriptionId: 'sub-123',
@@ -189,10 +181,10 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
         userProfileId: 1,
       };
 
-      mockSubscriptionRepository.findSubscriptionById.mockResolvedValue(
+      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
-      mockSubscriptionRepository.cancelSubscription.mockRejectedValue(dbError);
+      mockPrisma.$transaction.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(dbError);
