@@ -55,33 +55,34 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     try {
       await this.prisma.$transaction(async (tx) => {
+        let subscriptionRecord: any;
+
         if (isExtension) {
-          const existingSubscription =
+          subscriptionRecord =
             await this.subscriptionRepository.findActiveSubscriptionByProfileId(
               profileId,
             );
 
-          console.log(existingSubscription);
-
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-            existingSubscription.id,
+            subscriptionRecord.id,
             subscriptionType,
             endDate,
             true,
             tx,
           );
         } else {
-          await this.subscriptionRepository.createSubscription(
-            {
-              subscriptionId: targetSubscriptionId,
-              durationType: subscriptionType,
-              startDate,
-              endDate,
-              userProfileId: profileId,
-              autoRenewal: true,
-            },
-            tx,
-          );
+          subscriptionRecord =
+            await this.subscriptionRepository.createSubscription(
+              {
+                subscriptionId: targetSubscriptionId,
+                durationType: subscriptionType,
+                startDate,
+                endDate,
+                userProfileId: profileId,
+                autoRenewal: true,
+              },
+              tx,
+            );
         }
 
         await this.paymentsRepository.createPayment(
@@ -90,7 +91,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             amount,
             currency,
             paymentsService: paymentsService,
-            subscriptionId: targetSubscriptionId,
+            subscriptionId: subscriptionRecord.id,
             datePayment: startDate,
             endDate: endDate,
           },
