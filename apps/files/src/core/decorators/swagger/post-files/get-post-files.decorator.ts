@@ -5,6 +5,7 @@ import {
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
+import { InputGetUserPostsDto } from '@files/modules/post-files/api/dto/input/get-user-post.input.dto';
 
 export function ApiGetPostFiles() {
   return applyDecorators(
@@ -12,25 +13,12 @@ export function ApiGetPostFiles() {
     ApiOperation({
       summary: 'Get post files by post IDs',
       description:
-        'Internal endpoint for retrieving files for multiple posts by their IDs.',
+        'Internal endpoint for retrieving files for multiple posts by their IDs. Note: This endpoint uses GET with request body, which is non-standard but accepted for internal APIs.',
       operationId: 'getPostFiles',
     }),
     ApiBody({
+      type: InputGetUserPostsDto,
       description: 'Post IDs to retrieve files for',
-      schema: {
-        type: 'object',
-        properties: {
-          postIds: {
-            type: 'array',
-            items: {
-              type: 'string',
-            },
-            description: 'Array of post IDs',
-            example: ['post-uuid-1', 'post-uuid-2'],
-          },
-        },
-        required: ['postIds'],
-      },
     }),
     ApiResponse({
       status: 200,
@@ -52,6 +40,23 @@ export function ApiGetPostFiles() {
             postId: 'post-uuid-1',
           },
         ],
+      },
+    }),
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_post_ids: {
+          summary: 'Invalid post IDs format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'postIds must be an array',
+                field: 'postIds',
+              },
+            ],
+          },
+        },
       },
     }),
   );

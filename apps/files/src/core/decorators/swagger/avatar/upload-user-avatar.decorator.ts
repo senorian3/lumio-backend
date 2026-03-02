@@ -29,7 +29,7 @@ export function ApiUploadUserAvatar() {
           },
           userId: {
             type: 'string',
-            description: 'User ID',
+            description: 'User ID (will be converted to number)',
             example: '123',
           },
         },
@@ -73,6 +73,34 @@ export function ApiUploadUserAvatar() {
               {
                 message: 'File exceeds maximum size of 5MB',
                 field: 'avatar',
+              },
+            ],
+          },
+        },
+        invalid_user_id: {
+          summary: 'Invalid user ID format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User ID must be a valid number',
+                field: 'userId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'User not found',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User not found',
+                field: 'userId',
               },
             ],
           },
