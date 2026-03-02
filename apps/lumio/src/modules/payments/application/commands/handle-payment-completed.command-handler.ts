@@ -50,32 +50,21 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       );
     }
 
-    console.log(mainSubscriptionId);
-
-    if (isExtension) {
-      const existingSubscription =
-        await this.subscriptionRepository.findSubscriptionById(
-          targetSubscriptionId,
-        );
-
-      if (!existingSubscription) {
-        this.logger.error(
-          `Subscription for extension not found. ID: ${targetSubscriptionId}, Profile: ${profileId}`,
-          undefined,
-          HandlePaymentCompletedCommandHandler.name,
-        );
-        return;
-      }
-    }
-
     const startDate = new Date(periodStart);
     const endDate = new Date(periodEnd);
 
     try {
       await this.prisma.$transaction(async (tx) => {
         if (isExtension) {
+          const existingSubscription =
+            await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+              profileId,
+            );
+
+          console.log(existingSubscription);
+
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-            targetSubscriptionId,
+            existingSubscription.id,
             subscriptionType,
             endDate,
             true,
@@ -117,7 +106,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     } catch (error) {
       this.logger.error(
         `Failed to process payment completion. Profile: ${profileId}, Subscription: ${targetSubscriptionId}, Error: ${error.messages}`,
-        error instanceof Error ? error.stack : undefined,
+        error.stack,
         HandlePaymentCompletedCommand.name,
       );
       throw error;

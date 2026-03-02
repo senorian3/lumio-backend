@@ -120,6 +120,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
               subscriptionId,
               subscriptionType,
               nextPaymentDate,
+              profileId: existingPayment.profileId,
               timestamp: new Date().toISOString(),
             };
 
