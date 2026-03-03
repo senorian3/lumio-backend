@@ -89,17 +89,17 @@ describe('GetUserPaymentsQueryHandler', () => {
         mockProfile,
       );
       mockPaymentsHttpAdapter.findAllUserProfilePayments.mockResolvedValue({
-        payments: [
+        items: [
           {
-            datePayment: new Date('2024-01-01'),
-            endDate: new Date('2024-02-01'),
+            datePayment: '2024-01-01T00:00:00.000Z',
+            endDate: '2024-02-01T00:00:00.000Z',
             amount: 100,
             currency: 'RUB',
             paymentsService: 'yookassa',
             subscription: { durationType: 'monthly' },
           },
         ],
-        totalCount: 1,
+        total: 1,
       });
 
       // Act
@@ -114,6 +114,8 @@ describe('GetUserPaymentsQueryHandler', () => {
       ).toHaveBeenCalledWith(
         expect.stringContaining('/subscription-payments/profile-payments'),
         mockProfileId,
+        queryParams.pageNumber,
+        queryParams.pageSize,
       );
       expect(result.items).toEqual(mockPayments);
       expect(result.totalCount).toBe(1);
@@ -156,8 +158,8 @@ describe('GetUserPaymentsQueryHandler', () => {
         mockProfile,
       );
       mockPaymentsHttpAdapter.findAllUserProfilePayments.mockResolvedValue({
-        payments: [],
-        totalCount: 0,
+        items: [],
+        total: 0,
       });
 
       // Act

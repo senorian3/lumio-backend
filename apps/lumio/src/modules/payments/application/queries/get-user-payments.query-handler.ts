@@ -36,19 +36,22 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Profile not found', 'profile');
     }
 
-    const { payments, totalCount } =
-      await this.paymentsHttpAdapter.findAllUserProfilePayments(
-        `${GLOBAL_PREFIX}/subscription-payments/profile-payments`,
-        profile.id,
-      );
+    const response = await this.paymentsHttpAdapter.findAllUserProfilePayments(
+      `${GLOBAL_PREFIX}/subscription-payments/profile-payments`,
+      profile.id,
+      query.query.pageNumber,
+      query.query.pageSize,
+    );
 
-    const items: PaymentViewDto[] = PaymentViewDto.mapManyToView(payments);
+    const items: PaymentViewDto[] = PaymentViewDto.mapManyToView(
+      response.items || [],
+    );
 
     return PaginatedViewDto.mapToView({
       items,
       page: query.query.pageNumber,
       size: query.query.pageSize,
-      totalCount,
+      totalCount: response.total || 0,
     });
   }
 }

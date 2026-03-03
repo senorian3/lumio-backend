@@ -50,13 +50,22 @@ export class PaymentsHttpAdapter {
   async findAllUserProfilePayments(
     endpoint: string,
     profileId: number,
+    page: number = 1,
+    limit: number = 10,
     additionalHeaders?: Record<string, string>,
   ) {
-    const url = `${this.coreConfig.paymentsFrontendUrl}/${endpoint}/${profileId}`;
+    const url = `${this.coreConfig.paymentsFrontendUrl}/${endpoint}`;
     const headers = this.getHeaders(additionalHeaders);
 
     try {
-      const response = await axios.get(url, { headers });
+      const response = await axios.get(url, {
+        headers,
+        params: {
+          profileId,
+          page,
+          limit,
+        },
+      });
       return response.data;
     } catch (error) {
       throw error;
