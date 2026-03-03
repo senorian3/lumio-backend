@@ -22,15 +22,15 @@ export function ApiRegistrationConfirmation() {
 
     ApiResponse({
       status: 400,
-      description: 'Invalid confirmation code',
+      description: 'Validation error or invalid code state',
       examples: {
-        code_not_found: {
-          summary: 'Confirmation code not found',
+        confirm_code_not_string: {
+          summary: 'Confirmation code is not a string',
           value: {
             errorsMessages: [
               {
-                message: 'Confirmation code not found',
-                field: 'confirmationCode',
+                message: 'Confirmation code must be a string',
+                field: 'confirmCode',
               },
             ],
           },
@@ -52,6 +52,24 @@ export function ApiRegistrationConfirmation() {
             errorsMessages: [
               {
                 message: 'Confirmation code expired',
+                field: 'confirmationCode',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 404,
+      description: 'Confirmation code not found',
+      examples: {
+        code_not_found: {
+          summary: 'Confirmation code not found',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Confirmation code not found',
                 field: 'confirmationCode',
               },
             ],

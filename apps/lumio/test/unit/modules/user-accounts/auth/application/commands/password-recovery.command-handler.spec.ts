@@ -25,7 +25,7 @@ describe('PasswordRecoveryUseCase', () => {
     id: 1,
     email: 'test@example.com',
   };
-  const newConfirmationCode = '123e4567-e89b-12d3-a456-426614174000'; // Хардкодим UUID
+  const newConfirmationCode = '123e4567-e89b-12d3-a456-426614174000';
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -83,8 +83,6 @@ describe('PasswordRecoveryUseCase', () => {
       // Arrange
       const command = new PasswordRecoveryCommand(mockPasswordRecoveryDto);
 
-      // Убрали мок UUID
-
       (mockRecaptchaService.verify as jest.Mock).mockResolvedValue(true);
       (mockUserRepository.findUserByEmail as jest.Mock).mockResolvedValue(
         mockUser,
@@ -108,14 +106,10 @@ describe('PasswordRecoveryUseCase', () => {
       );
       expect(
         mockUserRepository.updateCodeAndExpirationDate,
-      ).toHaveBeenCalledWith(
-        mockUser.id,
-        expect.any(String), // newConfirmationCode будет реальный UUID
-        expect.any(Date),
-      );
+      ).toHaveBeenCalledWith(mockUser.id, expect.any(String), expect.any(Date));
       expect(mockNodemailerService.sendEmail).toHaveBeenCalledWith(
         mockUser.email,
-        expect.any(String), // реальный UUID
+        expect.any(String),
         expect.any(Function),
       );
     });
@@ -124,7 +118,6 @@ describe('PasswordRecoveryUseCase', () => {
       // Arrange
       const command = new PasswordRecoveryCommand(mockPasswordRecoveryDto);
 
-      // Mock randomUUID - добавлено
       jest
         .spyOn(crypto, 'randomUUID')
         .mockReturnValue(newConfirmationCode as any);
@@ -139,9 +132,7 @@ describe('PasswordRecoveryUseCase', () => {
         throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение
         expect(domainException.message).toBe('Forbidden');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'reCAPTCHA verification failed',
         );
@@ -155,7 +146,6 @@ describe('PasswordRecoveryUseCase', () => {
       // Arrange
       const command = new PasswordRecoveryCommand(mockPasswordRecoveryDto);
 
-      // Mock randomUUID - добавлено
       jest
         .spyOn(crypto, 'randomUUID')
         .mockReturnValue(newConfirmationCode as any);
@@ -187,7 +177,6 @@ describe('PasswordRecoveryUseCase', () => {
       // Arrange
       const command = new PasswordRecoveryCommand(mockPasswordRecoveryDto);
 
-      // Mock randomUUID - добавлено
       jest
         .spyOn(crypto, 'randomUUID')
         .mockReturnValue(newConfirmationCode as any);
@@ -203,11 +192,10 @@ describe('PasswordRecoveryUseCase', () => {
         new Error('SMTP error'),
       );
 
-      // Act & Assert - should not throw because error is caught inside useCase
+      // Act & Assert
       await expect(useCase.execute(command)).resolves.not.toThrow();
       expect(mockNodemailerService.sendEmail).toHaveBeenCalled();
 
-      // Проверяем, что loggerService.error был вызван
       expect(mockLoggerService.error).toHaveBeenCalledWith(
         expect.stringContaining(
           'Failed to send password recovery email: Error: SMTP error',

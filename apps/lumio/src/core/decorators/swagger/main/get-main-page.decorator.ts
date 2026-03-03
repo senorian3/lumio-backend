@@ -15,12 +15,14 @@ export function ApiGetMainPage() {
       required: false,
       type: Number,
       description: 'Page number (starts from 1)',
+      example: 1,
     }),
     ApiQuery({
       name: 'pageSize',
       required: false,
       type: Number,
       description: 'Number of posts per page (default 4)',
+      example: 4,
     }),
 
     ApiResponse({
@@ -41,7 +43,7 @@ export function ApiGetMainPage() {
               postFiles: [
                 {
                   id: 65,
-                  url: 'https://i.pravatar.cc/150?u=alex_ivanov',
+                  url: 'https://i.pravatar.cc/150?u=alex_ivanov  ',
                   postId: 65,
                 },
               ],
@@ -51,17 +53,18 @@ export function ApiGetMainPage() {
         allRegisteredUsersCount: 1,
       },
     }),
+
     ApiResponse({
-      status: 400,
-      description: 'Validation error',
+      status: 429,
+      description: 'Too Many Requests - Rate limit exceeded',
       examples: {
-        files_not_found: {
-          summary: 'Failed to fetch files',
+        rate_limit_exceeded: {
+          summary: 'Too many requests',
           value: {
             errorsMessages: [
               {
-                message: 'Failed to fetch files',
-                field: 'files',
+                message: 'Too many requests',
+                field: 'rateLimit',
               },
             ],
           },

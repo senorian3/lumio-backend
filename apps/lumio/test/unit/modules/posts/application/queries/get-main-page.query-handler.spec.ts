@@ -108,13 +108,11 @@ describe('GetMainPageQueryHandler', () => {
         mockRegisteredUsersCount,
       );
 
-      // Mock PostView.fromPrisma
       jest.spyOn(PostView, 'fromPrisma').mockImplementation((post) => {
         const index = mockPostsFromDb.findIndex((p) => p.id === post.id);
         return mockPostViews[index];
       });
 
-      // Mock PaginatedViewDto.mapToView
       jest
         .spyOn(PaginatedViewDto, 'mapToView')
         .mockReturnValue(mockPaginatedPosts);
@@ -163,7 +161,6 @@ describe('GetMainPageQueryHandler', () => {
         items: [],
       };
 
-      // Mock PaginatedViewDto.mapToView
       jest
         .spyOn(PaginatedViewDto, 'mapToView')
         .mockReturnValue(emptyPaginatedPosts);

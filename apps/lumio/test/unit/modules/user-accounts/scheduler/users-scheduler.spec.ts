@@ -113,7 +113,6 @@ describe('UserSchedulerService', () => {
         mockUserRepository.deleteExpiredUserRegistration as jest.Mock
       ).mockResolvedValue(undefined);
 
-      // Mock Date.now() to return different timezone
       jest
         .spyOn(global, 'Date')
         .mockImplementation(() => differentTimezoneDate);
@@ -134,13 +133,11 @@ describe('UserSchedulerService', () => {
   describe('Cron decorator', () => {
     it('should have correct cron expression for hourly execution', () => {
       // Act & Assert
-      // Проверяем, что метод помечен декоратором @Cron с правильным выражением
-      // В реальности это сложно протестировать напрямую, поэтому проверяем через метаданные
       const cronMetadata = Reflect.getMetadata(
         'cron:expression',
         service.deleteExpiredUserRegistration,
       );
-      expect(cronMetadata).toBeUndefined(); // @Cron декоратор не оставляет метаданных в runtime
+      expect(cronMetadata).toBeUndefined();
     });
   });
 });

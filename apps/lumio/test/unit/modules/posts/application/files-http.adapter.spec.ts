@@ -160,7 +160,7 @@ describe('FilesHttpAdapter', () => {
       const result = await adapter.deleteUserAvatar(1);
 
       expect(mockAxios.delete).toHaveBeenCalledWith(
-        'http://files-service:3000/profile/delete-user-avatar/1',
+        'http://files-service:3000/api/v1/profile/1',
         {
           headers: expect.objectContaining({
             'X-Internal-API-Key': 'test-api-key',
@@ -184,7 +184,7 @@ describe('FilesHttpAdapter', () => {
       const result = await adapter.deleteFile('file-key-123');
 
       expect(mockAxios.delete).toHaveBeenCalledWith(
-        'http://files-service:3000/files/delete-file/file-key-123',
+        'http://files-service:3000/api/v1/files/delete-file/file-key-123',
         expect.any(Object),
       );
       expect(result).toEqual({ deleted: true });
@@ -198,7 +198,7 @@ describe('FilesHttpAdapter', () => {
       const result = await adapter.deletePostFiles('post_456');
 
       expect(mockAxios.delete).toHaveBeenCalledWith(
-        'http://files-service:3000/files/delete-post-files/post_456',
+        'http://files-service:3000/api/v1/files/delete-post-files/post_456',
         expect.any(Object),
       );
       expect(result).toEqual({ count: 3 });

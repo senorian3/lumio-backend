@@ -18,7 +18,7 @@ export function ApiDeleteAllSessionsExceptCurrent() {
 
     ApiResponse({
       status: 400,
-      description: 'Validation error',
+      description: 'Validation error or business rule violation',
       examples: {
         no_current_session: {
           summary: 'Current session not found',
@@ -36,7 +36,7 @@ export function ApiDeleteAllSessionsExceptCurrent() {
 
     ApiResponse({
       status: 401,
-      description: 'Unauthorized',
+      description: 'Unauthorized - invalid or missing refresh token',
       examples: {
         no_refresh_token: {
           summary: 'No refresh token in request',
@@ -50,7 +50,7 @@ export function ApiDeleteAllSessionsExceptCurrent() {
           },
         },
         session_not_found: {
-          summary: 'Session not found for device',
+          summary: 'Session not found for device (from JWT)',
           value: {
             errorsMessages: [
               {
@@ -61,7 +61,7 @@ export function ApiDeleteAllSessionsExceptCurrent() {
           },
         },
         session_mismatch: {
-          summary: 'Session mismatch',
+          summary: 'Session data mismatch (user, device or expiry)',
           value: {
             errorsMessages: [
               {

@@ -6,22 +6,28 @@ export function ApiLogin() {
     ApiOperation({
       summary: 'User login',
       description:
-        'Endpoint for user login. Returns access token with tokenVersion for session management and refresh token as HTTP-only cookie.',
+        'Endpoint for user login. Returns access token in response body and refresh token as HTTP-only cookie.',
       operationId: 'loginUser',
     }),
 
     ApiResponse({
       status: 200,
-      description: 'User successfully login',
-      example: {
-        accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
-      },
+      description: 'User successfully logged in',
       headers: {
         'Set-Cookie': {
           description: 'HTTP-only refresh token cookie',
           schema: {
             type: 'string',
-            example: 'refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
+            example:
+              'refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...; Path=/; HttpOnly',
+          },
+        },
+      },
+      examples: {
+        login_successful: {
+          summary: 'User successfully logged in',
+          value: {
+            accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...',
           },
         },
       },
@@ -29,7 +35,7 @@ export function ApiLogin() {
 
     ApiResponse({
       status: 400,
-      description: 'Validation error',
+      description: 'Validation error - Input data does not meet requirements',
       examples: {
         password_min_length: {
           summary: 'Password too short',
@@ -142,20 +148,31 @@ export function ApiLogin() {
             ],
           },
         },
-      },
-    }),
-
-    ApiResponse({
-      status: 403,
-      description: 'Forbidden access',
-      examples: {
         email_not_registered: {
-          summary: 'Email is not registered',
+          summary: 'Email not registered',
           value: {
             errorsMessages: [
               {
                 message: 'The email must match the format example@example.com',
                 field: 'email',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 403,
+      description: 'Forbidden - Authentication failed or account issue',
+      examples: {
+        user_not_confirmed: {
+          summary: 'User account is not confirmed',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User account is not confirmed',
+                field: 'confirmCode',
               },
             ],
           },
@@ -171,7 +188,7 @@ export function ApiLogin() {
             ],
           },
         },
-        iat_or_exp_not_verified: {
+        refresh_token_not_verified: {
           summary: 'Refresh token is not verified',
           value: {
             errorsMessages: [
@@ -182,40 +199,24 @@ export function ApiLogin() {
             ],
           },
         },
-        user_not_confirmed: {
-          summary: 'User account is not confirmed',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User account is not confirmed',
-                field: 'confirmCode',
-              },
-            ],
-          },
-        },
-        token_version_mismatch: {
-          summary: 'Token version mismatch',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Token version mismatch',
-                field: 'tokenVersion',
-              },
-            ],
-          },
-        },
       },
     }),
 
     ApiResponse({
       status: 429,
       description: 'Too many requests',
-      example: {
-        errorsMessages: [
-          {
-            message: 'Too many requests',
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+                field: null,
+              },
+            ],
           },
-        ],
+        },
       },
     }),
   );

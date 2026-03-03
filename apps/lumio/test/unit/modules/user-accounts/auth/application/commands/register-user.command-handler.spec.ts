@@ -147,9 +147,7 @@ describe('RegisterUserCommandHandler', () => {
         throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение
         expect(domainException.message).toBe('Forbidden');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'User with this username is already registered',
         );
@@ -229,11 +227,10 @@ describe('RegisterUserCommandHandler', () => {
         new Error('SMTP error'),
       );
 
-      // Act & Assert - should not throw because error is caught inside useCase
+      // Act & Assert
       await expect(useCase.execute(command)).resolves.not.toThrow();
       expect(mockNodemailerService.sendEmail).toHaveBeenCalled();
 
-      // Проверяем, что loggerService.error был вызван
       expect(mockLoggerService.error).toHaveBeenCalledWith(
         `Failed to send email: SMTP error`,
         expect.any(String),

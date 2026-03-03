@@ -43,7 +43,7 @@ export class AvatarController {
     };
   }
 
-  @Delete(AVATAR_FILES_ROUTES.DELETE_USER_AVATAR)
+  @Delete(':userId')
   @ApiDeleteUserAvatar()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUserAvatar(

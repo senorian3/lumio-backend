@@ -34,7 +34,6 @@ describe('LocalAuthGuard', () => {
         }),
       } as ExecutionContext;
 
-      // Mock the parent canActivate method
       const mockCanActivate = jest.spyOn(guard as any, 'canActivate');
       mockCanActivate.mockResolvedValue(true);
 

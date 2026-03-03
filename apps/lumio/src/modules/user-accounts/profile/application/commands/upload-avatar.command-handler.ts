@@ -28,33 +28,48 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
     if (!user) {
       throw NotFoundDomainException.create('User does not exist', 'userId');
     }
-    let avatarUrl: string;
 
-    try {
-      const response = await this.filesHttpAdapter.uploadUserAvatar<any>(
+    const userProfile = await this.userRepository.findUserProfileByUserId(
+      command.userId,
+    );
+
+    if (userProfile.avatarUrl) {
+      await this.filesHttpAdapter
+        .deleteUserAvatar(command.userId)
+        .catch((error) => {
+          this.logger.error(
+            `Critical error deleting avatar from Files microservice for user ${command.userId}: ${error.message}`,
+            error?.stack,
+            UploadUserAvatarCommandHandler.name,
+          );
+        });
+    }
+
+    const response = await this.filesHttpAdapter
+      .uploadUserAvatar<any>(
         `${GLOBAL_PREFIX}/profile/upload-user-avatar`,
         command.userId,
         command.avatar,
-      );
+      )
+      .catch((error) => {
+        throw error;
+      });
 
-      avatarUrl = response.url;
-    } catch (error) {
-      throw error;
-    }
+    const avatarUrl = response.url;
 
     try {
       await this.userRepository.updateAvatarUrl(command.userId, avatarUrl);
       return { url: avatarUrl };
     } catch (error) {
-      try {
-        await this.filesHttpAdapter.deleteUserAvatar(command.userId);
-      } catch (rollbackError) {
-        this.logger.error(
-          `Critical error to rollback avatar upload for user ${command.userId}: ${rollbackError.message}`,
-          rollbackError?.stack,
-          UploadUserAvatarCommandHandler.name,
-        );
-      }
+      await this.filesHttpAdapter
+        .deleteUserAvatar(command.userId)
+        .catch((rollbackError) => {
+          this.logger.error(
+            `Critical error to rollback avatar upload for user ${command.userId}: ${rollbackError.message}`,
+            rollbackError?.stack,
+            UploadUserAvatarCommandHandler.name,
+          );
+        });
 
       throw error;
     }

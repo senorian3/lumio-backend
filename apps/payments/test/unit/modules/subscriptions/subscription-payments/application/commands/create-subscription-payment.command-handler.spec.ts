@@ -25,14 +25,12 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
     currency: 'RUB',
     paymentProvider: 'Stripe',
   };
-
   const mockSession = {
     id: 'cs_test_123',
     url: 'https://checkout.stripe.com/test',
     created: Date.now() / 1000,
     metadata: { customPaymentId: 'payment_123' },
   } as unknown as Stripe.Checkout.Session;
-
   beforeEach(async () => {
     mockPrisma = {
       $transaction: jest.fn((callback) => callback(mockPrisma)),
@@ -93,7 +91,6 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
       mockPaymentsRepository.createPayment.mockResolvedValue({
         paymentsUrl: mockSession.url,
       } as any);
-
       // Act
       const result = await handler.execute(command);
 
@@ -103,34 +100,37 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         SUBSCRIPTION_PRICES[mockDto.subscriptionType],
         mockDto.profileId,
         mockDto.currency,
+        'null',
       );
       expect(result).toBe(mockSession.url);
     });
 
-    it('should throw BadRequestDomainException when active subscription exists', async () => {
+    it('should create payment session with existing subscription', async () => {
       // Arrange
       const command = new CreateSubscriptionPaymentCommand(mockDto);
-      const existingSubscription = {
-        profileId: 1,
-        subscriptionType: '1 month',
+      const mockActiveSubscription = {
+        subscriptionId: 'sub_123',
       };
 
       mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
-        existingSubscription as any,
+        mockActiveSubscription as any,
       );
+      mockStripeAdapter.createPaymentSession.mockResolvedValue(mockSession);
+      mockPaymentsRepository.createPayment.mockResolvedValue({
+        paymentsUrl: mockSession.url,
+      } as any);
+      // Act
+      const result = await handler.execute(command);
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+      // Assert
+      expect(mockStripeAdapter.createPaymentSession).toHaveBeenCalledWith(
+        mockDto.subscriptionType,
+        SUBSCRIPTION_PRICES[mockDto.subscriptionType],
+        mockDto.profileId,
+        mockDto.currency,
+        'sub_123',
       );
-
-      try {
-        await handler.execute(command);
-        fail('Should have thrown an exception');
-      } catch (error: any) {
-        expect(error.message).toBe('Bad Request');
-        expect(error.extensions[0]?.field).toBe('profileId');
-      }
+      expect(result).toBe(mockSession.url);
     });
 
     it('should throw BadRequestDomainException when Stripe session creation fails', async () => {
@@ -143,7 +143,6 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
       mockStripeAdapter.createPaymentSession.mockRejectedValue(
         new Error('Stripe error'),
       );
-
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         BadRequestDomainException,
@@ -162,7 +161,6 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         new Error('Database error'),
       );
       mockStripeAdapter.cancelSession.mockResolvedValue(undefined);
-
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
         BadRequestDomainException,

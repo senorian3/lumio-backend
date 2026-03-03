@@ -6,5 +6,6 @@ export class UpdatePaymentDomainDto {
     public readonly periodStart: Date,
     public readonly periodEnd: Date,
     public readonly nextPaymentDate: Date,
+    public readonly autoRenewal: boolean,
   ) {}
 }

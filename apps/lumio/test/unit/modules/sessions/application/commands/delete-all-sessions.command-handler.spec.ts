@@ -88,10 +88,8 @@ describe('DeleteAllSessionssUseCase', () => {
       (mockRepository.findSession as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
-      // Проверяем, что выбрасывается DomainException (базовый класс)
       await expect(useCase.execute(command)).rejects.toThrow(DomainException);
 
-      // Проверяем конкретные свойства исключения
       try {
         await useCase.execute(command);
         fail('Should have thrown an exception');

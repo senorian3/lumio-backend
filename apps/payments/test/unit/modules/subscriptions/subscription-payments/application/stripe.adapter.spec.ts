@@ -6,14 +6,11 @@ import { CoreConfig } from '@payments/core/core.config';
 describe('StripeAdapter', () => {
   let adapter: StripeAdapter;
   let mockCoreConfig: jest.Mocked<CoreConfig>;
-
-  // Mock Stripe instance
   let mockStripeCheckout: any;
   let mockStripeWebhooks: any;
   let mockStripeSubscriptions: any;
 
   beforeEach(async () => {
-    // Create mock methods
     mockStripeCheckout = {
       sessions: {
         create: jest.fn(),
@@ -53,7 +50,6 @@ describe('StripeAdapter', () => {
     adapter = module.get<StripeAdapter>(StripeAdapter);
     mockCoreConfig = module.get(CoreConfig);
 
-    // Replace the internal stripe client with our mocks
     (adapter as any).stripe = {
       checkout: mockStripeCheckout,
       webhooks: mockStripeWebhooks,
@@ -80,6 +76,7 @@ describe('StripeAdapter', () => {
         1000,
         '1',
         'RUB',
+        'sub_123',
       );
 
       // Assert
@@ -95,7 +92,7 @@ describe('StripeAdapter', () => {
 
       // Act & Assert
       await expect(
-        adapter.createPaymentSession('1 month', 1000, '1', 'RUB'),
+        adapter.createPaymentSession('1 month', 1000, '1', 'RUB', 'sub_123'),
       ).rejects.toThrow('Stripe error');
     });
   });
@@ -218,25 +215,149 @@ describe('StripeAdapter', () => {
   describe('cancelSubscriptionImmediately', () => {
     it('should cancel subscription successfully', async () => {
       // Arrange
+      mockStripeSubscriptions.update.mockResolvedValue({});
       mockStripeSubscriptions.cancel.mockResolvedValue({});
 
       // Act
       await adapter.cancelSubscriptionImmediately('sub_123');
 
       // Assert
+      expect(mockStripeSubscriptions.update).toHaveBeenCalledWith('sub_123', {
+        metadata: {
+          cancelled_by: 'system',
+          cancelled_at: expect.any(String),
+        },
+      });
       expect(mockStripeSubscriptions.cancel).toHaveBeenCalledWith('sub_123');
     });
 
     it('should throw error on cancel failure', async () => {
       // Arrange
-      mockStripeSubscriptions.cancel.mockRejectedValue(
-        new Error('Cancel failed'),
+      mockStripeSubscriptions.update.mockRejectedValue(
+        new Error('Update failed'),
       );
 
       // Act & Assert
       await expect(
         adapter.cancelSubscriptionImmediately('sub_123'),
-      ).rejects.toThrow('Cancel failed');
+      ).rejects.toThrow('Update failed');
+    });
+  });
+
+  describe('updateCustomerSubscriptionEndDate', () => {
+    it('should update subscription end date successfully', async () => {
+      // Arrange
+      mockStripeSubscriptions.update.mockResolvedValue({});
+      const customPeriodDateEnd = Math.floor(Date.now() / 1000) + 86400; // +1 day
+
+      // Act
+      await adapter.updateCustomerSubscriptionEndDate(
+        'sub_123',
+        customPeriodDateEnd,
+      );
+
+      // Assert
+      expect(mockStripeSubscriptions.update).toHaveBeenCalledWith('sub_123', {
+        trial_end: customPeriodDateEnd,
+        proration_behavior: 'none',
+      });
+    });
+
+    it('should throw error on update failure', async () => {
+      // Arrange
+      mockStripeSubscriptions.update.mockRejectedValue(
+        new Error('Update failed'),
+      );
+
+      // Act & Assert
+      await expect(
+        adapter.updateCustomerSubscriptionEndDate('sub_123', 1234567890),
+      ).rejects.toThrow('Update failed');
+    });
+  });
+
+  describe('isExtensionSubscription', () => {
+    it('should return true for extension subscription', async () => {
+      // Arrange
+      const mockSubscription = {
+        metadata: { extensionSub: 'true' },
+      };
+      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
+
+      // Act
+      const result = await adapter.isExtensionSubscription('sub_123');
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockStripeSubscriptions.retrieve).toHaveBeenCalledWith('sub_123');
+    });
+
+    it('should return false for non-extension subscription', async () => {
+      // Arrange
+      const mockSubscription = {
+        metadata: { extensionSub: 'false' },
+      };
+      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
+
+      // Act
+      const result = await adapter.isExtensionSubscription('sub_123');
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should return false when metadata is missing', async () => {
+      // Arrange
+      const mockSubscription = {
+        metadata: {},
+      };
+      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
+
+      // Act
+      const result = await adapter.isExtensionSubscription('sub_123');
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should throw error on retrieval failure', async () => {
+      // Arrange
+      mockStripeSubscriptions.retrieve.mockRejectedValue(
+        new Error('Subscription not found'),
+      );
+
+      // Act & Assert
+      await expect(adapter.isExtensionSubscription('sub_123')).rejects.toThrow(
+        'Subscription not found',
+      );
+    });
+  });
+
+  describe('updateSubscriptionMetadata', () => {
+    it('should update subscription metadata successfully', async () => {
+      // Arrange
+      mockStripeSubscriptions.update.mockResolvedValue({});
+      const metadata = { key: 'value', anotherKey: 'anotherValue' };
+
+      // Act
+      await adapter.updateSubscriptionMetadata('sub_123', metadata);
+
+      // Assert
+      expect(mockStripeSubscriptions.update).toHaveBeenCalledWith('sub_123', {
+        metadata,
+      });
+    });
+
+    it('should throw error on update failure', async () => {
+      // Arrange
+      mockStripeSubscriptions.update.mockRejectedValue(
+        new Error('Update failed'),
+      );
+
+      // Act & Assert
+      await expect(
+        adapter.updateSubscriptionMetadata('sub_123', { key: 'value' }),
+      ).rejects.toThrow('Update failed');
     });
   });
 });

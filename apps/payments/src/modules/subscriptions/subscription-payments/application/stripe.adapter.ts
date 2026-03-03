@@ -21,6 +21,7 @@ export class StripeAdapter {
     amount: number,
     profileId: string,
     currency: string,
+    subscriptionId: string,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
 
@@ -32,8 +33,10 @@ export class StripeAdapter {
         success_url: this.coreConfig.stripeSuccessUrl,
         cancel_url: this.coreConfig.stripeCancelUrl,
         metadata: {
+          profileId: profileId,
           customPaymentId: `${profileId}-${nowDate}`,
           subscriptionType: subscriptionType,
+          mainSubscriptionId: subscriptionId,
         },
         line_items: [
           {
@@ -41,7 +44,7 @@ export class StripeAdapter {
               currency: currency.toLowerCase(),
               product_data: {
                 name: 'Бизнес подписка',
-                description: `Подписка на ${config.description} с автоматическим продлением`,
+                description: `Подписка на ${config.description}`,
               },
               unit_amount: Math.round(amount * 100),
               recurring: {
@@ -53,11 +56,8 @@ export class StripeAdapter {
           },
         ],
         mode: 'subscription',
-        client_reference_id: profileId.toString(),
-
         billing_address_collection: 'auto',
         payment_method_types: ['card'],
-
         expires_at: expiresAt,
       });
 
@@ -112,7 +112,51 @@ export class StripeAdapter {
 
   async cancelSubscriptionImmediately(subscriptionId: string): Promise<void> {
     try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        metadata: {
+          cancelled_by: 'system',
+          cancelled_at: new Date().toISOString(),
+        },
+      });
+
       await this.stripe.subscriptions.cancel(subscriptionId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateCustomerSubscriptionEndDate(
+    subscriptionId: string,
+    customPeriodDateEnd: number,
+  ): Promise<void> {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        trial_end: customPeriodDateEnd,
+        proration_behavior: 'none',
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async isExtensionSubscription(subscriptionId: string): Promise<boolean> {
+    try {
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
+      return subscription.metadata?.extensionSub === 'true';
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateSubscriptionMetadata(
+    subscriptionId: string,
+    metadata: Record<string, string>,
+  ): Promise<void> {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        metadata,
+      });
     } catch (error) {
       throw error;
     }

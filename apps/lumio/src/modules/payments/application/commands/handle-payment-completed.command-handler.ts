@@ -6,6 +6,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -18,6 +19,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly paymentsRepository: PaymentsRepository,
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -30,7 +32,14 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       periodStart,
       periodEnd,
       paymentsService,
+      mainSubscriptionId,
     } = command.data.payload;
+
+    const isExtension = !!mainSubscriptionId;
+
+    const targetSubscriptionId = isExtension
+      ? mainSubscriptionId
+      : subscriptionId;
 
     const profile = await this.userRepository.getProfileById(profileId);
 
@@ -46,18 +55,35 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        const subscription =
-          await this.subscriptionRepository.createSubscription(
-            {
-              subscriptionId,
-              durationType: subscriptionType,
-              startDate,
-              endDate,
-              userProfileId: profileId,
-              autoRenewal: true,
-            },
+        let subscriptionRecord: any;
+
+        if (isExtension) {
+          subscriptionRecord =
+            await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+              profileId,
+            );
+
+          await this.subscriptionRepository.updateSubscriptionWithNewPayment(
+            subscriptionRecord.id,
+            subscriptionType,
+            endDate,
+            true,
             tx,
           );
+        } else {
+          subscriptionRecord =
+            await this.subscriptionRepository.createSubscription(
+              {
+                subscriptionId: targetSubscriptionId,
+                durationType: subscriptionType,
+                startDate,
+                endDate,
+                userProfileId: profileId,
+                autoRenewal: true,
+              },
+              tx,
+            );
+        }
 
         await this.paymentsRepository.createPayment(
           {
@@ -65,7 +91,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             amount,
             currency,
             paymentsService: paymentsService,
-            subscriptionId: subscription.id,
+            subscriptionId: subscriptionRecord.id,
             datePayment: startDate,
             endDate: endDate,
           },
@@ -79,6 +105,11 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
         );
       });
     } catch (error) {
+      this.logger.error(
+        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${targetSubscriptionId}, Error: ${error.messages}`,
+        error.stack,
+        HandlePaymentCompletedCommand.name,
+      );
       throw error;
     }
   }

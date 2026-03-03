@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ProfileRepository } from '@files/modules/avatar/domain/infrastructure/profile.repository';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 export class DeleteUserAvatarCommand {
   constructor(public readonly userId: number) {}
@@ -26,21 +26,16 @@ export class DeleteUserAvatarCommandHandler implements ICommandHandler<
       throw NotFoundDomainException.create('Avatar is not found', 'avatar');
     }
 
-    try {
-      await this.profileRepository.deleteAvatar(avatar.id);
-    } catch (error) {
+    await this.profileRepository.deleteAvatar(avatar.id).catch((error) => {
       throw error;
-    }
+    });
 
-    try {
-      await this.s3FilesHttpAdapter.deleteFile(avatar.key);
-    } catch (error) {
+    await this.s3FilesHttpAdapter.deleteFile(avatar.key).catch((error) => {
       this.logger.error(
-        `Critical error to delete avatar file from S3 for userId=${userId}: ${error.message}`,
+        `Critical error deleting avatar from S3 for userId=${userId}, key=${avatar.key}: ${error.message}`,
         error?.stack,
         DeleteUserAvatarCommandHandler.name,
       );
-      throw error;
-    }
+    });
   }
 }

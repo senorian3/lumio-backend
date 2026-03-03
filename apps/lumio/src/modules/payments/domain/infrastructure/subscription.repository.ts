@@ -91,8 +91,10 @@ export class SubscriptionRepository {
   async cancelSubscription(
     id: string,
     cancelledAt: Date,
+    tx?: any,
   ): Promise<Subscription> {
-    return this.prisma.subscription.update({
+    const client = tx || this.prisma;
+    return client.subscription.update({
       where: { id },
       data: {
         cancelledAt,

@@ -67,6 +67,7 @@ describe('GetProfilePostQueryHandler', () => {
           provide: ExternalQueryUserAccountsRepository,
           useValue: {
             findUserId: jest.fn(),
+            getProfileById: jest.fn(),
           },
         },
       ],
@@ -90,16 +91,21 @@ describe('GetProfilePostQueryHandler', () => {
       // Arrange
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
 
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
+        userId: mockUserId,
+      } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPostFromDb);
 
-      // Mock PostView.fromPrisma
       jest.spyOn(PostView, 'fromPrisma').mockReturnValue(mockPostView);
 
       // Act
       const result = await handler.execute(query);
 
       // Assert
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
@@ -112,7 +118,7 @@ describe('GetProfilePostQueryHandler', () => {
       // Arrange
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
 
-      mockExternalQueryUserRepository.findUserId.mockResolvedValue(null);
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue(null);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(
@@ -125,12 +131,12 @@ describe('GetProfilePostQueryHandler', () => {
       } catch (error: any) {
         expect(error.message).toBe('Not Found');
         expect(error.extensions[0]?.message).toBe('Profile is not found');
-        expect(error.extensions[0]?.field).toBe('userId');
+        expect(error.extensions[0]?.field).toBe('profileId');
       }
 
-      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
-        mockUserId,
-      );
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
     });
 
@@ -138,6 +144,9 @@ describe('GetProfilePostQueryHandler', () => {
       // Arrange
       const query = new GetProfilePostQuery(mockUserId, null);
 
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
+        userId: mockUserId,
+      } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
 
       // Act & Assert
@@ -154,6 +163,9 @@ describe('GetProfilePostQueryHandler', () => {
         expect(error.extensions[0]?.field).toBe('postId');
       }
 
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
@@ -164,6 +176,9 @@ describe('GetProfilePostQueryHandler', () => {
       // Arrange
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
 
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
+        userId: mockUserId,
+      } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(null);
 
@@ -181,6 +196,9 @@ describe('GetProfilePostQueryHandler', () => {
         expect(error.extensions[0]?.field).toBe('postId');
       }
 
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
@@ -192,10 +210,13 @@ describe('GetProfilePostQueryHandler', () => {
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
       const otherUserPost = {
         ...mockPostFromDb,
-        userId: 999, // Different user
-        user: { ...mockUser, id: 999 }, // Different user
+        userId: 999,
+        user: { ...mockUser, id: 999 },
       };
 
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
+        userId: mockUserId,
+      } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(otherUserPost);
 
@@ -213,6 +234,9 @@ describe('GetProfilePostQueryHandler', () => {
         expect(error.extensions[0]?.field).toBe('postId');
       }
 
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );
@@ -224,14 +248,14 @@ describe('GetProfilePostQueryHandler', () => {
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
       const dbError = new Error('Database connection failed');
 
-      mockExternalQueryUserRepository.findUserId.mockRejectedValue(dbError);
+      mockExternalQueryUserRepository.getProfileById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
-      expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
-        mockUserId,
-      );
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockPostRepository.findById).not.toHaveBeenCalled();
     });
 
@@ -240,12 +264,18 @@ describe('GetProfilePostQueryHandler', () => {
       const query = new GetProfilePostQuery(mockUserId, mockPostId);
       const dbError = new Error('Database connection failed');
 
+      mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
+        userId: mockUserId,
+      } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockRejectedValue(dbError);
 
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
+      expect(
+        mockExternalQueryUserRepository.getProfileById,
+      ).toHaveBeenCalledWith(mockUserId);
       expect(mockExternalQueryUserRepository.findUserId).toHaveBeenCalledWith(
         mockUserId,
       );

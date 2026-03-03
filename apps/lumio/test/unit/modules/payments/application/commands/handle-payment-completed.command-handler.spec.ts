@@ -10,6 +10,7 @@ import {
   HandlePaymentCompletedCommand,
 } from '@lumio/modules/payments/application/commands/handle-payment-completed.command-handler';
 import { PaymentCompletedEvent } from '@lumio/modules/payments/api/dto/transfer/payment-completed-event.dto';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 
 describe('HandlePaymentCompletedCommandHandler', () => {
   let handler: HandlePaymentCompletedCommandHandler;
@@ -48,6 +49,8 @@ describe('HandlePaymentCompletedCommandHandler', () => {
     periodEnd: new Date('2024-02-01'),
     timestamp: new Date().toISOString(),
     paymentsService: 'yookassa',
+    isExtensionSub: false,
+    mainSubscriptionId: null,
   };
 
   beforeEach(async () => {
@@ -119,27 +122,24 @@ describe('HandlePaymentCompletedCommandHandler', () => {
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue(
         mockProfile,
       );
-      mockPrisma.$transaction.mockImplementation(async () => {
-        await mockSubscriptionRepository.createSubscription(
-          {
-            subscriptionId: 'sub-123',
-            durationType: '1 month',
-            startDate: expect.any(Date),
-            endDate: expect.any(Date),
-            userProfileId: mockProfileId,
-            autoRenewal: true,
-          },
-          expect.anything(),
-        );
-        await mockPaymentsRepository.createPayment(
-          expect.any(Object),
-          expect.anything(),
-        );
-        await mockExternalQueryUserRepository.updateAccountType(
-          mockProfileId,
-          'Business',
-          expect.anything(),
-        );
+
+      const mockSubscription = {
+        id: 'sub-123',
+        durationType: '1 month',
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-02-01'),
+        userProfileId: mockProfileId,
+        autoRenewal: true,
+        cancelledAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockSubscriptionRepository.createSubscription.mockResolvedValue(
+        mockSubscription as any,
+      );
+
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        await callback(mockPrisma);
         return undefined;
       });
 
@@ -151,6 +151,38 @@ describe('HandlePaymentCompletedCommandHandler', () => {
         mockExternalQueryUserRepository.getProfileById,
       ).toHaveBeenCalledWith(mockProfileId);
       expect(mockPrisma.$transaction).toHaveBeenCalled();
+      expect(
+        mockSubscriptionRepository.createSubscription,
+      ).toHaveBeenCalledWith(
+        {
+          subscriptionId: 'sub-123',
+          durationType: '1 month',
+          startDate: expect.any(Date),
+          endDate: expect.any(Date),
+          userProfileId: mockProfileId,
+          autoRenewal: true,
+        },
+        expect.anything(),
+      );
+      expect(mockPaymentsRepository.createPayment).toHaveBeenCalledWith(
+        {
+          id: 'pay-123',
+          amount: 100,
+          currency: 'RUB',
+          paymentsService: 'yookassa',
+          subscriptionId: 'sub-123',
+          datePayment: expect.any(Date),
+          endDate: expect.any(Date),
+        },
+        expect.anything(),
+      );
+      expect(
+        mockExternalQueryUserRepository.updateAccountType,
+      ).toHaveBeenCalledWith(
+        mockProfileId,
+        AccountType.BUSINESS,
+        expect.anything(),
+      );
     });
 
     it('should throw NotFoundDomainException when profile not found', async () => {

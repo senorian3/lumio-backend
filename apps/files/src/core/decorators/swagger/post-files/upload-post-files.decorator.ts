@@ -66,6 +66,17 @@ export function ApiUploadPostFiles() {
       status: 400,
       description: 'Validation error',
       examples: {
+        no_files_uploaded: {
+          summary: 'No files uploaded',
+          value: {
+            errorsMessages: [
+              {
+                message: 'At least one file is required',
+                field: 'files',
+              },
+            ],
+          },
+        },
         too_many_files: {
           summary: 'Too many files',
           value: {
@@ -84,6 +95,45 @@ export function ApiUploadPostFiles() {
               {
                 message: 'File exceeds maximum size of 20MB',
                 field: 'files',
+              },
+            ],
+          },
+        },
+        invalid_file_type: {
+          summary: 'Invalid file type',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Only JPEG and PNG files are allowed',
+                field: 'files',
+              },
+            ],
+          },
+        },
+        post_id_required: {
+          summary: 'Post ID is required',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post ID is required',
+                field: 'postId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Not Found',
+      examples: {
+        post_not_found: {
+          summary: 'Post not found',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post does not exist',
+                field: 'postId',
               },
             ],
           },

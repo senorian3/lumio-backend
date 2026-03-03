@@ -2,7 +2,6 @@ import { Stripe } from 'stripe';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsRepository } from '../../domain/infrastructure/payments.repository';
 import { StripeAdapter } from '../stripe.adapter';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
@@ -26,7 +25,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   constructor(
     private readonly paymentsRepository: PaymentsRepository,
     private readonly stripeAdapter: StripeAdapter,
-    private readonly logger: AppLoggerService,
     private readonly outboxService: OutboxService,
     private readonly prisma: PrismaService,
     private readonly manualReviewService: ManualReviewService,
@@ -37,26 +35,39 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     const { session } = command;
     const customPaymentId = session.metadata.customPaymentId;
     const subscriptionId = session.subscription.toString();
+    const mainSubscriptionId: string | null =
+      session.metadata.mainSubscriptionId !== 'null'
+        ? session.metadata.mainSubscriptionId
+        : null;
 
     try {
       await this.retryService.executeWithRetry(async () => {
+        const mainSubscription = mainSubscriptionId
+          ? await this.paymentsRepository.findBySubscriptionId(
+              mainSubscriptionId,
+            )
+          : null;
+
         const currentPayment =
           await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
 
         if (!currentPayment) {
-          this.logger.error(
+          throw new Error(
             `Payment with customPaymentId ${customPaymentId} not found`,
-            this.paymentsRepository.findByCustomPaymentId.name,
-            ProcessInitialPaymentCommand.name,
           );
-          throw new Error();
         }
+
+        //изменить вместо get sub details просто класть в payment date время начала подписки (startdate)
 
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
+        const startDate = mainSubscription
+          ? mainSubscription.periodEnd || mainSubscription.nextPaymentDate
+          : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
+
         const { periodStart, periodEnd } = this.calculatePeriodDates(
-          subscriptionDetails.billing_cycle_anchor,
+          startDate,
           currentPayment.subscriptionType,
         );
 
@@ -64,25 +75,61 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
-            status: PaymentStatus.SUCCESSFUL,
+            status: mainSubscription
+              ? PaymentStatus.EXTENSION
+              : PaymentStatus.SUCCESSFUL,
             periodStart,
             periodEnd,
             nextPaymentDate: periodEnd,
+            autoRenewal: mainSubscription ? false : true,
           };
 
+          //проверка на idempotency
+
           await this.paymentsRepository.updatePayment(updatePaymentData, tx);
+
+          if (mainSubscription) {
+            await this.paymentsRepository.updateSubPeriodEndDate(
+              mainSubscription.customPaymentId,
+              subscriptionId,
+              periodEnd,
+              tx,
+            );
+
+            await this.outboxService.updateCustomerSubscriptionEndDateMessage(
+              {
+                subscriptionId,
+                periodEndDate: periodEnd.getTime() / 1000,
+                timestamp: new Date().toISOString(),
+              },
+              tx,
+            );
+
+            await this.outboxService.createCancelSubscriptionImmediatelyMessage(
+              {
+                subscriptionId: mainSubscription.subscriptionId,
+                timestamp: new Date().toISOString(),
+              },
+              tx,
+            );
+          }
 
           const createPaymentData: CreatePaymentCompleteMessageDto = {
             paymentId: customPaymentId,
             profileId: currentPayment.profileId,
             amount: currentPayment.amount,
             currency: currentPayment.currency,
-            subscriptionId,
-            subscriptionType: currentPayment.subscriptionType,
+            subscriptionId: mainSubscription
+              ? mainSubscription.subscriptionId
+              : subscriptionId,
+            subscriptionType: mainSubscription
+              ? mainSubscription.subscriptionType
+              : currentPayment.subscriptionType,
             periodStart,
             periodEnd,
             timestamp: new Date().toISOString(),
             paymentsService: currentPayment.paymentProvider,
+            mainSubscriptionId: mainSubscriptionId,
           };
 
           await this.outboxService.createPaymentCompletedMessage(
@@ -92,29 +139,18 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         });
       });
     } catch (error) {
-      try {
-        await this.manualReviewService.createFailedInitialPaymentTask(
-          session,
-          error,
-        );
-      } catch (error) {
-        this.logger.error(
-          `Critical error processing initial payment after retries: ${error.message}, customPaymentId: ${customPaymentId}, subscriptionId: ${subscriptionId}`,
-          error.stack,
-          ProcessInitialPaymentCommand.name,
-        );
-      }
-
+      await this.manualReviewService.createFailedInitialPaymentTask(
+        session,
+        error,
+      );
       throw error;
     }
   }
 
   private calculatePeriodDates(
-    billingCycleAnchor: number,
+    periodStart: Date,
     subscriptionType: string,
   ): { periodStart: Date; periodEnd: Date } {
-    const periodStart = new Date(billingCycleAnchor * 1000);
-
     let periodDuration: number;
 
     if (subscriptionType.includes('week')) {

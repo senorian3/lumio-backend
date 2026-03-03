@@ -32,26 +32,8 @@ export function ApiGetAllSessions() {
     }),
 
     ApiResponse({
-      status: 400,
-      description: 'Validation error',
-      examples: {
-        sessions_not_found: {
-          summary: 'Sessions not found',
-          value: {
-            errorsMessages: [
-              {
-                message: "User doesn't have sessions",
-                field: 'userId',
-              },
-            ],
-          },
-        },
-      },
-    }),
-
-    ApiResponse({
       status: 401,
-      description: 'Unauthorized',
+      description: 'Unauthorized - invalid or missing refresh token',
       examples: {
         no_refresh_token: {
           summary: 'No refresh token in request',
@@ -76,7 +58,7 @@ export function ApiGetAllSessions() {
           },
         },
         session_mismatch: {
-          summary: 'Session mismatch',
+          summary: 'Session data mismatch (user, device or expiry)',
           value: {
             errorsMessages: [
               {

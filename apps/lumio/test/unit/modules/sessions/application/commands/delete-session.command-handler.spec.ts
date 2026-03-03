@@ -33,7 +33,7 @@ describe('DeleteSessionCommandHandler', () => {
 
   const mockFoundSessionDifferentUser: SessionEntity = {
     ...mockFoundSession,
-    userId: 999, // Different user
+    userId: 999,
   };
 
   beforeEach(async () => {
@@ -97,9 +97,7 @@ describe('DeleteSessionCommandHandler', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение будет 'Not Found'
         expect(domainException.message).toBe('Not Found');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'Device is not found',
         );
@@ -136,7 +134,7 @@ describe('DeleteSessionCommandHandler', () => {
       // Arrange
       const command = new DeleteSessionCommand({
         ...mockDeleteSessionDto,
-        paramDeviceId: 'current-device-123', // Same as userDeviceId
+        paramDeviceId: 'current-device-123',
       });
       (mockRepository.findSession as jest.Mock).mockResolvedValue({
         ...mockFoundSession,

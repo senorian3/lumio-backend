@@ -33,35 +33,52 @@ export class UploadUserAvatarCommandHandler implements ICommandHandler<
       originalname: avatar.originalname,
     };
 
-    let uploadedFiles: PostFileEntity[];
-
-    try {
-      uploadedFiles = await this.s3FilesHttpAdapter.uploadFiles(
-        'users',
-        userId,
-        [fileData],
-      );
-    } catch (error) {
-      throw error;
-    }
+    const uploadedFiles: PostFileEntity[] = await this.s3FilesHttpAdapter
+      .uploadFiles('users', userId, [fileData])
+      .catch((error) => {
+        throw error;
+      });
 
     const file = uploadedFiles[0];
 
-    try {
-      await this.profileRepository.createUserAvatar({
+    const existingAvatar =
+      await this.profileRepository.getAvatarByUserId(userId);
+
+    if (existingAvatar) {
+      await this.profileRepository
+        .deleteAvatar(existingAvatar.id)
+        .catch((error) => {
+          this.logger.error(
+            `Failed to delete old avatar record from database: ${existingAvatar.id}`,
+            error?.stack,
+            UploadUserAvatarCommandHandler.name,
+          );
+          throw error;
+        });
+
+      await this.s3FilesHttpAdapter
+        .deleteFile(existingAvatar.key)
+        .catch((error) => {
+          this.logger.error(
+            `Critical error, failed to delete old avatar file from S3: ${existingAvatar.key}`,
+            error?.stack,
+            UploadUserAvatarCommandHandler.name,
+          );
+        });
+    }
+
+    await this.profileRepository
+      .createUserAvatar({
         key: file.key,
         url: file.url,
         mimetype: file.mimetype,
         size: file.size,
         userId,
+      })
+      .catch((error) => {
+        throw error;
       });
 
-      return file.url;
-    } catch (error) {
-      this.logger.error(
-        `Critical error to upload avatar for userId=${userId}: ${error.message}, need to delete file from S3 ${file.key}`,
-      );
-      throw error;
-    }
+    return file.url;
   }
 }

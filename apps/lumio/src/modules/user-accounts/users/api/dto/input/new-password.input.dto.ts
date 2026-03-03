@@ -5,9 +5,11 @@ import { InputRegistrationDto } from './registration.input.dto';
 export class InputNewPasswordDto extends PickType(InputRegistrationDto, [
   'password',
 ] as const) {
-  @IsString()
+  @IsString({
+    message: 'Recovery code must be a string',
+  })
   @ApiProperty({
-    description: 'Recovery code for password reset',
+    description: 'recoveryCode must be a string',
     example: '675b54ff-5271-44e4-91ac-a4ec9c1899d2',
     required: true,
     nullable: false,

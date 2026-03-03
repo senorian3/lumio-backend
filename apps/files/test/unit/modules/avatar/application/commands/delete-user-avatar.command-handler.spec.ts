@@ -48,6 +48,7 @@ describe('DeleteUserAvatarCommandHandler', () => {
           provide: AppLoggerService,
           useValue: {
             error: jest.fn(),
+            log: jest.fn(),
           },
         },
       ],
@@ -120,19 +121,23 @@ describe('DeleteUserAvatarCommandHandler', () => {
       await expect(handler.execute(command)).rejects.toThrow(dbError);
     });
 
-    it('should throw error when S3 delete fails', async () => {
+    it('should log error when S3 delete fails', async () => {
       // Arrange
       const command = new DeleteUserAvatarCommand(mockUserId);
-      const s3Error = new Error('S3 error');
 
       mockProfileRepository.getAvatarByUserId.mockResolvedValue(mockAvatar);
       mockProfileRepository.deleteAvatar.mockResolvedValue(undefined);
-      mockS3Adapter.deleteFile.mockRejectedValue(s3Error);
+      mockS3Adapter.deleteFile.mockRejectedValue(new Error('S3 error'));
 
-      // Act & Assert
-      await expect(handler.execute(command)).rejects.toThrow(s3Error);
+      // Act
+      await handler.execute(command);
 
-      expect(mockLogger.error).toHaveBeenCalled();
+      // Assert
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `Critical error deleting avatar from S3 for userId=${mockUserId}, key=${mockAvatar.key}: S3 error`,
+        expect.anything(),
+        DeleteUserAvatarCommandHandler.name,
+      );
     });
   });
 });

@@ -19,36 +19,41 @@ export function ApiLogout() {
       status: 401,
       description: 'Unauthorized',
       examples: {
-        no_refresh_token: {
-          summary: 'No accessToken token in request',
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
           value: {
             errorsMessages: [
               {
-                message: 'There is no access token in request',
-                field: 'accessToken',
+                message: 'Invalid user data in JWT',
+                field: 'user',
               },
             ],
           },
         },
-        no_session: {
+        no_active_session: {
           summary: 'Session not found',
           value: {
             errorsMessages: [
               {
-                message: "User doesn't have session",
-                field: 'deviceId',
+                message: "User doesn't have active session",
+                field: 'session',
               },
             ],
           },
         },
-
-        wrong_payload_validation: {
-          summary: 'Wrong payload validation',
+        token_version_mismatch: {
+          summary: 'Token version mismatch',
           value: {
             errorsMessages: [
               {
-                message: "User doesn't have session",
-                field: 'session',
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
               },
             ],
           },

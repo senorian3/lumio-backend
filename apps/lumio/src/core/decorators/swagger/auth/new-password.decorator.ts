@@ -5,30 +5,25 @@ export function ApiNewPassword() {
   return applyDecorators(
     ApiOperation({
       summary: 'User create new password',
-      description: 'Endpoint for create new password',
+      description:
+        'Endpoint for creating new password using recovery code. Invalidates all existing sessions.',
       operationId: 'newPassword',
     }),
 
     ApiResponse({
       status: 200,
-      description: 'User create new password successfully',
+      description: 'Password successfully changed',
+      content: {
+        'application/json': {
+          example: {},
+        },
+      },
     }),
 
     ApiResponse({
       status: 400,
-      description: 'Validation error',
+      description: 'Validation error - Input data does not meet requirements',
       examples: {
-        user_not_found: {
-          summary: 'User does not exist',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User does not exist',
-                field: 'email',
-              },
-            ],
-          },
-        },
         password_min_length: {
           summary: 'Password too short',
           value: {
@@ -122,14 +117,38 @@ export function ApiNewPassword() {
     }),
 
     ApiResponse({
+      status: 404,
+      description: 'Not found - Recovery code is invalid or expired',
+      examples: {
+        recovery_code_not_found: {
+          summary: 'Recovery code not found',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User does not exist',
+                field: 'recoveryCode',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
       status: 429,
       description: 'Too many requests',
-      example: {
-        errorsMessages: [
-          {
-            message: 'Too many requests',
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+                field: null,
+              },
+            ],
           },
-        ],
+        },
       },
     }),
   );

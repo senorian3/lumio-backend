@@ -25,15 +25,43 @@ export function ApiDeleteUserAvatar() {
       description: 'Avatar successfully deleted',
     }),
     ApiResponse({
-      status: 404,
-      description: 'Avatar not found',
+      status: 400,
+      description: 'Bad Request',
       examples: {
-        not_found: {
+        invalid_user_id: {
+          summary: 'Invalid user ID format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User ID must be a valid number',
+                field: 'userId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Not Found',
+      examples: {
+        avatar_not_found: {
           summary: 'Avatar not found',
           value: {
             errorsMessages: [
               {
                 message: 'Avatar not found',
+                field: 'userId',
+              },
+            ],
+          },
+        },
+        user_not_found: {
+          summary: 'User not found',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User not found',
                 field: 'userId',
               },
             ],

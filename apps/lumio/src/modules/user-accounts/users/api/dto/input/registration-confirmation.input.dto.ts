@@ -8,6 +8,8 @@ export class InputRegistrationConfirmationDto {
     required: true,
     nullable: false,
   })
-  @IsString()
+  @IsString({
+    message: 'Confirmation code must be a string',
+  })
   confirmCode: string;
 }

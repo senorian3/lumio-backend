@@ -43,7 +43,6 @@ describe('YandexStrategy', () => {
   describe('constructor', () => {
     it('should initialize PassportStrategy with correct configuration', () => {
       expect(strategy).toBeInstanceOf(YandexStrategy);
-      // Можно проверить, что конфигурация передается правильно через CoreConfig
     });
   });
 

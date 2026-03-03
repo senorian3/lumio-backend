@@ -249,7 +249,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       // Arrange
       const sameDto = new InputChangeAutorenewalSubscriptionDto();
       sameDto.profileId = '1';
-      sameDto.autoRenewal = true; // Same as current
+      sameDto.autoRenewal = true;
 
       const command = new ChangeAutoRenewalCommand(mockUserId, sameDto);
 

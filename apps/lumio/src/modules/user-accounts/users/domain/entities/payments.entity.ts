@@ -5,7 +5,7 @@ export class PaymentsEntity implements Payments {
   id: string;
   createdAt: Date;
 
-  datePayment: Date; // Добавлено
+  datePayment: Date;
   endDate: Date;
 
   amount: number;

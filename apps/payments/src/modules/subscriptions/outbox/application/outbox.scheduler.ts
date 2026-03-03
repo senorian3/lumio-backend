@@ -67,6 +67,24 @@ export class OutboxScheduler {
                   message,
                 );
               break;
+            case OutboxEventType.UPDATE_CUSTOMER_SUBSCRIPTION_END_DATE_STRIPE:
+              result =
+                await this.externalCallsProcessor.processUpdateCustomerSubscriptionEndDate(
+                  message,
+                );
+              break;
+            case OutboxEventType.CANCEL_SUBSCRIPTION_IMMEDIATELY_STRIPE:
+              result =
+                await this.externalCallsProcessor.processCancelSubscriptionImmediately(
+                  message,
+                );
+              break;
+            case OutboxEventType.UPDATE_SUBSCRIPTION_METADATA_STRIPE:
+              result =
+                await this.externalCallsProcessor.processUpdateSubscriptionMetadata(
+                  message,
+                );
+              break;
             case OutboxEventType.MANUAL_REVIEW_REQUIRED:
               result =
                 await this.externalCallsProcessor.processManualReviewRequired(

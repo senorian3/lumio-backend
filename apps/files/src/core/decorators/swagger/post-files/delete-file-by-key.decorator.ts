@@ -25,10 +25,38 @@ export function ApiDeleteFileByKey() {
       description: 'File successfully deleted',
     }),
     ApiResponse({
-      status: 404,
-      description: 'File not found',
+      status: 400,
+      description: 'Bad Request',
       examples: {
-        not_found: {
+        key_required: {
+          summary: 'File key is required',
+          value: {
+            errorsMessages: [
+              {
+                message: 'File key is required',
+                field: 'key',
+              },
+            ],
+          },
+        },
+        invalid_key_format: {
+          summary: 'Invalid key format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'File key must be a valid string',
+                field: 'key',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Not Found',
+      examples: {
+        file_not_found: {
           summary: 'File not found',
           value: {
             errorsMessages: [

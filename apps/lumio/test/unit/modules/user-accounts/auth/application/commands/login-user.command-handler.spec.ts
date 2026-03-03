@@ -231,7 +231,7 @@ describe('LoginUserUseCase', () => {
       (mockRefreshTokenJwtService.sign as jest.Mock).mockReturnValue(
         mockRefreshToken,
       );
-      (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue({}); // missing iat, exp
+      (mockRefreshTokenJwtService.verify as jest.Mock).mockReturnValue({});
 
       // Act & Assert
       await expect(useCase.execute(command)).rejects.toThrow(DomainException);
@@ -241,9 +241,7 @@ describe('LoginUserUseCase', () => {
         throw new Error('Should have thrown an exception');
       } catch (error) {
         const domainException = error as DomainException;
-        // Основное сообщение
         expect(domainException.message).toBe('Forbidden');
-        // Конкретное сообщение в extensions
         expect(domainException.extensions[0]?.message).toBe(
           'Refresh token is not verified',
         );

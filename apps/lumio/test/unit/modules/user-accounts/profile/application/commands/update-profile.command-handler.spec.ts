@@ -184,7 +184,7 @@ describe('UpdateProfileCommandHandler', () => {
     it('should throw ForbiddenDomainException when user tries to update another user profile', async () => {
       // Arrange
       const userId = 1;
-      const requestUserId = 2; // Different user
+      const requestUserId = 2;
       const command = new UpdateProfileCommand(
         mockEditProfileDto,
         userId,
@@ -265,7 +265,6 @@ describe('UpdateProfileCommandHandler', () => {
       // Arrange
       const partialDto = new EditProfileTransferDto();
       partialDto.firstName = 'NewName';
-      // Other fields remain undefined
 
       const userId = 1;
       const requestUserId = 1;
@@ -300,7 +299,6 @@ describe('UpdateProfileCommandHandler', () => {
     it('should handle empty profile data', async () => {
       // Arrange
       const emptyDto = new EditProfileTransferDto();
-      // All fields remain undefined
 
       const userId = 1;
       const requestUserId = 1;

@@ -131,9 +131,9 @@ export class PaymentsRepository {
         profileId,
         status: 'successful',
         cancelledAt: null,
-        nextPaymentDate: { gt: now },
+        periodEnd: { gt: now },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
   }
 
@@ -174,5 +174,22 @@ export class PaymentsRepository {
       },
     });
     return result.count;
+  }
+
+  async updateSubPeriodEndDate(
+    customPaymentId: string,
+    subscriptionId: string,
+    periodEnd: Date,
+    tx?: any,
+  ): Promise<Payment> {
+    const client = tx || this.prisma;
+    return client.payment.update({
+      where: { customPaymentId },
+      data: {
+        subscriptionId,
+        periodEnd,
+        nextPaymentDate: periodEnd,
+      },
+    });
   }
 }

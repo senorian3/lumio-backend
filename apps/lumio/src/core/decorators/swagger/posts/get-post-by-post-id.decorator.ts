@@ -31,27 +31,15 @@ export function ApiGetPostById() {
     }),
 
     ApiResponse({
-      status: 400,
-      description: 'Bad request',
-      examples: {
-        post_does_not_exist: {
-          summary: 'Post does not exist',
-          value: {
-            errorsMessages: [
-              {
-                message: 'Post does not exist',
-                field: 'post',
-              },
-            ],
-          },
-        },
-      },
-    }),
-
-    ApiResponse({
       status: 401,
       description: 'Unauthorized',
       examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
         invalid_user_data: {
           summary: 'Invalid user data in JWT',
           value: {
@@ -92,6 +80,17 @@ export function ApiGetPostById() {
       status: 404,
       description: 'Not found',
       examples: {
+        post_does_not_exist: {
+          summary: 'Post does not exist',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post does not exist',
+                field: 'post',
+              },
+            ],
+          },
+        },
         profile_not_found: {
           summary: 'Profile is not found',
           value: {

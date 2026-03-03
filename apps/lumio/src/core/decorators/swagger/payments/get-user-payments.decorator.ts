@@ -1,5 +1,11 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
+import { PaymentsSortBy } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 
 export function ApiGetUserPayments() {
   return applyDecorators(
@@ -9,6 +15,34 @@ export function ApiGetUserPayments() {
       description:
         'Returns a paginated list of payments for the current authorized user',
       operationId: 'getUserPayments',
+    }),
+    ApiQuery({
+      name: 'page',
+      required: false,
+      type: Number,
+      description: 'Page number (default: 1)',
+      example: 1,
+    }),
+    ApiQuery({
+      name: 'limit',
+      required: false,
+      type: Number,
+      description: 'Items per page (default: 10, max: 100)',
+      example: 10,
+    }),
+    ApiQuery({
+      name: 'sortBy',
+      required: false,
+      enum: PaymentsSortBy,
+      description: 'Field to sort by (default: createdAt)',
+      example: PaymentsSortBy.CREATED_AT,
+    }),
+    ApiQuery({
+      name: 'sortOrder',
+      required: false,
+      enum: ['ASC', 'DESC'],
+      description: 'Sort order (default: DESC)',
+      example: 'DESC',
     }),
     ApiResponse({
       status: 200,
@@ -58,24 +92,41 @@ export function ApiGetUserPayments() {
       status: 401,
       description: 'Unauthorized',
       examples: {
-        invalid_session: {
-          summary: 'Invalid session or JWT',
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version is expired',
           value: {
             errorsMessages: [
               {
-                message: "User doesn't have active session",
-                field: 'session',
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
               },
             ],
           },
         },
-        invalid_token: {
-          summary: 'Token is invalid',
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
           value: {
             errorsMessages: [
               {
                 message: 'Invalid user data in JWT',
                 field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: 'User does not have active session',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
               },
             ],
           },

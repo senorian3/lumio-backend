@@ -31,30 +31,22 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         +dto.profileId,
       );
 
-    if (activeSubscription) {
-      throw BadRequestDomainException.create(
-        `User with profileId ${activeSubscription.profileId} already has active subscription: ${activeSubscription.subscriptionType}`,
-        'profileId',
-      );
-    }
-
     const amount: number = SUBSCRIPTION_PRICES[dto.subscriptionType];
 
-    let session: Stripe.Checkout.Session;
-
-    try {
-      session = await this.stripeAdapter.createPaymentSession(
+    const session: Stripe.Checkout.Session = await this.stripeAdapter
+      .createPaymentSession(
         dto.subscriptionType,
         amount,
         dto.profileId,
         dto.currency,
-      );
-    } catch (error) {
-      throw BadRequestDomainException.create(
-        `Failed to create subscription payment session: ${error.message}`,
-        'profileId',
-      );
-    }
+        activeSubscription ? activeSubscription.subscriptionId : 'null',
+      )
+      .catch((error) => {
+        throw BadRequestDomainException.create(
+          `Failed to create subscription payment session: ${error.message}`,
+          'profileId',
+        );
+      });
 
     const stripePaymentCreatedAt = new Date(session.created * 1000);
     const customPaymentId = session.metadata.customPaymentId;
@@ -66,7 +58,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       profileId: +dto.profileId,
       status: 'pending',
       subscriptionType: dto.subscriptionType,
-      autoRenewal: true,
+      autoRenewal: false,
       subscriptionId: null,
       periodStart: null,
       periodEnd: null,
