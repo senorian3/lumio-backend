@@ -139,16 +139,6 @@ export class StripeAdapter {
     }
   }
 
-  async isExtensionSubscription(subscriptionId: string): Promise<boolean> {
-    try {
-      const subscription =
-        await this.stripe.subscriptions.retrieve(subscriptionId);
-      return subscription.metadata?.extensionSub === 'true';
-    } catch (error) {
-      throw error;
-    }
-  }
-
   async updateSubscriptionMetadata(
     subscriptionId: string,
     metadata: Record<string, string>,

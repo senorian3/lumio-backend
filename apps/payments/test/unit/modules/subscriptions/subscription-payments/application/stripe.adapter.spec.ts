@@ -276,63 +276,6 @@ describe('StripeAdapter', () => {
     });
   });
 
-  describe('isExtensionSubscription', () => {
-    it('should return true for extension subscription', async () => {
-      // Arrange
-      const mockSubscription = {
-        metadata: { extensionSub: 'true' },
-      };
-      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
-
-      // Act
-      const result = await adapter.isExtensionSubscription('sub_123');
-
-      // Assert
-      expect(result).toBe(true);
-      expect(mockStripeSubscriptions.retrieve).toHaveBeenCalledWith('sub_123');
-    });
-
-    it('should return false for non-extension subscription', async () => {
-      // Arrange
-      const mockSubscription = {
-        metadata: { extensionSub: 'false' },
-      };
-      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
-
-      // Act
-      const result = await adapter.isExtensionSubscription('sub_123');
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('should return false when metadata is missing', async () => {
-      // Arrange
-      const mockSubscription = {
-        metadata: {},
-      };
-      mockStripeSubscriptions.retrieve.mockResolvedValue(mockSubscription);
-
-      // Act
-      const result = await adapter.isExtensionSubscription('sub_123');
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('should throw error on retrieval failure', async () => {
-      // Arrange
-      mockStripeSubscriptions.retrieve.mockRejectedValue(
-        new Error('Subscription not found'),
-      );
-
-      // Act & Assert
-      await expect(adapter.isExtensionSubscription('sub_123')).rejects.toThrow(
-        'Subscription not found',
-      );
-    });
-  });
-
   describe('updateSubscriptionMetadata', () => {
     it('should update subscription metadata successfully', async () => {
       // Arrange

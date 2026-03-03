@@ -34,6 +34,7 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
     const subscription = event.data.object as Stripe.Subscription;
     const subscriptionId = subscription.id;
 
+    console.log('delete сработал');
     try {
       const subscriptionDetails =
         await this.stripeAdapter.getSubscriptionDetails(subscriptionId);

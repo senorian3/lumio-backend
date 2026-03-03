@@ -43,26 +43,22 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         const subscriptionId = invoice.parent.subscription_details
           .subscription as string;
 
-        const isExtension =
-          await this.stripeAdapter.isExtensionSubscription(subscriptionId);
+        const subscription =
+          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
 
-        if (isExtension) {
+        if (
+          !subscription ||
+          subscription.metadata?.extensionSub === 'true' ||
+          subscription.status === 'canceled' ||
+          subscription.cancel_at_period_end
+        ) {
           return;
         }
 
         const existingPayment =
           await this.paymentsRepository.findBySubscriptionId(subscriptionId);
 
-        if (!existingPayment) {
-          this.logger.error(
-            `Payment with subscriptionId ${subscriptionId} not found`,
-            this.paymentsRepository.findBySubscriptionId.name,
-            ProcessRecurringPaymentCommandHandler.name,
-          );
-          throw new Error();
-        }
-
-        if (existingPayment.autoRenewal === false) {
+        if (!existingPayment || existingPayment.autoRenewal === false) {
           return;
         }
 

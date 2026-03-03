@@ -104,7 +104,6 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
           provide: StripeAdapter,
           useValue: {
             getSubscriptionDetails: jest.fn(),
-            isExtensionSubscription: jest.fn(),
           },
         },
       ],
@@ -127,15 +126,74 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
     it('should process recurring payment successfully', async () => {
       // Arrange
       const command = new ProcessRecurringPaymentCommand(mockInvoice);
+      const mockStripeAdapter = {
+        getSubscriptionDetails: jest.fn().mockResolvedValue({
+          metadata: {},
+          status: 'active',
+          cancel_at_period_end: false,
+        }),
+      };
 
-      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
-        mockExistingPayment as any,
+      // Получаем реальный экземпляр StripeAdapter из модуля
+      const moduleRef = await Test.createTestingModule({
+        providers: [
+          ProcessRecurringPaymentCommandHandler,
+          {
+            provide: PaymentsRepository,
+            useValue: {
+              findBySubscriptionId: jest
+                .fn()
+                .mockResolvedValue(mockExistingPayment as any),
+              createPayment: jest.fn().mockResolvedValue({} as any),
+              completePayment: jest.fn().mockResolvedValue(undefined),
+            },
+          },
+          {
+            provide: OutboxService,
+            useValue: {
+              createSubscriptionUpdatedMessage: jest
+                .fn()
+                .mockResolvedValue(undefined),
+            },
+          },
+          {
+            provide: PrismaService,
+            useValue: mockPrisma,
+          },
+          {
+            provide: ManualReviewService,
+            useValue: {
+              createFailedRecurringPaymentTask: jest.fn(),
+            },
+          },
+          {
+            provide: AppLoggerService,
+            useValue: {
+              error: jest.fn(),
+              warn: jest.fn(),
+            },
+          },
+          {
+            provide: RetryService,
+            useValue: {
+              executeWithRetry: jest.fn((fn) => fn()),
+            },
+          },
+          {
+            provide: StripeAdapter,
+            useValue: mockStripeAdapter,
+          },
+        ],
+      }).compile();
+
+      handler = moduleRef.get<ProcessRecurringPaymentCommandHandler>(
+        ProcessRecurringPaymentCommandHandler,
       );
-      mockPaymentsRepository.createPayment.mockResolvedValue({} as any);
-      mockPaymentsRepository.completePayment.mockResolvedValue(undefined);
-      mockOutboxService.createSubscriptionUpdatedMessage.mockResolvedValue(
-        undefined,
-      );
+      mockPaymentsRepository = moduleRef.get(PaymentsRepository);
+      mockOutboxService = moduleRef.get(OutboxService);
+      mockLogger = moduleRef.get(AppLoggerService);
+      mockManualReviewService = moduleRef.get(ManualReviewService);
+      mockRetryService = moduleRef.get(RetryService);
 
       // Act
       await handler.execute(command);
