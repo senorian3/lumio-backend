@@ -15,6 +15,7 @@ import { StripeHookCommandHandler } from '@payments/modules/subscriptions/subscr
 import { ProcessInitialPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-initial-payment.command-handler';
 import { ProcessRecurringPaymentCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
 import { ProcessSubscriptionDeletedCommandHandler } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-subscription-deleted.command-handler';
+import { GetUserProfilePaymentsQueryHandler } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-user-profile-payments.query-handler';
 import { RetryService } from '@payments/modules/subscriptions/subscription-payments/application/retry.service';
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { OutboxRepository } from '@payments/modules/subscriptions/outbox/domain/outbox.repository';
@@ -33,6 +34,7 @@ const useCases = [
   ProcessRecurringPaymentCommandHandler,
   ProcessSubscriptionDeletedCommandHandler,
   ChangeAutoRenewalSubscriptionCommandHandler,
+  GetUserProfilePaymentsQueryHandler,
 ];
 
 const repositories = [PaymentsRepository];

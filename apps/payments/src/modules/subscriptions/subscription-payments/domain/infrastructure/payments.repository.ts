@@ -192,4 +192,36 @@ export class PaymentsRepository {
       },
     });
   }
+
+  async findAllUserProfilePayments(
+    profileId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ payments: Payment[]; totalCount: number }> {
+    const skip = (page - 1) * limit;
+
+    const [payments, totalCount] = await Promise.all([
+      this.prisma.payment.findMany({
+        where: {
+          profileId,
+          status: {
+            in: ['successful', 'extension', 'completed', 'cancelled'],
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.payment.count({
+        where: {
+          profileId,
+          status: {
+            in: ['successful', 'extension', 'completed', 'cancelled'],
+          },
+        },
+      }),
+    ]);
+
+    return { payments, totalCount };
+  }
 }
