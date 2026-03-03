@@ -50,23 +50,6 @@ model UserProfile {
   subscriptions    Subscription[]
 }
 
-model Payments {
-  id              String       @id
-  createdAt       DateTime     @default(now()) @db.Timestamp(0)
-
-  datePayment     DateTime
-  endDate         DateTime
-
-  amount          Float
-  currency        String
-  paymentsService String
-
-  subscriptionId  String?     
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-
-  @@index([subscriptionId])
-}
-
 model Subscription {
   id           String    @id
   durationType String    @db.VarChar(20)
@@ -77,8 +60,6 @@ model Subscription {
 
   userProfileId Int
   userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
-
-  payments     Payments[]
 
   @@index([userProfileId])
 }

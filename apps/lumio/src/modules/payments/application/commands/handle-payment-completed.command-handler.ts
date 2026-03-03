@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
-import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
@@ -16,7 +15,6 @@ export class HandlePaymentCompletedCommand {
 export class HandlePaymentCompletedCommandHandler implements ICommandHandler<HandlePaymentCompletedCommand> {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly paymentsRepository: PaymentsRepository,
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
@@ -25,13 +23,13 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     const {
       profileId,
-      amount,
-      currency,
+      // amount,
+      // currency,
       subscriptionId,
       subscriptionType,
       periodStart,
       periodEnd,
-      paymentsService,
+      // paymentsService,
       mainSubscriptionId,
     } = command.data.payload;
 
@@ -84,19 +82,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
               tx,
             );
         }
-
-        await this.paymentsRepository.createPayment(
-          {
-            id: command.data.payload.paymentId,
-            amount,
-            currency,
-            paymentsService: paymentsService,
-            subscriptionId: subscriptionRecord.id,
-            datePayment: startDate,
-            endDate: endDate,
-          },
-          tx,
-        );
 
         await this.userRepository.updateAccountType(
           profileId,

@@ -75,18 +75,18 @@ export class SubscriptionRepository {
     });
   }
 
-  async findAllSubscriptionsByProfileId(
-    profileId: number,
-  ): Promise<Subscription[]> {
-    return this.prisma.subscription.findMany({
-      where: {
-        userProfileId: profileId,
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
-    });
-  }
+  // async findAllSubscriptionsByProfileId(
+  //   profileId: number,
+  // ): Promise<Subscription[]> {
+  //   return this.prisma.subscription.findMany({
+  //     where: {
+  //       userProfileId: profileId,
+  //     },
+  //     orderBy: {
+  //       startDate: 'desc',
+  //     },
+  //   });
+  // }
 
   async cancelSubscription(
     id: string,

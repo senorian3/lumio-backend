@@ -37,7 +37,6 @@ export class TestingController {
 
     try {
       await this.prismaService.$transaction([
-        this.prismaService.payments.deleteMany(),
         this.prismaService.subscription.deleteMany(),
         this.prismaService.session.deleteMany(),
         this.prismaService.emailConfirmation.deleteMany(),

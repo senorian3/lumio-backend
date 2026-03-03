@@ -46,4 +46,20 @@ export class PaymentsHttpAdapter {
       throw error;
     }
   }
+
+  async findAllUserProfilePayments(
+    endpoint: string,
+    profileId: number,
+    additionalHeaders?: Record<string, string>,
+  ) {
+    const url = `${this.coreConfig.paymentsFrontendUrl}/${endpoint}/${profileId}`;
+    const headers = this.getHeaders(additionalHeaders);
+
+    try {
+      const response = await axios.get(url, { headers });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
