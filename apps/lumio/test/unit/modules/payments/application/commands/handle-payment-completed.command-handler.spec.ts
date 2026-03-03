@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
-import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
@@ -15,7 +14,6 @@ import { AccountType } from '@lumio/modules/payments/constants/payments-constans
 describe('HandlePaymentCompletedCommandHandler', () => {
   let handler: HandlePaymentCompletedCommandHandler;
   let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
-  let mockPaymentsRepository: jest.Mocked<PaymentsRepository>;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
 
@@ -61,12 +59,8 @@ describe('HandlePaymentCompletedCommandHandler', () => {
           provide: SubscriptionRepository,
           useValue: {
             createSubscription: jest.fn(),
-          },
-        },
-        {
-          provide: PaymentsRepository,
-          useValue: {
-            createPayment: jest.fn(),
+            findActiveSubscriptionByProfileId: jest.fn(),
+            updateSubscriptionWithNewPayment: jest.fn(),
           },
         },
         {
@@ -95,7 +89,6 @@ describe('HandlePaymentCompletedCommandHandler', () => {
       HandlePaymentCompletedCommandHandler,
     );
     mockSubscriptionRepository = module.get(SubscriptionRepository);
-    mockPaymentsRepository = module.get(PaymentsRepository);
     mockExternalQueryUserRepository = module.get(
       ExternalQueryUserAccountsRepository,
     );
@@ -161,18 +154,6 @@ describe('HandlePaymentCompletedCommandHandler', () => {
           endDate: expect.any(Date),
           userProfileId: mockProfileId,
           autoRenewal: true,
-        },
-        expect.anything(),
-      );
-      expect(mockPaymentsRepository.createPayment).toHaveBeenCalledWith(
-        {
-          id: 'pay-123',
-          amount: 100,
-          currency: 'RUB',
-          paymentsService: 'yookassa',
-          subscriptionId: 'sub-123',
-          datePayment: expect.any(Date),
-          endDate: expect.any(Date),
         },
         expect.anything(),
       );

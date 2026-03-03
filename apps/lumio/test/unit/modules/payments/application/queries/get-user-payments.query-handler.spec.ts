@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
-import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
+import { PaymentsHttpAdapter } from '@lumio/modules/payments/application/payments-http.adapter';
 import {
   GetUserPaymentsQueryHandler,
   GetUserPaymentsQuery,
@@ -13,8 +12,7 @@ import { PaymentViewDto } from '@lumio/modules/payments/api/dto/output/user-paym
 describe('GetUserPaymentsQueryHandler', () => {
   let handler: GetUserPaymentsQueryHandler;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
-  let mockQueryPaymentsRepository: jest.Mocked<QueryPaymentsRepository>;
-  let mockSubscriptionRepository: jest.Mocked<SubscriptionRepository>;
+  let mockPaymentsHttpAdapter: jest.Mocked<PaymentsHttpAdapter>;
 
   const mockUserId = 1;
   const mockProfileId = 1;
@@ -35,18 +33,6 @@ describe('GetUserPaymentsQueryHandler', () => {
     userId: mockUserId,
     user: {} as any,
   };
-
-  const mockSubscriptions = [
-    {
-      id: 'sub-123',
-      durationType: 'monthly',
-      startDate: new Date('2024-01-01'),
-      endDate: new Date('2024-02-01'),
-      autoRenewal: true,
-      cancelledAt: null,
-      userProfileId: mockProfileId,
-    },
-  ];
 
   const mockPayments: PaymentViewDto[] = [
     {
@@ -70,15 +56,9 @@ describe('GetUserPaymentsQueryHandler', () => {
           },
         },
         {
-          provide: QueryPaymentsRepository,
+          provide: PaymentsHttpAdapter,
           useValue: {
-            findPaymentsBySubscriptionIds: jest.fn(),
-          },
-        },
-        {
-          provide: SubscriptionRepository,
-          useValue: {
-            findAllSubscriptionsByProfileId: jest.fn(),
+            findAllUserProfilePayments: jest.fn(),
           },
         },
       ],
@@ -90,8 +70,7 @@ describe('GetUserPaymentsQueryHandler', () => {
     mockExternalQueryUserRepository = module.get(
       ExternalQueryUserAccountsRepository,
     );
-    mockQueryPaymentsRepository = module.get(QueryPaymentsRepository);
-    mockSubscriptionRepository = module.get(SubscriptionRepository);
+    mockPaymentsHttpAdapter = module.get(PaymentsHttpAdapter);
   });
 
   it('should be defined', () => {
@@ -109,24 +88,19 @@ describe('GetUserPaymentsQueryHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findAllSubscriptionsByProfileId.mockResolvedValue(
-        mockSubscriptions,
-      );
-      mockQueryPaymentsRepository.findPaymentsBySubscriptionIds.mockResolvedValue(
-        {
-          payments: [
-            {
-              datePayment: new Date('2024-01-01'),
-              endDate: new Date('2024-02-01'),
-              amount: 100,
-              currency: 'RUB',
-              paymentsService: 'yookassa',
-              subscription: { durationType: 'monthly' },
-            },
-          ],
-          totalCount: 1,
-        },
-      );
+      mockPaymentsHttpAdapter.findAllUserProfilePayments.mockResolvedValue({
+        payments: [
+          {
+            datePayment: new Date('2024-01-01'),
+            endDate: new Date('2024-02-01'),
+            amount: 100,
+            currency: 'RUB',
+            paymentsService: 'yookassa',
+            subscription: { durationType: 'monthly' },
+          },
+        ],
+        totalCount: 1,
+      });
 
       // Act
       const result = await handler.execute(query);
@@ -136,8 +110,11 @@ describe('GetUserPaymentsQueryHandler', () => {
         mockExternalQueryUserRepository.getProfileByUserId,
       ).toHaveBeenCalledWith(mockUserId);
       expect(
-        mockSubscriptionRepository.findAllSubscriptionsByProfileId,
-      ).toHaveBeenCalledWith(mockProfileId);
+        mockPaymentsHttpAdapter.findAllUserProfilePayments,
+      ).toHaveBeenCalledWith(
+        expect.stringContaining('/subscription-payments/profile-payments'),
+        mockProfileId,
+      );
       expect(result.items).toEqual(mockPayments);
       expect(result.totalCount).toBe(1);
     });
@@ -168,7 +145,7 @@ describe('GetUserPaymentsQueryHandler', () => {
       }
     });
 
-    it('should return empty result when no subscriptions found', async () => {
+    it('should return empty result when no payments found', async () => {
       // Arrange
       const queryParams = new GetUserPaymentsParams();
       queryParams.pageNumber = 1;
@@ -178,9 +155,10 @@ describe('GetUserPaymentsQueryHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findAllSubscriptionsByProfileId.mockResolvedValue(
-        [],
-      );
+      mockPaymentsHttpAdapter.findAllUserProfilePayments.mockResolvedValue({
+        payments: [],
+        totalCount: 0,
+      });
 
       // Act
       const result = await handler.execute(query);
@@ -206,26 +184,23 @@ describe('GetUserPaymentsQueryHandler', () => {
       await expect(handler.execute(query)).rejects.toThrow(dbError);
     });
 
-    it('should handle database error when finding payments', async () => {
+    it('should handle error when finding payments', async () => {
       // Arrange
       const queryParams = new GetUserPaymentsParams();
       queryParams.pageNumber = 1;
       queryParams.pageSize = 10;
       const query = new GetUserPaymentsQuery(mockUserId, queryParams);
-      const dbError = new Error('Database connection failed');
+      const httpError = new Error('HTTP connection failed');
 
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findAllSubscriptionsByProfileId.mockResolvedValue(
-        mockSubscriptions,
-      );
-      mockQueryPaymentsRepository.findPaymentsBySubscriptionIds.mockRejectedValue(
-        dbError,
+      mockPaymentsHttpAdapter.findAllUserProfilePayments.mockRejectedValue(
+        httpError,
       );
 
       // Act & Assert
-      await expect(handler.execute(query)).rejects.toThrow(dbError);
+      await expect(handler.execute(query)).rejects.toThrow(httpError);
     });
   });
 });
