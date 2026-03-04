@@ -16,7 +16,6 @@ export class SubscriptionRepository {
     id: string,
     durationType: string,
     endDate: Date,
-    autoRenewal: boolean,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
@@ -25,7 +24,6 @@ export class SubscriptionRepository {
       data: {
         durationType,
         endDate,
-        autoRenewal,
       },
     });
   }
@@ -74,19 +72,6 @@ export class SubscriptionRepository {
       data: { autoRenewal },
     });
   }
-
-  // async findAllSubscriptionsByProfileId(
-  //   profileId: number,
-  // ): Promise<Subscription[]> {
-  //   return this.prisma.subscription.findMany({
-  //     where: {
-  //       userProfileId: profileId,
-  //     },
-  //     orderBy: {
-  //       startDate: 'desc',
-  //     },
-  //   });
-  // }
 
   async cancelSubscription(
     id: string,

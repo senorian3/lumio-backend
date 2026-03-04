@@ -162,7 +162,7 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.subscriptionId,
+          aggregateId: payload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.SUBSCRIPTION_DELETED,
           scheduledAt: new Date(),
@@ -173,7 +173,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for subscription deleted ${payload.subscriptionId}: ${error.message}`,
+        `Failed to create outbox message for stripe subscription deleted ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -181,7 +181,7 @@ export class OutboxService {
       try {
         await this.createFailedSubscriptionDeletedMessage(
           {
-            subscriptionId: payload.subscriptionId,
+            subscriptionId: payload.stripeSubscriptionId,
             profileId: payload.profileId,
             error: error.message,
             timestamp: new Date().toISOString(),
@@ -190,7 +190,7 @@ export class OutboxService {
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating outbox message for subscription deleted ${payload.subscriptionId}: ${innerError.message}`,
+          `Critical error creating outbox message for stripe subscription deleted ${payload.stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );
@@ -225,7 +225,7 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.subscriptionId,
+          aggregateId: payload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType:
             OutboxEventType.UPDATE_CUSTOMER_SUBSCRIPTION_END_DATE_STRIPE,
@@ -237,7 +237,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for updating customer subscription end date ${payload.subscriptionId}: ${error.message}`,
+        `Failed to create outbox message for updating customer stripe subscription end date ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -245,7 +245,7 @@ export class OutboxService {
       try {
         await this.createFailedUpdateCustomerSubscriptionEndDateMessage(
           {
-            subscriptionId: payload.subscriptionId,
+            subscriptionId: payload.stripeSubscriptionId,
             error: error.message,
             timestamp: new Date().toISOString(),
           },
@@ -253,7 +253,7 @@ export class OutboxService {
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating outbox message for updating customer subscription end date ${payload.subscriptionId}: ${innerError.message}`,
+          `Critical error creating outbox message for updating customer stripe subscription end date ${payload.stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );
@@ -269,7 +269,7 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.subscriptionId,
+          aggregateId: payload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.CANCEL_SUBSCRIPTION_IMMEDIATELY_STRIPE,
           scheduledAt: new Date(),
@@ -280,7 +280,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for canceling subscription immediately ${payload.subscriptionId}: ${error.message}`,
+        `Failed to create outbox message for canceling stripe subscription immediately ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -288,7 +288,7 @@ export class OutboxService {
       try {
         await this.createFailedCancelSubscriptionImmediatelyMessage(
           {
-            subscriptionId: payload.subscriptionId,
+            subscriptionId: payload.stripeSubscriptionId,
             error: error.message,
             timestamp: new Date().toISOString(),
           },
@@ -296,7 +296,7 @@ export class OutboxService {
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating outbox message for canceling subscription immediately ${payload.subscriptionId}: ${innerError.message}`,
+          `Critical error creating outbox message for canceling stripe subscription immediately ${payload.stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );
@@ -312,7 +312,7 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.subscriptionId,
+          aggregateId: payload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.UPDATE_SUBSCRIPTION_METADATA_STRIPE,
           scheduledAt: new Date(),
@@ -323,7 +323,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for updating subscription metadata ${payload.subscriptionId}: ${error.message}`,
+        `Failed to create outbox message for updating stripe subscription metadata ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -331,7 +331,7 @@ export class OutboxService {
       try {
         await this.createFailedUpdateSubscriptionMetadataMessage(
           {
-            subscriptionId: payload.subscriptionId,
+            subscriptionId: payload.stripeSubscriptionId,
             error: error.message,
             timestamp: new Date().toISOString(),
           },
@@ -339,7 +339,7 @@ export class OutboxService {
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating outbox message for updating subscription metadata ${payload.subscriptionId}: ${innerError.message}`,
+          `Critical error creating outbox message for updating stripe subscription metadata ${payload.stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );

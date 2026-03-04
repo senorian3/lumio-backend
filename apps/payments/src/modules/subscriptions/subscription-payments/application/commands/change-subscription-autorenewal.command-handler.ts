@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ChangeAutoRenewalSubscriptionTransferDto } from '@libs/dto/transfer/change-autorenewal-subscription.transfer.dto';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 
@@ -29,9 +29,9 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
       );
 
     if (!activeSubscription || !activeSubscription.subscriptionType) {
-      throw BadRequestDomainException.create(
+      throw NotFoundDomainException.create(
         "User doesn't have active subscription",
-        'autoRenewalSubscription',
+        'profileId',
       );
     }
 
@@ -49,7 +49,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         );
 
         await this.outboxService.createChangeSubscriptionAutoRenewalStripe(
-          activeSubscription.subscriptionId,
+          activeSubscription.stripeSubscriptionId,
           dto.autoRenewal,
           tx,
         );

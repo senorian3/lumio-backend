@@ -10,6 +10,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { RetryService } from '../retry.service';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessRecurringPaymentCommand {
   constructor(public readonly invoice: Stripe.Invoice) {}
@@ -40,11 +41,11 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         )
           return;
 
-        const subscriptionId = invoice.parent.subscription_details
+        const stripeSubscriptionId = invoice.parent.subscription_details
           .subscription as string;
 
         const subscription =
-          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+          await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
         if (
           !subscription ||
@@ -56,7 +57,9 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         }
 
         const existingPayment =
-          await this.paymentsRepository.findBySubscriptionId(subscriptionId);
+          await this.paymentsRepository.findByStripeSubscriptionId(
+            stripeSubscriptionId,
+          );
 
         if (!existingPayment || existingPayment.autoRenewal === false) {
           return;
@@ -72,11 +75,12 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           const createdAt = new Date(invoice.created * 1000);
 
           const subscriptionType =
-            invoice.metadata?.subscriptionType ||
-            existingPayment.subscriptionType ||
-            '1 month';
+            invoice.metadata.subscriptionType ||
+            existingPayment.subscriptionType;
 
           const finishDate = new Date(Date.now());
+          const subscriptionId = uuidv4();
+          const customPaymentId = `${existingPayment.profileId}-${finishDate.getTime()}`;
 
           const createPaymentData: CreatePaymentDomainDto = {
             paymentProvider: 'Stripe',
@@ -84,7 +88,9 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
             amount,
             profileId: existingPayment.profileId,
             status: PaymentStatus.SUCCESSFUL,
-            subscriptionId: subscriptionId,
+            subscriptionId,
+            stripeSubscriptionId,
+            mainSubscriptionId: existingPayment.mainSubscriptionId,
             periodStart: currentPeriodStart,
             periodEnd: currentPeriodEnd,
             nextPaymentDate: nextPaymentDate,
@@ -94,7 +100,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
             createdAt: new Date(),
             stripePaymentCreatedAt: createdAt,
             cancelledAt: null,
-            customPaymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
+            customPaymentId,
           };
 
           await this.paymentsRepository.createPayment(createPaymentData, tx);
@@ -109,15 +115,10 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
 
           const createSubscriptionUpdateMessageData: CreateSubscriptionUpdateMessageDto =
             {
-              paymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
-              amount,
-              currency: invoice.currency.toUpperCase(),
-              paymentService: existingPayment.paymentProvider,
               subscriptionId,
-              subscriptionType,
+              paymentId: customPaymentId,
               nextPaymentDate,
               profileId: existingPayment.profileId,
-              timestamp: new Date().toISOString(),
             };
 
           await this.outboxService.createSubscriptionUpdatedMessage(

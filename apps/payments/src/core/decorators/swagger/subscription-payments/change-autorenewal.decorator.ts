@@ -100,7 +100,7 @@ export function ApiChangeAutorenewal() {
           value: {
             errorsMessages: [
               {
-                message: 'User has no active subscription',
+                message: "User doesn't have active subscription",
                 field: 'profileId',
               },
             ],

@@ -1,6 +1,6 @@
 export class CancelSubscriptionImmediatelyDto {
   constructor(
-    public subscriptionId: string,
+    public stripeSubscriptionId: string,
     public timestamp: string,
   ) {}
 }

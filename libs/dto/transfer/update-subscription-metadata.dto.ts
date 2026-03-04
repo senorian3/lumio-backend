@@ -1,6 +1,6 @@
 export class UpdateSubscriptionMetadataDto {
   constructor(
-    public subscriptionId: string,
+    public stripeSubscriptionId: string,
     public metadata: Record<string, string>,
     public timestamp: string,
   ) {}

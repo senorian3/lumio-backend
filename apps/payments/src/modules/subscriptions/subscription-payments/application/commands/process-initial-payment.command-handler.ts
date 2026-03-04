@@ -9,6 +9,7 @@ import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.d
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { RetryService } from '../retry.service';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessInitialPaymentCommand {
   constructor(
@@ -34,7 +35,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   async execute(command: ProcessInitialPaymentCommand): Promise<void> {
     const { session } = command;
     const customPaymentId = session.metadata.customPaymentId;
-    const subscriptionId = session.subscription.toString();
+    const stripeSubscriptionId = session.subscription.toString();
     const mainSubscriptionId: string | null =
       session.metadata.mainSubscriptionId !== 'null'
         ? session.metadata.mainSubscriptionId
@@ -60,7 +61,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         //изменить вместо get sub details просто класть в payment date время начала подписки (startdate)
 
         const subscriptionDetails: Stripe.Subscription =
-          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+          await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
         const startDate = mainSubscription
           ? mainSubscription.periodEnd || mainSubscription.nextPaymentDate
@@ -71,10 +72,14 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           currentPayment.subscriptionType,
         );
 
+        const subscriptionId = uuidv4();
+
         await this.prisma.$transaction(async (tx) => {
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
+            stripeSubscriptionId,
+            mainSubscriptionId,
             status: mainSubscription
               ? PaymentStatus.EXTENSION
               : PaymentStatus.SUCCESSFUL,
@@ -91,15 +96,14 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           if (mainSubscription) {
             await this.paymentsRepository.updateSubPeriodEndDate(
               mainSubscription.customPaymentId,
-              subscriptionId,
               periodEnd,
               tx,
             );
 
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
-                subscriptionId,
-                periodEndDate: periodEnd.getTime() / 1000,
+                stripeSubscriptionId,
+                periodEndDate: periodEnd.getTime() / 1000 - 7 * 24 * 60 * 60,
                 timestamp: new Date().toISOString(),
               },
               tx,
@@ -107,7 +111,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
             await this.outboxService.createCancelSubscriptionImmediatelyMessage(
               {
-                subscriptionId: mainSubscription.subscriptionId,
+                stripeSubscriptionId: mainSubscription.stripeSubscriptionId,
                 timestamp: new Date().toISOString(),
               },
               tx,
@@ -117,19 +121,17 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           const createPaymentData: CreatePaymentCompleteMessageDto = {
             paymentId: customPaymentId,
             profileId: currentPayment.profileId,
-            amount: currentPayment.amount,
-            currency: currentPayment.currency,
-            subscriptionId: mainSubscription
-              ? mainSubscription.subscriptionId
-              : subscriptionId,
+            subscriptionId,
+            mainSubscriptionId,
+            // amount: currentPayment.amount,
+            // currency: currentPayment.currency ,
             subscriptionType: mainSubscription
               ? mainSubscription.subscriptionType
               : currentPayment.subscriptionType,
             periodStart,
             periodEnd,
-            timestamp: new Date().toISOString(),
-            paymentsService: currentPayment.paymentProvider,
-            mainSubscriptionId: mainSubscriptionId,
+            // timestamp: new Date().toISOString(),
+            // paymentsService: currentPayment.paymentProvider,
           };
 
           await this.outboxService.createPaymentCompletedMessage(

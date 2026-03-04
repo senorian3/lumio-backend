@@ -109,6 +109,18 @@ export class PaymentsRepository {
     });
   }
 
+  async findByStripeSubscriptionId(
+    stripeSubscriptionId: string,
+  ): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
+      where: {
+        stripeSubscriptionId,
+        status: 'successful',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findLastSuccessfulPaymentByProfileId(
     profileId: number,
   ): Promise<Payment | null> {
@@ -178,7 +190,6 @@ export class PaymentsRepository {
 
   async updateSubPeriodEndDate(
     customPaymentId: string,
-    subscriptionId: string,
     periodEnd: Date,
     tx?: any,
   ): Promise<Payment> {
@@ -186,7 +197,6 @@ export class PaymentsRepository {
     return client.payment.update({
       where: { customPaymentId },
       data: {
-        subscriptionId,
         periodEnd,
         nextPaymentDate: periodEnd,
       },

@@ -23,13 +23,10 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     const {
       profileId,
-      // amount,
-      // currency,
       subscriptionId,
       subscriptionType,
       periodStart,
       periodEnd,
-      // paymentsService,
       mainSubscriptionId,
     } = command.data.payload;
 
@@ -65,7 +62,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             subscriptionRecord.id,
             subscriptionType,
             endDate,
-            true,
             tx,
           );
         } else {

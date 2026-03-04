@@ -32,27 +32,25 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
   async execute(command: ProcessSubscriptionDeletedCommand): Promise<void> {
     const { event } = command;
     const subscription = event.data.object as Stripe.Subscription;
-    const subscriptionId = subscription.id;
+    const stripeSubscriptionId = subscription.id;
 
-    console.log('delete сработал');
     try {
       const subscriptionDetails =
-        await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+        await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
+
       if (subscriptionDetails.metadata.cancelled_by === 'system') {
-        this.logger.log(
-          `Skipping webhook for subscription ${subscriptionId} - cancelled by system`,
-          ProcessSubscriptionDeletedCommandHandler.name,
-        );
         return;
       }
 
       await this.retryService.executeWithRetry(async () => {
         const payment =
-          await this.paymentsRepository.findBySubscriptionId(subscriptionId);
+          await this.paymentsRepository.findByStripeSubscriptionId(
+            stripeSubscriptionId,
+          );
 
         if (!payment) {
           this.logger.error(
-            `Payment with subscriptionId ${subscriptionId} not found`,
+            `Payment with stripeSubscriptionId ${stripeSubscriptionId} not found`,
             this.paymentsRepository.findBySubscriptionId.name,
             ProcessSubscriptionDeletedCommandHandler.name,
           );
@@ -60,7 +58,8 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
         }
 
         const deleteSubscriptionData: CreateSubscriptionDeletedMessageDto = {
-          subscriptionId,
+          subscriptionId: payment.subscriptionId,
+          stripeSubscriptionId: payment.stripeSubscriptionId,
           profileId: payment.profileId,
           timestamp: new Date().toISOString(),
         };
@@ -80,27 +79,27 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
       });
     } catch (error) {
       this.logger.error(
-        `Failed to process subscription deleted after retries: ${error.message}, subscriptionId: ${subscriptionId}`,
+        `Failed to process stripe subscription deleted after retries: ${error.message}, stripeSubscriptionId: ${stripeSubscriptionId}`,
         error.stack,
         ProcessSubscriptionDeletedCommandHandler.name,
       );
 
       try {
         await this.manualReviewService.createFailedSubscriptionDeletedTask(
-          subscriptionId,
+          stripeSubscriptionId,
           error,
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating manual review task for subscription deleted ${subscriptionId}: ${innerError.message}`,
+          `Critical error creating manual review task for stripe subscription deleted ${stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           ProcessSubscriptionDeletedCommandHandler.name,
         );
       }
 
       throw BadRequestDomainException.create(
-        'Something went wrong processing subscription deletion',
-        'subscriptionId',
+        'Something went wrong processing stripe subscription deletion',
+        'stripeSubscriptionId',
       );
     }
   }

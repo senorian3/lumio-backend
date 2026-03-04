@@ -60,6 +60,8 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       subscriptionType: dto.subscriptionType,
       autoRenewal: false,
       subscriptionId: null,
+      stripeSubscriptionId: null,
+      mainSubscriptionId: null,
       periodStart: null,
       periodEnd: null,
       nextPaymentDate: null,
