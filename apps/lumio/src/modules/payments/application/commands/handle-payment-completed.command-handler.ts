@@ -32,10 +32,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     const isExtension = !!mainSubscriptionId;
 
-    const targetSubscriptionId = isExtension
-      ? mainSubscriptionId
-      : subscriptionId;
-
     const profile = await this.userRepository.getProfileById(profileId);
 
     if (!profile) {
@@ -50,33 +46,29 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        let subscriptionRecord: any;
-
         if (isExtension) {
-          subscriptionRecord =
-            await this.subscriptionRepository.findActiveSubscriptionByProfileId(
-              profileId,
-            );
+          await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+            profileId,
+          );
 
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-            subscriptionRecord.id,
+            subscriptionId,
             subscriptionType,
             endDate,
             tx,
           );
         } else {
-          subscriptionRecord =
-            await this.subscriptionRepository.createSubscription(
-              {
-                subscriptionId: targetSubscriptionId,
-                durationType: subscriptionType,
-                startDate,
-                endDate,
-                userProfileId: profileId,
-                autoRenewal: true,
-              },
-              tx,
-            );
+          await this.subscriptionRepository.createSubscription(
+            {
+              subscriptionId: subscriptionId,
+              durationType: subscriptionType,
+              startDate,
+              endDate,
+              userProfileId: profileId,
+              autoRenewal: true,
+            },
+            tx,
+          );
         }
 
         await this.userRepository.updateAccountType(
@@ -87,7 +79,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       });
     } catch (error) {
       this.logger.error(
-        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${targetSubscriptionId}, Error: ${error.messages}`,
+        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${subscriptionId}, Error: ${error.messages}`,
         error.stack,
         HandlePaymentCompletedCommand.name,
       );

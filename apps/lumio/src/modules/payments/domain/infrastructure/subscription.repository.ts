@@ -6,21 +6,23 @@ import { Subscription } from 'generated/prisma-lumio';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSubscriptionById(id: string): Promise<Subscription | null> {
+  async findSubscriptionBySubscriptionId(
+    subscriptionId: string,
+  ): Promise<Subscription | null> {
     return this.prisma.subscription.findUnique({
-      where: { id },
+      where: { subscriptionId },
     });
   }
 
   async updateSubscriptionWithNewPayment(
-    id: string,
+    subscriptionId: string,
     durationType: string,
     endDate: Date,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
     return client.subscription.update({
-      where: { id },
+      where: { subscriptionId },
       data: {
         durationType,
         endDate,
@@ -44,7 +46,7 @@ export class SubscriptionRepository {
 
     return client.subscription.create({
       data: {
-        id: data.subscriptionId,
+        subscriptionId: data.subscriptionId,
         durationType: data.durationType,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -56,31 +58,28 @@ export class SubscriptionRepository {
   }
 
   async findActiveSubscriptionByProfileId(
-    profileId: number,
+    userProfileId: number,
   ): Promise<Subscription> {
     return this.prisma.subscription.findFirst({
-      where: {
-        userProfileId: profileId,
-        cancelledAt: null,
-      },
+      where: { userProfileId, cancelledAt: null },
     });
   }
 
-  async updateAutoRenewalById(id: string, autoRenewal: boolean) {
+  async updateAutoRenewalById(subscriptionId: string, autoRenewal: boolean) {
     return this.prisma.subscription.update({
-      where: { id },
+      where: { subscriptionId },
       data: { autoRenewal },
     });
   }
 
   async cancelSubscription(
-    id: string,
+    subscriptionId: string,
     cancelledAt: Date,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
     return client.subscription.update({
-      where: { id },
+      where: { subscriptionId },
       data: {
         cancelledAt,
         autoRenewal: false,

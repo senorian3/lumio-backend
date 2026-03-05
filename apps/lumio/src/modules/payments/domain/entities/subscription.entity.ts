@@ -3,13 +3,10 @@ import { Subscription } from 'generated/prisma-lumio';
 
 export class SubscriptionEntity implements Subscription {
   id: number;
-
   subscriptionId: string;
   durationType: string;
-
   startDate: Date;
   endDate: Date;
-
   autoRenewal: boolean = false;
   cancelledAt: Date | null;
 

@@ -85,7 +85,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
 
     try {
       await this.subscriptionRepository.updateAutoRenewalById(
-        userSubscription.id,
+        userSubscription.subscriptionId,
         command.dto.autoRenewal,
       );
     } catch (error) {

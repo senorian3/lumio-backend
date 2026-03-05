@@ -43,7 +43,7 @@ export class GetUserSubscriptionQueryHandler implements IQueryHandler<
     }
 
     return {
-      id: userSubscription.id,
+      id: userSubscription.subscriptionId,
       accountType: 'Business',
       durationType: userSubscription.durationType,
       endDate: userSubscription.endDate,
