@@ -28,6 +28,12 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         +dto.profileId,
       );
 
+    const mainSubscription = activeSubscription.mainSubscriptionId
+      ? await this.paymentsRepository.findBySubscriptionId(
+          activeSubscription.mainSubscriptionId,
+        )
+      : null;
+
     if (!activeSubscription || !activeSubscription.subscriptionType) {
       throw NotFoundDomainException.create(
         "User doesn't have active subscription",
@@ -42,8 +48,8 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
     try {
       await this.prisma.$transaction(async (tx) => {
         await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
-          activeSubscription.subscriptionId,
-          activeSubscription.customPaymentId,
+          mainSubscription.subscriptionId,
+          mainSubscription.customPaymentId,
           dto.autoRenewal,
           tx,
         );

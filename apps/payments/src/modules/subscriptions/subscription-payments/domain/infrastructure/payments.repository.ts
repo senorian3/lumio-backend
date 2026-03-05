@@ -111,13 +111,18 @@ export class PaymentsRepository {
   async findActiveSubscriptionPaymentByStripeSubscriptionId(
     stripeSubscriptionId: string,
   ): Promise<Payment | null> {
-    return this.prisma.payment.findFirst({
+    const payment = await this.prisma.payment.findFirst({
       where: {
         stripeSubscriptionId,
-        status: PaymentStatus.ACTIVE,
+        cancelledAt: null,
+        status: {
+          in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION],
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     });
+
+    return payment;
   }
 
   async findActiveSubscriptionPaymentByProfileId(
@@ -230,6 +235,18 @@ export class PaymentsRepository {
     nowDate: Date,
     customPaymentId: string,
   ): Promise<Payment | null> {
+    const lastPayment = await this.prisma.payment.findFirst({
+      where: {
+        profileId,
+        status: { not: PaymentStatus.PENDING },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!lastPayment || lastPayment.cancelledAt !== null) {
+      return null;
+    }
+
     return this.prisma.payment.findFirst({
       where: {
         profileId,
