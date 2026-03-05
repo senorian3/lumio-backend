@@ -20,16 +20,31 @@ export class PaymentsRepository {
     });
   }
 
-  async updateUrl(id: number, paymentsUrl: string): Promise<Payment> {
-    return this.prisma.payment.update({
-      where: { id },
-      data: {
-        paymentsUrl,
+  async findLastSubscriptionPaymentByStripeSubscriptionId(
+    stripeSubscriptionId: string,
+  ): Promise<Payment | null> {
+    const extensionPayment = await this.prisma.payment.findFirst({
+      where: {
+        stripeSubscriptionId,
+        status: 'extension',
       },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (extensionPayment) {
+      return extensionPayment;
+    }
+
+    return this.prisma.payment.findFirst({
+      where: {
+        stripeSubscriptionId,
+        status: 'successful',
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async updatePayment(
+  async updateCustomPaymentId(
     data: UpdatePaymentDomainDto,
     tx?: any,
   ): Promise<Payment> {
@@ -69,22 +84,7 @@ export class PaymentsRepository {
     });
   }
 
-  async findActiveSubscriptionPaymentsWithAutoRenewalByProfileId(
-    profileId: number,
-  ): Promise<Payment[]> {
-    return this.prisma.payment.findMany({
-      where: {
-        profileId,
-        subscriptionId: { not: null },
-        autoRenewal: true,
-        cancelledAt: null,
-        status: 'successful',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async updatePaymentAutoRenewal(
+  async updatePaymentSubscriptiAutoRenewal(
     subscriptionId: string,
     customPaymentId: string,
     autoRenewal: boolean,
@@ -109,7 +109,7 @@ export class PaymentsRepository {
     });
   }
 
-  async findByStripeSubscriptionId(
+  async findActiveSubscriptionPaymentByStripeSubscriptionId(
     stripeSubscriptionId: string,
   ): Promise<Payment | null> {
     return this.prisma.payment.findFirst({
@@ -121,19 +121,7 @@ export class PaymentsRepository {
     });
   }
 
-  async findLastSuccessfulPaymentByProfileId(
-    profileId: number,
-  ): Promise<Payment | null> {
-    return this.prisma.payment.findFirst({
-      where: {
-        profileId,
-        status: 'successful',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async findActiveSubscriptionByProfileId(
+  async findActiveSubscriptionPaymentByProfileId(
     profileId: number,
   ): Promise<Payment | null> {
     const now = new Date();
@@ -146,20 +134,6 @@ export class PaymentsRepository {
         periodEnd: { gt: now },
       },
       orderBy: { createdAt: 'asc' },
-    });
-  }
-
-  async updatePaymentUrl(
-    id: number,
-    paymentsUrl: string,
-    tx?: any,
-  ): Promise<Payment> {
-    const client = tx || this.prisma;
-    return client.payment.update({
-      where: { id },
-      data: {
-        paymentsUrl,
-      },
     });
   }
 
@@ -188,7 +162,7 @@ export class PaymentsRepository {
     return result.count;
   }
 
-  async updateSubPeriodEndDate(
+  async updatePaymentSubscriptionPeriodDate(
     customPaymentId: string,
     periodEnd: Date,
     tx?: any,
@@ -233,5 +207,26 @@ export class PaymentsRepository {
     ]);
 
     return { payments, totalCount };
+  }
+
+  async findLastActiveSubscriptionByProfileId(
+    profileId: number,
+    excludeCustomPaymentId?: string,
+  ): Promise<Payment | null> {
+    const where: any = {
+      profileId,
+      status: { in: ['successful', 'extension'] },
+      cancelledAt: null,
+      stripeSubscriptionId: { not: null },
+    };
+
+    if (excludeCustomPaymentId) {
+      where.customPaymentId = { not: excludeCustomPaymentId };
+    }
+
+    return this.prisma.payment.findFirst({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

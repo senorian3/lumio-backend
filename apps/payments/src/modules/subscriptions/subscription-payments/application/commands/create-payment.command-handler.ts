@@ -27,7 +27,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
     const activeSubscription =
-      await this.paymentsRepository.findActiveSubscriptionByProfileId(
+      await this.paymentsRepository.findActiveSubscriptionPaymentByProfileId(
         +dto.profileId,
       );
 

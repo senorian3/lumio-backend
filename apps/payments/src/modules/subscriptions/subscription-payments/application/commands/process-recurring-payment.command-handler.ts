@@ -38,8 +38,9 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         if (
           invoice.billing_reason === 'subscription_create' ||
           invoice.status !== 'paid'
-        )
+        ) {
           return;
+        }
 
         const stripeSubscriptionId = invoice.parent.subscription_details
           .subscription as string;
@@ -56,46 +57,56 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           return;
         }
 
-        const existingPayment =
-          await this.paymentsRepository.findByStripeSubscriptionId(
+        let mainSubscriptionPayment = null;
+
+        const lastSubscriptionPayment =
+          await this.paymentsRepository.findLastSubscriptionPaymentByStripeSubscriptionId(
             stripeSubscriptionId,
           );
 
-        if (!existingPayment || existingPayment.autoRenewal === false) {
-          return;
+        if (lastSubscriptionPayment.status === PaymentStatus.SUCCESSFUL) {
+          mainSubscriptionPayment = lastSubscriptionPayment;
+        } else {
+          mainSubscriptionPayment =
+            await this.paymentsRepository.findActiveSubscriptionPaymentByProfileId(
+              lastSubscriptionPayment.profileId,
+            );
         }
-
-        const invoiceLine = invoice.lines.data[0];
 
         await this.prisma.$transaction(async (tx) => {
           const amount = invoice.amount_paid / 100;
-          const currentPeriodStart = new Date(invoiceLine.period.start * 1000);
-          const currentPeriodEnd = new Date(invoiceLine.period.end * 1000);
+          const currentPeriodStart = new Date(
+            lastSubscriptionPayment.periodEnd.getTime(),
+          );
+          const currentPeriodEnd = this.calculateNextPaymentDate(
+            currentPeriodStart,
+            lastSubscriptionPayment.subscriptionType,
+          );
           const nextPaymentDate = currentPeriodEnd;
           const createdAt = new Date(invoice.created * 1000);
 
           const subscriptionType =
             invoice.metadata.subscriptionType ||
-            existingPayment.subscriptionType;
+            lastSubscriptionPayment.subscriptionType;
 
           const finishDate = new Date(Date.now());
           const subscriptionId = uuidv4();
-          const customPaymentId = `${existingPayment.profileId}-${finishDate.getTime()}`;
+          const customPaymentId = `${lastSubscriptionPayment.profileId}-${finishDate.getTime()}`;
 
           const createPaymentData: CreatePaymentDomainDto = {
             paymentProvider: 'Stripe',
             currency: invoice.currency.toUpperCase(),
             amount,
-            profileId: existingPayment.profileId,
+            profileId: lastSubscriptionPayment.profileId,
             status: PaymentStatus.SUCCESSFUL,
             subscriptionId,
             stripeSubscriptionId,
-            mainSubscriptionId: existingPayment.mainSubscriptionId,
+            mainSubscriptionId: mainSubscriptionPayment.subscriptionId,
             periodStart: currentPeriodStart,
             periodEnd: currentPeriodEnd,
             nextPaymentDate: nextPaymentDate,
             subscriptionType: subscriptionType,
-            autoRenewal: existingPayment.autoRenewal,
+            autoRenewal: mainSubscriptionPayment.autoRenewal,
             paymentsUrl: 'AutoRenewal',
             createdAt: new Date(),
             stripePaymentCreatedAt: createdAt,
@@ -106,7 +117,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           await this.paymentsRepository.createPayment(createPaymentData, tx);
 
           await this.paymentsRepository.completePayment(
-            existingPayment.customPaymentId,
+            mainSubscriptionPayment.customPaymentId,
             PaymentStatus.COMPLETED,
             false,
             finishDate,
@@ -118,7 +129,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
               subscriptionId,
               paymentId: customPaymentId,
               nextPaymentDate,
-              profileId: existingPayment.profileId,
+              profileId: mainSubscriptionPayment.profileId,
             };
 
           await this.outboxService.createSubscriptionUpdatedMessage(
@@ -142,5 +153,26 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
       }
       throw error;
     }
+  }
+
+  private calculateNextPaymentDate(
+    periodEnd: Date,
+    subscriptionType: string,
+  ): Date {
+    let periodDuration: number;
+
+    if (subscriptionType.includes('week')) {
+      const weekCount = subscriptionType.includes('2') ? 2 : 1;
+      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
+    } else if (subscriptionType.includes('month')) {
+      const monthCount = subscriptionType.includes('3') ? 3 : 1;
+      periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
+    } else if (subscriptionType.includes('year')) {
+      periodDuration = 365 * 24 * 60 * 60 * 1000;
+    } else {
+      periodDuration = 30 * 24 * 60 * 60 * 1000;
+    }
+
+    return new Date(periodEnd.getTime() + periodDuration);
   }
 }

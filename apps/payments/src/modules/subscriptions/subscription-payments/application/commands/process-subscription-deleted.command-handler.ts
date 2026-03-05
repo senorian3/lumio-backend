@@ -44,7 +44,7 @@ export class ProcessSubscriptionDeletedCommandHandler implements ICommandHandler
 
       await this.retryService.executeWithRetry(async () => {
         const payment =
-          await this.paymentsRepository.findByStripeSubscriptionId(
+          await this.paymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId(
             stripeSubscriptionId,
           );
 

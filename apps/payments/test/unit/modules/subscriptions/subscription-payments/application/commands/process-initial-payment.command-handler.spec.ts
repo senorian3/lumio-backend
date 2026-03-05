@@ -64,7 +64,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           useValue: {
             findByCustomPaymentId: jest.fn(),
             findBySubscriptionId: jest.fn(),
-            updatePayment: jest.fn(),
+            updateCustomPaymentId: jest.fn(),
             updateSubPeriodEndDate: jest.fn(),
           },
         },
@@ -132,7 +132,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
       );
-      mockPaymentsRepository.updatePayment.mockResolvedValue(undefined);
+      mockPaymentsRepository.updateCustomPaymentId.mockResolvedValue(undefined);
       mockOutboxService.createPaymentCompletedMessage.mockResolvedValue(
         undefined,
       );
@@ -147,7 +147,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       expect(mockStripeAdapter.getSubscriptionDetails).toHaveBeenCalledWith(
         'sub_123',
       );
-      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalledWith(
+      expect(mockPaymentsRepository.updateCustomPaymentId).toHaveBeenCalledWith(
         expect.objectContaining({
           customPaymentId: 'payment_123',
           subscriptionId: 'sub_123',
@@ -193,7 +193,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
       );
-      mockPaymentsRepository.updatePayment.mockResolvedValue(undefined);
+      mockPaymentsRepository.updateCustomPaymentId.mockResolvedValue(undefined);
       mockPaymentsRepository.updateSubPeriodEndDate.mockResolvedValue(
         undefined,
       );

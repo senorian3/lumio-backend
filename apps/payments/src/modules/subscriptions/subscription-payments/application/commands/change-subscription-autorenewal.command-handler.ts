@@ -24,7 +24,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
 
   async execute({ dto }: ChangeAutoRenewalSubscriptionCommand): Promise<void> {
     const activeSubscription =
-      await this.paymentsRepository.findActiveSubscriptionByProfileId(
+      await this.paymentsRepository.findActiveSubscriptionPaymentByProfileId(
         +dto.profileId,
       );
 
@@ -41,7 +41,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.updatePaymentAutoRenewal(
+        await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
           activeSubscription.subscriptionId,
           activeSubscription.customPaymentId,
           dto.autoRenewal,
