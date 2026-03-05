@@ -57,6 +57,8 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           return;
         }
 
+        console.log(stripeSubscriptionId);
+
         let mainSubscriptionPayment = null;
 
         const lastSubscriptionPayment =
@@ -64,7 +66,9 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
             stripeSubscriptionId,
           );
 
-        if (lastSubscriptionPayment.status === PaymentStatus.SUCCESSFUL) {
+        console.log(lastSubscriptionPayment);
+
+        if (lastSubscriptionPayment.status === PaymentStatus.ACTIVE) {
           mainSubscriptionPayment = lastSubscriptionPayment;
         } else {
           mainSubscriptionPayment =
@@ -98,14 +102,14 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
             currency: invoice.currency.toUpperCase(),
             amount,
             profileId: lastSubscriptionPayment.profileId,
-            status: PaymentStatus.SUCCESSFUL,
+            status: PaymentStatus.ACTIVE,
             subscriptionId,
             stripeSubscriptionId,
             mainSubscriptionId: mainSubscriptionPayment.subscriptionId,
             periodStart: currentPeriodStart,
             periodEnd: currentPeriodEnd,
             nextPaymentDate: nextPaymentDate,
-            subscriptionType: subscriptionType,
+            subscriptionType,
             autoRenewal: mainSubscriptionPayment.autoRenewal,
             paymentsUrl: 'AutoRenewal',
             createdAt: new Date(),
@@ -128,6 +132,7 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
             {
               subscriptionId,
               paymentId: customPaymentId,
+              subscriptionType,
               nextPaymentDate,
               profileId: mainSubscriptionPayment.profileId,
             };

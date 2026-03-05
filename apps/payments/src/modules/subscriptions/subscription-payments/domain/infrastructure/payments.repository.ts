@@ -23,25 +23,26 @@ export class PaymentsRepository {
   async findLastSubscriptionPaymentByStripeSubscriptionId(
     stripeSubscriptionId: string,
   ): Promise<Payment | null> {
-    const extensionPayment = await this.prisma.payment.findFirst({
+    const mainPayment = await this.prisma.payment.findFirst({
       where: {
         stripeSubscriptionId,
-        status: 'extension',
+        status: PaymentStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    if (extensionPayment) {
-      return extensionPayment;
+    if (mainPayment) {
+      return mainPayment;
+    } else {
+      return await this.prisma.payment.findFirst({
+        where: {
+          stripeSubscriptionId,
+          status: PaymentStatus.EXTENSION,
+          cancelledAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
     }
-
-    return this.prisma.payment.findFirst({
-      where: {
-        stripeSubscriptionId,
-        status: 'successful',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
   }
 
   async updateCustomPaymentId(
@@ -103,7 +104,7 @@ export class PaymentsRepository {
     return this.prisma.payment.findFirst({
       where: {
         subscriptionId,
-        status: 'successful',
+        status: PaymentStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -115,7 +116,7 @@ export class PaymentsRepository {
     return this.prisma.payment.findFirst({
       where: {
         stripeSubscriptionId,
-        status: 'successful',
+        status: PaymentStatus.ACTIVE,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -129,7 +130,7 @@ export class PaymentsRepository {
     return this.prisma.payment.findFirst({
       where: {
         profileId,
-        status: 'successful',
+        status: PaymentStatus.ACTIVE,
         cancelledAt: null,
         periodEnd: { gt: now },
       },
@@ -155,7 +156,7 @@ export class PaymentsRepository {
   async deleteExpiredPendingPayments(createdBefore: Date): Promise<number> {
     const result = await this.prisma.payment.deleteMany({
       where: {
-        status: 'pending',
+        status: PaymentStatus.PENDING,
         createdAt: { lt: createdBefore },
       },
     });
@@ -189,7 +190,7 @@ export class PaymentsRepository {
         where: {
           profileId,
           status: {
-            in: ['successful', 'extension', 'completed', 'cancelled'],
+            not: PaymentStatus.PENDING,
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -200,7 +201,7 @@ export class PaymentsRepository {
         where: {
           profileId,
           status: {
-            in: ['successful', 'extension', 'completed', 'cancelled'],
+            not: PaymentStatus.PENDING,
           },
         },
       }),
@@ -215,7 +216,7 @@ export class PaymentsRepository {
   ): Promise<Payment | null> {
     const where: any = {
       profileId,
-      status: { in: ['successful', 'extension'] },
+      status: { in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION] },
       cancelledAt: null,
       stripeSubscriptionId: { not: null },
     };

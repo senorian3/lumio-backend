@@ -52,21 +52,18 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         }
 
-        // Найти последнюю активную подписку пользователя
         const lastActiveSubscription =
           await this.paymentsRepository.findLastActiveSubscriptionByProfileId(
             currentPayment.profileId,
             customPaymentId,
           );
 
-        // Найти main подписку (если указан mainSubscriptionId)
         const mainSubscription = mainSubscriptionId
           ? await this.paymentsRepository.findBySubscriptionId(
               mainSubscriptionId,
             )
           : null;
 
-        // Если указан mainSubscriptionId, но подписка не найдена - это ошибка
         if (mainSubscriptionId && !mainSubscription) {
           throw new Error(
             `Main subscription with ID ${mainSubscriptionId} not found`,
@@ -78,10 +75,8 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
-        // Определить startDate: если есть активная подписка, начинаем с её periodEnd
         const startDate = lastActiveSubscription
-          ? lastActiveSubscription.periodEnd ||
-            lastActiveSubscription.nextPaymentDate
+          ? lastActiveSubscription.periodEnd
           : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
@@ -101,7 +96,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             mainSubscriptionId,
             status: hasActiveSubscription
               ? PaymentStatus.EXTENSION
-              : PaymentStatus.SUCCESSFUL,
+              : PaymentStatus.ACTIVE,
             periodStart,
             periodEnd,
             nextPaymentDate: periodEnd,
@@ -151,15 +146,9 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             profileId: currentPayment.profileId,
             subscriptionId,
             mainSubscriptionId,
-            // amount: currentPayment.amount,
-            // currency: currentPayment.currency ,
-            subscriptionType: lastActiveSubscription
-              ? lastActiveSubscription.subscriptionType
-              : currentPayment.subscriptionType,
+            subscriptionType: currentPayment.subscriptionType,
             periodStart,
             periodEnd,
-            // timestamp: new Date().toISOString(),
-            // paymentsService: currentPayment.paymentProvider,
           };
 
           await this.outboxService.createPaymentCompletedMessage(

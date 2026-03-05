@@ -6,7 +6,10 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
 import Stripe from 'stripe';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { SUBSCRIPTION_PRICES } from '@payments/modules/subscriptions/constants/stripe-constants';
+import {
+  PaymentStatus,
+  SUBSCRIPTION_PRICES,
+} from '@payments/modules/subscriptions/constants/stripe-constants';
 import { PrismaService } from '@payments/prisma/prisma.service';
 
 export class CreateSubscriptionPaymentCommand {
@@ -56,7 +59,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       currency: dto.currency,
       amount,
       profileId: +dto.profileId,
-      status: 'pending',
+      status: PaymentStatus.PENDING,
       subscriptionType: dto.subscriptionType,
       autoRenewal: false,
       subscriptionId: null,

@@ -27,7 +27,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
     await this.subscriptionRepository
       .updateSubscriptionWithNewPayment(
         subscription.id,
-        subscription.durationType,
+        command.data.payload.subscriptionType,
         command.data.payload.nextPaymentDate,
       )
       .catch((error) => {

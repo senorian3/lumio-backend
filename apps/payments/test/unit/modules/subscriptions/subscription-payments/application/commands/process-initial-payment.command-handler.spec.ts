@@ -151,7 +151,7 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         expect.objectContaining({
           customPaymentId: 'payment_123',
           subscriptionId: 'sub_123',
-          status: PaymentStatus.SUCCESSFUL,
+          status: PaymentStatus.ACTIVE,
           autoRenewal: true,
         }),
         mockPrisma,
