@@ -140,7 +140,7 @@ export class PaymentsRepository {
   ): Promise<Payment | null> {
     const now = new Date();
 
-    return this.prisma.payment.findFirst({
+    return await this.prisma.payment.findFirst({
       where: {
         profileId,
         status: {
@@ -230,17 +230,15 @@ export class PaymentsRepository {
     nowDate: Date,
     customPaymentId: string,
   ): Promise<Payment | null> {
-    const where: any = {
-      profileId,
-      status: { in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION] },
-      cancelledAt: null,
-      customPaymentId: { not: customPaymentId },
-      stripeSubscriptionId: { not: null },
-      periodEnd: { gt: nowDate },
-    };
-
     return this.prisma.payment.findFirst({
-      where,
+      where: {
+        profileId,
+        status: { in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION] },
+        cancelledAt: null,
+        customPaymentId: { not: customPaymentId },
+        stripeSubscriptionId: { not: null },
+        periodEnd: { gt: nowDate },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

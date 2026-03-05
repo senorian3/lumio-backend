@@ -70,10 +70,6 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
       );
     }
 
-    if (userSubscription.autoRenewal === command.dto.autoRenewal) {
-      return;
-    }
-
     try {
       await this.paymentsHttpAdapter.updateAutoRenewal<void>(
         `${GLOBAL_PREFIX}/subscription-payments/autorenewal`,

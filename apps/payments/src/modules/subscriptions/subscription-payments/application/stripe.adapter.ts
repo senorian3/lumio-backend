@@ -128,12 +128,20 @@ export class StripeAdapter {
   async updateCustomerSubscriptionEndDate(
     subscriptionId: string,
     customPeriodDateEnd: number,
+    autoRenewal: boolean,
   ): Promise<void> {
     try {
-      await this.stripe.subscriptions.update(subscriptionId, {
-        trial_end: customPeriodDateEnd,
-        proration_behavior: 'none',
-      });
+      if (autoRenewal) {
+        await this.stripe.subscriptions.update(subscriptionId, {
+          trial_end: customPeriodDateEnd,
+          proration_behavior: 'none',
+        });
+      } else {
+        await this.stripe.subscriptions.update(subscriptionId, {
+          cancel_at: customPeriodDateEnd,
+          proration_behavior: 'none',
+        });
+      }
     } catch (error) {
       throw error;
     }

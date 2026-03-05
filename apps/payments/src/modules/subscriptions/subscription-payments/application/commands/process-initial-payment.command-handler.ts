@@ -74,13 +74,26 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
-        const startDate =
-          //  lastActiveSubscription ? lastActiveSubscription.periodEnd:
-          new Date(subscriptionDetails.billing_cycle_anchor * 1000);
+        const startDate = new Date(
+          subscriptionDetails.billing_cycle_anchor * 1000,
+        );
+
+        let extraTime = 0;
+
+        if (lastActiveSubscriptionPayment) {
+          const now = new Date();
+          const remainingTime =
+            lastActiveSubscriptionPayment.periodEnd.getTime() - now.getTime();
+
+          if (remainingTime > 0) {
+            extraTime = remainingTime;
+          }
+        }
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
           startDate,
           currentPayment.subscriptionType,
+          extraTime,
         );
 
         const subscriptionId = uuidv4();
@@ -118,10 +131,17 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           }
 
           if (lastActiveSubscriptionPayment) {
+            const trialEndTimestamp = Math.floor(
+              lastActiveSubscriptionPayment.periodEnd.getTime() / 1000,
+            );
+
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
                 stripeSubscriptionId,
-                periodEndDate: periodEnd.getTime() / 1000 - 7 * 24 * 60 * 60,
+                periodEndDate: trialEndTimestamp,
+                autoRenewal: mainSubscription
+                  ? mainSubscription.autoRenewal
+                  : lastActiveSubscriptionPayment.autoRenewal,
                 timestamp: new Date().toISOString(),
               },
               tx,
@@ -165,6 +185,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   private calculatePeriodDates(
     periodStart: Date,
     subscriptionType: string,
+    extraTime?: number | null,
   ): { periodStart: Date; periodEnd: Date } {
     let periodDuration: number;
 
@@ -178,6 +199,10 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
       periodDuration = 365 * 24 * 60 * 60 * 1000;
     } else {
       periodDuration = 30 * 24 * 60 * 60 * 1000;
+    }
+
+    if (extraTime && extraTime > 0) {
+      periodDuration += extraTime;
     }
 
     const periodEnd = new Date(periodStart.getTime() + periodDuration);

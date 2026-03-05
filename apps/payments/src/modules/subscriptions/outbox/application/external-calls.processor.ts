@@ -179,6 +179,7 @@ export class ExternalCallsProcessor {
       await this.stripeAdapter.updateCustomerSubscriptionEndDate(
         payload.stripeSubscriptionId,
         payload.periodEndDate,
+        payload.autoRenewal,
       );
 
       return true;
