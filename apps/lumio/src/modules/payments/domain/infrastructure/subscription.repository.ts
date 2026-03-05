@@ -28,7 +28,6 @@ export class SubscriptionRepository {
         durationType,
         endDate,
         subscriptionId,
-        cancelledAt: null,
       },
     });
   }
@@ -41,7 +40,6 @@ export class SubscriptionRepository {
       endDate: Date;
       userProfileId: number;
       autoRenewal?: boolean;
-      cancelledAt?: Date | null;
     },
     tx?: any,
   ): Promise<Subscription> {
@@ -55,16 +53,15 @@ export class SubscriptionRepository {
         endDate: data.endDate,
         userProfileId: data.userProfileId,
         autoRenewal: data.autoRenewal ?? false,
-        cancelledAt: data.cancelledAt,
       },
     });
   }
 
-  async findActiveSubscriptionByProfileId(
+  async findSubscriptionByProfileId(
     userProfileId: number,
   ): Promise<Subscription> {
     return this.prisma.subscription.findFirst({
-      where: { userProfileId, cancelledAt: null },
+      where: { userProfileId },
     });
   }
 
@@ -75,18 +72,13 @@ export class SubscriptionRepository {
     });
   }
 
-  async cancelSubscription(
+  async deletelSubscription(
     subscriptionId: string,
-    cancelledAt: Date,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
-    return client.subscription.update({
+    return client.subscription.delete({
       where: { subscriptionId },
-      data: {
-        cancelledAt,
-        autoRenewal: false,
-      },
     });
   }
 }

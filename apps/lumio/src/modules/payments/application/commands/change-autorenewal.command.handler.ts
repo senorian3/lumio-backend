@@ -59,7 +59,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
     }
 
     const userSubscription =
-      await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+      await this.subscriptionRepository.findSubscriptionByProfileId(
         foundProfile.id,
       );
 

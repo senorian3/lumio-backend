@@ -52,9 +52,10 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         }
 
-        const lastActiveSubscription =
+        const lastActiveSubscriptionPayment =
           await this.paymentsRepository.findLastActiveSubscriptionByProfileId(
             currentPayment.profileId,
+            new Date(),
             customPaymentId,
           );
 
@@ -70,14 +71,12 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         }
 
-        //изменить вместо get sub details просто класть в payment date время начала подписки (startdate)
-
         const subscriptionDetails: Stripe.Subscription =
           await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
-        const startDate = lastActiveSubscription
-          ? lastActiveSubscription.periodEnd
-          : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
+        const startDate =
+          //  lastActiveSubscription ? lastActiveSubscription.periodEnd:
+          new Date(subscriptionDetails.billing_cycle_anchor * 1000);
 
         const { periodStart, periodEnd } = this.calculatePeriodDates(
           startDate,
@@ -87,7 +86,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         const subscriptionId = uuidv4();
 
         await this.prisma.$transaction(async (tx) => {
-          const hasActiveSubscription = !!lastActiveSubscription;
+          const hasActiveSubscription = !!lastActiveSubscriptionPayment;
 
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
@@ -110,7 +109,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             tx,
           );
 
-          // Обновить periodEnd и nextPaymentDate у original main подписки (если есть)
           if (mainSubscription) {
             await this.paymentsRepository.updatePaymentSubscriptionPeriodDate(
               mainSubscription.customPaymentId,
@@ -119,8 +117,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             );
           }
 
-          // Если есть активная подписка, отменить её в Stripe
-          if (lastActiveSubscription) {
+          if (lastActiveSubscriptionPayment) {
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
                 stripeSubscriptionId,
@@ -130,18 +127,17 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
               tx,
             );
 
-            // Отменить последнюю активную подписку в Stripe
             await this.outboxService.createCancelSubscriptionImmediatelyMessage(
               {
                 stripeSubscriptionId:
-                  lastActiveSubscription.stripeSubscriptionId,
+                  lastActiveSubscriptionPayment.stripeSubscriptionId,
                 timestamp: new Date().toISOString(),
               },
               tx,
             );
           }
 
-          const createPaymentData: CreatePaymentCompleteMessageDto = {
+          const createPaymentMessageData: CreatePaymentCompleteMessageDto = {
             paymentId: customPaymentId,
             profileId: currentPayment.profileId,
             subscriptionId,
@@ -152,7 +148,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           };
 
           await this.outboxService.createPaymentCompletedMessage(
-            createPaymentData,
+            createPaymentMessageData,
             tx,
           );
         });

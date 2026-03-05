@@ -21,7 +21,7 @@ export class HandleSubscriptionDeletedCommandHandler implements ICommandHandler<
     const { subscriptionId } = command.data.payload;
 
     const subscription =
-      await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+      await this.subscriptionRepository.findSubscriptionByProfileId(
         command.data.payload.profileId,
       );
 
@@ -31,9 +31,8 @@ export class HandleSubscriptionDeletedCommandHandler implements ICommandHandler<
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.subscriptionRepository.cancelSubscription(
+        await this.subscriptionRepository.deletelSubscription(
           subscriptionId,
-          new Date(command.data.payload.timestamp),
           tx,
         );
 

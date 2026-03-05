@@ -47,7 +47,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     try {
       await this.prisma.$transaction(async (tx) => {
         if (isExtension) {
-          await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+          await this.subscriptionRepository.findSubscriptionByProfileId(
             profileId,
           );
 

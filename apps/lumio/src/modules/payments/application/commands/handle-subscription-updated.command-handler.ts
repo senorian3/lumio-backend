@@ -16,7 +16,7 @@ export class HandleSubscriptionRecurringUpdatedCommandHandler implements IComman
     command: HandleSubscriptionRecurringUpdatedCommand,
   ): Promise<void> {
     const subscription =
-      await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+      await this.subscriptionRepository.findSubscriptionByProfileId(
         command.data.payload.profileId,
       );
 

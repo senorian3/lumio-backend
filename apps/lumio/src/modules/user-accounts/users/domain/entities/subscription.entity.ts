@@ -11,7 +11,6 @@ export class SubscriptionEntity implements Subscription {
   endDate: Date;
 
   autoRenewal: boolean = false;
-  cancelledAt: Date | null;
 
   userProfileId: number;
   userProfile: UserProfileEntity;
