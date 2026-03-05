@@ -52,15 +52,16 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
           );
 
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-            subscriptionId,
+            profileId,
             subscriptionType,
             endDate,
+            subscriptionId,
             tx,
           );
         } else {
           await this.subscriptionRepository.createSubscription(
             {
-              subscriptionId: subscriptionId,
+              subscriptionId,
               durationType: subscriptionType,
               startDate,
               endDate,

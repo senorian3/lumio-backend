@@ -59,7 +59,6 @@ export class PaymentsRepository {
   async completePayment(
     customPaymentId: string,
     status: string,
-    autoRenewal: boolean,
     cancelledAt: Date,
     tx?: any,
   ): Promise<Payment> {
@@ -69,7 +68,7 @@ export class PaymentsRepository {
       where: { customPaymentId },
       data: {
         status,
-        autoRenewal,
+        autoRenewal: false,
         cancelledAt,
       },
     });
@@ -135,6 +134,23 @@ export class PaymentsRepository {
         periodEnd: { gt: now },
       },
       orderBy: { createdAt: 'asc' },
+    });
+  }
+  async findActiveOrExtensionSubscriptionPaymentByProfileId(
+    profileId: number,
+  ): Promise<Payment | null> {
+    const now = new Date();
+
+    return this.prisma.payment.findFirst({
+      where: {
+        profileId,
+        status: {
+          in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION],
+        },
+        cancelledAt: null,
+        periodEnd: { gt: now },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

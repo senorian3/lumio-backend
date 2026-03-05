@@ -59,7 +59,7 @@ model Subscription {
   autoRenewal  Boolean   @default(false)
   cancelledAt  DateTime? @db.Timestamp(0)
 
-  userProfileId Int
+  userProfileId Int      @unique
   userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
   @@index([userProfileId])

@@ -57,16 +57,12 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           return;
         }
 
-        console.log(stripeSubscriptionId);
-
         let mainSubscriptionPayment = null;
 
         const lastSubscriptionPayment =
           await this.paymentsRepository.findLastSubscriptionPaymentByStripeSubscriptionId(
             stripeSubscriptionId,
           );
-
-        console.log(lastSubscriptionPayment);
 
         if (lastSubscriptionPayment.status === PaymentStatus.ACTIVE) {
           mainSubscriptionPayment = lastSubscriptionPayment;
@@ -123,7 +119,6 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           await this.paymentsRepository.completePayment(
             mainSubscriptionPayment.customPaymentId,
             PaymentStatus.COMPLETED,
-            false,
             finishDate,
             tx,
           );

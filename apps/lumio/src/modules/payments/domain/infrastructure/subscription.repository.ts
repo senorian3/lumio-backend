@@ -15,17 +15,20 @@ export class SubscriptionRepository {
   }
 
   async updateSubscriptionWithNewPayment(
-    subscriptionId: string,
+    userProfileId: number,
     durationType: string,
     endDate: Date,
+    subscriptionId: string,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
     return client.subscription.update({
-      where: { subscriptionId },
+      where: { userProfileId },
       data: {
         durationType,
         endDate,
+        subscriptionId,
+        cancelledAt: null,
       },
     });
   }

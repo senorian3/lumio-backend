@@ -108,19 +108,19 @@ export class OutboxService {
   }
 
   async createChangeSubscriptionAutoRenewalStripe(
-    subscriptionId: string,
+    stripeSubscriptionId: string,
     autoRenewal: boolean,
     tx?: any,
   ): Promise<void> {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: subscriptionId,
+          aggregateId: stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE,
           scheduledAt: new Date(),
           payload: {
-            subscriptionId,
+            stripeSubscriptionId,
             autoRenewal,
             timestamp: new Date().toISOString(),
           },
@@ -130,7 +130,7 @@ export class OutboxService {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to create outbox message for subscription auto-renewal change ${subscriptionId}: ${error.message}`,
+        `Failed to create outbox message for stripe subscription auto-renewal change ${stripeSubscriptionId}: ${error.message}`,
         error.stack,
         OutboxService.name,
       );
@@ -138,7 +138,7 @@ export class OutboxService {
       try {
         await this.createFailedSubscriptionChangeAutoRenewalStripe(
           {
-            subscriptionId,
+            stripeSubscriptionId,
             error: error.message,
             timestamp: new Date().toISOString(),
           },
@@ -146,7 +146,7 @@ export class OutboxService {
         );
       } catch (innerError) {
         this.logger.error(
-          `Critical error creating outbox message for subscription auto-renewal change ${subscriptionId}: ${innerError.message}`,
+          `Critical error creating outbox message for stripe subscription auto-renewal change ${stripeSubscriptionId}: ${innerError.message}`,
           innerError.stack,
           OutboxService.name,
         );
@@ -403,7 +403,7 @@ export class OutboxService {
 
   private async createFailedSubscriptionChangeAutoRenewalStripe(
     payload: {
-      subscriptionId: string;
+      stripeSubscriptionId: string;
       error: string;
       timestamp: string;
     },
@@ -412,7 +412,7 @@ export class OutboxService {
     try {
       await this.outboxRepository.createOutboxMessage(
         {
-          aggregateId: payload.subscriptionId,
+          aggregateId: payload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType:
             OutboxEventType.FAILED_SUBSCRIPTION_CHANGE_AUTO_RENEWAL_PROCESSING,
