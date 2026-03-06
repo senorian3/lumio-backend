@@ -6,6 +6,5 @@ export class CreatePaymentCompleteMessageDto {
     public subscriptionType: string,
     public periodStart: Date,
     public periodEnd: Date,
-    public mainSubscriptionId: string | null,
   ) {}
 }

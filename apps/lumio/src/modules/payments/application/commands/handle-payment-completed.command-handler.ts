@@ -27,10 +27,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       subscriptionType,
       periodStart,
       periodEnd,
-      mainSubscriptionId,
     } = command.data.payload;
-
-    const isExtension = !!mainSubscriptionId;
 
     const profile = await this.userRepository.getProfileById(profileId);
 
@@ -46,17 +43,21 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        if (isExtension) {
+        const existingSubscription =
           await this.subscriptionRepository.findSubscriptionByProfileId(
             profileId,
           );
 
+        if (existingSubscription) {
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
             profileId,
             subscriptionType,
             endDate,
             subscriptionId,
             tx,
+          );
+          this.logger.error(
+            `Critical error: user already has active subscription. Profile: ${profileId}, Subscription: ${subscriptionId}`,
           );
         } else {
           await this.subscriptionRepository.createSubscription(

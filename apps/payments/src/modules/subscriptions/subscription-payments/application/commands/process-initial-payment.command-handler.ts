@@ -167,7 +167,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             paymentId: customPaymentId,
             profileId: currentPayment.profileId,
             subscriptionId,
-            mainSubscriptionId,
             subscriptionType: currentPayment.subscriptionType,
             periodStart,
             periodEnd,
