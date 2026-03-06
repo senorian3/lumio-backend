@@ -10,6 +10,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { RetryService } from '../retry.service';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
+import { SubscriptionPeriodUtils } from '@payments/modules/subscriptions/shared/utils/subscription-period.utils';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessRecurringPaymentCommand {
@@ -78,10 +79,11 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
           const currentPeriodStart = new Date(
             lastSubscriptionPayment.periodEnd.getTime(),
           );
-          const currentPeriodEnd = this.calculateNextPaymentDate(
-            currentPeriodStart,
-            lastSubscriptionPayment.subscriptionType,
-          );
+          const currentPeriodEnd =
+            SubscriptionPeriodUtils.calculateNextPaymentDate(
+              currentPeriodStart,
+              lastSubscriptionPayment.subscriptionType,
+            );
           const nextPaymentDate = currentPeriodEnd;
           const createdAt = new Date(invoice.created * 1000);
 
@@ -153,26 +155,5 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
       }
       throw error;
     }
-  }
-
-  private calculateNextPaymentDate(
-    periodEnd: Date,
-    subscriptionType: string,
-  ): Date {
-    let periodDuration: number;
-
-    if (subscriptionType.includes('week')) {
-      const weekCount = subscriptionType.includes('2') ? 2 : 1;
-      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('month')) {
-      const monthCount = subscriptionType.includes('3') ? 3 : 1;
-      periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('year')) {
-      periodDuration = 365 * 24 * 60 * 60 * 1000;
-    } else {
-      periodDuration = 30 * 24 * 60 * 60 * 1000;
-    }
-
-    return new Date(periodEnd.getTime() + periodDuration);
   }
 }

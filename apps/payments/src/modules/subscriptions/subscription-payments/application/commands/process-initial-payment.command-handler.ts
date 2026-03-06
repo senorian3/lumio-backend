@@ -9,6 +9,7 @@ import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.d
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { RetryService } from '../retry.service';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
+import { SubscriptionPeriodUtils } from '@payments/modules/subscriptions/shared/utils/subscription-period.utils';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessInitialPaymentCommand {
@@ -90,11 +91,12 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           }
         }
 
-        const { periodStart, periodEnd } = this.calculatePeriodDates(
-          startDate,
-          currentPayment.subscriptionType,
-          extraTime,
-        );
+        const { periodStart, periodEnd } =
+          SubscriptionPeriodUtils.calculatePeriodDates(
+            startDate,
+            currentPayment.subscriptionType,
+            extraTime,
+          );
 
         const subscriptionId = uuidv4();
 
@@ -209,33 +211,5 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     }
 
     return true;
-  }
-
-  private calculatePeriodDates(
-    periodStart: Date,
-    subscriptionType: string,
-    extraTime?: number | null,
-  ): { periodStart: Date; periodEnd: Date } {
-    let periodDuration: number;
-
-    if (subscriptionType.includes('week')) {
-      const weekCount = subscriptionType.includes('2') ? 2 : 1;
-      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('month')) {
-      const monthCount = subscriptionType.includes('3') ? 3 : 1;
-      periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('year')) {
-      periodDuration = 365 * 24 * 60 * 60 * 1000;
-    } else {
-      periodDuration = 30 * 24 * 60 * 60 * 1000;
-    }
-
-    if (extraTime && extraTime > 0) {
-      periodDuration += extraTime;
-    }
-
-    const periodEnd = new Date(periodStart.getTime() + periodDuration);
-
-    return { periodStart, periodEnd };
   }
 }
