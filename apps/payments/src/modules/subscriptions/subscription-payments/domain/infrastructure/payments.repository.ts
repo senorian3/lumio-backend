@@ -140,21 +140,16 @@ export class PaymentsRepository {
       orderBy: { createdAt: 'asc' },
     });
   }
-  async findActiveOrExtensionSubscriptionPaymentByProfileId(
-    profileId: number,
-  ): Promise<Payment | null> {
-    const now = new Date();
 
-    return await this.prisma.payment.findFirst({
+  async findByProfileAndSubscriptionId(
+    profileId: number,
+    subscriptionId: string,
+  ): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
       where: {
         profileId,
-        status: {
-          in: [PaymentStatus.ACTIVE, PaymentStatus.EXTENSION],
-        },
-        cancelledAt: null,
-        periodEnd: { gt: now },
+        subscriptionId,
       },
-      orderBy: { createdAt: 'desc' },
     });
   }
 

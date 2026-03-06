@@ -18,7 +18,6 @@ import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ApiCreateSubscriptionPayment } from '@payments/core/decorators/swagger/subscription-payments/create-subscription-payment.decorator';
 import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscription-payments/change-autorenewal.decorator';
 import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
@@ -55,9 +54,7 @@ export class SubscriptionPaymentsController {
   @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
   @ApiChangeAutorenewal()
   @UseGuards(InternalApiGuard)
-  async changeAutorenwal(
-    @Body() payload: InputChangeAutorenewalSubscriptionDto,
-  ): Promise<void> {
+  async changeAutorenwal(@Body() payload: any): Promise<void> {
     await this.commandBus.execute(
       new ChangeAutoRenewalSubscriptionCommand(payload),
     );

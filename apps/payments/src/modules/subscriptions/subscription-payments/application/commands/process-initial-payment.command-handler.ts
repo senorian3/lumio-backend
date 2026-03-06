@@ -131,14 +131,10 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           }
 
           if (lastActiveSubscriptionPayment) {
-            const trialEndTimestamp = Math.floor(
-              lastActiveSubscriptionPayment.periodEnd.getTime() / 1000,
-            );
-
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
                 stripeSubscriptionId,
-                periodEndDate: trialEndTimestamp,
+                periodEndDate: Math.floor(new Date(periodEnd).getTime() / 1000),
                 autoRenewal: mainSubscription
                   ? mainSubscription.autoRenewal
                   : lastActiveSubscriptionPayment.autoRenewal,

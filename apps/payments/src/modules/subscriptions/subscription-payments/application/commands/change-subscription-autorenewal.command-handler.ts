@@ -24,9 +24,12 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
 
   async execute({ dto }: ChangeAutoRenewalSubscriptionCommand): Promise<void> {
     const activeSubscription =
-      await this.paymentsRepository.findActiveOrExtensionSubscriptionPaymentByProfileId(
+      await this.paymentsRepository.findByProfileAndSubscriptionId(
         +dto.profileId,
+        dto.subscriptionId,
       );
+
+    console.log(activeSubscription);
 
     const mainSubscription = activeSubscription.mainSubscriptionId
       ? await this.paymentsRepository.findBySubscriptionId(
@@ -50,6 +53,13 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
           mainSubscription.subscriptionId,
           mainSubscription.customPaymentId,
+          dto.autoRenewal,
+          tx,
+        );
+
+        await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
+          activeSubscription.subscriptionId,
+          activeSubscription.customPaymentId,
           dto.autoRenewal,
           tx,
         );
