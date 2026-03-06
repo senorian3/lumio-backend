@@ -115,7 +115,7 @@ export class PaymentsRepository {
     return payment;
   }
 
-  async updatePaymentSubscriptiAutoRenewal(
+  async updatePaymentSubscriptionAutoRenewal(
     subscriptionId: string,
     customPaymentId: string,
     autoRenewal: boolean,

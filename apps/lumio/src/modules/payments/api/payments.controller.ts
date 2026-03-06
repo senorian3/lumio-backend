@@ -41,6 +41,30 @@ export class PaymentsController {
     private readonly queryBus: QueryBus,
   ) {}
 
+  @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
+  @ApiGetUserPayments()
+  async getUserPayments(
+    @Query()
+    query: GetUserPaymentsParams,
+    @UserId() userId: number,
+  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
+    return await this.queryBus.execute<
+      GetUserPaymentsQuery,
+      PaginatedViewDto<PaymentViewDto[]>
+    >(new GetUserPaymentsQuery(userId, query));
+  }
+
+  @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
+  @ApiGetUserSubscription()
+  async getUserSubscription(
+    @UserId() userId: number,
+  ): Promise<OutputUserSubscriptionDto> {
+    return await this.queryBus.execute<
+      GetUserSubscriptionQuery,
+      OutputUserSubscriptionDto
+    >(new GetUserSubscriptionQuery(userId));
+  }
+
   @Post()
   @HttpCode(HttpStatus.OK)
   @ApiCreateSubscriptionPaymentUrl()
@@ -66,29 +90,5 @@ export class PaymentsController {
     await this.commandBus.execute<ChangeAutoRenewalCommand, void>(
       new ChangeAutoRenewalCommand(userId, dto),
     );
-  }
-
-  @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
-  @ApiGetUserPayments()
-  async getUserPayments(
-    @Query()
-    query: GetUserPaymentsParams,
-    @UserId() userId: number,
-  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
-    return await this.queryBus.execute<
-      GetUserPaymentsQuery,
-      PaginatedViewDto<PaymentViewDto[]>
-    >(new GetUserPaymentsQuery(userId, query));
-  }
-
-  @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
-  @ApiGetUserSubscription()
-  async getUserSubscription(
-    @UserId() userId: number,
-  ): Promise<OutputUserSubscriptionDto> {
-    return await this.queryBus.execute<
-      GetUserSubscriptionQuery,
-      OutputUserSubscriptionDto
-    >(new GetUserSubscriptionQuery(userId));
   }
 }

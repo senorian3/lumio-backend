@@ -79,10 +79,6 @@ export class StripeHookCommandHandler implements ICommandHandler<
     );
 
     if (existingPayment?.status === PaymentStatus.ACTIVE) {
-      this.logger.log(
-        `Webhook already processed for payment ${existingPayment.customPaymentId}`,
-        'StripeHook',
-      );
       return;
     }
 

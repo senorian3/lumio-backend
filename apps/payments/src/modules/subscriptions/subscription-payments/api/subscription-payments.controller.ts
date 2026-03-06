@@ -38,43 +38,6 @@ export class SubscriptionPaymentsController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
-  @ApiCreateSubscriptionPayment()
-  @UseGuards(InternalApiGuard)
-  async createSubscriptionPaymentUrl(
-    @Body() payload: InputCreateSubscriptionPaymentUrlDto,
-  ): Promise<{ url: string }> {
-    const paymentsUrl = await this.commandBus.execute<
-      CreateSubscriptionPaymentCommand,
-      string
-    >(new CreateSubscriptionPaymentCommand(payload));
-
-    return { url: paymentsUrl };
-  }
-
-  @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
-  @ApiChangeAutorenewal()
-  @UseGuards(InternalApiGuard)
-  async changeAutorenwal(
-    @Body() payload: InputChangeAutorenewalSubscriptionPaymentDto,
-  ): Promise<void> {
-    await this.commandBus.execute(
-      new ChangeAutoRenewalSubscriptionCommand(payload),
-    );
-  }
-
-  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.SUCCESS)
-  @ApiPaymentSuccess()
-  success(): string {
-    return 'Success url';
-  }
-
-  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ERROR)
-  @ApiPaymentError()
-  error(): string {
-    return 'Error url';
-  }
-
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.PROFILE_PAYMENTS)
   @ApiGetUserProfilePayments()
   @UseGuards(InternalApiGuard)
@@ -95,6 +58,32 @@ export class SubscriptionPaymentsController {
     };
   }
 
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.SUCCESS)
+  @ApiPaymentSuccess()
+  success(): string {
+    return 'Success url';
+  }
+
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ERROR)
+  @ApiPaymentError()
+  error(): string {
+    return 'Error url';
+  }
+
+  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
+  @ApiCreateSubscriptionPayment()
+  @UseGuards(InternalApiGuard)
+  async createSubscriptionPaymentUrl(
+    @Body() payload: InputCreateSubscriptionPaymentUrlDto,
+  ): Promise<{ url: string }> {
+    const paymentsUrl = await this.commandBus.execute<
+      CreateSubscriptionPaymentCommand,
+      string
+    >(new CreateSubscriptionPaymentCommand(payload));
+
+    return { url: paymentsUrl };
+  }
+
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.STRIPE_HOOK)
   @UseGuards(StripeWebhookGuard)
   @ApiStripeHook()
@@ -109,5 +98,16 @@ export class SubscriptionPaymentsController {
     );
 
     return { received: true };
+  }
+
+  @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
+  @ApiChangeAutorenewal()
+  @UseGuards(InternalApiGuard)
+  async changeAutorenwal(
+    @Body() payload: InputChangeAutorenewalSubscriptionPaymentDto,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new ChangeAutoRenewalSubscriptionCommand(payload),
+    );
   }
 }

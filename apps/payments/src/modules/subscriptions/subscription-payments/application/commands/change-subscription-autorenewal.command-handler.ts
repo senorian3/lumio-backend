@@ -48,14 +48,14 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
+        await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
           mainSubscription.subscriptionId,
           mainSubscription.customPaymentId,
           dto.autoRenewal,
           tx,
         );
 
-        await this.paymentsRepository.updatePaymentSubscriptiAutoRenewal(
+        await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
           activeSubscription.subscriptionId,
           activeSubscription.customPaymentId,
           dto.autoRenewal,

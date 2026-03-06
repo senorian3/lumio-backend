@@ -85,12 +85,9 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     };
 
     try {
-      const payment = await this.prisma.$transaction(async (tx) => {
-        return await this.paymentsRepository.createPayment(
-          createDomainPaymentData,
-          tx,
-        );
-      });
+      const payment = await this.paymentsRepository.createPayment(
+        createDomainPaymentData,
+      );
       return payment.paymentsUrl;
     } catch (error) {
       this.logger.error(
