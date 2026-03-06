@@ -95,6 +95,26 @@ export class PaymentsRepository {
     });
   }
 
+  async findPaymentForIdempotencyCheck(
+    customPaymentId: string,
+    tx?: any,
+  ): Promise<{
+    status: string;
+    stripeSubscriptionId: string;
+    subscriptionId: string;
+  } | null> {
+    const client = tx || this.prisma;
+    const payment = await client.payment.findUnique({
+      where: { customPaymentId },
+      select: {
+        status: true,
+        stripeSubscriptionId: true,
+        subscriptionId: true,
+      },
+    });
+    return payment;
+  }
+
   async updatePaymentSubscriptiAutoRenewal(
     subscriptionId: string,
     customPaymentId: string,

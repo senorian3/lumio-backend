@@ -101,6 +101,16 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
         await this.prisma.$transaction(async (tx) => {
           const hasActiveSubscription = !!lastActiveSubscriptionPayment;
 
+          const shouldContinue = await this.checkIdempotencyAndHandle(
+            customPaymentId,
+            stripeSubscriptionId,
+            tx,
+          );
+
+          if (!shouldContinue) {
+            return;
+          }
+
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
@@ -114,8 +124,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
             nextPaymentDate: periodEnd,
             autoRenewal: hasActiveSubscription ? false : true,
           };
-
-          //проверка на idempotency
 
           await this.paymentsRepository.updateCustomPaymentId(
             updatePaymentData,
@@ -176,6 +184,31 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
       );
       throw error;
     }
+  }
+
+  private async checkIdempotencyAndHandle(
+    customPaymentId: string,
+    stripeSubscriptionId: string,
+    tx: any,
+  ): Promise<boolean> {
+    const existingPayment =
+      await this.paymentsRepository.findPaymentForIdempotencyCheck(
+        customPaymentId,
+        tx,
+      );
+
+    const isAlreadyProcessed =
+      existingPayment.status === PaymentStatus.ACTIVE ||
+      existingPayment.status === PaymentStatus.EXTENSION;
+
+    const hasSameStripeSubscription =
+      existingPayment.stripeSubscriptionId === stripeSubscriptionId;
+
+    if (isAlreadyProcessed && hasSameStripeSubscription) {
+      return false;
+    }
+
+    return true;
   }
 
   private calculatePeriodDates(
