@@ -10,11 +10,12 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { UserId } from '@lumio/core/decorators/user-id.decorator';
+import { OptionalUserId } from '@lumio/core/decorators/optional-user-id.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { CreatePostCommand } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
@@ -56,12 +57,12 @@ export class PostsController {
     @Param('userId') userId: number,
     @Query()
     query: GetPostsQueryParams,
-    @Req() req: any,
+    @OptionalUserId() currentUserId: number | null,
   ): Promise<PaginatedPostViewDto> {
     return await this.queryBus.execute<
       GetAllUserPostsQuery,
       PaginatedPostViewDto
-    >(new GetAllUserPostsQuery(req.user?.userId ?? null, query, userId));
+    >(new GetAllUserPostsQuery(currentUserId, query, userId));
   }
 
   @Get(':profileId')
@@ -85,14 +86,14 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('files'))
   async createPost(
-    @Req() req: any,
+    @UserId() userId: number,
     @UploadedFiles(FileValidationPipe) files: Array<Express.Multer.File>,
     @Body() dto: InputCreatePostDto,
   ): Promise<PostView> {
     const postFile = await this.commandBus.execute<
       CreatePostCommand,
       { files: OutputFileType[]; postId: string }
-    >(new CreatePostCommand(req.user.userId, dto.description, files));
+    >(new CreatePostCommand(userId, dto.description, files));
 
     return await this.queryBus.execute<GetCreatePostUserQuery, PostView>(
       new GetCreatePostUserQuery(postFile.postId, postFile.files),
@@ -106,12 +107,12 @@ export class PostsController {
   async updatePost(
     @Param('postId') postId: string,
     @Body() dto: InputUpdatePostDto,
-    @Req() req: any,
+    @UserId() userId: number,
   ): Promise<PostView> {
     const updatedPost = await this.commandBus.execute<
       UpdatePostCommand,
       PostView
-    >(new UpdatePostCommand(postId, req.user.userId, dto.description));
+    >(new UpdatePostCommand(postId, userId, dto.description));
 
     return updatedPost;
   }
@@ -122,10 +123,10 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   async deletePost(
     @Param('postId') postId: string,
-    @Req() req: any,
+    @UserId() userId: number,
   ): Promise<void> {
     return await this.commandBus.execute<DeletePostCommand, void>(
-      new DeletePostCommand(req.user.userId, postId),
+      new DeletePostCommand(userId, postId),
     );
   }
 
@@ -134,10 +135,10 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   async getPostById(
     @Param('postId') postId: string,
-    @Req() req: any,
+    @UserId() userId: number,
   ): Promise<PostView> {
     return await this.queryBus.execute<GetPostByIdQuery, PostView>(
-      new GetPostByIdQuery(postId, req.user.userId),
+      new GetPostByIdQuery(postId, userId),
     );
   }
 }

@@ -4,7 +4,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class LogoutUserCommand {
   constructor(
-    public userId: string,
+    public userId: number,
     public deviceId: string,
   ) {}
 }
@@ -17,7 +17,7 @@ export class LogoutUserCommandHandler implements ICommandHandler<LogoutUserComma
 
     const foundSessionByDeviceIdAndUserId: SessionEntity | null =
       await this.sessionRepository.findSession({
-        userId: +userId,
+        userId: userId,
         deviceId: deviceId,
       });
 
