@@ -29,8 +29,6 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         dto.subscriptionId,
       );
 
-    console.log(activeSubscription);
-
     const mainSubscription = activeSubscription.mainSubscriptionId
       ? await this.paymentsRepository.findBySubscriptionId(
           activeSubscription.mainSubscriptionId,

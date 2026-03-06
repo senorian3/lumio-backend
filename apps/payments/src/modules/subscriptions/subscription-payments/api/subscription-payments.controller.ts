@@ -14,7 +14,6 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
 import { Request } from 'express';
 import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
@@ -29,6 +28,8 @@ import {
   SUBSCRIPTION_PAYMENTS_ROUTES,
 } from '@payments/core/routes/subscription-payments-routes';
 import { GetUserProfilePaymentsQuery } from '../application/queries/get-user-profile-payments.query-handler';
+import { InputCreateSubscriptionPaymentUrlDto } from './dto/input/input-create-subscription-payment-url.dto';
+import { InputChangeAutorenewalSubscriptionPaymentDto } from './dto/input/input-update-autorenewal.dto';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
@@ -41,7 +42,7 @@ export class SubscriptionPaymentsController {
   @ApiCreateSubscriptionPayment()
   @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
-    @Body() payload: InputCreateSubscriptionPaymentDto,
+    @Body() payload: InputCreateSubscriptionPaymentUrlDto,
   ): Promise<{ url: string }> {
     const paymentsUrl = await this.commandBus.execute<
       CreateSubscriptionPaymentCommand,
@@ -54,7 +55,9 @@ export class SubscriptionPaymentsController {
   @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
   @ApiChangeAutorenewal()
   @UseGuards(InternalApiGuard)
-  async changeAutorenwal(@Body() payload: any): Promise<void> {
+  async changeAutorenwal(
+    @Body() payload: InputChangeAutorenewalSubscriptionPaymentDto,
+  ): Promise<void> {
     await this.commandBus.execute(
       new ChangeAutoRenewalSubscriptionCommand(payload),
     );

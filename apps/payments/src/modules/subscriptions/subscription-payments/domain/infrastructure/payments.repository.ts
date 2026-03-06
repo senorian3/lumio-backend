@@ -20,6 +20,17 @@ export class PaymentsRepository {
     });
   }
 
+  async findPendingPaymentByProfileId(
+    profileId: number,
+  ): Promise<Payment | null> {
+    return this.prisma.payment.findFirst({
+      where: {
+        profileId,
+        status: PaymentStatus.PENDING,
+      },
+    });
+  }
+
   async findLastSubscriptionPaymentByStripeSubscriptionId(
     stripeSubscriptionId: string,
   ): Promise<Payment | null> {
