@@ -1,3 +1,4 @@
+import { InputChangeAutorenewalSubscriptionDto } from '@lumio/modules/payments/api/dto/input/change-autorenewal-subscription.input.dto';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -5,7 +6,6 @@ import {
   ApiResponse,
   ApiBody,
 } from '@nestjs/swagger';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 
 export function ApiUpdateAutoRenewal() {
   return applyDecorators(

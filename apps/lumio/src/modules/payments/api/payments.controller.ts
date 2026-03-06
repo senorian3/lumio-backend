@@ -12,10 +12,9 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
+
 import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/create-subscription.command-handler';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 import { GetUserPaymentsQuery } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
@@ -31,6 +30,8 @@ import { ApiCreateSubscriptionPaymentUrl } from '@lumio/core/decorators/swagger/
 import { ApiUpdateAutoRenewal } from '@lumio/core/decorators/swagger/payments/update-auto-renewal.decorator';
 import { ApiGetUserPayments } from '@lumio/core/decorators/swagger/payments/get-user-payments.decorator';
 import { ApiGetUserSubscription } from '@lumio/core/decorators/swagger/payments/get-user-subscription.decorator';
+import { InputCreateSubscriptionPaymentDto } from './dto/input/subscription-create.input.dto';
+import { InputChangeAutorenewalSubscriptionDto } from './dto/input/change-autorenewal-subscription.input.dto';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller(PAYMENTS_BASE)

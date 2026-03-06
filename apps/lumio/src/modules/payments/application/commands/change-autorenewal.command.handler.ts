@@ -7,8 +7,8 @@ import {
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
+import { InputChangeAutorenewalSubscriptionDto } from '../../api/dto/input/change-autorenewal-subscription.input.dto';
 
 export class ChangeAutoRenewalCommand {
   constructor(

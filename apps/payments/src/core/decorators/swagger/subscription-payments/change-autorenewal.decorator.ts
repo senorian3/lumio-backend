@@ -5,7 +5,7 @@ import {
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
+import { InputChangeAutorenewalSubscriptionPaymentDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-update-autorenewal.dto';
 
 export function ApiChangeAutorenewal() {
   return applyDecorators(
@@ -17,7 +17,7 @@ export function ApiChangeAutorenewal() {
       operationId: 'changeAutorenewal',
     }),
     ApiBody({
-      type: InputChangeAutorenewalSubscriptionDto,
+      type: InputChangeAutorenewalSubscriptionPaymentDto,
       description: 'Auto-renewal change payload',
     }),
     ApiResponse({

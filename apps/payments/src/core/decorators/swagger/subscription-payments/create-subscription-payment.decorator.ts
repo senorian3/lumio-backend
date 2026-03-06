@@ -1,3 +1,4 @@
+import { InputCreateSubscriptionPaymentDto } from '@lumio/modules/payments/api/dto/input/subscription-create.input.dto';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiOperation,
@@ -5,7 +6,6 @@ import {
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 
 export function ApiCreateSubscriptionPayment() {
   return applyDecorators(
