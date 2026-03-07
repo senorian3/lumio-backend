@@ -11,6 +11,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { DeviceId } from '@lumio/core/decorators/device-id.decorator';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { OutputSessionDto } from './dto/output/session.output.dto';
 import { ApiGetAllSessions } from '@lumio/core/decorators/swagger/sessions/get-all-sessions.decorator';
 import { ApiDeleteSessionByDeviceId } from '@lumio/core/decorators/swagger/sessions/delete-session-by-deviceId.decorator';
@@ -20,7 +21,7 @@ import { DeleteSessionCommand } from '../application/commands/delete-session.com
 import { DeleteAllSessionsCommand } from '../application/commands/delete-all-sessions.command-handler';
 import { SECURITY_BASE } from '@lumio/core/routes/security-routes';
 
-@UseGuards(RefreshTokenGuard)
+@UseGuards(ThrottlerGuard, RefreshTokenGuard)
 @Controller(SECURITY_BASE)
 export class SessionsController {
   constructor(

@@ -16,6 +16,7 @@ import {
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { InputEditProfileDto } from '@lumio/modules/user-accounts/profile/api/dto/input/edit-profile.input.dto';
 import { UpdateProfileCommand } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
 import { ProfileView } from './dto/output/profile.output.dto';
@@ -36,6 +37,7 @@ import { SingleFileValidationPipe } from '@libs/core/pipe/validation/validation-
 import { ApiUploadUserAvatar } from '@lumio/core/decorators/swagger/profile/upload-avatar.decorator';
 import { ApiDeleteUserAvatar } from '@lumio/core/decorators/swagger/profile/delete-avatar.decorator';
 
+@UseGuards(ThrottlerGuard)
 @Controller(PROFILE_BASE)
 export class ProfileController {
   constructor(

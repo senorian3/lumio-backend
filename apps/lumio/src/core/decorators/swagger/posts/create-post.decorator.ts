@@ -218,5 +218,23 @@ export function ApiCreatePost() {
         },
       },
     }),
+
+    ApiResponse({
+      status: 429,
+      description: 'Too many requests',
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+                field: null,
+              },
+            ],
+          },
+        },
+      },
+    }),
   );
 }

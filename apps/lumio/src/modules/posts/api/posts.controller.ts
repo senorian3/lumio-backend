@@ -17,6 +17,7 @@ import {
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { OptionalUserId } from '@lumio/core/decorators/optional-user-id.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { CreatePostCommand } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -42,6 +43,7 @@ import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by
 import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
 
+@UseGuards(ThrottlerGuard)
 @Controller(POST_BASE)
 export class PostsController {
   constructor(
