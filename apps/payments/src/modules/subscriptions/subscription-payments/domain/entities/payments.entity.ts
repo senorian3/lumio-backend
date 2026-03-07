@@ -19,4 +19,6 @@ export class PaymentEntity implements Payment {
   autoRenewal: boolean;
   cancelledAt: Date | null;
   stripePaymentCreatedAt: Date;
+  stripeSubscriptionId: string | null;
+  mainSubscriptionId: string | null;
 }

@@ -9,6 +9,8 @@ import { UpdatePaymentDomainDto } from '../../domain/dto/update-payment.domain.d
 import { ManualReviewService } from '@payments/modules/subscriptions/subscription-payments/application/manual-review.service';
 import { RetryService } from '../retry.service';
 import { CreatePaymentCompleteMessageDto } from '@libs/dto/transfer/create-payment-complete-message.dto';
+import { SubscriptionPeriodUtils } from '@payments/modules/subscriptions/shared/utils/subscription-period.utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessInitialPaymentCommand {
   constructor(
@@ -34,7 +36,7 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
   async execute(command: ProcessInitialPaymentCommand): Promise<void> {
     const { session } = command;
     const customPaymentId = session.metadata.customPaymentId;
-    const subscriptionId = session.subscription.toString();
+    const stripeSubscriptionId = session.subscription.toString();
     const mainSubscriptionId: string | null =
       session.metadata.mainSubscriptionId !== 'null'
         ? session.metadata.mainSubscriptionId
@@ -42,12 +44,6 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
     try {
       await this.retryService.executeWithRetry(async () => {
-        const mainSubscription = mainSubscriptionId
-          ? await this.paymentsRepository.findBySubscriptionId(
-              mainSubscriptionId,
-            )
-          : null;
-
         const currentPayment =
           await this.paymentsRepository.findByCustomPaymentId(customPaymentId);
 
@@ -57,49 +53,101 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
           );
         }
 
-        //изменить вместо get sub details просто класть в payment date время начала подписки (startdate)
+        const lastActiveSubscriptionPayment =
+          await this.paymentsRepository.findLastActiveSubscriptionByProfileId(
+            currentPayment.profileId,
+            new Date(),
+            customPaymentId,
+          );
+
+        const mainSubscription = mainSubscriptionId
+          ? await this.paymentsRepository.findBySubscriptionId(
+              mainSubscriptionId,
+            )
+          : null;
+
+        if (mainSubscriptionId && !mainSubscription) {
+          throw new Error(
+            `Main subscription with ID ${mainSubscriptionId} not found`,
+          );
+        }
 
         const subscriptionDetails: Stripe.Subscription =
-          await this.stripeAdapter.getSubscriptionDetails(subscriptionId);
+          await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
-        const startDate = mainSubscription
-          ? mainSubscription.periodEnd || mainSubscription.nextPaymentDate
-          : new Date(subscriptionDetails.billing_cycle_anchor * 1000);
-
-        const { periodStart, periodEnd } = this.calculatePeriodDates(
-          startDate,
-          currentPayment.subscriptionType,
+        const startDate = new Date(
+          subscriptionDetails.billing_cycle_anchor * 1000,
         );
 
+        let extraTime = 0;
+
+        if (lastActiveSubscriptionPayment) {
+          const now = new Date();
+          const remainingTime =
+            lastActiveSubscriptionPayment.periodEnd.getTime() - now.getTime();
+
+          if (remainingTime > 0) {
+            extraTime = remainingTime;
+          }
+        }
+
+        const { periodStart, periodEnd } =
+          SubscriptionPeriodUtils.calculatePeriodDates(
+            startDate,
+            currentPayment.subscriptionType,
+            extraTime,
+          );
+
+        const subscriptionId = uuidv4();
+
         await this.prisma.$transaction(async (tx) => {
+          const hasActiveSubscription = !!lastActiveSubscriptionPayment;
+
+          const shouldContinue = await this.checkIdempotencyAndHandle(
+            customPaymentId,
+            stripeSubscriptionId,
+            tx,
+          );
+
+          if (!shouldContinue) {
+            return;
+          }
+
           const updatePaymentData: UpdatePaymentDomainDto = {
             customPaymentId,
             subscriptionId,
-            status: mainSubscription
+            stripeSubscriptionId,
+            mainSubscriptionId,
+            status: hasActiveSubscription
               ? PaymentStatus.EXTENSION
-              : PaymentStatus.SUCCESSFUL,
+              : PaymentStatus.ACTIVE,
             periodStart,
             periodEnd,
             nextPaymentDate: periodEnd,
-            autoRenewal: mainSubscription ? false : true,
+            autoRenewal: hasActiveSubscription ? false : true,
           };
 
-          //проверка на idempotency
-
-          await this.paymentsRepository.updatePayment(updatePaymentData, tx);
+          await this.paymentsRepository.updateCustomPaymentId(
+            updatePaymentData,
+            tx,
+          );
 
           if (mainSubscription) {
-            await this.paymentsRepository.updateSubPeriodEndDate(
+            await this.paymentsRepository.updatePaymentSubscriptionPeriodDate(
               mainSubscription.customPaymentId,
-              subscriptionId,
               periodEnd,
               tx,
             );
+          }
 
+          if (lastActiveSubscriptionPayment) {
             await this.outboxService.updateCustomerSubscriptionEndDateMessage(
               {
-                subscriptionId,
-                periodEndDate: periodEnd.getTime() / 1000,
+                stripeSubscriptionId,
+                periodEndDate: Math.floor(new Date(periodEnd).getTime() / 1000),
+                autoRenewal: mainSubscription
+                  ? mainSubscription.autoRenewal
+                  : lastActiveSubscriptionPayment.autoRenewal,
                 timestamp: new Date().toISOString(),
               },
               tx,
@@ -107,33 +155,25 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
 
             await this.outboxService.createCancelSubscriptionImmediatelyMessage(
               {
-                subscriptionId: mainSubscription.subscriptionId,
+                stripeSubscriptionId:
+                  lastActiveSubscriptionPayment.stripeSubscriptionId,
                 timestamp: new Date().toISOString(),
               },
               tx,
             );
           }
 
-          const createPaymentData: CreatePaymentCompleteMessageDto = {
+          const createPaymentMessageData: CreatePaymentCompleteMessageDto = {
             paymentId: customPaymentId,
             profileId: currentPayment.profileId,
-            amount: currentPayment.amount,
-            currency: currentPayment.currency,
-            subscriptionId: mainSubscription
-              ? mainSubscription.subscriptionId
-              : subscriptionId,
-            subscriptionType: mainSubscription
-              ? mainSubscription.subscriptionType
-              : currentPayment.subscriptionType,
+            subscriptionId,
+            subscriptionType: currentPayment.subscriptionType,
             periodStart,
             periodEnd,
-            timestamp: new Date().toISOString(),
-            paymentsService: currentPayment.paymentProvider,
-            mainSubscriptionId: mainSubscriptionId,
           };
 
           await this.outboxService.createPaymentCompletedMessage(
-            createPaymentData,
+            createPaymentMessageData,
             tx,
           );
         });
@@ -147,26 +187,28 @@ export class ProcessInitialPaymentCommandHandler implements ICommandHandler<
     }
   }
 
-  private calculatePeriodDates(
-    periodStart: Date,
-    subscriptionType: string,
-  ): { periodStart: Date; periodEnd: Date } {
-    let periodDuration: number;
+  private async checkIdempotencyAndHandle(
+    customPaymentId: string,
+    stripeSubscriptionId: string,
+    tx: any,
+  ): Promise<boolean> {
+    const existingPayment =
+      await this.paymentsRepository.findPaymentForIdempotencyCheck(
+        customPaymentId,
+        tx,
+      );
 
-    if (subscriptionType.includes('week')) {
-      const weekCount = subscriptionType.includes('2') ? 2 : 1;
-      periodDuration = weekCount * 7 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('month')) {
-      const monthCount = subscriptionType.includes('3') ? 3 : 1;
-      periodDuration = monthCount * 30 * 24 * 60 * 60 * 1000;
-    } else if (subscriptionType.includes('year')) {
-      periodDuration = 365 * 24 * 60 * 60 * 1000;
-    } else {
-      periodDuration = 30 * 24 * 60 * 60 * 1000;
+    const isAlreadyProcessed =
+      existingPayment.status === PaymentStatus.ACTIVE ||
+      existingPayment.status === PaymentStatus.EXTENSION;
+
+    const hasSameStripeSubscription =
+      existingPayment.stripeSubscriptionId === stripeSubscriptionId;
+
+    if (isAlreadyProcessed && hasSameStripeSubscription) {
+      return false;
     }
 
-    const periodEnd = new Date(periodStart.getTime() + periodDuration);
-
-    return { periodStart, periodEnd };
+    return true;
   }
 }

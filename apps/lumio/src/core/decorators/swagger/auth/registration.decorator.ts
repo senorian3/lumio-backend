@@ -1,5 +1,6 @@
+import { InputRegistrationDto } from '@lumio/modules/user-accounts/users/api/dto/input/registration.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 export function ApiRegistration() {
   return applyDecorators(
@@ -9,14 +10,17 @@ export function ApiRegistration() {
         'Endpoint for user registration. Sends confirmation email on success.',
       operationId: 'registerUser',
     }),
+    ApiBody({
+      type: InputRegistrationDto,
+      description: 'User registration data',
+    }),
 
     ApiResponse({
       status: 201,
       description: 'User successfully registered',
-      content: {
-        'application/json': {
-          example: {},
-        },
+      schema: {
+        type: 'object',
+        example: {},
       },
     }),
 

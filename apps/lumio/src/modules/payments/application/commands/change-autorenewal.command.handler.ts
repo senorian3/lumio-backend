@@ -7,8 +7,8 @@ import {
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
+import { InputChangeAutorenewalSubscriptionDto } from '../../api/dto/input/change-autorenewal-subscription.input.dto';
 
 export class ChangeAutoRenewalCommand {
   constructor(
@@ -59,7 +59,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
     }
 
     const userSubscription =
-      await this.subscriptionRepository.findActiveSubscriptionByProfileId(
+      await this.subscriptionRepository.findSubscriptionByProfileId(
         foundProfile.id,
       );
 
@@ -70,14 +70,13 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
       );
     }
 
-    if (userSubscription.autoRenewal === command.dto.autoRenewal) {
-      return;
-    }
-
     try {
       await this.paymentsHttpAdapter.updateAutoRenewal<void>(
         `${GLOBAL_PREFIX}/subscription-payments/autorenewal`,
-        command.dto,
+        {
+          ...command.dto,
+          subscriptionId: userSubscription.subscriptionId,
+        },
       );
     } catch (error) {
       throw error;
@@ -85,7 +84,7 @@ export class ChangeAutoRenewalCommandHandler implements ICommandHandler<
 
     try {
       await this.subscriptionRepository.updateAutoRenewalById(
-        userSubscription.id,
+        userSubscription.subscriptionId,
         command.dto.autoRenewal,
       );
     } catch (error) {

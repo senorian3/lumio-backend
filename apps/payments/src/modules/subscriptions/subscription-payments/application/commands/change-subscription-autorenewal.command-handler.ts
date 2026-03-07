@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ChangeAutoRenewalSubscriptionTransferDto } from '@libs/dto/transfer/change-autorenewal-subscription.transfer.dto';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { PrismaService } from '@payments/prisma/prisma.service';
 import { OutboxService } from '@payments/modules/subscriptions/outbox/application/outbox.service';
 
@@ -24,24 +24,43 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
 
   async execute({ dto }: ChangeAutoRenewalSubscriptionCommand): Promise<void> {
     const activeSubscription =
-      await this.paymentsRepository.findActiveSubscriptionByProfileId(
+      await this.paymentsRepository.findByProfileAndSubscriptionId(
         +dto.profileId,
+        dto.subscriptionId,
       );
 
+    const mainSubscription = activeSubscription.mainSubscriptionId
+      ? await this.paymentsRepository.findBySubscriptionId(
+          activeSubscription.mainSubscriptionId,
+        )
+      : null;
+
     if (!activeSubscription || !activeSubscription.subscriptionType) {
-      throw BadRequestDomainException.create(
+      throw NotFoundDomainException.create(
         "User doesn't have active subscription",
-        'autoRenewalSubscription',
+        'profileId',
       );
     }
 
-    if (activeSubscription.autoRenewal === dto.autoRenewal) {
+    if (
+      activeSubscription.autoRenewal === dto.autoRenewal &&
+      mainSubscription.autoRenewal === dto.autoRenewal
+    ) {
       return;
     }
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.updatePaymentAutoRenewal(
+        if (mainSubscription) {
+          await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
+            mainSubscription.subscriptionId,
+            mainSubscription.customPaymentId,
+            dto.autoRenewal,
+            tx,
+          );
+        }
+
+        await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
           activeSubscription.subscriptionId,
           activeSubscription.customPaymentId,
           dto.autoRenewal,
@@ -49,7 +68,7 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
         );
 
         await this.outboxService.createChangeSubscriptionAutoRenewalStripe(
-          activeSubscription.subscriptionId,
+          activeSubscription.stripeSubscriptionId,
           dto.autoRenewal,
           tx,
         );

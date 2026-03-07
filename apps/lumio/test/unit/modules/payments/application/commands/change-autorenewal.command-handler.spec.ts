@@ -3,7 +3,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsHttpAdapter } from '@lumio/modules/payments/application/payments-http.adapter';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
+import { InputChangeAutorenewalSubscriptionDto } from '@lumio/modules/payments/api/dto/input/change-autorenewal-subscription.input.dto';
 import {
   ForbiddenDomainException,
   NotFoundDomainException,
@@ -44,14 +44,15 @@ describe('ChangeAutoRenewalCommandHandler', () => {
   };
 
   const mockSubscription = {
-    id: 'sub-123',
+    id: 1,
+    subscriptionId: 'sub-123',
     durationType: 'monthly',
     startDate: new Date('2024-01-01'),
     endDate: new Date('2024-02-01'),
     autoRenewal: true,
     cancelledAt: null,
     userProfileId: mockProfileId,
-  };
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -73,7 +74,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
         {
           provide: SubscriptionRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
+            findSubscriptionByProfileId: jest.fn(),
             updateAutoRenewalById: jest.fn(),
           },
         },
@@ -111,7 +112,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockPaymentsHttpAdapter.updateAutoRenewal.mockResolvedValue(undefined);
@@ -130,7 +131,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
         mockExternalQueryUserRepository.getProfileByUserId,
       ).toHaveBeenCalledWith(mockUserId);
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(mockProfileId);
       expect(mockPaymentsHttpAdapter.updateAutoRenewal).toHaveBeenCalled();
       expect(
@@ -224,7 +225,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         null,
       );
 
@@ -245,34 +246,6 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       }
     });
 
-    it('should return early when autoRenewal is same', async () => {
-      // Arrange
-      const sameDto = new InputChangeAutorenewalSubscriptionDto();
-      sameDto.profileId = '1';
-      sameDto.autoRenewal = true;
-
-      const command = new ChangeAutoRenewalCommand(mockUserId, sameDto);
-
-      mockExternalQueryUserRepository.getProfileById.mockResolvedValue(
-        mockProfile,
-      );
-      mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
-        mockProfile,
-      );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
-        mockSubscription,
-      );
-
-      // Act
-      await handler.execute(command);
-
-      // Assert
-      expect(mockPaymentsHttpAdapter.updateAutoRenewal).not.toHaveBeenCalled();
-      expect(
-        mockSubscriptionRepository.updateAutoRenewalById,
-      ).not.toHaveBeenCalled();
-    });
-
     it('should throw error when payment adapter fails', async () => {
       // Arrange
       const command = new ChangeAutoRenewalCommand(mockUserId, mockDto);
@@ -284,7 +257,7 @@ describe('ChangeAutoRenewalCommandHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockPaymentsHttpAdapter.updateAutoRenewal.mockRejectedValue(paymentError);

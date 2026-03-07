@@ -43,7 +43,7 @@ describe('ExternalCallsProcessor', () => {
     const mockMessage = {
       id: 1,
       payload: {
-        subscriptionId: 'sub_123',
+        stripeSubscriptionId: 'sub_123',
         autoRenewal: false,
       },
     } as unknown as OutboxMessage;

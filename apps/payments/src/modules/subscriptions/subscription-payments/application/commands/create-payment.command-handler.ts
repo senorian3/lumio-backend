@@ -6,7 +6,10 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { CreatePaymentDomainDto } from '../../domain/dto/create-payment.domain.dto';
 import Stripe from 'stripe';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { SUBSCRIPTION_PRICES } from '@payments/modules/subscriptions/constants/stripe-constants';
+import {
+  PaymentStatus,
+  SUBSCRIPTION_PRICES,
+} from '@payments/modules/subscriptions/constants/stripe-constants';
 import { PrismaService } from '@payments/prisma/prisma.service';
 
 export class CreateSubscriptionPaymentCommand {
@@ -26,8 +29,17 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
   ) {}
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
+    const pendingPayment =
+      await this.paymentsRepository.findPendingPaymentByProfileId(
+        +dto.profileId,
+      );
+
+    if (pendingPayment) {
+      return pendingPayment.paymentsUrl;
+    }
+
     const activeSubscription =
-      await this.paymentsRepository.findActiveSubscriptionByProfileId(
+      await this.paymentsRepository.findActiveSubscriptionPaymentByProfileId(
         +dto.profileId,
       );
 
@@ -56,10 +68,12 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
       currency: dto.currency,
       amount,
       profileId: +dto.profileId,
-      status: 'pending',
+      status: PaymentStatus.PENDING,
       subscriptionType: dto.subscriptionType,
       autoRenewal: false,
       subscriptionId: null,
+      stripeSubscriptionId: null,
+      mainSubscriptionId: null,
       periodStart: null,
       periodEnd: null,
       nextPaymentDate: null,
@@ -71,12 +85,9 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     };
 
     try {
-      const payment = await this.prisma.$transaction(async (tx) => {
-        return await this.paymentsRepository.createPayment(
-          createDomainPaymentData,
-          tx,
-        );
-      });
+      const payment = await this.paymentsRepository.createPayment(
+        createDomainPaymentData,
+      );
       return payment.paymentsUrl;
     } catch (error) {
       this.logger.error(

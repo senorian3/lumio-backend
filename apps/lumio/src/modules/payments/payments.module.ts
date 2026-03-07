@@ -7,7 +7,6 @@ import { HandleSubscriptionRecurringUpdatedCommandHandler } from './application/
 import { HandleSubscriptionDeletedCommandHandler } from './application/commands/handle-subscription-deleted.command-handler';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { PaymentsHttpAdapter } from './application/payments-http.adapter';
-import { PaymentsRepository } from './domain/infrastructure/payments.repository';
 import { SubscriptionRepository } from './domain/infrastructure/subscription.repository';
 import { IdempotencyKeyRepository } from './domain/infrastructure/idempotency-key.repository';
 import { Module } from '@nestjs/common';
@@ -17,7 +16,6 @@ import { CoreConfig } from '../../core/core.config';
 import { DlqNotificationService } from './application/dlq-notification.service';
 import { MessageProcessingService } from './application/message-processing.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
-import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
 import { GetUserPaymentsQueryHandler } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
 import { GetUserSubscriptionQueryHandler } from './application/queries/get-user-subscription.query-handler';
 
@@ -36,12 +34,7 @@ const queryHandlers = [
 
 const adapters = [PaymentsHttpAdapter];
 
-const repositories = [
-  PaymentsRepository,
-  SubscriptionRepository,
-  QueryPaymentsRepository,
-  IdempotencyKeyRepository,
-];
+const repositories = [SubscriptionRepository, IdempotencyKeyRepository];
 
 const services = [DlqNotificationService, MessageProcessingService];
 

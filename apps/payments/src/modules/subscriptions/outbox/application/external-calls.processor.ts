@@ -17,20 +17,20 @@ export class ExternalCallsProcessor {
     message: OutboxMessage,
   ): Promise<boolean> {
     const payload = message.payload as {
-      subscriptionId: string;
+      stripeSubscriptionId: string;
       autoRenewal: boolean;
     };
 
     try {
       await this.stripeAdapter.changeSubscriptionAutoRenewal(
-        payload.subscriptionId,
+        payload.stripeSubscriptionId,
         payload.autoRenewal,
       );
 
       return true;
     } catch (error) {
       this.logger.error(
-        `Failed to cancel auto-renewal for subscription ${payload.subscriptionId}: ${error.message}`,
+        `Failed to cancel auto-renewal for stripe subscription ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         ExternalCallsProcessor.name,
       );
@@ -121,7 +121,7 @@ export class ExternalCallsProcessor {
     message: OutboxMessage,
   ): Promise<boolean> {
     const payload = message.payload as {
-      subscriptionId: string;
+      stripeSubscriptionId: string;
       profileId: number;
       error: string;
       timestamp: string;
@@ -129,7 +129,7 @@ export class ExternalCallsProcessor {
 
     try {
       this.logger.log(
-        `Processing failed subscription deleted: ${payload.subscriptionId}, error: ${payload.error}`,
+        `Processing failed stripe subscription deleted: ${payload.stripeSubscriptionId}, error: ${payload.error}`,
         ExternalCallsProcessor.name,
       );
 
@@ -177,14 +177,15 @@ export class ExternalCallsProcessor {
 
     try {
       await this.stripeAdapter.updateCustomerSubscriptionEndDate(
-        payload.subscriptionId,
+        payload.stripeSubscriptionId,
         payload.periodEndDate,
+        payload.autoRenewal,
       );
 
       return true;
     } catch (error) {
       this.logger.error(
-        `Failed to update customer subscription end date for subscription ${payload.subscriptionId}: ${error.message}`,
+        `Failed to update customer subscription end date for stripe subscription ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         ExternalCallsProcessor.name,
       );
@@ -200,13 +201,13 @@ export class ExternalCallsProcessor {
 
     try {
       await this.stripeAdapter.cancelSubscriptionImmediately(
-        payload.subscriptionId,
+        payload.stripeSubscriptionId,
       );
 
       return true;
     } catch (error) {
       this.logger.error(
-        `Failed to cancel subscription immediately for subscription ${payload.subscriptionId}: ${error.message}`,
+        `Failed to cancel subscription immediately for stripe subscription ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         ExternalCallsProcessor.name,
       );
@@ -221,14 +222,14 @@ export class ExternalCallsProcessor {
 
     try {
       await this.stripeAdapter.updateSubscriptionMetadata(
-        payload.subscriptionId,
+        payload.stripeSubscriptionId,
         payload.metadata,
       );
 
       return true;
     } catch (error) {
       this.logger.error(
-        `Failed to update subscription metadata for subscription ${payload.subscriptionId}: ${error.message}`,
+        `Failed to update subscription metadata for stripe subscription ${payload.stripeSubscriptionId}: ${error.message}`,
         error.stack,
         ExternalCallsProcessor.name,
       );

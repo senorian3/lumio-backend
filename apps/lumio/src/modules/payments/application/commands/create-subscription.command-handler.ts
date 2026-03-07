@@ -2,13 +2,13 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentsHttpAdapter } from '../payments-http.adapter';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { InputCreateSubscriptionPaymentUrlDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-create-subscription-payment-url.dto';
 
 export class CreateSubscriptionPaymentUrlCommand {
   constructor(
     public readonly userId: number,
-    public readonly dto: InputCreateSubscriptionPaymentDto,
+    public readonly dto: InputCreateSubscriptionPaymentUrlDto,
   ) {}
 }
 

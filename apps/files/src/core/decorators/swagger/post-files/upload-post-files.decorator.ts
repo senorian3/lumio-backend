@@ -71,8 +71,8 @@ export function ApiUploadPostFiles() {
           value: {
             errorsMessages: [
               {
-                message: 'At least one file is required',
-                field: 'files',
+                message: 'No files uploaded',
+                field: 'file',
               },
             ],
           },
@@ -82,8 +82,8 @@ export function ApiUploadPostFiles() {
           value: {
             errorsMessages: [
               {
-                message: 'Maximum 10 files allowed',
-                field: 'files',
+                message: 'Maximum 10 files allowed, but received 15',
+                field: 'file',
               },
             ],
           },
@@ -93,8 +93,8 @@ export function ApiUploadPostFiles() {
           value: {
             errorsMessages: [
               {
-                message: 'File exceeds maximum size of 20MB',
-                field: 'files',
+                message: 'File 1 (image.png) exceeds maximum size of 20MB',
+                field: 'file',
               },
             ],
           },
@@ -104,8 +104,9 @@ export function ApiUploadPostFiles() {
           value: {
             errorsMessages: [
               {
-                message: 'Only JPEG and PNG files are allowed',
-                field: 'files',
+                message:
+                  'File 1 (image.gif) has invalid type. Only JPEG and PNG files are allowed',
+                field: 'file',
               },
             ],
           },

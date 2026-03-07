@@ -26,6 +26,8 @@ model Payment {
   updatedAt         DateTime? @updatedAt
   cancelledAt       DateTime?
   subscriptionId    String?
+  mainSubscriptionId String?
+  stripeSubscriptionId String?
   subscriptionType  String
   periodStart       DateTime?
   periodEnd         DateTime?

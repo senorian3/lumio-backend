@@ -7,15 +7,13 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
+
 import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/create-subscription.command-handler';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 import { GetUserPaymentsQuery } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
@@ -31,6 +29,9 @@ import { ApiCreateSubscriptionPaymentUrl } from '@lumio/core/decorators/swagger/
 import { ApiUpdateAutoRenewal } from '@lumio/core/decorators/swagger/payments/update-auto-renewal.decorator';
 import { ApiGetUserPayments } from '@lumio/core/decorators/swagger/payments/get-user-payments.decorator';
 import { ApiGetUserSubscription } from '@lumio/core/decorators/swagger/payments/get-user-subscription.decorator';
+import { InputCreateSubscriptionPaymentDto } from './dto/input/subscription-create.input.dto';
+import { InputChangeAutorenewalSubscriptionDto } from './dto/input/change-autorenewal-subscription.input.dto';
+import { UserId } from '@lumio/core/decorators/user-id.decorator';
 
 @UseGuards(ThrottlerGuard, JwtAuthGuard)
 @Controller(PAYMENTS_BASE)
@@ -40,17 +41,41 @@ export class PaymentsController {
     private readonly queryBus: QueryBus,
   ) {}
 
+  @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
+  @ApiGetUserPayments()
+  async getUserPayments(
+    @Query()
+    query: GetUserPaymentsParams,
+    @UserId() userId: number,
+  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
+    return await this.queryBus.execute<
+      GetUserPaymentsQuery,
+      PaginatedViewDto<PaymentViewDto[]>
+    >(new GetUserPaymentsQuery(userId, query));
+  }
+
+  @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
+  @ApiGetUserSubscription()
+  async getUserSubscription(
+    @UserId() userId: number,
+  ): Promise<OutputUserSubscriptionDto> {
+    return await this.queryBus.execute<
+      GetUserSubscriptionQuery,
+      OutputUserSubscriptionDto
+    >(new GetUserSubscriptionQuery(userId));
+  }
+
   @Post()
   @HttpCode(HttpStatus.OK)
   @ApiCreateSubscriptionPaymentUrl()
   async getSubscriptionPaymentUrl(
-    @Req() req: any,
+    @UserId() userId: number,
     @Body() dto: InputCreateSubscriptionPaymentDto,
   ): Promise<{ url: string }> {
-    const url: string = await this.commandBus.execute<
+    const url = await this.commandBus.execute<
       CreateSubscriptionPaymentUrlCommand,
       string
-    >(new CreateSubscriptionPaymentUrlCommand(+req.user.userId, dto));
+    >(new CreateSubscriptionPaymentUrlCommand(userId, dto));
 
     return { url };
   }
@@ -59,35 +84,11 @@ export class PaymentsController {
   @HttpCode(HttpStatus.OK)
   @ApiUpdateAutoRenewal()
   async updateAutoRenewal(
-    @Req() req: any,
+    @UserId() userId: number,
     @Body() dto: InputChangeAutorenewalSubscriptionDto,
   ): Promise<void> {
     await this.commandBus.execute<ChangeAutoRenewalCommand, void>(
-      new ChangeAutoRenewalCommand(+req.user.userId, dto),
+      new ChangeAutoRenewalCommand(userId, dto),
     );
-  }
-
-  @Get(PAYMENTS_ROUTES.MY_PAYMENTS)
-  @ApiGetUserPayments()
-  async getUserPayments(
-    @Query()
-    query: GetUserPaymentsParams,
-    @Req() req: any,
-  ): Promise<PaginatedViewDto<PaymentViewDto[]>> {
-    return await this.queryBus.execute<
-      GetUserPaymentsQuery,
-      PaginatedViewDto<PaymentViewDto[]>
-    >(new GetUserPaymentsQuery(+req.user.userId, query));
-  }
-
-  @Get(PAYMENTS_ROUTES.MY_SUBSCRIPTION)
-  @ApiGetUserSubscription()
-  async getUserSubscription(
-    @Req() req: any,
-  ): Promise<OutputUserSubscriptionDto> {
-    return await this.queryBus.execute<
-      GetUserSubscriptionQuery,
-      OutputUserSubscriptionDto
-    >(new GetUserSubscriptionQuery(+req.user.userId));
   }
 }

@@ -31,9 +31,7 @@ export class GetUserSubscriptionQueryHandler implements IQueryHandler<
     }
 
     const userSubscription =
-      await this.subscriptionRepository.findActiveSubscriptionByProfileId(
-        profile.id,
-      );
+      await this.subscriptionRepository.findSubscriptionByProfileId(profile.id);
 
     if (!userSubscription) {
       throw NotFoundDomainException.create(
@@ -43,7 +41,7 @@ export class GetUserSubscriptionQueryHandler implements IQueryHandler<
     }
 
     return {
-      id: userSubscription.id,
+      id: userSubscription.subscriptionId,
       accountType: 'Business',
       durationType: userSubscription.durationType,
       endDate: userSubscription.endDate,

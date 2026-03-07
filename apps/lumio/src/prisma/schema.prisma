@@ -50,35 +50,16 @@ model UserProfile {
   subscriptions    Subscription[]
 }
 
-model Payments {
-  id              String       @id
-  createdAt       DateTime     @default(now()) @db.Timestamp(0)
-
-  datePayment     DateTime
-  endDate         DateTime
-
-  amount          Float
-  currency        String
-  paymentsService String
-
-  subscriptionId  String?     
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-
-  @@index([subscriptionId])
-}
-
 model Subscription {
-  id           String    @id
+  id           Int       @id @default(autoincrement())
+  subscriptionId String  @unique
   durationType String    @db.VarChar(20)
   startDate    DateTime  @db.Timestamp(0)
   endDate      DateTime  @db.Timestamp(0)
   autoRenewal  Boolean   @default(false)
-  cancelledAt  DateTime? @db.Timestamp(0)
 
-  userProfileId Int
+  userProfileId Int      @unique
   userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
-
-  payments     Payments[]
 
   @@index([userProfileId])
 }

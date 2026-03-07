@@ -23,8 +23,8 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
         {
           provide: SubscriptionRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
-            cancelSubscription: jest.fn(),
+            findSubscriptionByProfileId: jest.fn(),
+            deletelSubscription: jest.fn(),
           },
         },
         {
@@ -65,6 +65,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
     it('should cancel subscription successfully', async () => {
       // Arrange
       const mockPayload = {
+        stripeSubscriptionId: 'stripe-sub-123',
         subscriptionId: 'sub-123',
         profileId: 1,
         timestamp: new Date().toISOString(),
@@ -80,16 +81,17 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       const command = new HandleSubscriptionDeletedCommand(mockEvent);
 
       const mockSubscription = {
-        id: 'sub-123',
+        id: 1,
+        subscriptionId: 'sub-123',
         durationType: 'monthly',
         startDate: new Date(),
         endDate: new Date(),
         autoRenewal: true,
         cancelledAt: null,
         userProfileId: 1,
-      };
+      } as any;
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockPrisma.$transaction.mockImplementation(async (callback) => {
@@ -105,12 +107,12 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
 
       // Assert
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(1);
       expect(mockPrisma.$transaction).toHaveBeenCalled();
       expect(
-        mockSubscriptionRepository.cancelSubscription,
-      ).toHaveBeenCalledWith('sub-123', expect.any(Date), expect.any(Object));
+        mockSubscriptionRepository.deletelSubscription,
+      ).toHaveBeenCalledWith('sub-123', expect.any(Object));
       expect(mockUserRepository.updateAccountType).toHaveBeenCalledWith(
         1,
         AccountType.PERSONAL,
@@ -121,6 +123,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
     it('should return early when subscription not found', async () => {
       // Arrange
       const mockPayload = {
+        stripeSubscriptionId: 'stripe-sub-not-found',
         subscriptionId: 'sub-not-found',
         profileId: 1,
         timestamp: new Date().toISOString(),
@@ -135,7 +138,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       );
       const command = new HandleSubscriptionDeletedCommand(mockEvent);
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         null,
       );
 
@@ -144,11 +147,11 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
 
       // Assert
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(1);
       expect(mockPrisma.$transaction).not.toHaveBeenCalled();
       expect(
-        mockSubscriptionRepository.cancelSubscription,
+        mockSubscriptionRepository.deletelSubscription,
       ).not.toHaveBeenCalled();
       expect(mockUserRepository.updateAccountType).not.toHaveBeenCalled();
     });
@@ -156,6 +159,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
     it('should handle database error when processing transaction', async () => {
       // Arrange
       const mockPayload = {
+        stripeSubscriptionId: 'stripe-sub-123',
         subscriptionId: 'sub-123',
         profileId: 1,
         timestamp: new Date().toISOString(),
@@ -172,16 +176,17 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       const dbError = new Error('Database connection failed');
 
       const mockSubscription = {
-        id: 'sub-123',
+        id: 1,
+        subscriptionId: 'sub-123',
         durationType: 'monthly',
         startDate: new Date(),
         endDate: new Date(),
         autoRenewal: true,
         cancelledAt: null,
         userProfileId: 1,
-      };
+      } as any;
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockPrisma.$transaction.mockRejectedValue(dbError);

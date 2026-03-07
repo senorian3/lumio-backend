@@ -3,13 +3,15 @@ import {
   Controller,
   Delete,
   HttpCode,
-  Req,
   Param,
   Get,
   HttpStatus,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { UserId } from '@lumio/core/decorators/user-id.decorator';
+import { DeviceId } from '@lumio/core/decorators/device-id.decorator';
 import { RefreshTokenGuard } from '@lumio/core/guards/refresh/refresh-token.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { OutputSessionDto } from './dto/output/session.output.dto';
 import { ApiGetAllSessions } from '@lumio/core/decorators/swagger/sessions/get-all-sessions.decorator';
 import { ApiDeleteSessionByDeviceId } from '@lumio/core/decorators/swagger/sessions/delete-session-by-deviceId.decorator';
@@ -19,7 +21,7 @@ import { DeleteSessionCommand } from '../application/commands/delete-session.com
 import { DeleteAllSessionsCommand } from '../application/commands/delete-all-sessions.command-handler';
 import { SECURITY_BASE } from '@lumio/core/routes/security-routes';
 
-@UseGuards(RefreshTokenGuard)
+@UseGuards(ThrottlerGuard, RefreshTokenGuard)
 @Controller(SECURITY_BASE)
 export class SessionsController {
   constructor(
@@ -30,9 +32,9 @@ export class SessionsController {
   @Get()
   @ApiGetAllSessions()
   @HttpCode(HttpStatus.OK)
-  async getAllSessions(@Req() req: any): Promise<OutputSessionDto[]> {
+  async getAllSessions(@UserId() userId: number): Promise<OutputSessionDto[]> {
     return await this.queryBus.execute<GetAllSessionsQuery, OutputSessionDto[]>(
-      new GetAllSessionsQuery(req.user.userId),
+      new GetAllSessionsQuery(userId),
     );
   }
 
@@ -40,13 +42,14 @@ export class SessionsController {
   @ApiDeleteSessionByDeviceId()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSession(
-    @Req() req: any,
+    @UserId() userId: number,
+    @DeviceId() userDeviceId: string,
     @Param('deviceId') paramDeviceId: string,
   ): Promise<void> {
     return await this.commandBus.execute<DeleteSessionCommand, void>(
       new DeleteSessionCommand({
-        userId: req.user.userId,
-        userDeviceId: req.user.deviceId,
+        userId,
+        userDeviceId,
         paramDeviceId,
       }),
     );
@@ -55,11 +58,14 @@ export class SessionsController {
   @Delete()
   @ApiDeleteAllSessionsExceptCurrent()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteAllSessions(@Req() req: any): Promise<void> {
+  async deleteAllSessions(
+    @UserId() userId: number,
+    @DeviceId() deviceId: string,
+  ): Promise<void> {
     return await this.commandBus.execute<DeleteAllSessionsCommand, void>(
       new DeleteAllSessionsCommand({
-        userId: req.user.userId,
-        deviceId: req.user.deviceId,
+        userId,
+        deviceId,
       }),
     );
   }

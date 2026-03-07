@@ -46,9 +46,9 @@ export class ExternalQueryUserAccountsRepository {
     return this.prisma.user.count();
   }
 
-  async getProfileById(profileId: number): Promise<UserProfile | null> {
+  async getProfileById(id: number): Promise<UserProfile | null> {
     return this.prisma.userProfile.findUnique({
-      where: { id: profileId },
+      where: { id },
     });
   }
 

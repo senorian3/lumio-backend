@@ -6,4 +6,5 @@ export const SUBSCRIPTION_PAYMENTS_ROUTES = {
   SUCCESS: 'success',
   ERROR: 'error',
   STRIPE_HOOK: 'stripe-hook',
+  PROFILE_PAYMENTS: 'profile-payments',
 };

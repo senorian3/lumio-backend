@@ -1,11 +1,11 @@
 import { GetUserPaymentsParams } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { QueryPaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.query-repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
-import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { PaymentViewDto } from '@lumio/modules/payments/api/dto/output/user-payment.output.dto';
+import { PaymentsHttpAdapter } from '../payments-http.adapter';
+import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
 
 export class GetUserPaymentsQuery {
   constructor(
@@ -20,9 +20,8 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
   PaginatedViewDto<PaymentViewDto[]>
 > {
   constructor(
-    private queryPaymentsRepository: QueryPaymentsRepository,
-    private externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
-    private subscriptionRepository: SubscriptionRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
+    private readonly paymentsHttpAdapter: PaymentsHttpAdapter,
   ) {}
 
   async execute(
@@ -32,40 +31,27 @@ export class GetUserPaymentsQueryHandler implements IQueryHandler<
       await this.externalQueryUserAccountsRepository.getProfileByUserId(
         query.userId,
       );
+
     if (!profile) {
       throw NotFoundDomainException.create('Profile not found', 'profile');
     }
 
-    const subscriptions =
-      await this.subscriptionRepository.findAllSubscriptionsByProfileId(
-        profile.id,
-      );
+    const response = await this.paymentsHttpAdapter.findAllUserProfilePayments(
+      `${GLOBAL_PREFIX}/subscription-payments/profile-payments`,
+      profile.id,
+      query.query.pageNumber,
+      query.query.pageSize,
+    );
 
-    if (!subscriptions || subscriptions.length === 0) {
-      return PaginatedViewDto.mapToView({
-        items: [] as PaymentViewDto[],
-        page: query.query.pageNumber,
-        size: query.query.pageSize,
-        totalCount: 0,
-      });
-    }
-
-    const subscriptionIds = subscriptions.map((sub) => sub.id);
-
-    const { payments, totalCount } =
-      await this.queryPaymentsRepository.findPaymentsBySubscriptionIds(
-        subscriptionIds,
-        query.query,
-        true,
-      );
-
-    const items: PaymentViewDto[] = PaymentViewDto.mapManyToView(payments);
+    const items: PaymentViewDto[] = PaymentViewDto.mapManyToView(
+      response.items || [],
+    );
 
     return PaginatedViewDto.mapToView({
       items,
       page: query.query.pageNumber,
       size: query.query.pageSize,
-      totalCount,
+      totalCount: response.total || 0,
     });
   }
 }

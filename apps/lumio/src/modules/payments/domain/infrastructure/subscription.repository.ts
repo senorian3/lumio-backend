@@ -6,26 +6,28 @@ import { Subscription } from 'generated/prisma-lumio';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSubscriptionById(id: string): Promise<Subscription | null> {
+  async findSubscriptionBySubscriptionId(
+    subscriptionId: string,
+  ): Promise<Subscription | null> {
     return this.prisma.subscription.findUnique({
-      where: { id },
+      where: { subscriptionId },
     });
   }
 
   async updateSubscriptionWithNewPayment(
-    id: string,
+    userProfileId: number,
     durationType: string,
     endDate: Date,
-    autoRenewal: boolean,
+    subscriptionId: string,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
     return client.subscription.update({
-      where: { id },
+      where: { userProfileId },
       data: {
         durationType,
         endDate,
-        autoRenewal,
+        subscriptionId,
       },
     });
   }
@@ -38,7 +40,6 @@ export class SubscriptionRepository {
       endDate: Date;
       userProfileId: number;
       autoRenewal?: boolean;
-      cancelledAt?: Date | null;
     },
     tx?: any,
   ): Promise<Subscription> {
@@ -46,60 +47,38 @@ export class SubscriptionRepository {
 
     return client.subscription.create({
       data: {
-        id: data.subscriptionId,
+        subscriptionId: data.subscriptionId,
         durationType: data.durationType,
         startDate: data.startDate,
         endDate: data.endDate,
         userProfileId: data.userProfileId,
         autoRenewal: data.autoRenewal ?? false,
-        cancelledAt: data.cancelledAt,
       },
     });
   }
 
-  async findActiveSubscriptionByProfileId(
-    profileId: number,
+  async findSubscriptionByProfileId(
+    userProfileId: number,
   ): Promise<Subscription> {
     return this.prisma.subscription.findFirst({
-      where: {
-        userProfileId: profileId,
-        cancelledAt: null,
-      },
+      where: { userProfileId },
     });
   }
 
-  async updateAutoRenewalById(id: string, autoRenewal: boolean) {
+  async updateAutoRenewalById(subscriptionId: string, autoRenewal: boolean) {
     return this.prisma.subscription.update({
-      where: { id },
+      where: { subscriptionId },
       data: { autoRenewal },
     });
   }
 
-  async findAllSubscriptionsByProfileId(
-    profileId: number,
-  ): Promise<Subscription[]> {
-    return this.prisma.subscription.findMany({
-      where: {
-        userProfileId: profileId,
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
-    });
-  }
-
-  async cancelSubscription(
-    id: string,
-    cancelledAt: Date,
+  async deletelSubscription(
+    subscriptionId: string,
     tx?: any,
   ): Promise<Subscription> {
     const client = tx || this.prisma;
-    return client.subscription.update({
-      where: { id },
-      data: {
-        cancelledAt,
-        autoRenewal: false,
-      },
+    return client.subscription.delete({
+      where: { subscriptionId },
     });
   }
 }

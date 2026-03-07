@@ -10,8 +10,8 @@ export class PaymentViewDto {
 
   static mapToView(payment: any): PaymentViewDto {
     return plainToInstance(PaymentViewDto, {
-      datePayment: payment.datePayment.toISOString(),
-      endDate: payment.endDate.toISOString(),
+      datePayment: payment.datePayment,
+      endDate: payment.endDate,
       amount: Number(payment.amount),
       currency: payment.currency,
       paymentType: payment.paymentsService,

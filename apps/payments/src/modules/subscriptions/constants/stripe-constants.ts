@@ -10,10 +10,11 @@ export enum StripeBillingReason {
 }
 
 export enum PaymentStatus {
-  SUCCESSFUL = 'successful',
+  ACTIVE = 'active',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
   EXTENSION = 'extension',
+  PENDING = 'pending',
 }
 
 export const subscriptionConfigs = {

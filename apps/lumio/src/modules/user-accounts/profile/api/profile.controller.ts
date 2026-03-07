@@ -9,13 +9,14 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { InputEditProfileDto } from '@lumio/modules/user-accounts/profile/api/dto/input/edit-profile.input.dto';
 import { UpdateProfileCommand } from '@lumio/modules/user-accounts/profile/application/commands/update-profile.command-handler';
 import { ProfileView } from './dto/output/profile.output.dto';
@@ -36,6 +37,7 @@ import { SingleFileValidationPipe } from '@libs/core/pipe/validation/validation-
 import { ApiUploadUserAvatar } from '@lumio/core/decorators/swagger/profile/upload-avatar.decorator';
 import { ApiDeleteUserAvatar } from '@lumio/core/decorators/swagger/profile/delete-avatar.decorator';
 
+@UseGuards(ThrottlerGuard)
 @Controller(PROFILE_BASE)
 export class ProfileController {
   constructor(
@@ -60,13 +62,13 @@ export class ProfileController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   async uploadUserAvatar(
-    @Req() req: any,
+    @UserId() userId: number,
     @UploadedFile(SingleFileValidationPipe) avatar: Express.Multer.File,
   ): Promise<{ url: string }> {
     return await this.commandBus.execute<
       UploadUserAvatarCommand,
       { url: string }
-    >(new UploadUserAvatarCommand(req.user.userId, avatar));
+    >(new UploadUserAvatarCommand(userId, avatar));
   }
 
   @Put(PROFILE_ROUTES.FILL_PROFILE)
@@ -76,10 +78,10 @@ export class ProfileController {
   async fillProfile(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputFillProfileDto,
-    @Req() req: any,
+    @UserId() currentUserId: number,
   ): Promise<ProfileView> {
     return await this.commandBus.execute<FillProfileCommand, ProfileView>(
-      new FillProfileCommand(dto, userId, req.user.userId),
+      new FillProfileCommand(dto, userId, currentUserId),
     );
   }
 
@@ -90,10 +92,10 @@ export class ProfileController {
   async updateProfile(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: InputEditProfileDto,
-    @Req() req: any,
+    @UserId() currentUserId: number,
   ): Promise<ProfileView> {
     return await this.commandBus.execute<UpdateProfileCommand, ProfileView>(
-      new UpdateProfileCommand(dto, userId, req.user.userId),
+      new UpdateProfileCommand(dto, userId, currentUserId),
     );
   }
 
@@ -101,9 +103,7 @@ export class ProfileController {
   @ApiDeleteUserAvatar()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  async deleteUserAvatar(@Req() req: any): Promise<void> {
-    return await this.commandBus.execute(
-      new DeleteUserAvatarCommand(req.user.userId),
-    );
+  async deleteUserAvatar(@UserId() userId: number): Promise<void> {
+    return await this.commandBus.execute(new DeleteUserAvatarCommand(userId));
   }
 }

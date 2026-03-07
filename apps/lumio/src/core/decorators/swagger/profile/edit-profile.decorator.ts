@@ -1,5 +1,11 @@
+import { InputEditProfileDto } from '@lumio/modules/user-accounts/profile/api/dto/input/edit-profile.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 
 export function ApiUpdateProfile() {
   return applyDecorators(
@@ -8,6 +14,10 @@ export function ApiUpdateProfile() {
       summary: 'Update profile',
       description: 'Endpoint for update profile information',
       operationId: 'updateProfile',
+    }),
+    ApiBody({
+      type: InputEditProfileDto,
+      description: 'Profile data to update',
     }),
 
     ApiResponse({
@@ -279,6 +289,24 @@ export function ApiUpdateProfile() {
               {
                 message: 'User is not found',
                 field: 'userId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 429,
+      description: 'Too many requests',
+      examples: {
+        too_many_requests: {
+          summary: 'Too many requests',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Too many requests',
+                field: null,
               },
             ],
           },

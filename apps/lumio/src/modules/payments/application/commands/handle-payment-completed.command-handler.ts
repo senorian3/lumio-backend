@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SubscriptionRepository } from '@lumio/modules/payments/domain/infrastructure/subscription.repository';
-import { PaymentsRepository } from '@lumio/modules/payments/domain/infrastructure/payments.repository';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
@@ -16,7 +15,6 @@ export class HandlePaymentCompletedCommand {
 export class HandlePaymentCompletedCommandHandler implements ICommandHandler<HandlePaymentCompletedCommand> {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly paymentsRepository: PaymentsRepository,
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
@@ -25,21 +23,11 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
     const {
       profileId,
-      amount,
-      currency,
       subscriptionId,
       subscriptionType,
       periodStart,
       periodEnd,
-      paymentsService,
-      mainSubscriptionId,
     } = command.data.payload;
-
-    const isExtension = !!mainSubscriptionId;
-
-    const targetSubscriptionId = isExtension
-      ? mainSubscriptionId
-      : subscriptionId;
 
     const profile = await this.userRepository.getProfileById(profileId);
 
@@ -55,48 +43,32 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        let subscriptionRecord: any;
+        const existingSubscription =
+          await this.subscriptionRepository.findSubscriptionByProfileId(
+            profileId,
+          );
 
-        if (isExtension) {
-          subscriptionRecord =
-            await this.subscriptionRepository.findActiveSubscriptionByProfileId(
-              profileId,
-            );
-
+        if (existingSubscription) {
           await this.subscriptionRepository.updateSubscriptionWithNewPayment(
-            subscriptionRecord.id,
+            profileId,
             subscriptionType,
             endDate,
-            true,
+            subscriptionId,
             tx,
           );
         } else {
-          subscriptionRecord =
-            await this.subscriptionRepository.createSubscription(
-              {
-                subscriptionId: targetSubscriptionId,
-                durationType: subscriptionType,
-                startDate,
-                endDate,
-                userProfileId: profileId,
-                autoRenewal: true,
-              },
-              tx,
-            );
+          await this.subscriptionRepository.createSubscription(
+            {
+              subscriptionId,
+              durationType: subscriptionType,
+              startDate,
+              endDate,
+              userProfileId: profileId,
+              autoRenewal: true,
+            },
+            tx,
+          );
         }
-
-        await this.paymentsRepository.createPayment(
-          {
-            id: command.data.payload.paymentId,
-            amount,
-            currency,
-            paymentsService: paymentsService,
-            subscriptionId: subscriptionRecord.id,
-            datePayment: startDate,
-            endDate: endDate,
-          },
-          tx,
-        );
 
         await this.userRepository.updateAccountType(
           profileId,
@@ -106,7 +78,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       });
     } catch (error) {
       this.logger.error(
-        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${targetSubscriptionId}, Error: ${error.messages}`,
+        `Failed to process payment completion. Profile: ${profileId}, Subscription: ${subscriptionId}, Error: ${error.messages}`,
         error.stack,
         HandlePaymentCompletedCommand.name,
       );

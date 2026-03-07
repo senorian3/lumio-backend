@@ -1,7 +1,8 @@
 export class UpdateCustomerSubscriptionEndDateDto {
   constructor(
-    public subscriptionId: string,
+    public stripeSubscriptionId: string,
     public periodEndDate: number,
+    public autoRenewal: boolean,
     public timestamp: string,
   ) {}
 }

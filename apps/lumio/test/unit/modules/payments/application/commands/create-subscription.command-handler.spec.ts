@@ -3,7 +3,7 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentsHttpAdapter } from '@lumio/modules/payments/application/payments-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
+import { InputCreateSubscriptionPaymentDto } from '@lumio/modules/payments/api/dto/input/subscription-create.input.dto';
 import {
   CreateSubscriptionPaymentUrlCommandHandler,
   CreateSubscriptionPaymentUrlCommand,

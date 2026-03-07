@@ -1,3 +1,4 @@
+import { InputCreateSubscriptionPaymentUrlDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-create-subscription-payment-url.dto';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiOperation,
@@ -5,7 +6,6 @@ import {
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 
 export function ApiCreateSubscriptionPayment() {
   return applyDecorators(
@@ -17,7 +17,7 @@ export function ApiCreateSubscriptionPayment() {
       operationId: 'createSubscriptionPaymentUrl',
     }),
     ApiBody({
-      type: InputCreateSubscriptionPaymentDto,
+      type: InputCreateSubscriptionPaymentUrlDto,
       description: 'Subscription payment creation payload',
     }),
     ApiResponse({
@@ -71,11 +71,11 @@ export function ApiCreateSubscriptionPayment() {
           },
         },
         profile_id_invalid: {
-          summary: 'Profile ID must be a string',
+          summary: 'Profile ID must be a numeric string',
           value: {
             errorsMessages: [
               {
-                message: 'Profile ID must be a string',
+                message: 'Profile ID must be a numeric string',
                 field: 'profileId',
               },
             ],

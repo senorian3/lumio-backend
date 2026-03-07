@@ -8,53 +8,54 @@ import {
   Req,
   Headers,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateSubscriptionPaymentCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/create-payment.command-handler';
 import { Request } from 'express';
 import { StripeHookCommand } from '@payments/modules/subscriptions/subscription-payments/application/commands/stripe-hook.command-handler';
-import { InputCreateSubscriptionPaymentDto } from '@libs/dto/input/subscription-payment.input.dto';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { ChangeAutoRenewalSubscriptionCommand } from '../application/commands/change-subscription-autorenewal.command-handler';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
 import { ApiCreateSubscriptionPayment } from '@payments/core/decorators/swagger/subscription-payments/create-subscription-payment.decorator';
 import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscription-payments/change-autorenewal.decorator';
 import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
 import { ApiPaymentSuccess } from '@payments/core/decorators/swagger/subscription-payments/payment-success.decorator';
 import { ApiPaymentError } from '@payments/core/decorators/swagger/subscription-payments/payment-error.decorator';
+import { ApiGetUserProfilePayments } from '@payments/core/decorators/swagger/subscription-payments/get-user-profile-payments.decorator';
 import {
   SUBSCRIPTION_PAYMENTS_BASE,
   SUBSCRIPTION_PAYMENTS_ROUTES,
 } from '@payments/core/routes/subscription-payments-routes';
+import { GetUserProfilePaymentsQuery } from '../application/queries/get-user-profile-payments.query-handler';
+import { InputCreateSubscriptionPaymentUrlDto } from './dto/input/input-create-subscription-payment-url.dto';
+import { InputChangeAutorenewalSubscriptionPaymentDto } from './dto/input/input-update-autorenewal.dto';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
-  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
-  @ApiCreateSubscriptionPayment()
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.PROFILE_PAYMENTS)
+  @ApiGetUserProfilePayments()
   @UseGuards(InternalApiGuard)
-  async createSubscriptionPaymentUrl(
-    @Body() payload: InputCreateSubscriptionPaymentDto,
-  ): Promise<{ url: string }> {
-    const paymentsUrl = await this.commandBus.execute<
-      CreateSubscriptionPaymentCommand,
-      string
-    >(new CreateSubscriptionPaymentCommand(payload));
-
-    return { url: paymentsUrl };
-  }
-
-  @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
-  @ApiChangeAutorenewal()
-  @UseGuards(InternalApiGuard)
-  async changeAutorenwal(
-    @Body() payload: InputChangeAutorenewalSubscriptionDto,
-  ): Promise<void> {
-    await this.commandBus.execute(
-      new ChangeAutoRenewalSubscriptionCommand(payload),
+  async getUserProfilePayments(
+    @Query('profileId') profileId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    const result = await this.queryBus.execute(
+      new GetUserProfilePaymentsQuery(profileId, page, limit),
     );
+
+    return {
+      items: result.items,
+      total: result.totalCount,
+      page,
+      limit,
+    };
   }
 
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.SUCCESS)
@@ -69,9 +70,23 @@ export class SubscriptionPaymentsController {
     return 'Error url';
   }
 
+  @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
+  @ApiCreateSubscriptionPayment()
+  @UseGuards(InternalApiGuard)
+  async createSubscriptionPaymentUrl(
+    @Body() payload: InputCreateSubscriptionPaymentUrlDto,
+  ): Promise<{ url: string }> {
+    const paymentsUrl = await this.commandBus.execute<
+      CreateSubscriptionPaymentCommand,
+      string
+    >(new CreateSubscriptionPaymentCommand(payload));
+
+    return { url: paymentsUrl };
+  }
+
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.STRIPE_HOOK)
-  @UseGuards(StripeWebhookGuard)
   @ApiStripeHook()
+  @UseGuards(StripeWebhookGuard)
   async stripeHook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
@@ -83,5 +98,16 @@ export class SubscriptionPaymentsController {
     );
 
     return { received: true };
+  }
+
+  @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
+  @ApiChangeAutorenewal()
+  @UseGuards(InternalApiGuard)
+  async changeAutorenwal(
+    @Body() payload: InputChangeAutorenewalSubscriptionPaymentDto,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new ChangeAutoRenewalSubscriptionCommand(payload),
+    );
   }
 }

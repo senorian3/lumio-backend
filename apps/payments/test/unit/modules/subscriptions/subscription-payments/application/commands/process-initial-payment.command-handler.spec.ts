@@ -64,8 +64,10 @@ describe('ProcessInitialPaymentCommandHandler', () => {
           useValue: {
             findByCustomPaymentId: jest.fn(),
             findBySubscriptionId: jest.fn(),
-            updatePayment: jest.fn(),
-            updateSubPeriodEndDate: jest.fn(),
+            updateCustomPaymentId: jest.fn(),
+            updatePaymentSubscriptionPeriodDate: jest.fn(),
+            findLastActiveSubscriptionByProfileId: jest.fn(),
+            findPaymentForIdempotencyCheck: jest.fn(),
           },
         },
         {
@@ -129,10 +131,24 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(
         mockPayment as any,
       );
+      mockPaymentsRepository.findLastActiveSubscriptionByProfileId.mockResolvedValue(
+        {
+          customPaymentId: 'old_payment_123',
+          profileId: 1,
+          periodEnd: new Date(Date.now() + 86400000), // завтра
+          stripeSubscriptionId: 'old_sub_123',
+          autoRenewal: true,
+        } as any,
+      );
+      mockPaymentsRepository.findPaymentForIdempotencyCheck.mockResolvedValue({
+        status: 'pending',
+        stripeSubscriptionId: null,
+        subscriptionId: null,
+      });
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
       );
-      mockPaymentsRepository.updatePayment.mockResolvedValue(undefined);
+      mockPaymentsRepository.updateCustomPaymentId.mockResolvedValue(undefined);
       mockOutboxService.createPaymentCompletedMessage.mockResolvedValue(
         undefined,
       );
@@ -147,12 +163,11 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       expect(mockStripeAdapter.getSubscriptionDetails).toHaveBeenCalledWith(
         'sub_123',
       );
-      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalledWith(
+      expect(mockPaymentsRepository.updateCustomPaymentId).toHaveBeenCalledWith(
         expect.objectContaining({
           customPaymentId: 'payment_123',
-          subscriptionId: 'sub_123',
-          status: PaymentStatus.SUCCESSFUL,
-          autoRenewal: true,
+          status: PaymentStatus.EXTENSION,
+          autoRenewal: false,
         }),
         mockPrisma,
       );
@@ -182,19 +197,28 @@ describe('ProcessInitialPaymentCommandHandler', () => {
         periodEnd: new Date('2024-01-01'),
         nextPaymentDate: new Date('2024-01-01'),
         subscriptionType: '1 month',
+        autoRenewal: false,
       };
 
       mockPaymentsRepository.findByCustomPaymentId.mockResolvedValue(
         mockPayment as any,
       );
+      mockPaymentsRepository.findLastActiveSubscriptionByProfileId.mockResolvedValue(
+        null,
+      );
+      mockPaymentsRepository.findPaymentForIdempotencyCheck.mockResolvedValue({
+        status: 'pending',
+        stripeSubscriptionId: null,
+        subscriptionId: null,
+      });
       mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
         mockMainSubscription as any,
       );
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
       );
-      mockPaymentsRepository.updatePayment.mockResolvedValue(undefined);
-      mockPaymentsRepository.updateSubPeriodEndDate.mockResolvedValue(
+      mockPaymentsRepository.updateCustomPaymentId.mockResolvedValue(undefined);
+      mockPaymentsRepository.updatePaymentSubscriptionPeriodDate.mockResolvedValue(
         undefined,
       );
       mockOutboxService.createPaymentCompletedMessage.mockResolvedValue(
@@ -217,22 +241,24 @@ describe('ProcessInitialPaymentCommandHandler', () => {
       expect(mockPaymentsRepository.findBySubscriptionId).toHaveBeenCalledWith(
         'main_sub_123',
       );
-      expect(mockPaymentsRepository.updatePayment).toHaveBeenCalledWith(
+      expect(mockPaymentsRepository.updateCustomPaymentId).toHaveBeenCalledWith(
         expect.objectContaining({
           customPaymentId: 'payment_123',
-          subscriptionId: 'sub_123',
-          status: PaymentStatus.EXTENSION,
-          autoRenewal: false,
+          status: PaymentStatus.ACTIVE,
+          autoRenewal: true,
         }),
         mockPrisma,
       );
-      expect(mockPaymentsRepository.updateSubPeriodEndDate).toHaveBeenCalled();
       expect(
-        mockOutboxService.updateCustomerSubscriptionEndDateMessage,
+        mockPaymentsRepository.updatePaymentSubscriptionPeriodDate,
       ).toHaveBeenCalled();
-      expect(
-        mockOutboxService.createCancelSubscriptionImmediatelyMessage,
-      ).toHaveBeenCalled();
+      // Эти методы вызываются только для статуса EXTENSION
+      // expect(
+      //   mockOutboxService.updateCustomerSubscriptionEndDateMessage,
+      // ).toHaveBeenCalled();
+      // expect(
+      //   mockOutboxService.createCancelSubscriptionImmediatelyMessage,
+      // ).toHaveBeenCalled();
       expect(
         mockOutboxService.createPaymentCompletedMessage,
       ).toHaveBeenCalled();

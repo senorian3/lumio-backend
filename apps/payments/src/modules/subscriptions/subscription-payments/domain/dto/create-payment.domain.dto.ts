@@ -6,6 +6,8 @@ export class CreatePaymentDomainDto {
     public readonly profileId: number,
     public readonly status: string,
     public readonly subscriptionType: string,
+    public readonly stripeSubscriptionId: string | null,
+    public readonly mainSubscriptionId: string | null,
     public readonly autoRenewal: boolean,
     public readonly subscriptionId: string | null,
     public readonly periodStart: Date | null,

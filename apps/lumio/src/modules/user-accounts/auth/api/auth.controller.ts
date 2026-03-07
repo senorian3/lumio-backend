@@ -9,6 +9,8 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { UserId } from '@lumio/core/decorators/user-id.decorator';
+import { DeviceId } from '@lumio/core/decorators/device-id.decorator';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Response, Request } from 'express';
@@ -61,9 +63,9 @@ export class AuthController {
   @ApiGetCurrentUser()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async me(@Req() req: any): Promise<AboutUserOutputDto> {
+  async me(@UserId() userId: number): Promise<AboutUserOutputDto> {
     return await this.queryBus.execute<AboutUserUserQuery, AboutUserOutputDto>(
-      new AboutUserUserQuery(req.user.userId),
+      new AboutUserUserQuery(userId),
     );
   }
 
@@ -144,9 +146,14 @@ export class AuthController {
   @SkipThrottle()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(@Req() req: any, @Res() res: Response): Promise<void> {
+  async logout(
+    @UserId() userId: number,
+    @DeviceId() deviceId: string,
+    @Req() req: any,
+    @Res() res: Response,
+  ): Promise<void> {
     await this.commandBus.execute<LogoutUserCommand, void>(
-      new LogoutUserCommand(req.user.userId, req.user.deviceId),
+      new LogoutUserCommand(userId, deviceId),
     );
 
     res

@@ -10,6 +10,8 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { RetryService } from '../retry.service';
 import { CreateSubscriptionUpdateMessageDto } from '@libs/dto/transfer/create-subscription-update-message.dto';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
+import { SubscriptionPeriodUtils } from '@payments/modules/subscriptions/shared/utils/subscription-period.utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ProcessRecurringPaymentCommand {
   constructor(public readonly invoice: Stripe.Invoice) {}
@@ -37,91 +39,99 @@ export class ProcessRecurringPaymentCommandHandler implements ICommandHandler<
         if (
           invoice.billing_reason === 'subscription_create' ||
           invoice.status !== 'paid'
-        )
+        ) {
           return;
+        }
 
-        const subscriptionId = invoice.parent.subscription_details
+        const stripeSubscriptionId = invoice.parent.subscription_details
           .subscription as string;
 
-        const isExtension =
-          await this.stripeAdapter.isExtensionSubscription(subscriptionId);
+        const subscription =
+          await this.stripeAdapter.getSubscriptionDetails(stripeSubscriptionId);
 
-        if (isExtension) {
+        if (
+          !subscription ||
+          subscription.metadata?.extensionSub === 'true' ||
+          subscription.status === 'canceled' ||
+          subscription.cancel_at_period_end
+        ) {
           return;
         }
 
-        const existingPayment =
-          await this.paymentsRepository.findBySubscriptionId(subscriptionId);
+        let mainSubscriptionPayment = null;
 
-        if (!existingPayment) {
-          this.logger.error(
-            `Payment with subscriptionId ${subscriptionId} not found`,
-            this.paymentsRepository.findBySubscriptionId.name,
-            ProcessRecurringPaymentCommandHandler.name,
+        const lastSubscriptionPayment =
+          await this.paymentsRepository.findLastSubscriptionPaymentByStripeSubscriptionId(
+            stripeSubscriptionId,
           );
-          throw new Error();
-        }
 
-        if (existingPayment.autoRenewal === false) {
-          return;
+        if (lastSubscriptionPayment.status === PaymentStatus.ACTIVE) {
+          mainSubscriptionPayment = lastSubscriptionPayment;
+        } else {
+          mainSubscriptionPayment =
+            await this.paymentsRepository.findActiveSubscriptionPaymentByProfileId(
+              lastSubscriptionPayment.profileId,
+            );
         }
-
-        const invoiceLine = invoice.lines.data[0];
 
         await this.prisma.$transaction(async (tx) => {
           const amount = invoice.amount_paid / 100;
-          const currentPeriodStart = new Date(invoiceLine.period.start * 1000);
-          const currentPeriodEnd = new Date(invoiceLine.period.end * 1000);
+          const currentPeriodStart = new Date(
+            lastSubscriptionPayment.periodEnd.getTime(),
+          );
+          const currentPeriodEnd =
+            SubscriptionPeriodUtils.calculateNextPaymentDate(
+              currentPeriodStart,
+              lastSubscriptionPayment.subscriptionType,
+            );
           const nextPaymentDate = currentPeriodEnd;
           const createdAt = new Date(invoice.created * 1000);
 
           const subscriptionType =
-            invoice.metadata?.subscriptionType ||
-            existingPayment.subscriptionType ||
-            '1 month';
+            invoice.metadata.subscriptionType ||
+            lastSubscriptionPayment.subscriptionType;
 
           const finishDate = new Date(Date.now());
+          const subscriptionId = uuidv4();
+          const customPaymentId = `${lastSubscriptionPayment.profileId}-${finishDate.getTime()}`;
 
           const createPaymentData: CreatePaymentDomainDto = {
             paymentProvider: 'Stripe',
             currency: invoice.currency.toUpperCase(),
             amount,
-            profileId: existingPayment.profileId,
-            status: PaymentStatus.SUCCESSFUL,
-            subscriptionId: subscriptionId,
+            profileId: lastSubscriptionPayment.profileId,
+            status: PaymentStatus.ACTIVE,
+            subscriptionId,
+            stripeSubscriptionId,
+            mainSubscriptionId: mainSubscriptionPayment.subscriptionId,
             periodStart: currentPeriodStart,
             periodEnd: currentPeriodEnd,
             nextPaymentDate: nextPaymentDate,
-            subscriptionType: subscriptionType,
-            autoRenewal: existingPayment.autoRenewal,
+            subscriptionType,
+            autoRenewal: mainSubscriptionPayment.autoRenewal,
             paymentsUrl: 'AutoRenewal',
             createdAt: new Date(),
             stripePaymentCreatedAt: createdAt,
             cancelledAt: null,
-            customPaymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
+            customPaymentId,
           };
 
           await this.paymentsRepository.createPayment(createPaymentData, tx);
 
           await this.paymentsRepository.completePayment(
-            existingPayment.customPaymentId,
+            mainSubscriptionPayment.customPaymentId,
             PaymentStatus.COMPLETED,
-            false,
             finishDate,
             tx,
           );
 
           const createSubscriptionUpdateMessageData: CreateSubscriptionUpdateMessageDto =
             {
-              paymentId: `${existingPayment.profileId}-${finishDate.getTime()}`,
-              amount,
-              currency: invoice.currency.toUpperCase(),
-              paymentService: existingPayment.paymentProvider,
               subscriptionId,
+              paymentId: customPaymentId,
               subscriptionType,
               nextPaymentDate,
-              profileId: existingPayment.profileId,
-              timestamp: new Date().toISOString(),
+              profileId: mainSubscriptionPayment.profileId,
             };
 
           await this.outboxService.createSubscriptionUpdatedMessage(

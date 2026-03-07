@@ -4,6 +4,9 @@ import { HandlePaymentCompletedCommand } from '../application/commands/handle-pa
 import { HandleSubscriptionRecurringUpdatedCommand } from '../application/commands/handle-subscription-updated.command-handler';
 import { HandleSubscriptionDeletedCommand } from '../application/commands/handle-subscription-deleted.command-handler';
 import { MessageProcessingService } from '../application/message-processing.service';
+import { PaymentCompletedEvent } from './dto/transfer/payment-completed-event.dto';
+import { SubscriptionRecurringUpdatedEvent } from './dto/transfer/subscription-recurring-updated-event.dto';
+import { SubscriptionDeletedEvent } from './dto/transfer/subscription-deleted-event.dto';
 
 @Controller('payments-rabbitmq')
 export class PaymentsRabbitMQController {
@@ -13,7 +16,7 @@ export class PaymentsRabbitMQController {
 
   @EventPattern('payment.completed')
   async handlePaymentCompleted(
-    @Payload() data: any,
+    @Payload() data: PaymentCompletedEvent,
     @Ctx() context: RmqContext,
   ) {
     await this.messageProcessingService.processMessage(
@@ -27,7 +30,7 @@ export class PaymentsRabbitMQController {
 
   @EventPattern('payment.recurring.completed')
   async handleSubscriptionUpdated(
-    @Payload() data: any,
+    @Payload() data: SubscriptionRecurringUpdatedEvent,
     @Ctx() context: RmqContext,
   ) {
     await this.messageProcessingService.processMessage(
@@ -41,7 +44,7 @@ export class PaymentsRabbitMQController {
 
   @EventPattern('subscription.deleted')
   async handleSubscriptionDeleted(
-    @Payload() data: any,
+    @Payload() data: SubscriptionDeletedEvent,
     @Ctx() context: RmqContext,
   ) {
     await this.messageProcessingService.processMessage(

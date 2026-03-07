@@ -5,7 +5,7 @@ import {
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
-import { InputChangeAutorenewalSubscriptionDto } from '@libs/dto/input/change-autorenewal-subscription.input.dto';
+import { InputChangeAutorenewalSubscriptionPaymentDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-update-autorenewal.dto';
 
 export function ApiChangeAutorenewal() {
   return applyDecorators(
@@ -17,7 +17,7 @@ export function ApiChangeAutorenewal() {
       operationId: 'changeAutorenewal',
     }),
     ApiBody({
-      type: InputChangeAutorenewalSubscriptionDto,
+      type: InputChangeAutorenewalSubscriptionPaymentDto,
       description: 'Auto-renewal change payload',
     }),
     ApiResponse({
@@ -46,11 +46,11 @@ export function ApiChangeAutorenewal() {
           },
         },
         profile_id_invalid: {
-          summary: 'Profile ID must be a string',
+          summary: 'Profile ID must be a numeric string',
           value: {
             errorsMessages: [
               {
-                message: 'Profile ID must be a string',
+                message: 'Profile ID must be a numeric string',
                 field: 'profileId',
               },
             ],
@@ -100,7 +100,7 @@ export function ApiChangeAutorenewal() {
           value: {
             errorsMessages: [
               {
-                message: 'User has no active subscription',
+                message: "User doesn't have active subscription",
                 field: 'profileId',
               },
             ],

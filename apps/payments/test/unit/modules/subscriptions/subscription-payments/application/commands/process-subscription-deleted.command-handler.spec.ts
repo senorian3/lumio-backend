@@ -52,6 +52,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
           useValue: {
             findBySubscriptionId: jest.fn(),
             cancelPayment: jest.fn(),
+            findActiveSubscriptionPaymentByStripeSubscriptionId: jest.fn(),
           },
         },
         {
@@ -120,7 +121,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       mockStripeAdapter.getSubscriptionDetails.mockResolvedValue(
         mockSubscriptionDetails,
       );
-      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId.mockResolvedValue(
         mockPayment as any,
       );
       mockPaymentsRepository.cancelPayment.mockResolvedValue(undefined);
@@ -135,9 +136,9 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       expect(mockStripeAdapter.getSubscriptionDetails).toHaveBeenCalledWith(
         'sub_123',
       );
-      expect(mockPaymentsRepository.findBySubscriptionId).toHaveBeenCalledWith(
-        'sub_123',
-      );
+      expect(
+        mockPaymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId,
+      ).toHaveBeenCalledWith('sub_123');
       expect(mockPaymentsRepository.cancelPayment).toHaveBeenCalled();
       expect(
         mockOutboxService.createSubscriptionDeletedMessage,
@@ -148,7 +149,9 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       // Arrange
       const command = new ProcessSubscriptionDeletedCommand(mockEvent);
 
-      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(null);
+      mockPaymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId.mockResolvedValue(
+        null,
+      );
       mockRetryService.executeWithRetry.mockImplementation(async () => {
         throw new Error('Payment not found');
       });
@@ -164,7 +167,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       const command = new ProcessSubscriptionDeletedCommand(mockEvent);
       const dbError = new Error('Database error');
 
-      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId.mockResolvedValue(
         mockPayment as any,
       );
       mockRetryService.executeWithRetry.mockImplementation(async () => {
@@ -189,7 +192,7 @@ describe('ProcessSubscriptionDeletedCommandHandler', () => {
       const command = new ProcessSubscriptionDeletedCommand(mockEvent);
       const processError = new Error('Processing error');
 
-      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByStripeSubscriptionId.mockResolvedValue(
         mockPayment as any,
       );
       mockRetryService.executeWithRetry.mockImplementation(async () => {
