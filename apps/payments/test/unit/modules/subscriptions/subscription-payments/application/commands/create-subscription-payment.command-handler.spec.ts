@@ -42,7 +42,8 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         {
           provide: PaymentsRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
+            findActiveSubscriptionPaymentByProfileId: jest.fn(),
+            findPendingPaymentByProfileId: jest.fn(),
             createPayment: jest.fn(),
           },
         },
@@ -84,7 +85,10 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
       // Arrange
       const command = new CreateSubscriptionPaymentCommand(mockDto);
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByProfileId.mockResolvedValue(
+        null,
+      );
+      mockPaymentsRepository.findPendingPaymentByProfileId.mockResolvedValue(
         null,
       );
       mockStripeAdapter.createPaymentSession.mockResolvedValue(mockSession);
@@ -112,8 +116,11 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         subscriptionId: 'sub_123',
       };
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByProfileId.mockResolvedValue(
         mockActiveSubscription as any,
+      );
+      mockPaymentsRepository.findPendingPaymentByProfileId.mockResolvedValue(
+        null,
       );
       mockStripeAdapter.createPaymentSession.mockResolvedValue(mockSession);
       mockPaymentsRepository.createPayment.mockResolvedValue({
@@ -137,7 +144,7 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
       // Arrange
       const command = new CreateSubscriptionPaymentCommand(mockDto);
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByProfileId.mockResolvedValue(
         null,
       );
       mockStripeAdapter.createPaymentSession.mockRejectedValue(
@@ -153,7 +160,7 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
       // Arrange
       const command = new CreateSubscriptionPaymentCommand(mockDto);
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findActiveSubscriptionPaymentByProfileId.mockResolvedValue(
         null,
       );
       mockStripeAdapter.createPaymentSession.mockResolvedValue(mockSession);

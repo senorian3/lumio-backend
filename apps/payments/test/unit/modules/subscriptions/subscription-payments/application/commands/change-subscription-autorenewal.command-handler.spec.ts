@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChangeAutoRenewalSubscriptionTransferDto } from '@libs/dto/transfer/change-autorenewal-subscription.transfer.dto';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -19,6 +19,7 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
 
   const mockDto: ChangeAutoRenewalSubscriptionTransferDto = {
     profileId: '1',
+    subscriptionId: 'sub_123',
     autoRenewal: false,
   };
 
@@ -28,6 +29,8 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
     autoRenewal: true,
     subscriptionType: '1 month',
     profileId: 1,
+    mainSubscriptionId: 'main_sub_123',
+    stripeSubscriptionId: 'stripe_sub_123',
   };
 
   beforeEach(async () => {
@@ -41,8 +44,9 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
         {
           provide: PaymentsRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
-            updatePaymentAutoRenewal: jest.fn(),
+            findByProfileAndSubscriptionId: jest.fn(),
+            findBySubscriptionId: jest.fn(),
+            updatePaymentSubscriptionAutoRenewal: jest.fn(),
           },
         },
         {
@@ -81,10 +85,22 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
       // Arrange
       const command = new ChangeAutoRenewalSubscriptionCommand(mockDto);
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findByProfileAndSubscriptionId.mockResolvedValue(
         mockActiveSubscription as any,
       );
-      mockPaymentsRepository.updatePaymentAutoRenewal.mockResolvedValue(
+      const mockMainSubscription = {
+        subscriptionId: 'main_sub_123',
+        customPaymentId: 'main_payment_123',
+        autoRenewal: true,
+        subscriptionType: '1 month',
+        profileId: 1,
+        mainSubscriptionId: null,
+        stripeSubscriptionId: 'stripe_main_sub_123',
+      };
+      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+        mockMainSubscription as any,
+      );
+      mockPaymentsRepository.updatePaymentSubscriptionAutoRenewal.mockResolvedValue(
         undefined,
       );
       mockOutboxService.createChangeSubscriptionAutoRenewalStripe.mockResolvedValue(
@@ -96,7 +112,10 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
 
       // Assert
       expect(
-        mockPaymentsRepository.updatePaymentAutoRenewal,
+        mockPaymentsRepository.updatePaymentSubscriptionAutoRenewal,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        mockPaymentsRepository.updatePaymentSubscriptionAutoRenewal,
       ).toHaveBeenCalledWith(
         mockActiveSubscription.subscriptionId,
         mockActiveSubscription.customPaymentId,
@@ -108,17 +127,17 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
       ).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestDomainException when no active subscription', async () => {
+    it('should throw NotFoundDomainException when no active subscription', async () => {
       // Arrange
       const command = new ChangeAutoRenewalSubscriptionCommand(mockDto);
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
-        null,
-      );
+      mockPaymentsRepository.findByProfileAndSubscriptionId.mockResolvedValue({
+        mainSubscriptionId: null,
+      } as any);
 
       // Act & Assert
       await expect(handler.execute(command)).rejects.toThrow(
-        BadRequestDomainException,
+        NotFoundDomainException,
       );
     });
 
@@ -129,8 +148,20 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
         autoRenewal: true,
       });
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findByProfileAndSubscriptionId.mockResolvedValue(
         mockActiveSubscription as any,
+      );
+      const mockMainSubscription = {
+        subscriptionId: 'main_sub_123',
+        customPaymentId: 'main_payment_123',
+        autoRenewal: true,
+        subscriptionType: '1 month',
+        profileId: 1,
+        mainSubscriptionId: null,
+        stripeSubscriptionId: 'stripe_main_sub_123',
+      };
+      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+        mockMainSubscription as any,
       );
 
       // Act
@@ -138,7 +169,7 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
 
       // Assert
       expect(
-        mockPaymentsRepository.updatePaymentAutoRenewal,
+        mockPaymentsRepository.updatePaymentSubscriptionAutoRenewal,
       ).not.toHaveBeenCalled();
     });
 
@@ -147,10 +178,22 @@ describe('ChangeAutoRenewalSubscriptionCommandHandler', () => {
       const command = new ChangeAutoRenewalSubscriptionCommand(mockDto);
       const dbError = new Error('Database error');
 
-      mockPaymentsRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockPaymentsRepository.findByProfileAndSubscriptionId.mockResolvedValue(
         mockActiveSubscription as any,
       );
-      mockPaymentsRepository.updatePaymentAutoRenewal.mockRejectedValue(
+      const mockMainSubscription = {
+        subscriptionId: 'main_sub_123',
+        customPaymentId: 'main_payment_123',
+        autoRenewal: true,
+        subscriptionType: '1 month',
+        profileId: 1,
+        mainSubscriptionId: null,
+        stripeSubscriptionId: 'stripe_main_sub_123',
+      };
+      mockPaymentsRepository.findBySubscriptionId.mockResolvedValue(
+        mockMainSubscription as any,
+      );
+      mockPaymentsRepository.updatePaymentSubscriptionAutoRenewal.mockRejectedValue(
         dbError,
       );
 

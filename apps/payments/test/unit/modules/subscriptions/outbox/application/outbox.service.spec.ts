@@ -117,13 +117,10 @@ describe('OutboxService', () => {
   describe('createSubscriptionUpdatedMessage', () => {
     const mockPayload: CreateSubscriptionUpdateMessageDto = {
       paymentId: 'payment_456',
-      paymentService: 'stripe',
-      amount: 9.99,
-      currency: 'usd',
       subscriptionId: 'sub_456',
       subscriptionType: '1 month',
       nextPaymentDate: new Date(),
-      timestamp: new Date().toISOString(),
+      profileId: 1,
     } as CreateSubscriptionUpdateMessageDto;
 
     it('should create outbox message successfully', async () => {
@@ -182,7 +179,7 @@ describe('OutboxService', () => {
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.CHANGE_SUBSCRIPTION_AUTORENEWAL_STRIPE,
           payload: expect.objectContaining({
-            subscriptionId,
+            stripeSubscriptionId: subscriptionId,
             autoRenewal,
           }),
         }),
@@ -220,6 +217,7 @@ describe('OutboxService', () => {
   describe('createSubscriptionDeletedMessage', () => {
     const mockPayload: CreateSubscriptionDeletedMessageDto = {
       subscriptionId: 'sub_del_123',
+      stripeSubscriptionId: 'stripe_sub_del_123',
       profileId: 1,
       timestamp: new Date().toISOString(),
     } as CreateSubscriptionDeletedMessageDto;
@@ -231,7 +229,7 @@ describe('OutboxService', () => {
 
       expect(mockOutboxRepository.createOutboxMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          aggregateId: mockPayload.subscriptionId,
+          aggregateId: mockPayload.stripeSubscriptionId,
           aggregateType: OutboxAggregateType.SUBSCRIPTION,
           eventType: OutboxEventType.SUBSCRIPTION_DELETED,
           payload: mockPayload,

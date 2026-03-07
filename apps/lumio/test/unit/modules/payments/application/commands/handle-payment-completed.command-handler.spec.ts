@@ -59,7 +59,7 @@ describe('HandlePaymentCompletedCommandHandler', () => {
           provide: SubscriptionRepository,
           useValue: {
             createSubscription: jest.fn(),
-            findActiveSubscriptionByProfileId: jest.fn(),
+            findSubscriptionByProfileId: jest.fn(),
             updateSubscriptionWithNewPayment: jest.fn(),
           },
         },
@@ -117,7 +117,8 @@ describe('HandlePaymentCompletedCommandHandler', () => {
       );
 
       const mockSubscription = {
-        id: 'sub-123',
+        id: 1,
+        subscriptionId: 'sub-123',
         durationType: '1 month',
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-02-01'),
@@ -126,7 +127,7 @@ describe('HandlePaymentCompletedCommandHandler', () => {
         cancelledAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-      };
+      } as any;
       mockSubscriptionRepository.createSubscription.mockResolvedValue(
         mockSubscription as any,
       );

@@ -50,7 +50,7 @@ describe('LogoutUserUseCase', () => {
   describe('execute', () => {
     it('should delete session when valid userId and deviceId provided', async () => {
       // Arrange
-      const command = new LogoutUserCommand(userId.toString(), deviceId);
+      const command = new LogoutUserCommand(userId, deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(mockSession);
       (mockRepository.updateSession as jest.Mock).mockResolvedValue(
         mockSession,
@@ -74,7 +74,7 @@ describe('LogoutUserUseCase', () => {
 
     it('should return early when userId is missing', async () => {
       // Arrange
-      const command = new LogoutUserCommand('', deviceId);
+      const command = new LogoutUserCommand(0, deviceId);
 
       // Act
       await useCase.execute(command);
@@ -86,7 +86,7 @@ describe('LogoutUserUseCase', () => {
 
     it('should return early when deviceId is missing', async () => {
       // Arrange
-      const command = new LogoutUserCommand(userId.toString(), '');
+      const command = new LogoutUserCommand(userId, '');
 
       // Act
       await useCase.execute(command);
@@ -98,7 +98,7 @@ describe('LogoutUserUseCase', () => {
 
     it('should return early when session not found', async () => {
       // Arrange
-      const command = new LogoutUserCommand(userId.toString(), deviceId);
+      const command = new LogoutUserCommand(userId, deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(null);
       (mockRepository.updateSession as jest.Mock).mockResolvedValue(undefined);
 
@@ -115,7 +115,7 @@ describe('LogoutUserUseCase', () => {
 
     it('should increase token version when logging out', async () => {
       // Arrange
-      const command = new LogoutUserCommand(userId.toString(), deviceId);
+      const command = new LogoutUserCommand(userId, deviceId);
       (mockRepository.findSession as jest.Mock).mockResolvedValue(mockSession);
       (mockRepository.updateSession as jest.Mock).mockResolvedValue(
         mockSession,

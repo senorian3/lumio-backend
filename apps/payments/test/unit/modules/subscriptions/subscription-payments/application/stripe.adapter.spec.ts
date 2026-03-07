@@ -254,6 +254,7 @@ describe('StripeAdapter', () => {
       await adapter.updateCustomerSubscriptionEndDate(
         'sub_123',
         customPeriodDateEnd,
+        true,
       );
 
       // Assert
@@ -271,7 +272,7 @@ describe('StripeAdapter', () => {
 
       // Act & Assert
       await expect(
-        adapter.updateCustomerSubscriptionEndDate('sub_123', 1234567890),
+        adapter.updateCustomerSubscriptionEndDate('sub_123', 1234567890, true),
       ).rejects.toThrow('Update failed');
     });
   });

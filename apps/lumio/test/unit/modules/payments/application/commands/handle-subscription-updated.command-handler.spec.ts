@@ -26,14 +26,15 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
   };
 
   const mockSubscription = {
-    id: 'sub-123',
+    id: 1,
+    subscriptionId: 'sub-123',
     durationType: '1 month',
     startDate: new Date('2024-01-01'),
     endDate: new Date('2024-02-01'),
     autoRenewal: true,
     cancelledAt: null,
     userProfileId: 1,
-  };
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,7 +43,7 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
         {
           provide: SubscriptionRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
+            findSubscriptionByProfileId: jest.fn(),
             updateSubscriptionWithNewPayment: jest.fn(),
           },
         },
@@ -85,7 +86,7 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
       );
       const command = new HandleSubscriptionRecurringUpdatedCommand(mockEvent);
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockSubscriptionRepository.updateSubscriptionWithNewPayment.mockResolvedValue(
@@ -97,16 +98,11 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
 
       // Assert
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(1);
       expect(
         mockSubscriptionRepository.updateSubscriptionWithNewPayment,
-      ).toHaveBeenCalledWith(
-        'sub-123',
-        '1 month',
-        new Date('2024-03-01'),
-        true,
-      );
+      ).toHaveBeenCalledWith(1, '1 month', new Date('2024-03-01'), 'sub-123');
     });
 
     it('should return early when subscription not found', async () => {
@@ -121,7 +117,7 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
       );
       const command = new HandleSubscriptionRecurringUpdatedCommand(mockEvent);
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         null,
       );
 
@@ -130,7 +126,7 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
 
       // Assert
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(1);
       expect(mockPrisma.$transaction).not.toHaveBeenCalled();
     });
@@ -148,7 +144,7 @@ describe('HandleSubscriptionRecurringUpdatedCommandHandler', () => {
       const command = new HandleSubscriptionRecurringUpdatedCommand(mockEvent);
       const dbError = new Error('Database connection failed');
 
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
       mockSubscriptionRepository.updateSubscriptionWithNewPayment.mockRejectedValue(

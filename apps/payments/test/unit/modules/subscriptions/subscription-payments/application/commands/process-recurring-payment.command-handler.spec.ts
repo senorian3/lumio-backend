@@ -10,6 +10,7 @@ import {
   ProcessRecurringPaymentCommandHandler,
   ProcessRecurringPaymentCommand,
 } from '@payments/modules/subscriptions/subscription-payments/application/commands/process-recurring-payment.command-handler';
+import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
 import Stripe from 'stripe';
 describe('ProcessRecurringPaymentCommandHandler', () => {
   let handler: ProcessRecurringPaymentCommandHandler;
@@ -26,7 +27,7 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
     status: 'paid',
     parent: {
       subscription_details: {
-        subscription: 'sub_123',
+        subscription: 'stripe_sub_123',
       },
     },
     amount_paid: 10000,
@@ -54,6 +55,9 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
     autoRenewal: true,
     subscriptionType: '1 month',
     paymentProvider: 'Stripe',
+    status: PaymentStatus.ACTIVE,
+    periodEnd: new Date(),
+    stripeSubscriptionId: 'stripe_sub_123',
   };
 
   beforeEach(async () => {
@@ -70,6 +74,8 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
             findBySubscriptionId: jest.fn(),
             createPayment: jest.fn(),
             completePayment: jest.fn(),
+            findLastSubscriptionPaymentByStripeSubscriptionId: jest.fn(),
+            findActiveSubscriptionPaymentByProfileId: jest.fn(),
           },
         },
         {
@@ -146,6 +152,12 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
                 .mockResolvedValue(mockExistingPayment as any),
               createPayment: jest.fn().mockResolvedValue({} as any),
               completePayment: jest.fn().mockResolvedValue(undefined),
+              findLastSubscriptionPaymentByStripeSubscriptionId: jest
+                .fn()
+                .mockResolvedValue(mockExistingPayment as any),
+              findActiveSubscriptionPaymentByProfileId: jest
+                .fn()
+                .mockResolvedValue(mockExistingPayment as any),
             },
           },
           {
@@ -199,9 +211,9 @@ describe('ProcessRecurringPaymentCommandHandler', () => {
       await handler.execute(command);
 
       // Assert
-      expect(mockPaymentsRepository.findBySubscriptionId).toHaveBeenCalledWith(
-        'sub_123',
-      );
+      expect(
+        mockPaymentsRepository.findLastSubscriptionPaymentByStripeSubscriptionId,
+      ).toHaveBeenCalledWith('stripe_sub_123');
       expect(mockPaymentsRepository.createPayment).toHaveBeenCalled();
       expect(mockPaymentsRepository.completePayment).toHaveBeenCalled();
       expect(

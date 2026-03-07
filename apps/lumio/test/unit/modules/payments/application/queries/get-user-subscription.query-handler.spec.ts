@@ -33,7 +33,8 @@ describe('GetUserSubscriptionQueryHandler', () => {
   };
 
   const mockSubscription = {
-    id: 'sub-123',
+    id: 1,
+    subscriptionId: 'sub-123',
     accountType: 'Business',
     durationType: 'monthly',
     startDate: new Date('2024-01-01'),
@@ -41,7 +42,7 @@ describe('GetUserSubscriptionQueryHandler', () => {
     autoRenewal: true,
     cancelledAt: null,
     userProfileId: mockProfileId,
-  };
+  } as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -56,7 +57,7 @@ describe('GetUserSubscriptionQueryHandler', () => {
         {
           provide: SubscriptionRepository,
           useValue: {
-            findActiveSubscriptionByProfileId: jest.fn(),
+            findSubscriptionByProfileId: jest.fn(),
           },
         },
       ],
@@ -83,7 +84,7 @@ describe('GetUserSubscriptionQueryHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         mockSubscription,
       );
 
@@ -95,10 +96,10 @@ describe('GetUserSubscriptionQueryHandler', () => {
         mockExternalQueryUserRepository.getProfileByUserId,
       ).toHaveBeenCalledWith(mockUserId);
       expect(
-        mockSubscriptionRepository.findActiveSubscriptionByProfileId,
+        mockSubscriptionRepository.findSubscriptionByProfileId,
       ).toHaveBeenCalledWith(mockProfileId);
       expect(result).toEqual({
-        id: mockSubscription.id,
+        id: mockSubscription.subscriptionId,
         accountType: 'Business',
         durationType: mockSubscription.durationType,
         endDate: mockSubscription.endDate,
@@ -137,7 +138,7 @@ describe('GetUserSubscriptionQueryHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockResolvedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockResolvedValue(
         null,
       );
 
@@ -179,7 +180,7 @@ describe('GetUserSubscriptionQueryHandler', () => {
       mockExternalQueryUserRepository.getProfileByUserId.mockResolvedValue(
         mockProfile,
       );
-      mockSubscriptionRepository.findActiveSubscriptionByProfileId.mockRejectedValue(
+      mockSubscriptionRepository.findSubscriptionByProfileId.mockRejectedValue(
         dbError,
       );
 
