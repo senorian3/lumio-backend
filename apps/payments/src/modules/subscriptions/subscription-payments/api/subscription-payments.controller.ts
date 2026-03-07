@@ -85,8 +85,8 @@ export class SubscriptionPaymentsController {
   }
 
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.STRIPE_HOOK)
-  @UseGuards(StripeWebhookGuard)
   @ApiStripeHook()
+  @UseGuards(StripeWebhookGuard)
   async stripeHook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,

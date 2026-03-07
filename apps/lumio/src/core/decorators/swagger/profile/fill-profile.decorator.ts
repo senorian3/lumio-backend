@@ -1,5 +1,11 @@
+import { InputFillProfileDto } from '@lumio/modules/user-accounts/profile/api/dto/input/fill-profile.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 
 export function ApiFillProfile() {
   return applyDecorators(
@@ -8,6 +14,10 @@ export function ApiFillProfile() {
       summary: 'Fill profile',
       description: 'Endpoint for fill profile',
       operationId: 'fillProfile',
+    }),
+    ApiBody({
+      type: InputFillProfileDto,
+      description: 'Profile data to fill',
     }),
 
     ApiResponse({

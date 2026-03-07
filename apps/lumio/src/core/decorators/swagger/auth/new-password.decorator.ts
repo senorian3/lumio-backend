@@ -1,5 +1,6 @@
+import { InputNewPasswordDto } from '@lumio/modules/user-accounts/users/api/dto/input/new-password.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 export function ApiNewPassword() {
   return applyDecorators(
@@ -9,14 +10,17 @@ export function ApiNewPassword() {
         'Endpoint for creating new password using recovery code. Invalidates all existing sessions.',
       operationId: 'newPassword',
     }),
+    ApiBody({
+      type: InputNewPasswordDto,
+      description: 'New password and recovery code',
+    }),
 
     ApiResponse({
       status: 200,
       description: 'Password successfully changed',
-      content: {
-        'application/json': {
-          example: {},
-        },
+      schema: {
+        type: 'object',
+        example: {},
       },
     }),
 

@@ -1,5 +1,6 @@
+import { InputLoginDto } from '@lumio/modules/user-accounts/users/api/dto/input/login.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 export function ApiLogin() {
   return applyDecorators(
@@ -8,6 +9,10 @@ export function ApiLogin() {
       description:
         'Endpoint for user login. Returns access token in response body and refresh token as HTTP-only cookie.',
       operationId: 'loginUser',
+    }),
+    ApiBody({
+      type: InputLoginDto,
+      description: 'User login credentials',
     }),
 
     ApiResponse({
@@ -153,7 +158,7 @@ export function ApiLogin() {
           value: {
             errorsMessages: [
               {
-                message: 'The email must match the format example@example.com',
+                message: 'User with this email is not registered',
                 field: 'email',
               },
             ],
@@ -182,8 +187,8 @@ export function ApiLogin() {
           value: {
             errorsMessages: [
               {
-                message: 'The email must match the format example@example.com',
-                field: 'email',
+                message: 'Wrong password',
+                field: 'password',
               },
             ],
           },

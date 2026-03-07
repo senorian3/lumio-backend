@@ -1,5 +1,6 @@
+import { InputPasswordRecoveryDto } from '@lumio/modules/user-accounts/users/api/dto/input/password-recovery.input.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 
 export function ApiPasswordRecovery() {
   return applyDecorators(
@@ -7,6 +8,10 @@ export function ApiPasswordRecovery() {
       summary: 'Password recovery',
       description: 'Endpoint for password recovery',
       operationId: 'passwordRecovery',
+    }),
+    ApiBody({
+      type: InputPasswordRecoveryDto,
+      description: 'Email and reCAPTCHA token for password recovery',
     }),
 
     ApiResponse({
