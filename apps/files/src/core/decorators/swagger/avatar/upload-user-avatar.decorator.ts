@@ -25,7 +25,7 @@ export function ApiUploadUserAvatar() {
           avatar: {
             type: 'string',
             format: 'binary',
-            description: 'Image file (JPEG/PNG, max 5MB)',
+            description: 'Image file (JPEG/PNG, max 10MB)',
           },
           userId: {
             type: 'string',
@@ -60,7 +60,8 @@ export function ApiUploadUserAvatar() {
           value: {
             errorsMessages: [
               {
-                message: 'Only JPEG and PNG files are allowed',
+                message:
+                  'File "avatar.gif" has invalid MIME type (image/gif). Only JPEG and PNG files are allowed',
                 field: 'avatar',
               },
             ],
@@ -71,7 +72,7 @@ export function ApiUploadUserAvatar() {
           value: {
             errorsMessages: [
               {
-                message: 'File exceeds maximum size of 5MB',
+                message: 'File "avatar.jpg" exceeds maximum size of 10MB',
                 field: 'avatar',
               },
             ],

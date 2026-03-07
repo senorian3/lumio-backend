@@ -50,8 +50,8 @@ export function ApiDeleteUserAvatar() {
           value: {
             errorsMessages: [
               {
-                message: 'Avatar not found',
-                field: 'userId',
+                message: 'Avatar is not found',
+                field: 'avatar',
               },
             ],
           },
