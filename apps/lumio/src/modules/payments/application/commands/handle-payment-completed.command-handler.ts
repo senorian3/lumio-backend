@@ -56,9 +56,6 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
             subscriptionId,
             tx,
           );
-          this.logger.error(
-            `Critical error: user already has active subscription. Profile: ${profileId}, Subscription: ${subscriptionId}`,
-          );
         } else {
           await this.subscriptionRepository.createSubscription(
             {

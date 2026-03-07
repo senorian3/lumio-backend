@@ -42,18 +42,23 @@ export class ChangeAutoRenewalSubscriptionCommandHandler implements ICommandHand
       );
     }
 
-    if (activeSubscription.autoRenewal === dto.autoRenewal) {
+    if (
+      activeSubscription.autoRenewal === dto.autoRenewal &&
+      mainSubscription.autoRenewal === dto.autoRenewal
+    ) {
       return;
     }
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
-          mainSubscription.subscriptionId,
-          mainSubscription.customPaymentId,
-          dto.autoRenewal,
-          tx,
-        );
+        if (mainSubscription) {
+          await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
+            mainSubscription.subscriptionId,
+            mainSubscription.customPaymentId,
+            dto.autoRenewal,
+            tx,
+          );
+        }
 
         await this.paymentsRepository.updatePaymentSubscriptionAutoRenewal(
           activeSubscription.subscriptionId,
