@@ -1,4 +1,4 @@
-import { InputCreateSubscriptionPaymentDto } from '@lumio/modules/payments/api/dto/input/subscription-create.input.dto';
+import { InputCreateSubscriptionPaymentUrlDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-create-subscription-payment-url.dto';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiOperation,
@@ -17,7 +17,7 @@ export function ApiCreateSubscriptionPayment() {
       operationId: 'createSubscriptionPaymentUrl',
     }),
     ApiBody({
-      type: InputCreateSubscriptionPaymentDto,
+      type: InputCreateSubscriptionPaymentUrlDto,
       description: 'Subscription payment creation payload',
     }),
     ApiResponse({
@@ -71,11 +71,11 @@ export function ApiCreateSubscriptionPayment() {
           },
         },
         profile_id_invalid: {
-          summary: 'Profile ID must be a string',
+          summary: 'Profile ID must be a numeric string',
           value: {
             errorsMessages: [
               {
-                message: 'Profile ID must be a string',
+                message: 'Profile ID must be a numeric string',
                 field: 'profileId',
               },
             ],

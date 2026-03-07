@@ -19,7 +19,7 @@ export function ApiGetUserProfilePayments() {
       name: 'profileId',
       type: Number,
       required: true,
-      description: 'ID of the user profile',
+      description: 'ID of the user profile (numeric value)',
       example: 123,
     }),
     ApiQuery({
@@ -72,7 +72,7 @@ export function ApiGetUserProfilePayments() {
           value: {
             errorsMessages: [
               {
-                message: 'Profile ID must be a number',
+                message: 'Profile ID must be a valid numeric value',
                 field: 'profileId',
               },
             ],
