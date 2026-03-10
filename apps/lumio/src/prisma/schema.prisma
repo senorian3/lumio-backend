@@ -153,4 +153,5 @@ model Notification {
 
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   deletedAt   DateTime? @db.Timestamp(6)
+  executeAt   DateTime  @db.Timestamp(6)
 }

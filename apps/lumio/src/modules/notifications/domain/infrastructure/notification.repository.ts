@@ -13,6 +13,7 @@ export class NotificationRepository {
         type: data.type,
         title: data.title,
         message: data.message,
+        executeAt: data.executeAt,
       },
     });
   }
