@@ -6,8 +6,7 @@ import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { NotificationsGateway } from '@lumio/modules/notifications/application/notifications.gateway';
-import { NotificationType } from '@lumio/modules/notifications/constants/notification-constants';
+import { NotificationsService } from '@lumio/modules/notifications/application/commands/notifications.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -20,7 +19,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
-    private readonly notificationsGateway: NotificationsGateway,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -80,13 +79,18 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
         );
       });
 
-      //создаем задачу на создание уведомления котрое выполниться через 30 сек
-      await this.notificationsGateway.sendNotification(profileId, {
-        userId: profile.userId,
-        type: NotificationType.SUBSCRIPTION_ACTIVE,
-        title: `Подписка активирована`,
-        message: `Ваша подписка активированна до ${endDate}`,
-      });
+      await this.notificationsService
+        .sendSubscriptionActiveNotification({
+          userId: profile.userId,
+          date: endDate,
+        })
+        .catch((error) =>
+          this.logger.error(
+            `Failed to send notification`,
+            error,
+            NotificationsService.name,
+          ),
+        );
     } catch (error) {
       this.logger.error(
         `Failed to process payment completion. Profile: ${profileId}, Subscription: ${subscriptionId}, Error: ${error.messages}`,

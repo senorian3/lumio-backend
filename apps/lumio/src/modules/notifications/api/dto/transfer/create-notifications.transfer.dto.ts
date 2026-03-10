@@ -1,6 +1,9 @@
 export class CreateNotificationDto {
-  userId: number;
-  type: string;
-  title: string;
-  message: string;
+  constructor(
+    public userId: number,
+    public type: string,
+    public title: string,
+    public message: string,
+    public executeAt: string,
+  ) {}
 }

@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateNotificationCommand } from '@lumio/modules/notifications/application/commands/create-notification.command-handler';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @WebSocketGateway({
   cors: {
@@ -22,7 +23,10 @@ import { CreateNotificationCommand } from '@lumio/modules/notifications/applicat
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly logger: AppLoggerService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -57,17 +61,26 @@ export class NotificationsGateway
     }
   }
 
-  async sendNotification(userId: number, notification: CreateNotificationDto) {
-    await this.commandBus.execute<CreateNotificationCommand, void>(
-      new CreateNotificationCommand(notification),
-    );
+  async sendNotification(notification: CreateNotificationDto) {
+    await this.commandBus
+      .execute<
+        CreateNotificationCommand,
+        void
+      >(new CreateNotificationCommand(notification))
+      .catch((error) => {
+        this.logger.error(
+          `Failed to create notification: ${error.message}, userId: ${notification.userId}, type: ${notification.type}`,
+          error.stack,
+          NotificationsGateway.name,
+        );
+      });
 
-    this.server.to(`user_${userId}`).emit('notification:new', {
+    this.server.to(`user_${notification.userId}`).emit('notification:new', {
       title: notification.title,
       message: notification.message,
     });
 
-    this.server.to(`user_${userId}`).emit('notification:count', {
+    this.server.to(`user_${notification.userId}`).emit('notification:count', {
       count: 1,
     });
   }
