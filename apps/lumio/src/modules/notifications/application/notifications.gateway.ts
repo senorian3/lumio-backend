@@ -5,9 +5,11 @@ import {
   WebSocketGateway,
   WebSocketServer,
   ConnectedSocket,
-  // MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateNotificationCommand } from '@lumio/modules/notifications/application/commands/create-notification.command-handler';
 
 @WebSocketGateway({
   cors: {
@@ -20,6 +22,8 @@ import { Server, Socket } from 'socket.io';
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  constructor(private readonly commandBus: CommandBus) {}
+
   @WebSocketServer()
   server: Server;
   private userSockets: Map<number, Set<string>> = new Map();
@@ -53,20 +57,18 @@ export class NotificationsGateway
     }
   }
 
-  sendNotification(userId: number, notification: any) {
+  async sendNotification(userId: number, notification: CreateNotificationDto) {
+    await this.commandBus.execute<CreateNotificationCommand, void>(
+      new CreateNotificationCommand(notification),
+    );
+
     this.server.to(`user_${userId}`).emit('notification:new', {
-      id: notification.id,
-      type: notification.type,
       title: notification.title,
       message: notification.message,
-      isRead: notification.isRead,
-      createdAt: notification.createdAt,
-      metadata: notification.metadata,
     });
 
-    //переделать под БД с кол-вом непрочитанных сообщений
     this.server.to(`user_${userId}`).emit('notification:count', {
-      count: notification.isRead ? 0 : 1,
+      count: 1,
     });
   }
 
@@ -79,7 +81,7 @@ export class NotificationsGateway
     const userIdRaw = client.handshake.query?.userId;
     const userId = Number(userIdRaw);
     if (!userId || isNaN(userId)) return;
-    //переделать запрос в БД на кол-во непрочитанных
+
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
 

@@ -18,6 +18,7 @@ import { MessageProcessingService } from './application/message-processing.servi
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
 import { GetUserPaymentsQueryHandler } from '@lumio/modules/payments/application/queries/get-user-payments.query-handler';
 import { GetUserSubscriptionQueryHandler } from './application/queries/get-user-subscription.query-handler';
+import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
 
 const useCases = [
   CreateSubscriptionPaymentUrlCommandHandler,
@@ -43,6 +44,7 @@ const services = [DlqNotificationService, MessageProcessingService];
     UserAccountsModule,
     LoggerModule,
     CqrsModule,
+    NotificationsModule,
     ClientsModule.registerAsync([
       {
         name: 'PAYMENTS_SERVICE',

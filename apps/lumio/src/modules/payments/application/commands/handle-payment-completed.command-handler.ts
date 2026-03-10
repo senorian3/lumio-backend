@@ -6,6 +6,8 @@ import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { NotificationsGateway } from '@lumio/modules/notifications/application/notifications.gateway';
+import { NotificationType } from '@lumio/modules/notifications/constants/notification-constants';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -18,6 +20,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -75,6 +78,14 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
           AccountType.BUSINESS,
           tx,
         );
+      });
+
+      //создаем задачу на создание уведомления котрое выполниться через 30 сек
+      await this.notificationsGateway.sendNotification(profileId, {
+        userId: profile.userId,
+        type: NotificationType.SUBSCRIPTION_ACTIVE,
+        title: `Подписка активирована`,
+        message: `Ваша подписка активированна до ${endDate}`,
       });
     } catch (error) {
       this.logger.error(
