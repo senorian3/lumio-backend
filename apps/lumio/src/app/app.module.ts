@@ -11,11 +11,13 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
 import { HealthModule } from '@lumio/modules/features/health/health.module';
+import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
 
 @Module({
   imports: [
     configModule,
     throttlerModule,
+    NotificationsModule,
     HealthModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
