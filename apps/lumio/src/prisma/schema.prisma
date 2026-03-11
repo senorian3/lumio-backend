@@ -148,6 +148,8 @@ model Notification {
   title       String   @db.VarChar(200)
   message     String   @db.VarChar(500)
 
+  status      String   @default("pending")
+
   isRead      Boolean  @default(false)
   readAt      DateTime? @db.Timestamp(6)
 

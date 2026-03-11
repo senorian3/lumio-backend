@@ -81,23 +81,21 @@ export class NotificationsGateway
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
 
-  //Переделать под БД
-
   // @SubscribeMessage('notification:history')
   // async handleHistory(
   //   @ConnectedSocket() client: Socket,
-  //   @MessageBody() payload: { page: number; limit: number },
+  //   @MessageBody()
+  //   payload: { pageNumber: number; pageSize: number; sortDirection: string },
   // ) {
   //   const userIdRaw =
   //     client.handshake.auth?.userId || client.handshake.query?.userId;
   //   const userId = Number(userIdRaw);
   //   if (!userId || isNaN(userId)) return;
-
+  //
   //   client.emit('notification:history:response', {
   //     notifications: [],
-  //     page: payload.page,
-  //     limit: payload.limit,
-  //     hasMore: false,
+  //     pageNumber: payload.pageNumber,
+  //     pageSize: payload.pageSize,
   //   });
   // }
 
