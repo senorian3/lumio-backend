@@ -4,3 +4,9 @@ export enum NotificationType {
   SUBSCRIPTION_EXPIRING_7DAYS = 'SUBSCRIPTION_EXPIRING_7DAYS',
   PAYMENT_WARNING = 'PAYMENT_WARNING',
 }
+
+export enum NotificationStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  FAILED = 'failed',
+}

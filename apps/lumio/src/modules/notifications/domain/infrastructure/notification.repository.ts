@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
+import { NotificationStatus } from '@lumio/modules/notifications/constants/notification-constants';
+import { Notification as PrismaNotification } from '@generated/prisma-lumio';
 
 @Injectable()
 export class NotificationRepository {
@@ -27,6 +29,34 @@ export class NotificationRepository {
         isRead: true,
         readAt: new Date(),
       },
+    });
+  }
+
+  async findPendingNotifications(
+    limit: number = 100,
+  ): Promise<PrismaNotification[]> {
+    return this.prisma.notification.findMany({
+      where: {
+        deletedAt: null,
+        executeAt: { lte: new Date() },
+        status: NotificationStatus.PENDING,
+      },
+      orderBy: { executeAt: 'asc' },
+      take: limit,
+    });
+  }
+
+  async markAsSent(id: string) {
+    await this.prisma.notification.update({
+      where: { id },
+      data: { status: NotificationStatus.SENT },
+    });
+  }
+
+  async markAsFailed(id: string) {
+    await this.prisma.notification.update({
+      where: { id },
+      data: { status: NotificationStatus.FAILED },
     });
   }
 }
