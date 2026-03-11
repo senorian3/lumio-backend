@@ -7,8 +7,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CommandBus } from '@nestjs/cqrs';
-import { AppLoggerService } from '@libs/logger/logger.service';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 @WebSocketGateway({
   cors: {
@@ -21,10 +20,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly logger: AppLoggerService,
-  ) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   @WebSocketServer()
   server: Server;
@@ -79,6 +75,8 @@ export class NotificationsGateway
     const userIdRaw = client.handshake.query?.userId;
     const userId = Number(userIdRaw);
     if (!userId || isNaN(userId)) return;
+
+    await this.notificationsService.markAllAsRead(userId);
 
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
