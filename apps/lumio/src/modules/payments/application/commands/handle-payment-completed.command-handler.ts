@@ -6,7 +6,7 @@ import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { NotificationsService } from '@lumio/modules/notifications/application/commands/notifications.service';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}

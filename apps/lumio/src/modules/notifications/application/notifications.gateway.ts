@@ -7,9 +7,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
 import { CommandBus } from '@nestjs/cqrs';
-import { CreateNotificationCommand } from '@lumio/modules/notifications/application/commands/create-notification.command-handler';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 @WebSocketGateway({
@@ -61,26 +59,13 @@ export class NotificationsGateway
     }
   }
 
-  async sendNotification(notification: CreateNotificationDto) {
-    await this.commandBus
-      .execute<
-        CreateNotificationCommand,
-        void
-      >(new CreateNotificationCommand(notification))
-      .catch((error) => {
-        this.logger.error(
-          `Failed to create notification: ${error.message}, userId: ${notification.userId}, type: ${notification.type}`,
-          error.stack,
-          NotificationsGateway.name,
-        );
-      });
-
-    this.server.to(`user_${notification.userId}`).emit('notification:new', {
-      title: notification.title,
-      message: notification.message,
+  async sendNotification(userId: number, title: string, message: string) {
+    this.server.to(`user_${userId}`).emit('notification:new', {
+      title,
+      message,
     });
 
-    this.server.to(`user_${notification.userId}`).emit('notification:count', {
+    this.server.to(`user_${userId}`).emit('notification:count', {
       count: 1,
     });
   }

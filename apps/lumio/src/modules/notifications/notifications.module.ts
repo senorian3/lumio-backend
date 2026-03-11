@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { NotificationsGateway } from './application/notifications.gateway';
 import { CreateNotificationCommandHandler } from '@lumio/modules/notifications/application/commands/create-notification.command-handler';
 import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.repository';
-import { NotificationsService } from './application/commands/notifications.service';
+import { NotificationsService } from './application/notifications.service';
 
 const repositories = [NotificationRepository];
 
