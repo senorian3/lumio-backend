@@ -5,6 +5,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
   ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
@@ -81,23 +82,22 @@ export class NotificationsGateway
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
 
-  // @SubscribeMessage('notification:history')
-  // async handleHistory(
-  //   @ConnectedSocket() client: Socket,
-  //   @MessageBody()
-  //   payload: { pageNumber: number; pageSize: number; sortDirection: string },
-  // ) {
-  //   const userIdRaw =
-  //     client.handshake.auth?.userId || client.handshake.query?.userId;
-  //   const userId = Number(userIdRaw);
-  //   if (!userId || isNaN(userId)) return;
-  //
-  //   client.emit('notification:history:response', {
-  //     notifications: [],
-  //     pageNumber: payload.pageNumber,
-  //     pageSize: payload.pageSize,
-  //   });
-  // }
+  @SubscribeMessage('notification:history')
+  async handleHistory(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: { pageNumber: number; pageSize: number; sortDirection: string },
+  ) {
+    const userIdRaw = client.handshake.query?.userId;
+    const userId = Number(userIdRaw);
+    if (!userId || isNaN(userId)) return;
+
+    client.emit('notification:history:response', {
+      items: [],
+      pageNumber: payload.pageNumber,
+      pageSize: payload.pageSize,
+    });
+  }
 
   private forceDisconnect(client: Socket, message: string) {
     client.emit('error', { message });
