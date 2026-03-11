@@ -13,6 +13,19 @@ export class NotificationRepository {
         type: data.type,
         title: data.title,
         message: data.message,
+        executeAt: data.executeAt,
+      },
+    });
+  }
+  async markAllAsRead(userId: number) {
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt: new Date(),
       },
     });
   }

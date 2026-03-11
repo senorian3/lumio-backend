@@ -5,11 +5,10 @@ import {
   WebSocketGateway,
   WebSocketServer,
   ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
-import { CommandBus } from '@nestjs/cqrs';
-import { CreateNotificationCommand } from '@lumio/modules/notifications/application/commands/create-notification.command-handler';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 @WebSocketGateway({
   cors: {
@@ -22,7 +21,7 @@ import { CreateNotificationCommand } from '@lumio/modules/notifications/applicat
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   @WebSocketServer()
   server: Server;
@@ -57,14 +56,10 @@ export class NotificationsGateway
     }
   }
 
-  async sendNotification(userId: number, notification: CreateNotificationDto) {
-    await this.commandBus.execute<CreateNotificationCommand, void>(
-      new CreateNotificationCommand(notification),
-    );
-
+  async sendNotification(userId: number, title: string, message: string) {
     this.server.to(`user_${userId}`).emit('notification:new', {
-      title: notification.title,
-      message: notification.message,
+      title,
+      message,
     });
 
     this.server.to(`user_${userId}`).emit('notification:count', {
@@ -82,28 +77,27 @@ export class NotificationsGateway
     const userId = Number(userIdRaw);
     if (!userId || isNaN(userId)) return;
 
+    await this.notificationsService.markAllAsRead(userId);
+
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
 
-  //Переделать под БД
+  @SubscribeMessage('notification:history')
+  async handleHistory(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    payload: { pageNumber: number; pageSize: number; sortDirection: string },
+  ) {
+    const userIdRaw = client.handshake.query?.userId;
+    const userId = Number(userIdRaw);
+    if (!userId || isNaN(userId)) return;
 
-  // @SubscribeMessage('notification:history')
-  // async handleHistory(
-  //   @ConnectedSocket() client: Socket,
-  //   @MessageBody() payload: { page: number; limit: number },
-  // ) {
-  //   const userIdRaw =
-  //     client.handshake.auth?.userId || client.handshake.query?.userId;
-  //   const userId = Number(userIdRaw);
-  //   if (!userId || isNaN(userId)) return;
-
-  //   client.emit('notification:history:response', {
-  //     notifications: [],
-  //     page: payload.page,
-  //     limit: payload.limit,
-  //     hasMore: false,
-  //   });
-  // }
+    client.emit('notification:history:response', {
+      items: [],
+      pageNumber: payload.pageNumber,
+      pageSize: payload.pageSize,
+    });
+  }
 
   private forceDisconnect(client: Socket, message: string) {
     client.emit('error', { message });
