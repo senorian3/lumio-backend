@@ -13,7 +13,7 @@ export class NotificationsScheduler {
     private readonly logger: AppLoggerService,
   ) {}
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async processPendingNotifications() {
     try {
       const notifications: PrismaNotification[] =
