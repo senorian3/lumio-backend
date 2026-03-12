@@ -63,8 +63,11 @@ export class NotificationsGateway
       message,
     });
 
+    const unreadCount =
+      await this.notificationsService.getUnreadNotificationsCount(userId);
+
     this.server.to(`user_${userId}`).emit('notification:count', {
-      count: 1,
+      count: unreadCount,
     });
   }
 
@@ -99,6 +102,10 @@ export class NotificationsGateway
         payload.pageSize,
         payload.sortDirection,
       );
+
+      await this.notificationsService.markAllAsRead(userId);
+
+      this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
 
       client.emit('notification:history:response', history);
     } catch (error) {

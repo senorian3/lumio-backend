@@ -19,6 +19,7 @@ export class NotificationRepository {
       },
     });
   }
+
   async markAllAsRead(userId: number) {
     await this.prisma.notification.updateMany({
       where: {
@@ -57,6 +58,16 @@ export class NotificationRepository {
     await this.prisma.notification.update({
       where: { id },
       data: { status: NotificationStatus.FAILED },
+    });
+  }
+
+  async getUnreadCount(userId: number): Promise<number> {
+    return this.prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+        deletedAt: null,
+      },
     });
   }
 }
