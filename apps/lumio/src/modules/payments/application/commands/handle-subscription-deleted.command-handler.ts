@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SubscriptionRepository } from '../../domain/infrastructure/subscription.repository';
 import { SubscriptionDeletedEvent } from '../../api/dto/transfer/subscription-deleted-event.dto';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 
 export class HandleSubscriptionDeletedCommand {
