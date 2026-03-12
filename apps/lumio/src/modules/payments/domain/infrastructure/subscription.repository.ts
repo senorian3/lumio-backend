@@ -81,4 +81,28 @@ export class SubscriptionRepository {
       where: { subscriptionId },
     });
   }
+
+  async findSubscriptionsExpiringWithAutoRenewal(hoursUntilExpiry: number) {
+    const now = new Date();
+    const expiryThreshold = new Date(
+      now.getTime() + hoursUntilExpiry * 60 * 60 * 1000,
+    );
+
+    return this.prisma.subscription.findMany({
+      where: {
+        autoRenewal: true,
+        endDate: {
+          gt: now,
+          lte: expiryThreshold,
+        },
+      },
+      include: {
+        userProfile: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+  }
 }

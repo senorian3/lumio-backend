@@ -9,7 +9,7 @@ import {
   HandlePaymentCompletedCommand,
 } from '@lumio/modules/payments/application/commands/handle-payment-completed.command-handler';
 import { PaymentCompletedEvent } from '@lumio/modules/payments/api/dto/transfer/payment-completed-event.dto';
-import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
 
 describe('HandlePaymentCompletedCommandHandler', () => {
   let handler: HandlePaymentCompletedCommandHandler;

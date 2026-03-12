@@ -12,22 +12,12 @@ export class NotificationsService {
     private readonly notificationQueryRepository: NotificationQueryRepository,
   ) {}
 
-  async sendSubscriptionActiveNotification(
-    data: SubscriptionActiveNotificationDto,
-  ) {
-    const dateObj = data.date instanceof Date ? data.date : new Date(data.date);
-
-    await this.notificationRepository.createNotification({
-      userId: data.userId,
-      type: NotificationType.SUBSCRIPTION_ACTIVE,
-      title: `Подписка активирована`,
-      message: `Ваша подписка активирована и действует до ${dateObj.toLocaleDateString()}`,
-      executeAt: new Date(new Date().getTime() + 30000).toISOString(),
-    });
-  }
-
   async markAllAsRead(userId: number) {
     await this.notificationRepository.markAllAsRead(userId);
+  }
+
+  async getUnreadNotificationsCount(userId: number): Promise<number> {
+    return this.notificationRepository.getUnreadCount(userId);
   }
 
   async getHistory(
@@ -46,7 +36,28 @@ export class NotificationsService {
     return result;
   }
 
-  async getUnreadNotificationsCount(userId: number): Promise<number> {
-    return this.notificationRepository.getUnreadCount(userId);
+  async sendSubscriptionActiveNotification(
+    data: SubscriptionActiveNotificationDto,
+  ): Promise<void> {
+    await this.notificationRepository.createNotification({
+      userId: data.userId,
+      type: NotificationType.SUBSCRIPTION_ACTIVE,
+      title: `Подписка активирована`,
+      message: `Ваша подписка активирована и действует до ${data.date.toLocaleDateString()}`,
+      executeAt: new Date(new Date().getTime() + 30000).toISOString(),
+    });
+  }
+
+  async sendPaymentWarningNotification(
+    userId: number,
+    endDate: Date,
+  ): Promise<void> {
+    await this.notificationRepository.createNotification({
+      userId,
+      type: NotificationType.PAYMENT_WARNING,
+      title: 'Уведомление о платеже',
+      message: `Следующий платеж у вас спишется через 1 день (${endDate.toLocaleDateString()})`,
+      executeAt: new Date().toISOString(),
+    });
   }
 }

@@ -4,7 +4,7 @@ import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
