@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
+import { NotificationHistoryParams } from '@lumio/modules/notifications/api/dto/input/test';
 
 @WebSocketGateway({
   cors: {
@@ -62,8 +63,11 @@ export class NotificationsGateway
       message,
     });
 
+    const unreadCount =
+      await this.notificationsService.getUnreadNotificationsCount(userId);
+
     this.server.to(`user_${userId}`).emit('notification:count', {
-      count: 1,
+      count: unreadCount,
     });
   }
 
@@ -86,17 +90,27 @@ export class NotificationsGateway
   async handleHistory(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { pageNumber: number; pageSize: number; sortDirection: string },
-  ) {
-    const userIdRaw = client.handshake.query?.userId;
-    const userId = Number(userIdRaw);
-    if (!userId || isNaN(userId)) return;
+    payload: NotificationHistoryParams,
+  ): Promise<void> {
+    const userId =
+      client.data?.userId || Number(client.handshake.query?.userId);
 
-    client.emit('notification:history:response', {
-      items: [],
-      pageNumber: payload.pageNumber,
-      pageSize: payload.pageSize,
-    });
+    try {
+      const history = await this.notificationsService.getHistory(
+        userId,
+        payload.pageNumber,
+        payload.pageSize,
+        payload.sortDirection,
+      );
+
+      await this.notificationsService.markAllAsRead(userId);
+
+      this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
+
+      client.emit('notification:history:response', history);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   private forceDisconnect(client: Socket, message: string) {
