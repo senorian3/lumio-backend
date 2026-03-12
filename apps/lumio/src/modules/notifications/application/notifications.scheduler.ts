@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.repository';
 import { NotificationsGateway } from '@lumio/modules/notifications/application/notifications.gateway';
 import { Notification as PrismaNotification } from '@generated/prisma-lumio';
@@ -13,7 +13,7 @@ export class NotificationsScheduler {
     private readonly logger: AppLoggerService,
   ) {}
 
-  @Cron('*/10 * * * * *')
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async processPendingNotifications() {
     try {
       const notifications: PrismaNotification[] =
