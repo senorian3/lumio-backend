@@ -12,7 +12,7 @@ import {
   CreatePostCommand,
 } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 
 describe('CreatePostCommandHandler', () => {
   let handler: CreatePostCommandHandler;

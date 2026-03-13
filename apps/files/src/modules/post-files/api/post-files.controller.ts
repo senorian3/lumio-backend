@@ -14,7 +14,7 @@ import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard
 import { InputUploadFilesDto } from './dto/input/upload-files.input.dto';
 import { PostFileEntity } from '../domain/entities/post-file.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import { GetAllFilesByPostUserQuery } from '../application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQuery } from '../application/queries/get-all-files-by-post-ids.query-handler';
 import { DeletedPostFilesCommand } from '../application/commands/deleted-post-files.command-handler';

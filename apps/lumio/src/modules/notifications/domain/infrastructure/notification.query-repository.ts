@@ -8,9 +8,9 @@ export class NotificationQueryRepository {
 
   async getHistory(
     userId: number,
-    pageNumber: number = 1,
-    pageSize: number = 10,
-    sortDirection: 'asc' | 'desc' = 'desc',
+    pageNumber: number,
+    pageSize: number,
+    sortDirection: 'asc' | 'desc',
   ): Promise<NotificationPaginationTransferDto> {
     const limit = Math.min(Math.max(pageSize, 1), 100);
     const skip = (pageNumber - 1) * limit;
@@ -33,7 +33,6 @@ export class NotificationQueryRepository {
         orderBy: {
           createdAt: sortDirection,
         },
-
         select: {
           id: true,
           title: true,
@@ -53,11 +52,14 @@ export class NotificationQueryRepository {
       createdAt: item.createdAt,
     }));
 
+    const pagesCount = Math.ceil(total / limit);
+
     return {
       items: mappedItems,
       total,
       pageNumber,
       pageSize: limit,
+      pagesCount,
     };
   }
 }

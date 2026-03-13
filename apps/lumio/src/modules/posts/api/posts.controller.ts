@@ -22,7 +22,7 @@ import { CreatePostCommand } from '@lumio/modules/posts/application/commands/cre
 import { UpdatePostCommand } from '@lumio/modules/posts/application/commands/update-post.command-handler';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-files.pipe';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { DeletePostCommand } from '@lumio/modules/posts/application/commands/delete-post.command-handler';
 import { GetPostsQueryParams } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';

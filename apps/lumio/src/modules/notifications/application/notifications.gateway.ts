@@ -9,15 +9,22 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
-import { NotificationHistoryParams } from '@lumio/modules/notifications/api/dto/input/test';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { JwtService } from '@nestjs/jwt';
 import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
+import { NotificationHistoryParams } from '../api/dto/input/notification-pagination-params.input.dto';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:4121',
+      'https://lumio.su',
+      'https://www.lumio.su',
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
   },
@@ -28,9 +35,7 @@ export class NotificationsGateway
 {
   @WebSocketServer()
   server: Server;
-
   private userSockets: Map<number, Set<string>> = new Map();
-
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly logger: AppLoggerService,
@@ -51,7 +56,10 @@ export class NotificationsGateway
     }
     this.userSockets.get(userId)!.add(client.id);
 
-    this.emitUnreadCount(client);
+    const unreadCount =
+      await this.notificationsService.getUnreadNotificationsCount(userId);
+
+    this.emitUnreadCount(client, unreadCount);
   }
 
   handleDisconnect(client: Socket) {
@@ -81,19 +89,6 @@ export class NotificationsGateway
     });
   }
 
-  async emitUnreadCount(client: Socket) {
-    client.emit('notification:count', { count: 0 });
-  }
-
-  @SubscribeMessage('notification:read_all')
-  async handleReadAll(@ConnectedSocket() client: Socket) {
-    const userId = client.data?.userId as number | undefined;
-    if (!userId) return;
-
-    await this.notificationsService.markAllAsRead(userId);
-    this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
-  }
-
   @SubscribeMessage('notification:history')
   async handleHistory(
     @ConnectedSocket() client: Socket,
@@ -109,9 +104,9 @@ export class NotificationsGateway
     try {
       const history = await this.notificationsService.getHistory(
         userId,
-        payload.pageNumber,
-        payload.pageSize,
-        payload.sortDirection,
+        payload?.pageNumber,
+        payload?.pageSize,
+        payload?.sortDirection,
       );
 
       await this.notificationsService.markAllAsRead(userId);
@@ -125,6 +120,10 @@ export class NotificationsGateway
         NotificationsGateway.name,
       );
     }
+  }
+
+  private async emitUnreadCount(client: Socket, unreadCount: number) {
+    client.emit('notification:count', { count: unreadCount });
   }
 
   private async validateTokenAndGetUserId(
