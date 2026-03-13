@@ -60,4 +60,30 @@ export class NotificationsService {
       executeAt: new Date().toISOString(),
     });
   }
+
+  async sendSubscriptionExpiring1DayNotification(
+    userId: number,
+    endDate: Date,
+  ): Promise<void> {
+    await this.notificationRepository.createNotification({
+      userId,
+      type: NotificationType.SUBSCRIPTION_EXPIRING_1DAY,
+      title: 'Подписка истекает',
+      message: `Ваша подписка истекает через 1 день (${endDate.toLocaleDateString()})`,
+      executeAt: new Date().toISOString(),
+    });
+  }
+
+  async sendSubscriptionExpiring7DaysNotification(
+    userId: number,
+    endDate: Date,
+  ): Promise<void> {
+    await this.notificationRepository.createNotification({
+      userId,
+      type: NotificationType.SUBSCRIPTION_EXPIRING_7DAYS,
+      title: 'Подписка истекает',
+      message: `Ваша подписка истекает через 7 дней (${endDate.toLocaleDateString()})`,
+      executeAt: new Date().toISOString(),
+    });
+  }
 }

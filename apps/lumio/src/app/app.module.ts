@@ -1,5 +1,6 @@
 import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CoreConfig } from '../core/core.config';
 import { TestingModule } from '@lumio/modules/features/tests/testing.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -15,6 +16,7 @@ import { NotificationsModule } from '@lumio/modules/notifications/notifications.
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     configModule,
     throttlerModule,
     NotificationsModule,

@@ -16,7 +16,6 @@ import { RecaptchaService } from './adapters/recaptcha.service';
 import { AuthController } from './auth/api/auth.controller';
 import { SessionsModule } from '../sessions/sessions.module';
 import { UserRepository } from './users/domain/infrastructure/user.repository';
-import { ScheduleModule } from '@nestjs/schedule';
 import { UserSchedulerService } from './scheduler/users-scheduler';
 import { YandexStrategy } from '@lumio/core/guards/oauth2-yandex/oauth2-yandex.guard';
 import { LoggerModule } from '@libs/logger/logger.module';
@@ -101,13 +100,7 @@ const adapters = [FilesHttpAdapter];
 const strategies = [JwtStrategy, YandexStrategy];
 
 @Module({
-  imports: [
-    PassportModule,
-    SessionsModule,
-    JwtModule,
-    ScheduleModule.forRoot(),
-    LoggerModule,
-  ],
+  imports: [PassportModule, SessionsModule, JwtModule, LoggerModule],
 
   controllers: [AuthController, ProfileController],
   providers: [
