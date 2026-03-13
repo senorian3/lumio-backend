@@ -5,4 +5,5 @@ export class NotificationPaginationTransferDto {
   total: number;
   pageNumber: number;
   pageSize: number;
+  pagesCount: number;
 }

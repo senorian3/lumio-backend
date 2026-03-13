@@ -7,7 +7,7 @@ import {
 } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 
 describe('GetCreatePostQueryHandler', () => {
   let handler: GetCreatePostQueryHandler;

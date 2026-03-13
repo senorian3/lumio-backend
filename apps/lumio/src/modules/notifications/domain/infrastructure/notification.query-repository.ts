@@ -10,7 +10,7 @@ export class NotificationQueryRepository {
     userId: number,
     pageNumber: number,
     pageSize: number,
-    sortDirection: 'asc' | 'desc' = 'desc',
+    sortDirection: 'asc' | 'desc',
   ): Promise<NotificationPaginationTransferDto> {
     const limit = Math.min(Math.max(pageSize, 1), 100);
     const skip = (pageNumber - 1) * limit;
@@ -33,7 +33,6 @@ export class NotificationQueryRepository {
         orderBy: {
           createdAt: sortDirection,
         },
-
         select: {
           id: true,
           title: true,
@@ -53,11 +52,14 @@ export class NotificationQueryRepository {
       createdAt: item.createdAt,
     }));
 
+    const pagesCount = Math.ceil(total / limit);
+
     return {
       items: mappedItems,
       total,
       pageNumber,
       pageSize: limit,
+      pagesCount,
     };
   }
 }

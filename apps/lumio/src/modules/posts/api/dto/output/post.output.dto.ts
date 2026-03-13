@@ -1,4 +1,4 @@
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 import { Post } from 'generated/prisma-lumio';
 

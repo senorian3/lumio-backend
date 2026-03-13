@@ -22,8 +22,8 @@ export class NotificationsService {
 
   async getHistory(
     userId: number,
-    pageNumber: number,
-    pageSize: number,
+    pageNumber: number = 1,
+    pageSize: number = 10,
     sortDirection: 'asc' | 'desc' = 'desc',
   ): Promise<NotificationPaginationTransferDto> {
     const result = await this.notificationQueryRepository.getHistory(

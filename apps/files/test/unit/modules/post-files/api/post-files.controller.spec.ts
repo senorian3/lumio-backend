@@ -4,7 +4,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard';
 import { InputUploadFilesDto } from '@files/modules/post-files/api/dto/input/upload-files.input.dto';
 import { InputGetUserPostsDto } from '@files/modules/post-files/api/dto/input/get-user-post.input.dto';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 
 describe('PostFilesController', () => {
   let postFilesController: PostFilesController;
