@@ -51,7 +51,10 @@ export class NotificationsGateway
     }
     this.userSockets.get(userId)!.add(client.id);
 
-    this.emitUnreadCount(client);
+    const unreadCount =
+      await this.notificationsService.getUnreadNotificationsCount(userId);
+
+    this.emitUnreadCount(client, unreadCount);
   }
 
   handleDisconnect(client: Socket) {
@@ -81,8 +84,8 @@ export class NotificationsGateway
     });
   }
 
-  async emitUnreadCount(client: Socket) {
-    client.emit('notification:count', { count: 0 });
+  async emitUnreadCount(client: Socket, unreadCount: number) {
+    client.emit('notification:count', { count: unreadCount });
   }
 
   @SubscribeMessage('notification:read_all')
