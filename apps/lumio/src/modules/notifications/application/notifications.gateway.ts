@@ -10,6 +10,10 @@ import {
 import { Server, Socket } from 'socket.io';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 import { NotificationHistoryParams } from '@lumio/modules/notifications/api/dto/input/test';
+import { AppLoggerService } from '@libs/logger/logger.service';
+import { JwtService } from '@nestjs/jwt';
+import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
+import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
 
 @WebSocketGateway({
   cors: {
@@ -22,37 +26,43 @@ import { NotificationHistoryParams } from '@lumio/modules/notifications/api/dto/
 export class NotificationsGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly notificationsService: NotificationsService) {}
-
   @WebSocketServer()
   server: Server;
+
   private userSockets: Map<number, Set<string>> = new Map();
 
-  handleConnection(client: Socket) {
-    const userIdRaw = client.handshake.query?.userId as string;
-    const userId = Number(userIdRaw);
-    if (!userId || isNaN(userId)) {
-      this.forceDisconnect(client, 'Unauthorized: Missing userId');
-      return;
-    }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly logger: AppLoggerService,
+    private readonly jwtService: JwtService,
+    private readonly sessionRepository: ExternalQuerySessionsRepository,
+    private readonly userAccountsConfig: UserAccountsConfig,
+  ) {}
+
+  async handleConnection(client: Socket) {
+    const userId = await this.validateTokenAndGetUserId(client);
+    if (!userId) return;
+
+    client.data.userId = userId;
     client.join(`user_${userId}`);
+
     if (!this.userSockets.has(userId)) {
       this.userSockets.set(userId, new Set());
     }
     this.userSockets.get(userId)!.add(client.id);
+
     this.emitUnreadCount(client);
   }
 
   handleDisconnect(client: Socket) {
-    const userIdRaw = client.handshake.query?.userId;
-    const userId = Number(userIdRaw);
-    if (userId && !isNaN(userId)) {
-      const sockets = this.userSockets.get(userId);
-      if (sockets) {
-        sockets.delete(client.id);
-        if (sockets.size === 0) {
-          this.userSockets.delete(userId);
-        }
+    const userId = client.data?.userId as number | undefined;
+    if (!userId) return;
+
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      sockets.delete(client.id);
+      if (sockets.size === 0) {
+        this.userSockets.delete(userId);
       }
     }
   }
@@ -77,23 +87,24 @@ export class NotificationsGateway
 
   @SubscribeMessage('notification:read_all')
   async handleReadAll(@ConnectedSocket() client: Socket) {
-    const userIdRaw = client.handshake.query?.userId;
-    const userId = Number(userIdRaw);
-    if (!userId || isNaN(userId)) return;
+    const userId = client.data?.userId as number | undefined;
+    if (!userId) return;
 
     await this.notificationsService.markAllAsRead(userId);
-
     this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
   }
 
   @SubscribeMessage('notification:history')
   async handleHistory(
     @ConnectedSocket() client: Socket,
-    @MessageBody()
-    payload: NotificationHistoryParams,
+    @MessageBody() payload: NotificationHistoryParams,
   ): Promise<void> {
-    const userId =
-      client.data?.userId || Number(client.handshake.query?.userId);
+    const userId = client.data?.userId as number | undefined;
+
+    if (!userId) {
+      client.emit('error', { message: 'Unauthorized' });
+      return;
+    }
 
     try {
       const history = await this.notificationsService.getHistory(
@@ -104,12 +115,67 @@ export class NotificationsGateway
       );
 
       await this.notificationsService.markAllAsRead(userId);
-
       this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
 
       client.emit('notification:history:response', history);
     } catch (error) {
-      console.log(error);
+      this.logger.error(
+        `Error in notifications gateway: ${error.message}`,
+        error.stack,
+        NotificationsGateway.name,
+      );
+    }
+  }
+
+  private async validateTokenAndGetUserId(
+    client: Socket,
+  ): Promise<number | null> {
+    try {
+      const token = client.handshake.query?.token as string;
+
+      if (!token) {
+        this.forceDisconnect(client, 'Unauthorized: Missing token');
+        return null;
+      }
+
+      const payload = this.jwtService.verify<{
+        userId: number;
+        deviceId: string;
+        tokenVersion: number;
+      }>(token, { secret: this.userAccountsConfig.accessTokenSecret });
+
+      if (!payload.userId || !payload.deviceId) {
+        this.forceDisconnect(client, 'Unauthorized: Invalid token payload');
+        return null;
+      }
+
+      const session = await this.sessionRepository.getSessionByUserAndDeviceId(
+        payload.userId,
+        payload.deviceId,
+      );
+
+      if (!session) {
+        this.forceDisconnect(client, 'Unauthorized: No active session');
+        return null;
+      }
+
+      if (
+        payload.tokenVersion !== undefined &&
+        session.tokenVersion > payload.tokenVersion
+      ) {
+        this.forceDisconnect(client, 'Unauthorized: Token invalidated');
+        return null;
+      }
+
+      return payload.userId;
+    } catch (error) {
+      this.logger.error(
+        `WebSocket connection error: ${error.message}`,
+        error.stack,
+        NotificationsGateway.name,
+      );
+      this.forceDisconnect(client, 'Unauthorized: Invalid token');
+      return null;
     }
   }
 

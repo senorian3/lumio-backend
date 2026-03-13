@@ -8,8 +8,8 @@ export class NotificationQueryRepository {
 
   async getHistory(
     userId: number,
-    pageNumber: number,
-    pageSize: number,
+    pageNumber: number = 1,
+    pageSize: number = 10,
     sortDirection: 'asc' | 'desc' = 'desc',
   ): Promise<NotificationPaginationTransferDto> {
     const limit = Math.min(Math.max(pageSize, 1), 100);
