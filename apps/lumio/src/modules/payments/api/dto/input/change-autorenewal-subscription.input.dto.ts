@@ -1,16 +1,21 @@
-import { IsString, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsBoolean, IsNumberString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class InputChangeAutorenewalSubscriptionDto {
   @ApiProperty({
-    description: 'Unique profile identifier of the user',
+    description: 'Unique profile identifier of the user (numeric string)',
     example: '56',
+    type: String,
+    pattern: '^[0-9]+$',
     required: true,
     nullable: false,
   })
-  @IsString({
-    message: 'Profile ID must be a string',
-  })
+  @IsNumberString(
+    {},
+    {
+      message: 'Profile ID must be a numeric string',
+    },
+  )
   @IsNotEmpty({
     message: 'Profile ID is required',
   })
