@@ -130,7 +130,12 @@ export class NotificationsGateway
     client: Socket,
   ): Promise<number | null> {
     try {
-      const token = client.handshake.query?.token as string;
+      const token =
+        (client.handshake.auth?.token as string) ||
+        (client.handshake.headers?.authorization?.replace(
+          'Bearer ',
+          '',
+        ) as string);
 
       if (!token) {
         this.forceDisconnect(client, 'Unauthorized: Missing token');
