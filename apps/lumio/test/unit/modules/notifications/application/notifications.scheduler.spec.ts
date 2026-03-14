@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsScheduler } from '@lumio/modules/notifications/application/notifications.scheduler';
-import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.repository';
+import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.repository';
 import { NotificationsGateway } from '@lumio/modules/notifications/application/notifications.gateway';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { NotificationStatus } from '@lumio/modules/notifications/constants/notification-constants';

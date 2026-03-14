@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
-import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.repository';
-import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.query-repository';
+import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.repository';
+import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.query-repository';
 import { NotificationType } from '@lumio/modules/notifications/constants/notification-constants';
 import { SubscriptionActiveNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/subscription-active-notification.transfer.dto';
 import { NotificationPaginationTransferDto } from '@lumio/modules/notifications/api/dto/transfer/notification-pagination.transfer.dto';
