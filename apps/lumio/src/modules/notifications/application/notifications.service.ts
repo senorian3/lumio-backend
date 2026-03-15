@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { SubscriptionActiveNotificationDto } from '../api/dto/transfer/subscription-active-notification.transfer.dto';
 import { NotificationType } from '../constants/notification-constants';
-import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.repository';
-import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notification.query-repository';
+import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.repository';
+import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.query-repository';
 import { NotificationPaginationTransferDto } from '@lumio/modules/notifications/api/dto/transfer/notification-pagination.transfer.dto';
 
 @Injectable()

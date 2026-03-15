@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notifications.transfer.dto';
+import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notification.transfer.dto';
 import { NotificationStatus } from '@lumio/modules/notifications/constants/notification-constants';
-import { Notification as PrismaNotification } from '@generated/prisma-lumio';
+import { Notification } from 'generated/prisma-lumio';
 
 @Injectable()
 export class NotificationRepository {
@@ -33,9 +33,7 @@ export class NotificationRepository {
     });
   }
 
-  async findPendingNotifications(
-    limit: number = 100,
-  ): Promise<PrismaNotification[]> {
+  async findPendingNotifications(limit: number = 100): Promise<Notification[]> {
     return this.prisma.notification.findMany({
       where: {
         deletedAt: null,

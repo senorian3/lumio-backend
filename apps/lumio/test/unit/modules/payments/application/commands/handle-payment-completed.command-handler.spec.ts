@@ -10,6 +10,7 @@ import {
 } from '@lumio/modules/payments/application/commands/handle-payment-completed.command-handler';
 import { PaymentCompletedEvent } from '@lumio/modules/payments/api/dto/transfer/payment-completed-event.dto';
 import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 describe('HandlePaymentCompletedCommandHandler', () => {
   let handler: HandlePaymentCompletedCommandHandler;
@@ -80,6 +81,14 @@ describe('HandlePaymentCompletedCommandHandler', () => {
           provide: AppLoggerService,
           useValue: {
             error: jest.fn(),
+          },
+        },
+        {
+          provide: NotificationsService,
+          useValue: {
+            sendSubscriptionActiveNotification: jest
+              .fn()
+              .mockResolvedValue(undefined),
           },
         },
       ],

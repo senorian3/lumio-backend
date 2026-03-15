@@ -1,18 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class NotificationOutputDto {
-  @ApiProperty({ example: '550' })
+  @ApiProperty({
+    description: 'Unique notification identifier',
+    example: '550',
+    type: String,
+  })
   id: string;
 
-  @ApiProperty({ example: 'Подписка активирована ', maxLength: 200 })
+  @ApiProperty({
+    description: 'Notification title (short description)',
+    example: 'Подписка активирована',
+    maxLength: 200,
+    type: String,
+  })
   title: string;
 
   @ApiProperty({
-    example: 'Ваш подписка активна и рабтает до....',
+    description: 'Notification message (detailed information)',
+    example: 'Ваша подписка активирована и действует до 14.04.2026',
     maxLength: 500,
+    type: String,
   })
   message: string;
 
-  @ApiProperty({ example: '2024-03-12T10:30:00.000Z' })
+  @ApiProperty({
+    description:
+      'Date and time when notification was created (ISO 8601 format)',
+    example: '2026-03-14T10:30:00.000Z',
+    type: Date,
+  })
   createdAt: Date;
 }
