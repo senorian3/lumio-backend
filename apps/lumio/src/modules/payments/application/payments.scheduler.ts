@@ -31,7 +31,7 @@ export class PaymentsScheduler {
 
     for (const subscription of subscriptions) {
       try {
-        await this.notificationsService.sendPaymentWarningNotification(
+        await this.notificationsService.createPaymentWarningNotification(
           subscription.userProfile.userId,
           subscription.endDate,
         );
@@ -57,7 +57,7 @@ export class PaymentsScheduler {
 
       for (const subscription of subscriptions7Days) {
         try {
-          await this.notificationsService.sendSubscriptionExpiring7DaysNotification(
+          await this.notificationsService.createSubscriptionExpiring7DaysNotification(
             subscription.userProfile.userId,
             subscription.endDate,
           );
@@ -79,7 +79,7 @@ export class PaymentsScheduler {
 
       for (const subscription of subscriptions1Day) {
         try {
-          await this.notificationsService.sendSubscriptionExpiring1DayNotification(
+          await this.notificationsService.createSubscriptionExpiring1DayNotification(
             subscription.userProfile.userId,
             subscription.endDate,
           );

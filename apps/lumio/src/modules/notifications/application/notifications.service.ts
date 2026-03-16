@@ -36,7 +36,7 @@ export class NotificationsService {
     return result;
   }
 
-  async sendSubscriptionActiveNotification(
+  async createSubscriptionActiveNotification(
     data: SubscriptionActiveNotificationDto,
   ): Promise<void> {
     await this.notificationRepository.createNotification({
@@ -48,7 +48,7 @@ export class NotificationsService {
     });
   }
 
-  async sendPaymentWarningNotification(
+  async createPaymentWarningNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {
@@ -61,7 +61,7 @@ export class NotificationsService {
     });
   }
 
-  async sendSubscriptionExpiring1DayNotification(
+  async createSubscriptionExpiring1DayNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {
@@ -74,7 +74,7 @@ export class NotificationsService {
     });
   }
 
-  async sendSubscriptionExpiring7DaysNotification(
+  async createSubscriptionExpiring7DaysNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {

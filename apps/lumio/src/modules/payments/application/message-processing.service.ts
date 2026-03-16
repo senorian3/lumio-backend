@@ -53,6 +53,7 @@ export class MessageProcessingService {
         await this.idempotencyKeyRepository.upsert(messageId, expiresAt, tx);
 
         await this.commandBus.execute(command);
+        //что-то сделать с транзакционностью для commandbus
 
         shouldAck = true;
       });
