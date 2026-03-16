@@ -12,6 +12,7 @@ import {
 } from '@lumio/core/routes/notification-routes';
 import { ApiGetNotificationHistory } from '@lumio/core/decorators/swagger/notifications/get-notification-history.decorator';
 import { MarkAllReadCommand } from '@lumio/modules/notifications/application/commands/mark-all-as-read.command.handler';
+import { ApiMarkAllNotificationsAsRead } from '@lumio/core/decorators/swagger/notifications/mark-all-as-read.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller(NOTIFICATION_BASE)
@@ -35,6 +36,7 @@ export class NotificationsController {
   }
 
   @Put(NOTIFICATION_ROUTES.MARK_ALL_READ)
+  @ApiMarkAllNotificationsAsRead()
   async markAllAsRead(@UserId() userId: number): Promise<void> {
     await this.commandBus.execute<MarkAllReadCommand, void>(
       new MarkAllReadCommand(userId),
