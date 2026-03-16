@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ThrottlerGuard } from '@nestjs/throttler';
-
 import { CreateSubscriptionPaymentUrlCommand } from '../application/commands/create-subscription.command-handler';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { ChangeAutoRenewalCommand } from '../application/commands/change-autorenewal.command.handler';

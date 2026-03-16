@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { NotificationPaginationTransferDto } from '@lumio/modules/notifications/api/dto/transfer/notification-pagination.transfer.dto';
-import { NotificationOutputDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
+import { NotificationViewDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
 
 export class NotificationPaginationOutputDto extends NotificationPaginationTransferDto {
   @ApiProperty({
     description: 'Array of notification items',
-    type: [NotificationOutputDto],
+    type: [NotificationViewDto],
     isArray: true,
   })
-  declare items: NotificationOutputDto[];
+  declare items: NotificationViewDto[];
 
   @ApiProperty({
     description: 'Total number of notifications for the user',

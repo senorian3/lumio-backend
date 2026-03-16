@@ -1,11 +1,8 @@
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  ConnectedSocket,
-  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
@@ -13,7 +10,6 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { JwtService } from '@nestjs/jwt';
 import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
 import { UserAccountsConfig } from '@lumio/modules/user-accounts/config/user-accounts.config';
-import { NotificationHistoryParams } from '../api/dto/input/notification-pagination-params.input.dto';
 
 @WebSocketGateway({
   cors: {
@@ -87,39 +83,6 @@ export class NotificationsGateway
     this.server.to(`user_${userId}`).emit('notification:count', {
       count: unreadCount,
     });
-  }
-
-  @SubscribeMessage('notification:history')
-  async handleHistory(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: NotificationHistoryParams,
-  ): Promise<void> {
-    const userId = client.data?.userId as number | undefined;
-
-    if (!userId) {
-      client.emit('error', { message: 'Unauthorized' });
-      return;
-    }
-
-    try {
-      const history = await this.notificationsService.getHistory(
-        userId,
-        payload?.pageNumber,
-        payload?.pageSize,
-        payload?.sortDirection,
-      );
-
-      await this.notificationsService.markAllAsRead(userId);
-      this.server.to(`user_${userId}`).emit('notification:count', { count: 0 });
-
-      client.emit('notification:history:response', history);
-    } catch (error) {
-      this.logger.error(
-        `Error in notifications gateway: ${error.message}`,
-        error.stack,
-        NotificationsGateway.name,
-      );
-    }
   }
 
   private async emitUnreadCount(client: Socket, unreadCount: number) {

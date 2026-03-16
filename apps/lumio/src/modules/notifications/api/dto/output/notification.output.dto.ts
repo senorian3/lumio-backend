@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class NotificationOutputDto {
+export class NotificationViewDto {
   @ApiProperty({
     description: 'Unique notification identifier',
     example: '550',

@@ -1,6 +1,8 @@
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { NotificationPaginationTransferDto } from '@lumio/modules/notifications/api/dto/transfer/notification-pagination.transfer.dto';
+import { GetUserNotificationsParams } from '@lumio/modules/notifications/api/dto/input/get-user-notifications.query';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { NotificationViewDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
 
 @Injectable()
 export class NotificationQueryRepository {
@@ -8,13 +10,9 @@ export class NotificationQueryRepository {
 
   async getHistory(
     userId: number,
-    pageNumber: number,
-    pageSize: number,
-    sortDirection: 'asc' | 'desc',
-  ): Promise<NotificationPaginationTransferDto> {
-    const limit = Math.min(Math.max(pageSize, 1), 100);
-    const skip = (pageNumber - 1) * limit;
-
+    query: GetUserNotificationsParams,
+  ): Promise<PaginatedViewDto<NotificationViewDto[]>> {
+    const skip = (query.pageNumber - 1) * query.pageSize;
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
     const where = {
@@ -25,41 +23,48 @@ export class NotificationQueryRepository {
       },
     };
 
-    const [items, total] = await Promise.all([
+    const [items, total, unreadCount] = await Promise.all([
       this.prisma.notification.findMany({
         where,
         skip,
-        take: limit,
+        take: query.pageSize,
         orderBy: {
-          createdAt: sortDirection,
+          createdAt: query.sortDirection,
         },
         select: {
           id: true,
           title: true,
           message: true,
           createdAt: true,
+          isRead: true,
         },
       }),
       this.prisma.notification.count({
         where,
       }),
+
+      this.prisma.notification.count({
+        where: {
+          userId,
+          deletedAt: null,
+          isRead: false,
+        },
+      }),
     ]);
 
     const mappedItems = items.map((item) => ({
-      id: item.id,
+      id: String(item.id),
       title: item.title,
       message: item.message,
       createdAt: item.createdAt,
     }));
 
-    const pagesCount = Math.ceil(total / limit);
-
-    return {
+    return PaginatedViewDto.mapToView<NotificationViewDto[]>({
       items: mappedItems,
-      total,
-      pageNumber,
-      pageSize: limit,
-      pagesCount,
-    };
+      page: query.pageNumber,
+      size: query.pageSize,
+      unreadCount,
+      totalCount: total,
+    });
   }
 }

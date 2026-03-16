@@ -5,16 +5,11 @@ import {
   ApiResponse,
   ApiExtraModels,
 } from '@nestjs/swagger';
-import { NotificationOutputDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
 import { NotificationPaginationOutputDto } from '@lumio/modules/notifications/api/dto/output/notification-pagination.output.dto';
 import { NotificationHistoryParams } from '@lumio/modules/notifications/api/dto/input/notification-pagination-params.input.dto';
 
 @ApiTags('🔔 WebSocket Notifications')
-@ApiExtraModels(
-  NotificationOutputDto,
-  NotificationPaginationOutputDto,
-  NotificationHistoryParams,
-)
+@ApiExtraModels(NotificationPaginationOutputDto, NotificationHistoryParams)
 @Controller('websocket/notifications')
 export class NotificationsDocsController {
   @Get('connection')

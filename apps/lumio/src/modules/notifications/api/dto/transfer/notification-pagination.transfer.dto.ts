@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { NotificationOutputDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
+import { NotificationViewDto } from '@lumio/modules/notifications/api/dto/output/notification.output.dto';
 
 export class NotificationPaginationTransferDto {
   @ApiProperty({
     description: 'Array of notification items',
-    type: [NotificationOutputDto],
+    type: [NotificationViewDto],
     example: [
       {
         id: '550',
@@ -14,7 +14,7 @@ export class NotificationPaginationTransferDto {
       },
     ],
   })
-  items: NotificationOutputDto[];
+  items: NotificationViewDto[];
 
   @ApiProperty({
     description: 'Total number of notifications',
