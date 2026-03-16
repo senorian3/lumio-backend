@@ -1,6 +1,6 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetUserNotificationsParams } from '@lumio/modules/notifications/api/dto/input/get-user-notifications.query';
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { GetUserNotificationsQuery } from '@lumio/modules/notifications/application/queries/get-user-notifications.query-handler';
@@ -11,11 +11,15 @@ import {
   NOTIFICATION_ROUTES,
 } from '@lumio/core/routes/notification-routes';
 import { ApiGetNotificationHistory } from '@lumio/core/decorators/swagger/notifications/get-notification-history.decorator';
+import { MarkAllReadCommand } from '@lumio/modules/notifications/application/commands/mark-all-as-read.command.handler';
 
 @UseGuards(JwtAuthGuard)
 @Controller(NOTIFICATION_BASE)
 export class NotificationsController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
+  ) {}
 
   @Get(NOTIFICATION_ROUTES.HISTORY)
   @ApiGetNotificationHistory()
@@ -28,5 +32,12 @@ export class NotificationsController {
       GetUserNotificationsQuery,
       PaginatedViewDto<NotificationViewDto[]>
     >(new GetUserNotificationsQuery(userId, query));
+  }
+
+  @Put(NOTIFICATION_ROUTES.MARK_ALL_READ)
+  async markAllAsRead(@UserId() userId: number): Promise<void> {
+    await this.commandBus.execute<MarkAllReadCommand, void>(
+      new MarkAllReadCommand(userId),
+    );
   }
 }

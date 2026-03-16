@@ -154,23 +154,5 @@ export function ApiGetNotificationHistory() {
         },
       },
     }),
-
-    ApiResponse({
-      status: 404,
-      description: 'User not found',
-      examples: {
-        user_not_found: {
-          summary: 'User account does not exist',
-          value: {
-            errorsMessages: [
-              {
-                message: 'User not found',
-                field: 'user',
-              },
-            ],
-          },
-        },
-      },
-    }),
   );
 }

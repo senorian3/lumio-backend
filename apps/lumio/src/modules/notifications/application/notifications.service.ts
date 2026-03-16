@@ -9,10 +9,6 @@ export class NotificationsService {
     private readonly notificationRepository: NotificationRepository,
   ) {}
 
-  async markAllAsRead(userId: number) {
-    await this.notificationRepository.markAllAsRead(userId);
-  }
-
   async createSubscriptionActiveNotification(
     data: SubscriptionActiveNotificationDto,
   ): Promise<void> {

@@ -8,11 +8,16 @@ import { NotificationQueryRepository } from '@lumio/modules/notifications/domain
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 import { NotificationsDocsController } from './api/notifications-docs.controller';
 import { NotificationsController } from '@lumio/modules/notifications/api/notifications.controller';
-import { GetUserPaymentsQueryHandler } from '@lumio/modules/notifications/application/queries/get-user-notifications.query-handler';
+import { MarkAllReadCommandHandler } from '@lumio/modules/notifications/application/commands/mark-all-as-read.command.handler';
+import { GetUserNotificationsQueryHandler } from '@lumio/modules/notifications/application/queries/get-user-notifications.query-handler';
 
 const repositories = [NotificationRepository, NotificationQueryRepository];
 
 const services = [NotificationsService, NotificationsScheduler];
+
+const queryHandlers = [GetUserNotificationsQueryHandler];
+
+const commandHandlers = [MarkAllReadCommandHandler];
 
 @Module({
   imports: [JwtModule, UserAccountsModule],
@@ -21,7 +26,8 @@ const services = [NotificationsService, NotificationsScheduler];
     NotificationsGateway,
     ...repositories,
     ...services,
-    GetUserPaymentsQueryHandler,
+    ...queryHandlers,
+    ...commandHandlers,
   ],
   exports: [NotificationsService],
 })
