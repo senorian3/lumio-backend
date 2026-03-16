@@ -80,7 +80,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
       });
 
       await this.notificationsService
-        .sendSubscriptionActiveNotification({
+        .createSubscriptionActiveNotification({
           userId: profile.userId,
           date: endDate,
         })

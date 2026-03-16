@@ -13,11 +13,7 @@ export class NotificationsService {
     await this.notificationRepository.markAllAsRead(userId);
   }
 
-  async getUnreadNotificationsCount(userId: number): Promise<number> {
-    return this.notificationRepository.getUnreadCount(userId);
-  }
-
-  async sendSubscriptionActiveNotification(
+  async createSubscriptionActiveNotification(
     data: SubscriptionActiveNotificationDto,
   ): Promise<void> {
     await this.notificationRepository.createNotification({
@@ -29,7 +25,7 @@ export class NotificationsService {
     });
   }
 
-  async sendPaymentWarningNotification(
+  async createPaymentWarningNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {
@@ -42,7 +38,7 @@ export class NotificationsService {
     });
   }
 
-  async sendSubscriptionExpiring1DayNotification(
+  async createSubscriptionExpiring1DayNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {
@@ -55,7 +51,7 @@ export class NotificationsService {
     });
   }
 
-  async sendSubscriptionExpiring7DaysNotification(
+  async createSubscriptionExpiring7DaysNotification(
     userId: number,
     endDate: Date,
   ): Promise<void> {
