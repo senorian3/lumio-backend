@@ -5,7 +5,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { JwtService } from '@nestjs/jwt';
 import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
@@ -33,7 +32,6 @@ export class NotificationsGateway
   server: Server;
   private userSockets: Map<number, Set<string>> = new Map();
   constructor(
-    private readonly notificationsService: NotificationsService,
     private readonly logger: AppLoggerService,
     private readonly jwtService: JwtService,
     private readonly sessionRepository: ExternalQuerySessionsRepository,
@@ -51,11 +49,6 @@ export class NotificationsGateway
       this.userSockets.set(userId, new Set());
     }
     this.userSockets.get(userId)!.add(client.id);
-
-    const unreadCount =
-      await this.notificationsService.getUnreadNotificationsCount(userId);
-
-    this.emitUnreadCount(client, unreadCount);
   }
 
   handleDisconnect(client: Socket) {
@@ -76,17 +69,6 @@ export class NotificationsGateway
       title,
       message,
     });
-
-    const unreadCount =
-      await this.notificationsService.getUnreadNotificationsCount(userId);
-
-    this.server.to(`user_${userId}`).emit('notification:count', {
-      count: unreadCount,
-    });
-  }
-
-  private async emitUnreadCount(client: Socket, unreadCount: number) {
-    client.emit('notification:count', { count: unreadCount });
   }
 
   private async validateTokenAndGetUserId(
