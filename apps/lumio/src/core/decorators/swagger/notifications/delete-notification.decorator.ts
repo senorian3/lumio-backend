@@ -1,25 +1,31 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 
-export function ApiMarkAllNotificationsAsRead() {
+export function ApiDeleteNotification() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
-      summary: 'Mark all notifications as read',
+      summary: 'Delete notification',
       description:
-        'Marks all unread notifications as read for the current authorized user',
-      operationId: 'markAllNotificationsAsRead',
+        'Soft deletes a specific notification for the current authorized user',
+      operationId: 'deleteNotification',
+    }),
+
+    ApiParam({
+      name: 'id',
+      type: String,
+      description: 'Notification UUID',
+      example: '550e8400-e29b-41d4-a716-446655440000',
     }),
 
     ApiResponse({
       status: 204,
-      description: 'All notifications successfully marked as read',
-      examples: {
-        success: {
-          summary: 'Notifications marked as read',
-          value: {},
-        },
-      },
+      description: 'Notification successfully deleted',
     }),
 
     ApiResponse({
@@ -61,6 +67,24 @@ export function ApiMarkAllNotificationsAsRead() {
               {
                 message: "User doesn't have active session",
                 field: 'session',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 404,
+      description: 'Notification not found',
+      examples: {
+        not_found: {
+          summary: 'Notification not found or belongs to another user',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Notification not found',
+                field: 'id',
               },
             ],
           },
