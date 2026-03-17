@@ -8,7 +8,7 @@ import {
 import { SubscriptionDeletedEvent } from '@lumio/modules/payments/api/dto/transfer/subscription-deleted-event.dto';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
 
 describe('HandleSubscriptionDeletedCommandHandler', () => {
   let handler: HandleSubscriptionDeletedCommandHandler;

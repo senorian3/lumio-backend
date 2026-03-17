@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsIn } from 'class-validator';
+import { IsString, IsNotEmpty, IsIn, IsNumberString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class InputCreateSubscriptionPaymentDto {
@@ -9,8 +9,9 @@ export class InputCreateSubscriptionPaymentDto {
     nullable: false,
   })
   @IsString({
-    message: 'Profile ID must be a string',
+    message: 'Profile ID must be a numeric string',
   })
+  @IsNumberString({}, { message: 'Profile ID must be a numeric string' })
   @IsNotEmpty({
     message: 'Profile ID is required',
   })

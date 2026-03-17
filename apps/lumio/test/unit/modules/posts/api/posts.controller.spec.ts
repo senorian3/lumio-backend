@@ -13,7 +13,7 @@ import {
 import { SortDirection } from '@libs/core/dto/pagination/base.query-params.input-dto';
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-files.pipe';
 
 describe('PostsController', () => {

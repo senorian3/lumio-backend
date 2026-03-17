@@ -18,7 +18,7 @@ export class ProfileView {
   ): ProfileView {
     const view = new ProfileView();
 
-    view.id = user.id;
+    view.id = userProfile.id;
     view.username = user.username;
 
     view.firstName = userProfile?.firstName || null;

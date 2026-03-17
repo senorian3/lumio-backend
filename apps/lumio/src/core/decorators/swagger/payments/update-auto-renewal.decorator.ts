@@ -47,11 +47,11 @@ export function ApiUpdateAutoRenewal() {
           },
         },
         profile_id_invalid: {
-          summary: 'Profile ID must be a string',
+          summary: 'Profile ID must be a numeric string',
           value: {
             errorsMessages: [
               {
-                message: 'Profile ID must be a string',
+                message: 'Profile ID must be a numeric string',
                 field: 'profileId',
               },
             ],
