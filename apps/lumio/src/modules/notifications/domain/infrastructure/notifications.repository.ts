@@ -20,17 +20,35 @@ export class NotificationRepository {
     });
   }
 
-  async markAllAsRead(userId: number) {
+  async markNotificationsAsRead(
+    userId: number,
+    notificationIds: string[],
+  ): Promise<void> {
     await this.prisma.notification.updateMany({
       where: {
+        id: { in: notificationIds },
         userId,
-        isRead: false,
+        deletedAt: null,
       },
       data: {
         isRead: true,
         readAt: new Date(),
       },
     });
+  }
+
+  async softDelete(id: string, userId: number): Promise<boolean> {
+    const result = await this.prisma.notification.updateMany({
+      where: {
+        id,
+        userId,
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+    return result.count > 0;
   }
 
   async findPendingNotifications(limit: number = 100): Promise<Notification[]> {
@@ -64,6 +82,16 @@ export class NotificationRepository {
       where: {
         userId,
         isRead: false,
+        deletedAt: null,
+      },
+    });
+  }
+
+  async findById(id: string, userId: number): Promise<Notification | null> {
+    return this.prisma.notification.findFirst({
+      where: {
+        id,
+        userId,
         deletedAt: null,
       },
     });

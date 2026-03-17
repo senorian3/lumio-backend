@@ -35,8 +35,8 @@ export class NotificationQueryRepository {
           id: true,
           title: true,
           message: true,
-          createdAt: true,
           isRead: true,
+          createdAt: true,
         },
       }),
       this.prisma.notification.count({
@@ -52,10 +52,11 @@ export class NotificationQueryRepository {
       }),
     ]);
 
-    const mappedItems = items.map((item) => ({
+    const mappedItems: NotificationViewDto[] = items.map((item) => ({
       id: String(item.id),
       title: item.title,
       message: item.message,
+      isRead: item.isRead,
       createdAt: item.createdAt,
     }));
 
@@ -65,6 +66,16 @@ export class NotificationQueryRepository {
       size: query.pageSize,
       unreadCount,
       totalCount: total,
+    });
+  }
+
+  async getUnreadCount(userId: number): Promise<number> {
+    return this.prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+        deletedAt: null,
+      },
     });
   }
 }

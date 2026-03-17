@@ -6,22 +6,30 @@ import { NotificationsService } from './application/notifications.service';
 import { NotificationsScheduler } from './application/notifications.scheduler';
 import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.query-repository';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
-import { NotificationsDocsController } from './api/notifications-docs.controller';
+
 import { NotificationsController } from '@lumio/modules/notifications/api/notifications.controller';
-import { MarkAllReadCommandHandler } from '@lumio/modules/notifications/application/commands/mark-all-as-read.command.handler';
 import { GetUserNotificationsQueryHandler } from '@lumio/modules/notifications/application/queries/get-user-notifications.query-handler';
+import { GetUnreadCountQueryHandler } from '@lumio/modules/notifications/application/queries/get-unread-count.query-handler';
+import { DeleteNotificationCommandHandler } from '@lumio/modules/notifications/application/commands/delete-notification.command.handler';
+import { MarkNotificationsAsReadCommandHandler } from '@lumio/modules/notifications/application/commands/mark-notifications-as-read.command.handler';
 
 const repositories = [NotificationRepository, NotificationQueryRepository];
 
 const services = [NotificationsService, NotificationsScheduler];
 
-const queryHandlers = [GetUserNotificationsQueryHandler];
+const queryHandlers = [
+  GetUserNotificationsQueryHandler,
+  GetUnreadCountQueryHandler,
+];
 
-const commandHandlers = [MarkAllReadCommandHandler];
+const commandHandlers = [
+  MarkNotificationsAsReadCommandHandler,
+  DeleteNotificationCommandHandler,
+];
 
 @Module({
   imports: [JwtModule, UserAccountsModule],
-  controllers: [NotificationsDocsController, NotificationsController],
+  controllers: [NotificationsController],
   providers: [
     NotificationsGateway,
     ...repositories,
