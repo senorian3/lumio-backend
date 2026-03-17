@@ -86,7 +86,7 @@ describe('HandlePaymentCompletedCommandHandler', () => {
         {
           provide: NotificationsService,
           useValue: {
-            sendSubscriptionActiveNotification: jest
+            createSubscriptionActiveNotification: jest
               .fn()
               .mockResolvedValue(undefined),
           },
