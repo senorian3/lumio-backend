@@ -5,7 +5,7 @@ import {
   SwaggerDocumentOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
+import { getThemeSync } from '@intelika/swagger-theme';
 
 export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
   if (isSwaggerEnabled) {
@@ -39,12 +39,10 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
       autoTagControllers: true,
     };
 
-    const theme = new SwaggerTheme().getBuffer(SwaggerThemeNameEnum.MUTED);
-
     const SwaggerCustomOptions: SwaggerCustomOptions = {
       raw: ['json'],
       customSiteTitle: 'Lumio swagger',
-      customCss: theme,
+      customCss: getThemeSync().toString(),
       jsonDocumentUrl: 'api/v1/swagger/json',
       swaggerOptions: {
         filter: true,
