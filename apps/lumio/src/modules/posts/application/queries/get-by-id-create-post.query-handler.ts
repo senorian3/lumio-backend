@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import { PostView } from '../../api/dto/output/post.output.dto';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 

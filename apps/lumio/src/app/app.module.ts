@@ -1,5 +1,6 @@
 import { configModule } from '@libs/core/config-dynamic.module';
 import { DynamicModule, Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CoreConfig } from '../core/core.config';
 import { TestingModule } from '@lumio/modules/features/tests/testing.module';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -11,11 +12,14 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
 import { HealthModule } from '@lumio/modules/features/health/health.module';
+import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     configModule,
     throttlerModule,
+    NotificationsModule,
     HealthModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {

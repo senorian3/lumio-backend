@@ -25,6 +25,7 @@ model User {
   sessions          Session[]
   yandex            Yandex?
   posts             Post[]
+  notifications     Notification[]
 
   @@index([deletedAt])
 }
@@ -136,4 +137,27 @@ model IdempotencyKey {
   createdAt DateTime @default(now())
 
   @@index([expiresAt])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String   @db.VarChar(50)
+  title       String   @db.VarChar(200)
+  message     String   @db.VarChar(500)
+
+  status      String   @default("pending")
+
+  isRead      Boolean  @default(false)
+  readAt      DateTime? @db.Timestamp(6)
+
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  deletedAt   DateTime? @db.Timestamp(6)
+  executeAt   DateTime  @db.Timestamp(6)
+
+  @@index([status])
+  @@index([executeAt])
+  @@index([deletedAt])
 }

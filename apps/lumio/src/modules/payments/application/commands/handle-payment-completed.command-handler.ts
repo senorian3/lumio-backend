@@ -4,8 +4,9 @@ import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { PaymentCompletedEvent } from '../../api/dto/transfer/payment-completed-event.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { AccountType } from '@lumio/modules/payments/constants/payments-constans';
+import { AccountType } from '@lumio/modules/payments/constants/payments-constants';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 export class HandlePaymentCompletedCommand {
   constructor(public readonly data: PaymentCompletedEvent) {}
@@ -18,6 +19,7 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
     private readonly userRepository: ExternalQueryUserAccountsRepository,
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async execute(command: HandlePaymentCompletedCommand): Promise<void> {
@@ -76,6 +78,19 @@ export class HandlePaymentCompletedCommandHandler implements ICommandHandler<Han
           tx,
         );
       });
+
+      await this.notificationsService
+        .createSubscriptionActiveNotification({
+          userId: profile.userId,
+          date: endDate,
+        })
+        .catch((error) =>
+          this.logger.error(
+            `Failed to send notification`,
+            error,
+            NotificationsService.name,
+          ),
+        );
     } catch (error) {
       this.logger.error(
         `Failed to process payment completion. Profile: ${profileId}, Subscription: ${subscriptionId}, Error: ${error.messages}`,

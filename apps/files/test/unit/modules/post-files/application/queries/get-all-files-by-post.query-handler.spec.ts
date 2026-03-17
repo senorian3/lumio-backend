@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OutputFileType } from '@libs/dto/ouput/file-ouput';
+import { OutputFileType } from '@libs/dto/output/file-output';
 import {
   GetAllFilesByPostUserQueryHandler,
   GetAllFilesByPostUserQuery,
