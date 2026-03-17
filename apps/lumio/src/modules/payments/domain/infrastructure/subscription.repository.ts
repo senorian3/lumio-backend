@@ -6,14 +6,6 @@ import { Subscription } from 'generated/prisma-lumio';
 export class SubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findSubscriptionBySubscriptionId(
-    subscriptionId: string,
-  ): Promise<Subscription | null> {
-    return this.prisma.subscription.findUnique({
-      where: { subscriptionId },
-    });
-  }
-
   async updateSubscriptionWithNewPayment(
     userProfileId: number,
     durationType: string,

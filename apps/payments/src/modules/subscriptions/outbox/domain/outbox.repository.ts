@@ -81,10 +81,4 @@ export class OutboxRepository {
 
     return result.count;
   }
-
-  async findMessageById(messageId: number): Promise<OutboxMessage | null> {
-    return this.prisma.outboxMessage.findUnique({
-      where: { id: messageId },
-    });
-  }
 }
