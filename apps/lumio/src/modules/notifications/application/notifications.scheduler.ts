@@ -49,4 +49,25 @@ export class NotificationsScheduler {
       );
     }
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupOldNotifications() {
+    try {
+      const deletedCount =
+        await this.notificationRepository.deleteOldNotifications(31);
+
+      if (deletedCount > 0) {
+        this.logger.log(
+          `Deleted ${deletedCount} notifications older than 31 days`,
+          NotificationsScheduler.name,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error cleaning up old notifications: ${error.message}`,
+        error.stack,
+        NotificationsScheduler.name,
+      );
+    }
+  }
 }
