@@ -1,15 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.repository';
-import { NotificationQueryRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.query-repository';
 import { NotificationType } from '@lumio/modules/notifications/constants/notification-constants';
 import { SubscriptionActiveNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/subscription-active-notification.transfer.dto';
-import { NotificationPaginationTransferDto } from '@lumio/modules/notifications/api/dto/transfer/notification-pagination.transfer.dto';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
   let mockNotificationRepository: jest.Mocked<NotificationRepository>;
-  let mockNotificationQueryRepository: jest.Mocked<NotificationQueryRepository>;
 
   const mockUserId = 1;
 
@@ -20,15 +17,7 @@ describe('NotificationsService', () => {
         {
           provide: NotificationRepository,
           useValue: {
-            markAllAsRead: jest.fn(),
-            getUnreadCount: jest.fn(),
             createNotification: jest.fn(),
-          },
-        },
-        {
-          provide: NotificationQueryRepository,
-          useValue: {
-            getHistory: jest.fn(),
           },
         },
       ],
@@ -36,170 +25,13 @@ describe('NotificationsService', () => {
 
     service = module.get<NotificationsService>(NotificationsService);
     mockNotificationRepository = module.get(NotificationRepository);
-    mockNotificationQueryRepository = module.get(NotificationQueryRepository);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('markAllAsRead', () => {
-    it('should call repository markAllAsRead with userId', async () => {
-      // Arrange
-      mockNotificationRepository.markAllAsRead.mockResolvedValue(undefined);
-
-      // Act
-      await service.markAllAsRead(mockUserId);
-
-      // Assert
-      expect(mockNotificationRepository.markAllAsRead).toHaveBeenCalledWith(
-        mockUserId,
-      );
-    });
-
-    it('should handle database error', async () => {
-      // Arrange
-      const dbError = new Error('Database connection failed');
-      mockNotificationRepository.markAllAsRead.mockRejectedValue(dbError);
-
-      // Act & Assert
-      await expect(service.markAllAsRead(mockUserId)).rejects.toThrow(dbError);
-    });
-  });
-
-  describe('getUnreadNotificationsCount', () => {
-    it('should return unread count from repository', async () => {
-      // Arrange
-      const expectedCount = 5;
-      mockNotificationRepository.getUnreadCount.mockResolvedValue(
-        expectedCount,
-      );
-
-      // Act
-      const result = await service.getUnreadNotificationsCount(mockUserId);
-
-      // Assert
-      expect(result).toBe(expectedCount);
-      expect(mockNotificationRepository.getUnreadCount).toHaveBeenCalledWith(
-        mockUserId,
-      );
-    });
-
-    it('should return 0 when no unread notifications', async () => {
-      // Arrange
-      mockNotificationRepository.getUnreadCount.mockResolvedValue(0);
-
-      // Act
-      const result = await service.getUnreadNotificationsCount(mockUserId);
-
-      // Assert
-      expect(result).toBe(0);
-    });
-
-    it('should handle database error', async () => {
-      // Arrange
-      const dbError = new Error('Database error');
-      mockNotificationRepository.getUnreadCount.mockRejectedValue(dbError);
-
-      // Act & Assert
-      await expect(
-        service.getUnreadNotificationsCount(mockUserId),
-      ).rejects.toThrow(dbError);
-    });
-  });
-
-  describe('getHistory', () => {
-    const mockPaginationResult: NotificationPaginationTransferDto = {
-      items: [
-        {
-          id: '1',
-          title: 'Test notification',
-          message: 'Test message',
-          createdAt: new Date(),
-        },
-      ],
-      total: 1,
-      pageNumber: 1,
-      pageSize: 10,
-      pagesCount: 1,
-    };
-
-    it('should return paginated history with default parameters', async () => {
-      // Arrange
-      mockNotificationQueryRepository.getHistory.mockResolvedValue(
-        mockPaginationResult,
-      );
-
-      // Act
-      const result = await service.getHistory(mockUserId);
-
-      // Assert
-      expect(result).toEqual(mockPaginationResult);
-      expect(mockNotificationQueryRepository.getHistory).toHaveBeenCalledWith(
-        mockUserId,
-        1,
-        10,
-        'desc',
-      );
-    });
-
-    it('should pass custom pagination parameters', async () => {
-      // Arrange
-      mockNotificationQueryRepository.getHistory.mockResolvedValue(
-        mockPaginationResult,
-      );
-      const pageNumber = 2;
-      const pageSize = 20;
-      const sortDirection = 'asc' as const;
-
-      // Act
-      const result = await service.getHistory(
-        mockUserId,
-        pageNumber,
-        pageSize,
-        sortDirection,
-      );
-
-      // Assert
-      expect(result).toEqual(mockPaginationResult);
-      expect(mockNotificationQueryRepository.getHistory).toHaveBeenCalledWith(
-        mockUserId,
-        pageNumber,
-        pageSize,
-        sortDirection,
-      );
-    });
-
-    it('should handle empty history', async () => {
-      // Arrange
-      const emptyResult: NotificationPaginationTransferDto = {
-        items: [],
-        total: 0,
-        pageNumber: 1,
-        pageSize: 10,
-        pagesCount: 0,
-      };
-      mockNotificationQueryRepository.getHistory.mockResolvedValue(emptyResult);
-
-      // Act
-      const result = await service.getHistory(mockUserId);
-
-      // Assert
-      expect(result.items).toHaveLength(0);
-      expect(result.total).toBe(0);
-    });
-
-    it('should handle database error', async () => {
-      // Arrange
-      const dbError = new Error('Database error');
-      mockNotificationQueryRepository.getHistory.mockRejectedValue(dbError);
-
-      // Act & Assert
-      await expect(service.getHistory(mockUserId)).rejects.toThrow(dbError);
-    });
-  });
-
-  describe('sendSubscriptionActiveNotification', () => {
+  describe('createSubscriptionActiveNotification', () => {
     it('should create notification with correct type and message', async () => {
       // Arrange
       const subscriptionDate = new Date('2025-12-31');
@@ -212,7 +44,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionActiveNotification(dto);
+      await service.createSubscriptionActiveNotification(dto);
 
       // Assert
       expect(
@@ -243,7 +75,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionActiveNotification(dto);
+      await service.createSubscriptionActiveNotification(dto);
 
       // Assert
       const call =
@@ -263,12 +95,12 @@ describe('NotificationsService', () => {
 
       // Act & Assert
       await expect(
-        service.sendSubscriptionActiveNotification(dto),
+        service.createSubscriptionActiveNotification(dto),
       ).rejects.toThrow(dbError);
     });
   });
 
-  describe('sendPaymentWarningNotification', () => {
+  describe('createPaymentWarningNotification', () => {
     it('should create notification with correct type and message', async () => {
       // Arrange
       const endDate = new Date('2025-12-31');
@@ -277,7 +109,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendPaymentWarningNotification(mockUserId, endDate);
+      await service.createPaymentWarningNotification(mockUserId, endDate);
 
       // Assert
       expect(
@@ -293,6 +125,22 @@ describe('NotificationsService', () => {
       );
     });
 
+    it('should include payment warning text in message', async () => {
+      // Arrange
+      const endDate = new Date('2025-12-31');
+      mockNotificationRepository.createNotification.mockResolvedValue(
+        {} as any,
+      );
+
+      // Act
+      await service.createPaymentWarningNotification(mockUserId, endDate);
+
+      // Assert
+      const call =
+        mockNotificationRepository.createNotification.mock.calls[0][0];
+      expect(call.message).toContain('через 1 день');
+    });
+
     it('should handle database error', async () => {
       // Arrange
       const endDate = new Date('2025-12-31');
@@ -301,12 +149,12 @@ describe('NotificationsService', () => {
 
       // Act & Assert
       await expect(
-        service.sendPaymentWarningNotification(mockUserId, endDate),
+        service.createPaymentWarningNotification(mockUserId, endDate),
       ).rejects.toThrow(dbError);
     });
   });
 
-  describe('sendSubscriptionExpiring1DayNotification', () => {
+  describe('createSubscriptionExpiring1DayNotification', () => {
     it('should create notification with correct type and message', async () => {
       // Arrange
       const endDate = new Date('2025-12-31');
@@ -315,7 +163,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionExpiring1DayNotification(
+      await service.createSubscriptionExpiring1DayNotification(
         mockUserId,
         endDate,
       );
@@ -342,7 +190,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionExpiring1DayNotification(
+      await service.createSubscriptionExpiring1DayNotification(
         mockUserId,
         endDate,
       );
@@ -361,12 +209,12 @@ describe('NotificationsService', () => {
 
       // Act & Assert
       await expect(
-        service.sendSubscriptionExpiring1DayNotification(mockUserId, endDate),
+        service.createSubscriptionExpiring1DayNotification(mockUserId, endDate),
       ).rejects.toThrow(dbError);
     });
   });
 
-  describe('sendSubscriptionExpiring7DaysNotification', () => {
+  describe('createSubscriptionExpiring7DaysNotification', () => {
     it('should create notification with correct type and message', async () => {
       // Arrange
       const endDate = new Date('2025-12-31');
@@ -375,7 +223,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionExpiring7DaysNotification(
+      await service.createSubscriptionExpiring7DaysNotification(
         mockUserId,
         endDate,
       );
@@ -402,7 +250,7 @@ describe('NotificationsService', () => {
       );
 
       // Act
-      await service.sendSubscriptionExpiring7DaysNotification(
+      await service.createSubscriptionExpiring7DaysNotification(
         mockUserId,
         endDate,
       );
@@ -421,7 +269,10 @@ describe('NotificationsService', () => {
 
       // Act & Assert
       await expect(
-        service.sendSubscriptionExpiring7DaysNotification(mockUserId, endDate),
+        service.createSubscriptionExpiring7DaysNotification(
+          mockUserId,
+          endDate,
+        ),
       ).rejects.toThrow(dbError);
     });
   });

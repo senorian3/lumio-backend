@@ -41,6 +41,7 @@ describe('NotificationsScheduler', () => {
             findPendingNotifications: jest.fn(),
             markAsSent: jest.fn(),
             markAsFailed: jest.fn(),
+            deleteOldNotifications: jest.fn(),
           },
         },
         {
@@ -275,6 +276,60 @@ describe('NotificationsScheduler', () => {
         42,
         'Subscription Active',
         'Your subscription is now active',
+      );
+    });
+  });
+
+  describe('cleanupOldNotifications', () => {
+    it('should delete old notifications and log the count', async () => {
+      // Arrange
+      const deletedCount = 10;
+      mockNotificationRepository.deleteOldNotifications.mockResolvedValue(
+        deletedCount,
+      );
+
+      // Act
+      await scheduler.cleanupOldNotifications();
+
+      // Assert
+      expect(
+        mockNotificationRepository.deleteOldNotifications,
+      ).toHaveBeenCalledWith(31);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        `Deleted ${deletedCount} notifications older than 31 days`,
+        'NotificationsScheduler',
+      );
+    });
+
+    it('should not log when no notifications were deleted', async () => {
+      // Arrange
+      mockNotificationRepository.deleteOldNotifications.mockResolvedValue(0);
+
+      // Act
+      await scheduler.cleanupOldNotifications();
+
+      // Assert
+      expect(
+        mockNotificationRepository.deleteOldNotifications,
+      ).toHaveBeenCalledWith(31);
+      expect(mockLogger.log).not.toHaveBeenCalled();
+    });
+
+    it('should log error when cleanup fails', async () => {
+      // Arrange
+      const error = new Error('Database error');
+      mockNotificationRepository.deleteOldNotifications.mockRejectedValue(
+        error,
+      );
+
+      // Act
+      await scheduler.cleanupOldNotifications();
+
+      // Assert
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Error cleaning up old notifications'),
+        expect.any(String),
+        'NotificationsScheduler',
       );
     });
   });
