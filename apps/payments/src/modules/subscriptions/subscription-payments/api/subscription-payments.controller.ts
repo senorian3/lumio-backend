@@ -75,20 +75,11 @@ export class SubscriptionPaymentsController {
   @UseGuards(InternalApiGuard)
   async createSubscriptionPaymentUrl(
     @Body() payload: InputCreateSubscriptionPaymentUrlDto,
-    @Headers('origin') origin: string,
   ): Promise<{ url: string }> {
-    const isLocalhost =
-      origin?.includes('localhost') || origin?.includes('127.0.0.1');
-
-    const payloadWithOrigin = {
-      ...payload,
-      localhostOrigin: isLocalhost ? origin : undefined,
-    };
-
     const paymentsUrl = await this.commandBus.execute<
       CreateSubscriptionPaymentCommand,
       string
-    >(new CreateSubscriptionPaymentCommand(payloadWithOrigin));
+    >(new CreateSubscriptionPaymentCommand(payload));
 
     return { url: paymentsUrl };
   }
