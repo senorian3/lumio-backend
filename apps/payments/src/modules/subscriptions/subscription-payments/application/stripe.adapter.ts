@@ -22,16 +22,24 @@ export class StripeAdapter {
     profileId: string,
     currency: string,
     subscriptionId: string,
+    localhostOrigin?: string,
   ): Promise<Stripe.Checkout.Session> {
     const config = subscriptionConfigs[subscriptionType];
+
+    const successUrl = localhostOrigin
+      ? `${localhostOrigin}/settings?part=account&payment=success`
+      : this.coreConfig.stripeSuccessUrl;
+    const cancelUrl = localhostOrigin
+      ? `${localhostOrigin}/settings?part=account&payment=error`
+      : this.coreConfig.stripeCancelUrl;
 
     try {
       const nowDate = Date.now();
       const expiresAt = Math.floor(nowDate / 1000) + 3600;
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: this.coreConfig.stripeSuccessUrl,
-        cancel_url: this.coreConfig.stripeCancelUrl,
+        success_url: successUrl,
+        cancel_url: cancelUrl,
         metadata: {
           profileId: profileId,
           customPaymentId: `${profileId}-${nowDate}`,

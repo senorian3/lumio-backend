@@ -1,4 +1,10 @@
-import { IsString, IsIn, IsNotEmpty, IsNumberString } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+} from 'class-validator';
 
 export class InputCreateSubscriptionPaymentUrlDto {
   @IsNumberString()
@@ -16,4 +22,8 @@ export class InputCreateSubscriptionPaymentUrlDto {
   @IsString()
   @IsNotEmpty()
   paymentProvider: string;
+
+  @IsString()
+  @IsOptional()
+  localhostOrigin?: string;
 }

@@ -149,11 +149,77 @@ describe('SubscriptionPaymentsController', () => {
       const result =
         await subscriptionPaymentsController.createSubscriptionPaymentUrl(
           payload,
+          'https://example.com',
         );
 
       expect(result).toEqual({ url: expectedUrl });
       expect(commandBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ dto: payload }),
+        expect.objectContaining({
+          dto: expect.objectContaining({
+            profileId: payload.profileId,
+            currency: payload.currency,
+            subscriptionType: payload.subscriptionType,
+            paymentProvider: payload.paymentProvider,
+          }),
+        }),
+      );
+    });
+
+    it('should pass localhostOrigin when origin is localhost', async () => {
+      const payload: InputCreateSubscriptionPaymentUrlDto = {
+        profileId: '1',
+        currency: 'usd',
+        subscriptionType: '1 month',
+        paymentProvider: 'stripe',
+      };
+
+      const expectedUrl = 'https://checkout.stripe.com/pay_123';
+      const localhostOrigin = 'http://localhost:3000';
+
+      commandBus.execute.mockResolvedValue(expectedUrl);
+
+      const result =
+        await subscriptionPaymentsController.createSubscriptionPaymentUrl(
+          payload,
+          localhostOrigin,
+        );
+
+      expect(result).toEqual({ url: expectedUrl });
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dto: expect.objectContaining({
+            localhostOrigin: localhostOrigin,
+          }),
+        }),
+      );
+    });
+
+    it('should not pass localhostOrigin when origin is production', async () => {
+      const payload: InputCreateSubscriptionPaymentUrlDto = {
+        profileId: '1',
+        currency: 'usd',
+        subscriptionType: '1 month',
+        paymentProvider: 'stripe',
+      };
+
+      const expectedUrl = 'https://checkout.stripe.com/pay_123';
+      const productionOrigin = 'https://myapp.com';
+
+      commandBus.execute.mockResolvedValue(expectedUrl);
+
+      const result =
+        await subscriptionPaymentsController.createSubscriptionPaymentUrl(
+          payload,
+          productionOrigin,
+        );
+
+      expect(result).toEqual({ url: expectedUrl });
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dto: expect.objectContaining({
+            localhostOrigin: undefined,
+          }),
+        }),
       );
     });
   });
