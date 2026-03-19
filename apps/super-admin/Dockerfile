@@ -21,4 +21,4 @@ USER node
 
 EXPOSE ${PORT}
 
-CMD ["node", "dist/apps/lumio/app/super-admin"]
+CMD ["node", "dist/apps/super-admin/app/main"]
