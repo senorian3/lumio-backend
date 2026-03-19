@@ -19,11 +19,12 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "paths": {
-      "@payments/*": ["apps/payments/src/*"],
       "@files/*": ["apps/files/src/*"],
-      "@lumio/*": ["apps/lumio/src/*"],
+      "@generated/*": ["generated/*"],
       "@libs/*": ["libs/*"],
-      "@generated/*": ["generated/*"]
+      "@lumio/*": ["apps/lumio/src/*"],
+      "@payments/*": ["apps/payments/src/*"],
+      "@super-admin/*": ["apps/super-admin/src/*"]
     }
   }
 }

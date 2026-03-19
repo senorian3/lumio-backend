@@ -36,6 +36,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/payments/tsconfig.app.json"
       }
+    },
+    "super-admin": {
+      "type": "application",
+      "root": "apps/super-admin",
+      "entryFile": "app/main",
+      "sourceRoot": "apps/super-admin/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/super-admin/tsconfig.app.json"
+      }
     }
   }
 }
