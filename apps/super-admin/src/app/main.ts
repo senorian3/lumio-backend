@@ -17,10 +17,6 @@ async function bootstrap() {
   await app.listen(port, () => {
     Logger.log(`Super Admin starting listen port: ${port}`, 'Bootstrap');
     Logger.log(`NODE_ENV: ${coreConfig.env}`, 'Bootstrap');
-    Logger.log(
-      `GraphQL Playground: http://localhost:${port}/graphql`,
-      'Bootstrap',
-    );
   });
 }
 bootstrap();
