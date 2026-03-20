@@ -1,12 +1,12 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { Field, Int, ArgsType } from '@nestjs/graphql';
 import { SortDirection } from './sort-direction.enum';
 
-@InputType()
+@ArgsType()
 export class PaginationInput {
-  @Field(() => Int, { defaultValue: 1 })
+  @Field(() => Int)
   pageNumber: number;
 
-  @Field(() => Int, { defaultValue: 10 })
+  @Field(() => Int)
   pageSize: number;
 
   @Field(() => SortDirection, { defaultValue: 'ASC' })
