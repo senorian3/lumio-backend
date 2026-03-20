@@ -1,5 +1,4 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Subscription } from '@super-admin/modules/users/domain/schema/subscription.schema';
 import { AccountType } from './account-type.enum';
 
 @ObjectType()
@@ -39,7 +38,4 @@ export class UserProfile {
 
   @Field(() => AccountType)
   accountType: AccountType;
-
-  @Field(() => [Subscription], { nullable: true })
-  subscriptions?: Subscription[];
 }

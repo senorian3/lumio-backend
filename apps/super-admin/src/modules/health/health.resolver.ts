@@ -1,10 +1,19 @@
 import { Query, Resolver } from '@nestjs/graphql';
+import { HealthResponse } from './schema/health-response.schema';
 
 @Resolver()
 export class HealthResolver {
-  @Query(() => String, { description: 'Health check endpoint' })
-  health(): string {
-    return 'Super Admin service is healthy';
+  @Query(() => HealthResponse, { description: 'Health check endpoint' })
+  health(): HealthResponse {
+    return {
+      status: 'OK',
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      database: {
+        status: 'CONNECTED',
+        responseTime: 0,
+      },
+    };
   }
 
   @Query(() => String, { description: 'Get service version' })
