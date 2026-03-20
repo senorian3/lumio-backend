@@ -5,8 +5,11 @@ import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/
 import { SortDirection } from '@super-admin/core/schema/sort-direction.enum';
 import { GetUserQuery } from '@super-admin/modules/users/application/queries/get-user.query-handler';
 import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
+import { UseGuards } from '@nestjs/common';
+import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 
 @Resolver(() => User)
+@UseGuards(BasicAuthGuard)
 export class UsersResolver {
   constructor(private readonly queryBus: QueryBus) {}
 
