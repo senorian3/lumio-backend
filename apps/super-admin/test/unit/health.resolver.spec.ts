@@ -16,8 +16,16 @@ describe('HealthResolver', () => {
     expect(resolver).toBeDefined();
   });
 
-  it('should return health status', () => {
-    expect(resolver.health()).toBe('Super Admin service is healthy');
+  it('should return health status object', () => {
+    const result = resolver.health();
+
+    expect(result).toBeDefined();
+    expect(result.status).toBe('OK');
+    expect(result.timestamp).toBeInstanceOf(Date);
+    expect(typeof result.uptime).toBe('number');
+    expect(result.database).toBeDefined();
+    expect(result.database.status).toBe('CONNECTED');
+    expect(typeof result.database.responseTime).toBe('number');
   });
 
   it('should return version', () => {
