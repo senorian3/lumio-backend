@@ -1,18 +1,20 @@
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
+import { QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
 import { SortDirection } from '@super-admin/core/schema/sort-direction.enum';
-import { UserService } from '@super-admin/modules/users/application/user.service';
+import { GetUserQuery } from '@super-admin/modules/users/application/queries/get-user.query-handler';
+import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
 
 @Resolver(() => User)
 export class UsersResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly queryBus: QueryBus) {}
 
   @Query(() => User, { nullable: true, name: 'user' })
   async getUser(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<User | null> {
-    return this.userService.getUser(id);
+    return this.queryBus.execute(new GetUserQuery(id));
   }
 
   @Query(() => PaginatedUserResponse, { name: 'users' })
@@ -28,6 +30,8 @@ export class UsersResolver {
     })
     sortDirection: SortDirection = SortDirection.ASC,
   ): Promise<PaginatedUserResponse> {
-    return this.userService.getUsers(pageNumber, pageSize, sortDirection);
+    return this.queryBus.execute(
+      new GetUsersQuery(pageNumber, pageSize, sortDirection),
+    );
   }
 }
