@@ -8,31 +8,154 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AdminUser {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
-  
-  @@index([email])
+
+model User {
+  id              Int              @id @default(autoincrement())
+  username        String           @unique @db.VarChar(40)
+  email           String           @unique @db.VarChar(255)
+  password        String           @db.VarChar(200)
+  createdAt       DateTime         @default(now())
+  deletedAt       DateTime?
+
+  profile         UserProfile?
+
+  emailConfirmation EmailConfirmation?
+  sessions          Session[]
+  yandex            Yandex?
+  posts             Post[]
+  notifications     Notification[]
+
   @@index([deletedAt])
 }
 
-model AdminAuditLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  action    String
-  entity    String?
-  entityId  Int?
-  details   Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  
+model UserProfile {
+  id               Int       @id @default(autoincrement())
+  firstName        String?   @db.VarChar(100)
+  lastName         String?   @db.VarChar(100)
+  dateOfBirth      DateTime? @db.Timestamp(0)
+  country          String?   @db.VarChar(100)
+  city             String?   @db.VarChar(100)
+  aboutMe          String?   @db.VarChar(200)
+  avatarUrl        String?
+  profileFilled    Boolean   @default(false)
+  profileFilledAt  DateTime?
+  profileUpdatedAt DateTime? @db.Timestamp(0)
+
+  accountType      String    @default("Personal") @db.VarChar(50)
+
+  userId           Int       @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  subscriptions    Subscription[]
+}
+
+model Subscription {
+  id           Int       @id @default(autoincrement())
+  subscriptionId String  @unique
+  durationType String    @db.VarChar(20)
+  startDate    DateTime  @db.Timestamp(0)
+  endDate      DateTime  @db.Timestamp(0)
+  autoRenewal  Boolean   @default(false)
+
+  userProfileId Int      @unique
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@index([userProfileId])
+}
+
+model Session {
+  id           Int       @id @default(autoincrement())
+  deletedAt    DateTime? @db.Timestamp(6)
+  createdAt    DateTime  @default(now()) @db.Timestamp(6)
+  expiresAt    DateTime  @db.Timestamp(6)
+  deviceId     String    @db.VarChar(255)
+  deviceName   String    @db.VarChar(255)
+  ip           String    @db.VarChar(50)
+  tokenVersion Int       @default(1)
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
-  @@index([action])
-  @@index([createdAt])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}
+
+model EmailConfirmation {
+  id               Int      @id @default(autoincrement())
+  confirmationCode String   @db.VarChar(255)
+  expirationDate   DateTime @db.Timestamp(6)
+  isConfirmed      Boolean
+  userId           Int      @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Yandex {
+  id       Int    @id @default(autoincrement())
+  email    String @db.VarChar(255)
+  username String @db.VarChar(40)
+  yandexId String @unique @db.VarChar(100)
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          String     @id
+  description String?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  files PostFile[]
+
+  @@index([userId])
+  @@index([deletedAt])
+}
+
+model PostFile {
+  id        Int       @id @default(autoincrement())
+  postId    String
+  url       String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([deletedAt])
+}
+
+model IdempotencyKey {
+  id        String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String   @db.VarChar(50)
+  title       String   @db.VarChar(200)
+  message     String   @db.VarChar(500)
+
+  status      String   @default("pending")
+
+  isRead      Boolean  @default(false)
+  readAt      DateTime? @db.Timestamp(6)
+
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  deletedAt   DateTime? @db.Timestamp(6)
+  executeAt   DateTime  @db.Timestamp(6)
+
+  @@index([status])
+  @@index([executeAt])
+  @@index([deletedAt])
 }

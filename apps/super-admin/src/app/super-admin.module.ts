@@ -9,6 +9,7 @@ import { CoreModule } from '@super-admin/core/core.module';
 import { CoreConfig } from '@super-admin/core/core.config';
 import { PrismaModule } from '@super-admin/prisma/prisma.module';
 import { HealthModule } from '@super-admin/modules/health/health.module';
+import { UsersModule } from '@super-admin/modules/users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { HealthModule } from '@super-admin/modules/health/health.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    UsersModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
