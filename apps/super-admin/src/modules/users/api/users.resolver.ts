@@ -2,8 +2,11 @@ import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
 import { PaginationInput } from '@super-admin/core/schema/pagination.input';
+import { UseGuards } from '@nestjs/common';
+import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 
 @Resolver(() => User)
+@UseGuards(BasicAuthGuard)
 export class UsersResolver {
   constructor() {}
 
@@ -17,19 +20,22 @@ export class UsersResolver {
 
   @Query(() => PaginatedUserResponse, { name: 'users' })
   async getUsers(
-    @Args('pagination', { type: () => PaginationInput })
-    pagination: PaginationInput,
+    @Args() pagination: PaginationInput,
   ): Promise<PaginatedUserResponse> {
-    const items: User[] = [];
-    const totalCount = 0;
+    // Теперь здесь должны быть данные
+    console.log('Pagination:', JSON.stringify(pagination, null, 2));
+
+    const pageNumber = pagination?.pageNumber ?? 1;
+    const pageSize = pagination?.pageSize ?? 10;
+
+    // ... логика получения данных
 
     return {
-      page: pagination.pageNumber,
-      pageSize: pagination.pageSize,
-      pagesCount:
-        totalCount > 0 ? Math.ceil(totalCount / pagination.pageSize) : 0,
-      totalCount,
-      items,
+      page: pageNumber,
+      pageSize: pageSize,
+      pagesCount: 0, // заглушка
+      totalCount: 0, // заглушка
+      items: [], // заглушка
     };
   }
 }
