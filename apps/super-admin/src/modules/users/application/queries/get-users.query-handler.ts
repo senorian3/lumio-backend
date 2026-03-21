@@ -17,6 +17,7 @@ export class GetUsersQuery {
     public readonly pageNumber: number = 1,
     public readonly pageSize: number = 10,
     public readonly sortDirection: SortDirection = SortDirection.ASC,
+    public readonly search?: string,
   ) {}
 }
 
@@ -31,37 +32,29 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
     try {
       const skip = (query.pageNumber - 1) * query.pageSize;
 
-      if (skip < 0 || isNaN(skip)) {
-        this.logger.error(
-          `Invalid skip calculation: pageNumber=${query.pageNumber}, pageSize=${query.pageSize}, skip=${skip}`,
-          this.execute.name,
-          GetUsersHandler.name,
-        );
-      }
-
       const findManyOptions: FindManyOptionsInputDto = {
         skip,
         take: query.pageSize,
         orderBy: query.sortDirection === 'ASC' ? SortOrder.ASC : SortOrder.DESC,
+        search: query.search, // <-- Передаем в репозиторий
       };
 
       const [users, totalCount] = await Promise.all([
         this.userQueryRepository.findMany(findManyOptions),
-        this.userQueryRepository.count(),
+        // <-- Важно: считаем количество с тем же фильтром поиска
+        this.userQueryRepository.count(findManyOptions),
       ]);
 
       const pagesCount =
         totalCount > 0 ? Math.ceil(totalCount / query.pageSize) : 0;
 
-      const result: PaginatedUserResponse = {
+      return {
         page: query.pageNumber,
         pageSize: query.pageSize,
         pagesCount: pagesCount,
         totalCount: totalCount,
         items: users.map((user) => this.mapFromDto(user)),
       };
-
-      return result;
     } catch (error) {
       this.logger.error(
         `Failed to get users: pageNumber=${query.pageNumber}, pageSize=${query.pageSize}, sortDirection=${query.sortDirection}`,

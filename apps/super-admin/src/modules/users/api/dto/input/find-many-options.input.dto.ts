@@ -1,4 +1,4 @@
-import { IsNumber, IsEnum, Min } from 'class-validator';
+import { IsNumber, IsEnum, Min, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export enum SortOrder {
@@ -19,4 +19,8 @@ export class FindManyOptionsInputDto {
 
   @IsEnum(SortOrder)
   orderBy: SortOrder;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
