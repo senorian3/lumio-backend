@@ -4,6 +4,7 @@ import {
   UserWithProfile,
   FindManyOptions,
 } from '@super-admin/modules/users/domain/types/user.types';
+import { BanUserTransferDto } from '@super-admin/modules/users/api/dto/transfer/ban-user.transfer.dto';
 
 @Injectable()
 export class UserRepository {
@@ -44,6 +45,16 @@ export class UserRepository {
       data: {
         deletedAt: new Date(),
       },
+    });
+  }
+
+  async banUserById(
+    userId: number,
+    banUserDto: BanUserTransferDto,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: banUserDto,
     });
   }
 }

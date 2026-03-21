@@ -8,6 +8,7 @@ import { GetUsersQuery } from '@super-admin/modules/users/application/queries/ge
 import { UseGuards } from '@nestjs/common';
 import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
+import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 
 @Resolver(() => User)
 @UseGuards(BasicAuthGuard)
@@ -49,6 +50,23 @@ export class UsersResolver {
     @Args('id', { type: () => Int }) id: number,
   ): Promise<boolean> {
     await this.commandBus.execute(new DeletedUserCommand(id));
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'banUser' })
+  async banUser(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('banReason', { type: () => String }) banReason: string,
+  ): Promise<boolean> {
+    await this.commandBus.execute(new BanUserCommand(id, banReason));
+    return true;
+  }
+
+  @Mutation(() => Boolean, { name: 'unbanUser' })
+  async unBanUser(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<boolean> {
+    console.log(id);
     return true;
   }
 }
