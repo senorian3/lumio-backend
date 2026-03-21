@@ -1,5 +1,5 @@
-import { Args, Int, Query, Resolver } from '@nestjs/graphql';
-import { QueryBus } from '@nestjs/cqrs';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
 import { SortDirection } from '@super-admin/core/schema/sort-direction.enum';
@@ -7,11 +7,15 @@ import { GetUserQuery } from '@super-admin/modules/users/application/queries/get
 import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
 import { UseGuards } from '@nestjs/common';
 import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
+import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 
 @Resolver(() => User)
 @UseGuards(BasicAuthGuard)
 export class UsersResolver {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
+  ) {}
 
   @Query(() => User, { nullable: true, name: 'user' })
   async getUser(
@@ -32,9 +36,19 @@ export class UsersResolver {
       defaultValue: 'ASC',
     })
     sortDirection: SortDirection = SortDirection.ASC,
+    @Args('search', { type: () => String, nullable: true })
+    search?: string,
   ): Promise<PaginatedUserResponse> {
     return this.queryBus.execute(
-      new GetUsersQuery(pageNumber, pageSize, sortDirection),
+      new GetUsersQuery(pageNumber, pageSize, sortDirection, search),
     );
+  }
+
+  @Mutation(() => Boolean, { name: 'deleteUser' })
+  async deleteUser(
+    @Args('id', { type: () => Int }) id: number,
+  ): Promise<boolean> {
+    await this.commandBus.execute(new DeletedUserCommand(id));
+    return true;
   }
 }

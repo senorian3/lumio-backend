@@ -21,7 +21,19 @@ export class UserQueryRepository {
   async findMany(
     options: FindManyOptionsInputDto,
   ): Promise<UserWithProfileOutputDto[]> {
+    const where: any = {
+      deletedAt: null,
+    };
+
+    if (options.search) {
+      where.username = {
+        contains: options.search,
+        mode: 'insensitive',
+      };
+    }
+
     const users = await this.prisma.user.findMany({
+      where,
       skip: options.skip,
       take: options.take,
       orderBy: {
@@ -35,7 +47,18 @@ export class UserQueryRepository {
     return users as UserWithProfileOutputDto[];
   }
 
-  async count(): Promise<number> {
-    return this.prisma.user.count();
+  async count(options?: FindManyOptionsInputDto): Promise<number> {
+    const where: any = {
+      deletedAt: null,
+    };
+
+    if (options?.search) {
+      where.username = {
+        contains: options.search,
+        mode: 'insensitive',
+      };
+    }
+
+    return this.prisma.user.count({ where });
   }
 }

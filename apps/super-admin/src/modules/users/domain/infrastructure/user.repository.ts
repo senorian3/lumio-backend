@@ -11,7 +11,10 @@ export class UserRepository {
 
   async findById(id: number): Promise<UserWithProfile | null> {
     return this.prisma.user.findUnique({
-      where: { id },
+      where: {
+        id,
+        deletedAt: null,
+      },
       include: {
         profile: true,
       },
@@ -33,5 +36,14 @@ export class UserRepository {
 
   async count(): Promise<number> {
     return this.prisma.user.count();
+  }
+
+  async softDeletedUserById(userId: number): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }
