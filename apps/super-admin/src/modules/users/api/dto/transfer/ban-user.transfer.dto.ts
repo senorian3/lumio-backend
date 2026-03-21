@@ -1,7 +1,7 @@
-export class BanUserTransferDto {
+export class UpdateBanStatusDto {
   constructor(
     public isBlocked: boolean,
-    public bannedAt: Date,
-    public banReason: string,
+    public bannedAt: Date | null,
+    public banReason: string | null,
   ) {}
 }

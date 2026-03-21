@@ -8,10 +8,15 @@ import { GetUserHandler } from '@super-admin/modules/users/application/queries/g
 import { GetUsersHandler } from '@super-admin/modules/users/application/queries/get-users.query-handler';
 import { DeletedUserCommandHandler } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommandHandler } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
+import { UnBanUserCommandHandler } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
 
 const repositories = [UserRepository, UserQueryRepository];
 const queryHandlers = [GetUserHandler, GetUsersHandler];
-const commandHandlers = [DeletedUserCommandHandler, BanUserCommandHandler];
+const commandHandlers = [
+  DeletedUserCommandHandler,
+  BanUserCommandHandler,
+  UnBanUserCommandHandler,
+];
 
 @Module({
   imports: [PrismaModule, CqrsModule],
