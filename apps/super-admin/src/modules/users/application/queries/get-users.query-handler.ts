@@ -78,6 +78,9 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
       username: dto.username,
       email: dto.email,
       createdAt: dto.createdAt,
+      isBlocked: dto.isBlocked ?? false,
+      bannedAt: dto.bannedAt || undefined,
+      banReason: dto.banReason || undefined,
       profile: dto.profile ? this.mapProfileFromDto(dto.profile) : undefined,
     };
   }

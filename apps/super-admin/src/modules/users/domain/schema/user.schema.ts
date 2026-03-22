@@ -15,6 +15,15 @@ export class User {
   @Field()
   createdAt: Date;
 
+  @Field(() => Boolean)
+  isBlocked: boolean;
+
+  @Field(() => Date, { nullable: true })
+  bannedAt?: Date;
+
+  @Field({ nullable: true })
+  banReason?: string;
+
   @Field(() => UserProfile, { nullable: true })
   profile?: UserProfile;
 }

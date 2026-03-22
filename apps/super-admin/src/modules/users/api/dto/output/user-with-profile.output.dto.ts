@@ -52,6 +52,15 @@ export class UserWithProfileOutputDto {
   createdAt: Date;
 
   @Expose()
+  isBlocked: boolean;
+
+  @Expose()
+  bannedAt?: Date;
+
+  @Expose()
+  banReason?: string;
+
+  @Expose()
   @Type(() => UserProfileOutputDto)
   profile?: UserProfileOutputDto;
 }

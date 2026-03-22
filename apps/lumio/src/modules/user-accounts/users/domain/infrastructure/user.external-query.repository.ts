@@ -67,4 +67,16 @@ export class ExternalQueryUserAccountsRepository {
       },
     });
   }
+
+  async isUserBlocked(userId: number): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isBlocked: true,
+        deletedAt: true,
+      },
+    });
+
+    return user?.isBlocked === true || user?.deletedAt !== null;
+  }
 }
