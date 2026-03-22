@@ -1,5 +1,6 @@
 import { IsNumber, IsEnum, Min, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
 
 export enum SortOrder {
   ASC = 'asc',
@@ -23,4 +24,8 @@ export class FindManyOptionsInputDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsEnum(UserSortBy)
+  sortBy?: UserSortBy;
 }
