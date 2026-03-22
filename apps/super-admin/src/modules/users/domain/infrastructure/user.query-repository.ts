@@ -37,8 +37,7 @@ export class UserQueryRepository {
       };
     }
 
-    // Определяем поле и направление сортировки
-    let orderBy: any = { id: options.orderBy }; // Дефолтная сортировка по id для backward compatibility
+    let orderBy: any = { createdAt: 'desc' };
 
     if (options.sortBy) {
       switch (options.sortBy) {
@@ -54,9 +53,6 @@ export class UserQueryRepository {
         case UserSortBy.CREATED_AT_DESC:
           orderBy = { createdAt: 'desc' };
           break;
-        default:
-          // Если sortBy не распознан, используем дефолтную сортировку
-          orderBy = { id: options.orderBy };
       }
     }
 
