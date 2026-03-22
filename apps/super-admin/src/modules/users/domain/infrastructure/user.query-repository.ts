@@ -90,7 +90,7 @@ export class UserQueryRepository {
       username: user.username,
       email: user.email,
       createdAt: user.createdAt,
-      isBlocked: !!user.bannedAt, // Вычисляем isBlocked на основе bannedAt
+      isBlocked: user.isBlocked,
       bannedAt: user.bannedAt || undefined,
       banReason: user.banReason || undefined,
       profile: user.profile
