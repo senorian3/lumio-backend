@@ -6,6 +6,7 @@ import { AccountType } from '@super-admin/modules/users/domain/schema/account-ty
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { SortDirection } from '@super-admin/core/schema/sort-direction.enum';
+import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
 import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';
 import {
   FindManyOptionsInputDto,
@@ -18,6 +19,7 @@ export class GetUsersQuery {
     public readonly pageSize: number = 10,
     public readonly sortDirection: SortDirection = SortDirection.ASC,
     public readonly search?: string,
+    public readonly sortBy: UserSortBy = UserSortBy.CREATED_AT_DESC,
   ) {}
 }
 
@@ -32,16 +34,32 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
     try {
       const skip = (query.pageNumber - 1) * query.pageSize;
 
+      // Определяем orderBy на основе sortBy для backward compatibility
+      let orderBy: SortOrder =
+        query.sortDirection === 'ASC' ? SortOrder.ASC : SortOrder.DESC;
+
+      // Если передан sortBy, определяем orderBy из него
+      if (query.sortBy) {
+        if (
+          query.sortBy === UserSortBy.USERNAME_ASC ||
+          query.sortBy === UserSortBy.CREATED_AT_ASC
+        ) {
+          orderBy = SortOrder.ASC;
+        } else {
+          orderBy = SortOrder.DESC;
+        }
+      }
+
       const findManyOptions: FindManyOptionsInputDto = {
         skip,
         take: query.pageSize,
-        orderBy: query.sortDirection === 'ASC' ? SortOrder.ASC : SortOrder.DESC,
-        search: query.search, // <-- Передаем в репозиторий
+        orderBy,
+        search: query.search,
+        sortBy: query.sortBy,
       };
 
       const [users, totalCount] = await Promise.all([
         this.userQueryRepository.findMany(findManyOptions),
-        // <-- Важно: считаем количество с тем же фильтром поиска
         this.userQueryRepository.count(findManyOptions),
       ]);
 
@@ -57,7 +75,7 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to get users: pageNumber=${query.pageNumber}, pageSize=${query.pageSize}, sortDirection=${query.sortDirection}`,
+        `Failed to get users: pageNumber=${query.pageNumber}, pageSize=${query.pageSize}, sortDirection=${query.sortDirection}, sortBy=${query.sortBy}`,
         error?.stack,
         GetUsersHandler.name,
       );

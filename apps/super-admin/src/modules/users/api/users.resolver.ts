@@ -3,6 +3,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
 import { SortDirection } from '@super-admin/core/schema/sort-direction.enum';
+import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
 import { GetUserQuery } from '@super-admin/modules/users/application/queries/get-user.query-handler';
 import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
 import { UseGuards } from '@nestjs/common';
@@ -40,9 +41,15 @@ export class UsersResolver {
     sortDirection: SortDirection = SortDirection.ASC,
     @Args('search', { type: () => String, nullable: true })
     search?: string,
+    @Args('sortBy', {
+      type: () => UserSortBy,
+      nullable: true,
+      defaultValue: UserSortBy.CREATED_AT_DESC,
+    })
+    sortBy: UserSortBy = UserSortBy.CREATED_AT_DESC,
   ): Promise<PaginatedUserResponse> {
     return this.queryBus.execute(
-      new GetUsersQuery(pageNumber, pageSize, sortDirection, search),
+      new GetUsersQuery(pageNumber, pageSize, sortDirection, search, sortBy),
     );
   }
 
