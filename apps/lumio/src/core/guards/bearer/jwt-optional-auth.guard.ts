@@ -2,7 +2,7 @@ import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
-import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
@@ -59,7 +59,7 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
       await this.externalQueryUserAccountsRepository.isUserBlocked(user.userId);
 
     if (isBlocked) {
-      throw UnauthorizedDomainException.create(
+      throw ForbiddenDomainException.create(
         'User account is blocked',
         'userBlocked',
       );
