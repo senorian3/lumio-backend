@@ -1,4 +1,12 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
@@ -10,6 +18,9 @@ import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
+import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
+import { PaymentDto } from '@super-admin/core/integration/dto/payment.dto';
+import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Resolver(() => User)
 @UseGuards(BasicAuthGuard)
@@ -17,6 +28,7 @@ export class UsersResolver {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
+    private readonly paymentsHttpClient: PaymentsHttpClient,
   ) {}
 
   @Query(() => User, { nullable: true, name: 'user' })
@@ -69,5 +81,28 @@ export class UsersResolver {
   ): Promise<boolean> {
     await this.commandBus.execute(new UnBanUserCommand(id));
     return true;
+  }
+
+  @ResolveField(() => [PaymentDto], { name: 'payments' })
+  async payments(
+    @Parent() user: User,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+    @Args('sortBy', {
+      type: () => PaymentSortBy,
+      defaultValue: PaymentSortBy.DATE_DESC,
+    })
+    sortBy: PaymentSortBy,
+  ): Promise<PaymentDto[]> {
+    if (!user.profile?.id) {
+      return [];
+    }
+
+    return this.paymentsHttpClient.getUserPayments(
+      user.profile.id,
+      page,
+      limit,
+      sortBy,
+    );
   }
 }
