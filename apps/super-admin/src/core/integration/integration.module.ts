@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { CoreModule } from '../core.module';
 import { PaymentsHttpClient } from './payments-http.client';
+import { FilesHttpClient } from './files-http.client';
 import { LoggerModule } from '@libs/logger/logger.module';
 
 @Module({
@@ -13,7 +14,7 @@ import { LoggerModule } from '@libs/logger/logger.module';
     CoreModule,
     LoggerModule,
   ],
-  providers: [PaymentsHttpClient],
-  exports: [PaymentsHttpClient],
+  providers: [PaymentsHttpClient, FilesHttpClient],
+  exports: [PaymentsHttpClient, FilesHttpClient],
 })
 export class IntegrationModule {}

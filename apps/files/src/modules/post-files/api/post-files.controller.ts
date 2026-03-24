@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -88,7 +90,11 @@ export class PostFilesController {
   @Get(POST_FILES_ROUTES.GET_USER_FILES)
   async getUserFiles(
     @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
   ): Promise<OutputFileType[]> {
-    return await this.queryBus.execute(new GetAllFilesByUserIdQuery(userId));
+    return await this.queryBus.execute(
+      new GetAllFilesByUserIdQuery(userId, page, limit),
+    );
   }
 }

@@ -19,7 +19,9 @@ import { DeletedUserCommand } from '@super-admin/modules/users/application/comma
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
+import { FilesHttpClient } from '@super-admin/core/integration/files-http.client';
 import { PaymentDto } from '@super-admin/core/integration/dto/payment.dto';
+import { FileDto } from '@super-admin/core/integration/dto/file.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Resolver(() => User)
@@ -29,6 +31,7 @@ export class UsersResolver {
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
     private readonly paymentsHttpClient: PaymentsHttpClient,
+    private readonly filesHttpClient: FilesHttpClient,
   ) {}
 
   @Query(() => User, { nullable: true, name: 'user' })
@@ -104,5 +107,14 @@ export class UsersResolver {
       limit,
       sortBy,
     );
+  }
+
+  @ResolveField(() => [FileDto], { name: 'files' })
+  async files(
+    @Parent() user: User,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 50 }) limit: number,
+  ): Promise<FileDto[]> {
+    return this.filesHttpClient.getUserFiles(user.id, page, limit);
   }
 }

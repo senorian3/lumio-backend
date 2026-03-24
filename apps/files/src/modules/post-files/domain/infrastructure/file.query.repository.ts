@@ -38,7 +38,11 @@ export class QueryFileRepository {
     return files;
   }
 
-  async getAllFilesByUserId(userId: number): Promise<PostFileEntity[]> {
+  async getAllFilesByUserId(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PostFileEntity[]> {
     return this.prisma.postFile.findMany({
       where: {
         userId,
@@ -47,6 +51,8 @@ export class QueryFileRepository {
       orderBy: {
         createdAt: 'desc',
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
   }
 }
