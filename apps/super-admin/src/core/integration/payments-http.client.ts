@@ -22,7 +22,7 @@ export class PaymentsHttpClient {
     sortBy: PaymentSortBy = PaymentSortBy.DATE_DESC,
   ): Promise<PaymentDto[]> {
     try {
-      const url = `${this.config.paymentsServiceUrl}/subscription-payments/profile-payments`;
+      const url = `${this.config.paymentsServiceUrl}/api/v1/subscription-payments/profile-payments`;
 
       const sortByParam = this.mapSortByToApiParam(sortBy);
 
