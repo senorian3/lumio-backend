@@ -36,8 +36,13 @@ export function ApiUploadPostFiles() {
             description: 'Post ID',
             example: 'post-uuid-123',
           },
+          userId: {
+            type: 'number',
+            description: 'User ID who uploaded the file',
+            example: 1,
+          },
         },
-        required: ['files', 'postId'],
+        required: ['files', 'postId', 'userId'],
       },
     }),
     ApiResponse({

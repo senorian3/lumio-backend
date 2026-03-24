@@ -33,6 +33,7 @@ import { ApiGetPostFiles } from '@files/core/decorators/swagger/post-files/get-p
 import { ApiUploadPostFiles } from '@files/core/decorators/swagger/post-files/upload-post-files.decorator';
 import { ApiDeletePostFiles } from '@files/core/decorators/swagger/post-files/delete-post-files.decorator';
 import { ApiDeleteFileByKey } from '@files/core/decorators/swagger/post-files/delete-file-by-key.decorator';
+import { ApiGetUserFiles } from '@files/core/decorators/swagger/post-files/get-user-files.decorator';
 
 @Controller(POST_FILES_BASE)
 @UseGuards(InternalApiGuard)
@@ -88,6 +89,7 @@ export class PostFilesController {
   }
 
   @Get(POST_FILES_ROUTES.GET_USER_FILES)
+  @ApiGetUserFiles()
   async getUserFiles(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
