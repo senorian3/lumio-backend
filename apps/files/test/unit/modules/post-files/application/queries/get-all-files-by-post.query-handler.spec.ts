@@ -21,6 +21,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       createdAt: new Date('2023-01-01'),
       deletedAt: null,
       postId: '123',
+      userId: 1,
     },
     {
       id: 2,
@@ -31,6 +32,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       createdAt: new Date('2023-01-02'),
       deletedAt: null,
       postId: '123',
+      userId: 1,
     },
   ];
 
