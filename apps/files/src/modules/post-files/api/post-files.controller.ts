@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   UploadedFiles,
   UseGuards,
@@ -17,6 +18,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { OutputFileType } from '@libs/dto/output/file-output';
 import { GetAllFilesByPostUserQuery } from '../application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQuery } from '../application/queries/get-all-files-by-post-ids.query-handler';
+import { GetAllFilesByUserIdQuery } from '../application/queries/get-all-files-by-user-id.query-handler';
 import { DeletedPostFilesCommand } from '../application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommand } from '../application/commands/upload-post-file.command-handler';
 import { DeleteFileByKeyCommand } from '../application/commands/delete-file-by-key.command-handler';
@@ -59,7 +61,7 @@ export class PostFilesController {
     await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
-    >(new UploadFilesCreatedPostCommand(dto.postId, files));
+    >(new UploadFilesCreatedPostCommand(dto.postId, dto.userId, files));
 
     return await this.queryBus.execute<
       GetAllFilesByPostUserQuery,
@@ -81,5 +83,12 @@ export class PostFilesController {
     return await this.commandBus.execute<DeleteFileByKeyCommand, void>(
       new DeleteFileByKeyCommand(key),
     );
+  }
+
+  @Get(POST_FILES_ROUTES.GET_USER_FILES)
+  async getUserFiles(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<OutputFileType[]> {
+    return await this.queryBus.execute(new GetAllFilesByUserIdQuery(userId));
   }
 }
