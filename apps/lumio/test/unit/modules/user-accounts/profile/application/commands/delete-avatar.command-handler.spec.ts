@@ -35,6 +35,9 @@ describe('DeleteUserAvatarCommandHandler', () => {
       password: 'hashedpassword',
       createdAt: new Date(),
       deletedAt: null,
+      isBlocked: false,
+      bannedAt: null,
+      banReason: null,
     },
     accountType: 'Personal',
     userId: 1,
@@ -87,6 +90,9 @@ describe('DeleteUserAvatarCommandHandler', () => {
         password: 'hashedpassword',
         createdAt: new Date(),
         deletedAt: null,
+        isBlocked: false,
+        bannedAt: null,
+        banReason: null,
       };
 
       jest.spyOn(mockUserRepository, 'findUserById').mockResolvedValue(user);
@@ -134,6 +140,9 @@ describe('DeleteUserAvatarCommandHandler', () => {
         password: 'hashedpassword',
         createdAt: new Date(),
         deletedAt: null,
+        isBlocked: false,
+        bannedAt: null,
+        banReason: null,
       };
 
       jest.spyOn(mockUserRepository, 'findUserById').mockResolvedValue(user);
