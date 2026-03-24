@@ -23,6 +23,52 @@ export class UserQueryRepository {
     return this.mapToDto(user);
   }
 
+  async findByProfileIds(
+    profileIds: number[],
+  ): Promise<UserWithProfileOutputDto[]> {
+    if (profileIds.length === 0) {
+      return [];
+    }
+
+    // Убираем дубликаты
+    const uniqueProfileIds = [...new Set(profileIds)];
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        profile: {
+          id: { in: uniqueProfileIds },
+        },
+        deletedAt: null,
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    return users.map((user) => this.mapToDto(user));
+  }
+
+  async findByIds(ids: number[]): Promise<UserWithProfileOutputDto[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    // Убираем дубликаты
+    const uniqueIds = [...new Set(ids)];
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { in: uniqueIds },
+        deletedAt: null,
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    return users.map((user) => this.mapToDto(user));
+  }
+
   async findMany(
     options: FindManyOptionsInputDto,
   ): Promise<UserWithProfileOutputDto[]> {

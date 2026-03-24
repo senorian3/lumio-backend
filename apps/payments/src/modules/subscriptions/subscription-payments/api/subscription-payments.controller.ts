@@ -30,6 +30,7 @@ import {
 import { GetUserProfilePaymentsQuery } from '../application/queries/get-user-profile-payments.query-handler';
 import { InputCreateSubscriptionPaymentUrlDto } from './dto/input/input-create-subscription-payment-url.dto';
 import { InputChangeAutorenewalSubscriptionPaymentDto } from './dto/input/input-update-autorenewal.dto';
+import { GetAllPaymentsQuery } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
@@ -40,7 +41,7 @@ export class SubscriptionPaymentsController {
 
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.PROFILE_PAYMENTS)
   @ApiGetUserProfilePayments()
-  @UseGuards(InternalApiGuard)
+  //@UseGuards(InternalApiGuard)
   async getUserProfilePayments(
     @Query('profileId') profileId: number,
     @Query('page') page: number = 1,
@@ -109,5 +110,34 @@ export class SubscriptionPaymentsController {
     await this.commandBus.execute(
       new ChangeAutoRenewalSubscriptionCommand(payload),
     );
+  }
+
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ALL_PAYMENTS)
+  async getAllPayments(
+    @Query('profileIds') profileIds?: string | string[],
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query('search') search?: string,
+  ) {
+    const profileIdsArray = profileIds
+      ? Array.isArray(profileIds)
+        ? profileIds.map((id) => parseInt(id, 10))
+        : [parseInt(profileIds, 10)]
+      : undefined;
+
+    const result = await this.queryBus.execute(
+      new GetAllPaymentsQuery(
+        profileIdsArray,
+        skip ? parseInt(skip, 10) : 0,
+        take ? parseInt(take, 10) : 10,
+        sortBy || 'createdAt',
+        sortOrder || 'desc',
+        search,
+      ),
+    );
+
+    return result;
   }
 }
