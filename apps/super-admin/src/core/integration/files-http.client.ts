@@ -3,13 +3,9 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CoreConfig } from '../core.config';
 import { FileDto } from './dto/file.dto';
+import { FileSortBy } from './dto/file-sort-by.enum';
+import { FilesResponse } from './dto/files-response.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
-
-interface FileResponse {
-  id: number;
-  url: string;
-  postId: string;
-}
 
 @Injectable()
 export class FilesHttpClient {
@@ -23,15 +19,19 @@ export class FilesHttpClient {
     userId: number,
     page: number = 1,
     limit: number = 10,
+    sortBy: FileSortBy = FileSortBy.DATE_DESC,
   ): Promise<FileDto[]> {
     try {
       const url = `${this.config.filesServiceUrl}/api/v1/files/user/${userId}/files`;
 
+      const sortByParam = this.mapSortByToApiParam(sortBy);
+
       const response = await firstValueFrom(
-        this.httpService.get<FileResponse[]>(url, {
+        this.httpService.get<FilesResponse>(url, {
           params: {
             page,
             limit,
+            sortBy: sortByParam,
           },
           headers: {
             'x-internal-api-key': this.config.internalApiKey,
@@ -40,7 +40,11 @@ export class FilesHttpClient {
         }),
       );
 
-      return response.data.map(
+      const items = Array.isArray(response.data)
+        ? response.data
+        : response.data.items || [];
+
+      return items.map(
         (item) =>
           new FileDto({
             id: item.id,
@@ -54,6 +58,17 @@ export class FilesHttpClient {
         FilesHttpClient.name,
       );
       return [];
+    }
+  }
+
+  private mapSortByToApiParam(sortBy: FileSortBy): string {
+    switch (sortBy) {
+      case FileSortBy.DATE_ASC:
+        return 'date_asc';
+      case FileSortBy.DATE_DESC:
+        return 'date_desc';
+      default:
+        return 'date_desc';
     }
   }
 }

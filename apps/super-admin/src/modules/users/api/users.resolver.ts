@@ -22,6 +22,7 @@ import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.
 import { FilesHttpClient } from '@super-admin/core/integration/files-http.client';
 import { PaymentDto } from '@super-admin/core/integration/dto/payment.dto';
 import { FileDto } from '@super-admin/core/integration/dto/file.dto';
+import { FileSortBy } from '@super-admin/core/integration/dto/file-sort-by.enum';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Resolver(() => User)
@@ -113,8 +114,13 @@ export class UsersResolver {
   async files(
     @Parent() user: User,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
-    @Args('limit', { type: () => Int, defaultValue: 50 }) limit: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+    @Args('sortBy', {
+      type: () => FileSortBy,
+      defaultValue: FileSortBy.DATE_DESC,
+    })
+    sortBy: FileSortBy,
   ): Promise<FileDto[]> {
-    return this.filesHttpClient.getUserFiles(user.id, page, limit);
+    return this.filesHttpClient.getUserFiles(user.id, page, limit, sortBy);
   }
 }
