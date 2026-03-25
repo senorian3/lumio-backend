@@ -5,5 +5,6 @@ export class CreateFileDomainDto {
     public mimetype: string,
     public size: number,
     public postId: string,
+    public userId: number,
   ) {}
 }

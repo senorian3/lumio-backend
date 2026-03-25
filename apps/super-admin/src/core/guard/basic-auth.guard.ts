@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 
@@ -9,8 +8,6 @@ export class BasicAuthGuard implements CanActivate {
   private readonly validEmail =
     process.env.BASIC_AUTH_EMAIL || 'admin@gmail.com';
   private readonly validPassword = process.env.BASIC_AUTH_PASSWORD || 'admin';
-
-  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = this.getRequest(context);

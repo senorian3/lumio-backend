@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OutputFileType } from '@libs/dto/output/file-output';
 import {
-  GetAllFilesByPostIdsQueryHandler,
-  GetAllFilesByPostIdsQuery,
-} from '@files/modules/post-files/application/queries/get-all-files-by-post-ids.query-handler';
+  GetAllFilesByUserIdQueryHandler,
+  GetAllFilesByUserIdQuery,
+} from '@files/modules/post-files/application/queries/get-all-files-by-user-id.query-handler';
 import { PostFileEntity } from '@files/modules/post-files/domain/entities/post-file.entity';
 import { QueryFileRepository } from '@files/modules/post-files/domain/infrastructure/file.query.repository';
 
-describe('GetAllFilesByPostIdsQueryHandler', () => {
-  let handler: GetAllFilesByPostIdsQueryHandler;
+describe('GetAllFilesByUserIdQueryHandler', () => {
+  let handler: GetAllFilesByUserIdQueryHandler;
   let mockQueryRepository: QueryFileRepository;
 
   const mockPostFiles: PostFileEntity[] = [
@@ -32,7 +32,7 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
       createdAt: new Date('2023-01-02'),
       deletedAt: null,
       postId: '456',
-      userId: 2,
+      userId: 1,
     },
   ];
 
@@ -44,18 +44,18 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        GetAllFilesByPostIdsQueryHandler,
+        GetAllFilesByUserIdQueryHandler,
         {
           provide: QueryFileRepository,
           useValue: {
-            getAllFilesByPostIds: jest.fn(),
+            getAllFilesByUserId: jest.fn(),
           },
         },
       ],
     }).compile();
 
-    handler = module.get<GetAllFilesByPostIdsQueryHandler>(
-      GetAllFilesByPostIdsQueryHandler,
+    handler = module.get<GetAllFilesByUserIdQueryHandler>(
+      GetAllFilesByUserIdQueryHandler,
     );
     mockQueryRepository = module.get<QueryFileRepository>(QueryFileRepository);
   });
@@ -65,10 +65,10 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
   });
 
   describe('execute', () => {
-    it('should return mapped files for given post IDs', async () => {
+    it('should return mapped files for given user ID', async () => {
       // Arrange
-      const query = new GetAllFilesByPostIdsQuery(['123', '456']);
-      (mockQueryRepository.getAllFilesByPostIds as jest.Mock).mockResolvedValue(
+      const query = new GetAllFilesByUserIdQuery(1, 1, 50);
+      (mockQueryRepository.getAllFilesByUserId as jest.Mock).mockResolvedValue(
         mockPostFiles,
       );
 
@@ -76,17 +76,18 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockQueryRepository.getAllFilesByPostIds).toHaveBeenCalledWith([
-        '123',
-        '456',
-      ]);
+      expect(mockQueryRepository.getAllFilesByUserId).toHaveBeenCalledWith(
+        1,
+        1,
+        50,
+      );
       expect(result).toEqual(expectedOutputFiles);
     });
 
     it('should return empty array when no files found', async () => {
       // Arrange
-      const query = new GetAllFilesByPostIdsQuery(['999']);
-      (mockQueryRepository.getAllFilesByPostIds as jest.Mock).mockResolvedValue(
+      const query = new GetAllFilesByUserIdQuery(999, 1, 50);
+      (mockQueryRepository.getAllFilesByUserId as jest.Mock).mockResolvedValue(
         [],
       );
 
@@ -94,17 +95,19 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockQueryRepository.getAllFilesByPostIds).toHaveBeenCalledWith([
-        '999',
-      ]);
+      expect(mockQueryRepository.getAllFilesByUserId).toHaveBeenCalledWith(
+        999,
+        1,
+        50,
+      );
       expect(result).toEqual([]);
     });
 
     it('should handle repository error', async () => {
       // Arrange
-      const query = new GetAllFilesByPostIdsQuery(['123']);
+      const query = new GetAllFilesByUserIdQuery(1, 1, 50);
       const error = new Error('Database query failed');
-      (mockQueryRepository.getAllFilesByPostIds as jest.Mock).mockRejectedValue(
+      (mockQueryRepository.getAllFilesByUserId as jest.Mock).mockRejectedValue(
         error,
       );
 
@@ -112,6 +115,32 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
       await expect(handler.execute(query)).rejects.toThrow(
         'Database query failed',
       );
+    });
+
+    it('should correctly map file entities to output DTOs', async () => {
+      // Arrange
+      const query = new GetAllFilesByUserIdQuery(1, 1, 50);
+      const singleFile = [mockPostFiles[0]];
+      (mockQueryRepository.getAllFilesByUserId as jest.Mock).mockResolvedValue(
+        singleFile,
+      );
+
+      // Act
+      const result = await handler.execute(query);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: mockPostFiles[0].id,
+        url: mockPostFiles[0].url,
+        postId: mockPostFiles[0].postId,
+      });
+      expect(result[0]).not.toHaveProperty('key');
+      expect(result[0]).not.toHaveProperty('mimetype');
+      expect(result[0]).not.toHaveProperty('size');
+      expect(result[0]).not.toHaveProperty('createdAt');
+      expect(result[0]).not.toHaveProperty('deletedAt');
+      expect(result[0]).not.toHaveProperty('userId');
     });
   });
 });
