@@ -7,9 +7,9 @@ import {
   SortOrder,
 } from '@super-admin/modules/users/api/dto/input/find-many-options.input.dto';
 import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
-import { PaymentOutput } from '@super-admin/modules/users/domain/schema/payment.output.dto';
 import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
-import { PaymentsApiClient } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
+import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
+import { PaymentOutput } from '@super-admin/modules/users/domain/schema/all-payment.output.dto';
 
 export class GetPaymentsQuery {
   constructor(
@@ -22,9 +22,11 @@ export class GetPaymentsQuery {
 
 @QueryHandler(GetPaymentsQuery)
 export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
+  private readonly USER_SEARCH_LIMIT = 500;
+
   constructor(
     private readonly userQueryRepository: UserQueryRepository,
-    private readonly paymentsApiClient: PaymentsApiClient,
+    private readonly paymentsHttpClient: PaymentsHttpClient,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -34,18 +36,7 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
       let profileIds: number[] | undefined;
 
       if (query.search?.trim()) {
-        const userOptions: FindManyOptionsInputDto = {
-          skip: 0,
-          take: 1000,
-          orderBy: SortOrder.ASC,
-          sortBy: undefined,
-          search: query.search.trim(),
-        };
-
-        const users = await this.userQueryRepository.findMany(userOptions);
-        profileIds = users
-          .filter((user) => user.profile?.id)
-          .map((user) => user.profile!.id);
+        profileIds = await this.findProfileIdsBySearch(query.search.trim());
 
         if (profileIds.length === 0) {
           return {
@@ -62,7 +53,7 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
         query.sortBy,
       );
 
-      const paymentsResponse = await this.paymentsApiClient.getAllPayments({
+      const paymentsResponse = await this.paymentsHttpClient.getAllPayments({
         profileIds: profileIds,
         skip,
         take: query.pageSize,
@@ -107,6 +98,31 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
         items: [],
       };
     }
+  }
+
+  private async findProfileIdsBySearch(searchQuery: string): Promise<number[]> {
+    const userOptions: FindManyOptionsInputDto = {
+      skip: 0,
+      take: this.USER_SEARCH_LIMIT,
+      orderBy: SortOrder.ASC,
+      sortBy: undefined,
+      search: searchQuery,
+    };
+
+    const users = await this.userQueryRepository.findMany(userOptions);
+
+    const profileIds = users
+      .filter((user) => user.profile?.id)
+      .map((user) => user.profile!.id);
+
+    if (users.length === this.USER_SEARCH_LIMIT) {
+      this.logger.warn(
+        `Search limit reached (${this.USER_SEARCH_LIMIT}). Some results may be truncated.`,
+        GetPaymentsHandler.name,
+      );
+    }
+
+    return profileIds;
   }
 
   private async getUserMap(

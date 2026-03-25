@@ -1,4 +1,3 @@
-// @super-admin/modules/payments/api/dto/output/payment.output.dto.ts
 import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 
 @ObjectType()
@@ -12,7 +11,6 @@ export class PaymentOutput {
   @Field(() => Int)
   profileId: number;
 
-  // 👤 Данные пользователя (для таблицы в админке)
   @Field()
   username?: string;
 
@@ -25,7 +23,6 @@ export class PaymentOutput {
   @Field({ nullable: true })
   lastName?: string;
 
-  // 💳 Данные платежа
   @Field()
   autoRenewal: boolean;
 

@@ -1,6 +1,5 @@
-// @payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler.ts
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PrismaService } from '@payments/prisma/prisma.service';
+import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/ayments.query-repository';
 
 export class GetAllPaymentsQuery {
   constructor(
@@ -15,42 +14,18 @@ export class GetAllPaymentsQuery {
 
 @QueryHandler(GetAllPaymentsQuery)
 export class GetAllPaymentsHandler implements IQueryHandler<GetAllPaymentsQuery> {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly queryPaymentsRepository: QueryPaymentsRepository,
+  ) {}
 
   async execute(query: GetAllPaymentsQuery) {
-    const { profileIds, skip, take, sortBy, sortOrder, search } = query;
-
-    const where: any = {};
-
-    // Фильтр по profileIds
-    if (profileIds?.length) {
-      where.profileId = { in: profileIds };
-    }
-
-    // Поиск (если нужно искать по subscriptionType или status)
-    if (search) {
-      where.OR = [
-        { subscriptionType: { contains: search, mode: 'insensitive' } },
-        { status: { contains: search, mode: 'insensitive' } },
-        { paymentProvider: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    const [data, totalCount] = await Promise.all([
-      this.prisma.payment.findMany({
-        where,
-        skip,
-        take,
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
-      }),
-      this.prisma.payment.count({ where }),
-    ]);
-
-    return {
-      data,
-      totalCount,
-    };
+    return this.queryPaymentsRepository.findAllPayments(
+      query.profileIds,
+      query.skip,
+      query.take,
+      query.sortBy,
+      query.sortOrder,
+      query.search,
+    );
   }
 }

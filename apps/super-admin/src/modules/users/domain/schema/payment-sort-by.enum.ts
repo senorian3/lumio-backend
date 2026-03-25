@@ -13,5 +13,5 @@ export enum PaymentSortBy {
 
 registerEnumType(PaymentSortBy, {
   name: 'PaymentSortBy',
-  description: 'Типы сортировки платежей',
+  description: 'Сортировка платежей',
 });

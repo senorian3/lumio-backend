@@ -42,6 +42,18 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable PAYMENTS_SERVICE_URL, example: http://localhost:3001',
+  })
+  paymentsServiceUrl: string = this.configService.get('PAYMENTS_SERVICE_URL');
+
+  @IsNotEmpty({
+    message:
+      'Set Env variable FILES_SERVICE_URL, example: http://localhost:3002',
+  })
+  filesServiceUrl: string = this.configService.get('FILES_SERVICE_URL');
+
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
