@@ -228,8 +228,10 @@ export class PaymentsRepository {
     profileId: number,
     page: number,
     limit: number,
+    sortBy: string = 'date_desc',
   ): Promise<{ payments: Payment[]; totalCount: number }> {
     const skip = (page - 1) * limit;
+    const orderBy = this.mapSortByToOrderBy(sortBy);
 
     const [payments, totalCount] = await Promise.all([
       this.prisma.payment.findMany({
@@ -239,7 +241,7 @@ export class PaymentsRepository {
             not: PaymentStatus.PENDING,
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),
@@ -254,6 +256,23 @@ export class PaymentsRepository {
     ]);
 
     return { payments, totalCount };
+  }
+
+  private mapSortByToOrderBy(sortBy: string): {
+    createdAt?: 'asc' | 'desc';
+    amount?: 'asc' | 'desc';
+  } {
+    switch (sortBy) {
+      case 'date_asc':
+        return { createdAt: 'asc' };
+      case 'amount_asc':
+        return { amount: 'asc' };
+      case 'amount_desc':
+        return { amount: 'desc' };
+      case 'date_desc':
+      default:
+        return { createdAt: 'desc' };
+    }
   }
 
   async findLastActiveSubscriptionByProfileId(
