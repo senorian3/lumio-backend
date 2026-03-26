@@ -36,6 +36,14 @@ export function ApiGetUserFiles() {
       description: 'Number of files per page (default: 50)',
       example: 20,
     }),
+    ApiQuery({
+      name: 'sortBy',
+      type: 'string',
+      required: false,
+      description: 'Sort order: date_asc or date_desc (default: date_desc)',
+      example: 'date_desc',
+      enum: ['date_asc', 'date_desc'],
+    }),
     ApiResponse({
       status: 200,
       description: 'Successfully retrieved user files',

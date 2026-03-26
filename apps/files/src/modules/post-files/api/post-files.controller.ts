@@ -94,9 +94,10 @@ export class PostFilesController {
     @Param('userId', ParseIntPipe) userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+    @Query('sortBy', new DefaultValuePipe('date_desc')) sortBy: string,
   ): Promise<OutputFileType[]> {
     return await this.queryBus.execute(
-      new GetAllFilesByUserIdQuery(userId, page, limit),
+      new GetAllFilesByUserIdQuery(userId, page, limit, sortBy),
     );
   }
 }

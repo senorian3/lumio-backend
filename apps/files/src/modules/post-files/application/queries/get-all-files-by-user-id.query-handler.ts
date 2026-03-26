@@ -7,6 +7,7 @@ export class GetAllFilesByUserIdQuery {
     public readonly userId: number,
     public readonly page: number = 1,
     public readonly limit: number = 50,
+    public readonly sortBy: string = 'date_desc',
   ) {}
 }
 
@@ -22,6 +23,7 @@ export class GetAllFilesByUserIdQueryHandler implements IQueryHandler<
       query.userId,
       query.page,
       query.limit,
+      query.sortBy,
     );
 
     const mappedFiles = files.map(

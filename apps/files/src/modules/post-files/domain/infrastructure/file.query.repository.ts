@@ -42,17 +42,28 @@ export class QueryFileRepository {
     userId: number,
     page: number = 1,
     limit: number = 10,
+    sortBy: string = 'date_desc',
   ): Promise<PostFileEntity[]> {
+    const orderBy = this.mapSortByToOrderBy(sortBy);
+
     return this.prisma.postFile.findMany({
       where: {
         userId,
         deletedAt: null,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
       skip: (page - 1) * limit,
       take: limit,
     });
+  }
+
+  private mapSortByToOrderBy(sortBy: string): { createdAt: 'asc' | 'desc' } {
+    switch (sortBy) {
+      case 'date_asc':
+        return { createdAt: 'asc' };
+      case 'date_desc':
+      default:
+        return { createdAt: 'desc' };
+    }
   }
 }
