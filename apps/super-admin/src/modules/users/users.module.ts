@@ -10,9 +10,12 @@ import { GetUsersHandler } from '@super-admin/modules/users/application/queries/
 import { DeletedUserCommandHandler } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommandHandler } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommandHandler } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
+import { HttpModule } from '@nestjs/axios';
+import { GetPaymentsHandler } from '@super-admin/modules/users/application/queries/get-payments.query-handler';
+import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
 
 const repositories = [UserRepository, UserQueryRepository];
-const queryHandlers = [GetUserHandler, GetUsersHandler];
+const queryHandlers = [GetUserHandler, GetUsersHandler, GetPaymentsHandler];
 const commandHandlers = [
   DeletedUserCommandHandler,
   BanUserCommandHandler,
@@ -20,8 +23,9 @@ const commandHandlers = [
 ];
 
 @Module({
-  imports: [PrismaModule, CqrsModule, IntegrationModule],
+  imports: [PrismaModule, CqrsModule, HttpModule],
   providers: [
+    PaymentsHttpClient,
     UsersResolver,
     ...repositories,
     ...queryHandlers,

@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CoreConfig } from '../core.config';
+import { AppLoggerService } from '@libs/logger/logger.service';
+import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
+import { PaymentsApiResponse } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
 import { PaymentDto } from './dto/payment.dto';
 import { PaymentSortBy } from './dto/payment-sort-by.enum';
 import { PaymentsResponse } from './dto/payments-response.dto';
@@ -15,6 +18,51 @@ export class PaymentsHttpClient {
     private readonly logger: AppLoggerService,
   ) {}
 
+  async getAllPayments(params: {
+    profileIds?: number[];
+    skip: number;
+    take: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    search?: string;
+  }): Promise<PaymentsApiResponse> {
+    try {
+      const url = `${this.config.paymentsServiceUrl}/api/v1/subscription-payments/all-payments`;
+
+      const queryParams: Record<string, any> = {
+        skip: params.skip,
+        take: params.take,
+      };
+
+      if (params.profileIds?.length) {
+        queryParams['profileIds'] = params.profileIds;
+      }
+
+      if (params.sortBy) {
+        queryParams['sortBy'] = params.sortBy;
+      }
+
+      if (params.sortOrder) {
+        queryParams['sortOrder'] = params.sortOrder;
+      }
+
+      if (params.search) {
+        queryParams['search'] = params.search;
+      }
+
+      this.logger.log(
+        `Fetching payments from: ${url}`,
+        PaymentsHttpClient.name,
+      );
+
+      const response = await firstValueFrom(
+        this.httpService.get<PaymentsApiResponse>(url, {
+          params: queryParams,
+          paramsSerializer: {
+            indexes: null,
+          },
+          headers: {
+            'Content-Type': 'application/json',
   async getUserPayments(
     profileId: number,
     page: number = 1,
@@ -41,6 +89,17 @@ export class PaymentsHttpClient {
         }),
       );
 
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch payments from external service: ${error.message}`,
+        PaymentsHttpClient.name,
+      );
+
+      return {
+        data: [],
+        totalCount: 0,
+      };
       return response.data.items.map(
         (item) =>
           new PaymentDto({
@@ -64,9 +123,9 @@ export class PaymentsHttpClient {
 
   private mapSortByToApiParam(sortBy: PaymentSortBy): string {
     switch (sortBy) {
-      case PaymentSortBy.DATE_ASC:
+      case PaymentSortBy.CREATED_AT_ASC:
         return 'date_asc';
-      case PaymentSortBy.DATE_DESC:
+      case PaymentSortBy.CREATED_AT_DESC:
         return 'date_desc';
       case PaymentSortBy.AMOUNT_ASC:
         return 'amount_asc';

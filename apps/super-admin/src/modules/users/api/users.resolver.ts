@@ -18,6 +18,10 @@ import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
+import { PaginatedPaymentsOutput } from '../domain/schema/paginated-payments.output.dto';
+import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
+import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
+import { GetPaymentsQuery } from '../application/queries/get-payments.query-handler';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
 import { FilesHttpClient } from '@super-admin/core/integration/files-http.client';
 import { PaymentDto } from '@super-admin/core/integration/dto/payment.dto';
@@ -87,6 +91,25 @@ export class UsersResolver {
     return true;
   }
 
+  @Query(() => PaginatedPaymentsOutput)
+  async getPayments(
+    @Args('pageNumber', { type: () => Int, defaultValue: 1 })
+    pageNumber: number,
+    @Args('pageSize', { type: () => Int, defaultValue: 6 })
+    pageSize: number,
+    @Args('search', { type: () => String, nullable: true })
+    search?: string,
+    @Args('sortBy', {
+      type: () => PaymentSortBy,
+      defaultValue: PaymentSortBy.CREATED_AT_DESC,
+    })
+    sortBy: PaymentSortBy = PaymentSortBy.CREATED_AT_DESC,
+  ): Promise<PaginatedPaymentsOutput> {
+    const result: PaginatedPaymentResponse = await this.queryBus.execute(
+      new GetPaymentsQuery(pageNumber, pageSize, search, sortBy),
+    );
+
+    return result;
   @ResolveField(() => [PaymentDto], { name: 'payments' })
   async payments(
     @Parent() user: User,
