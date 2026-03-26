@@ -3,12 +3,10 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CoreConfig } from '../core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
 import { PaymentsApiResponse } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
 import { PaymentDto } from './dto/payment.dto';
-import { PaymentSortBy } from './dto/payment-sort-by.enum';
 import { PaymentsResponse } from './dto/payments-response.dto';
-import { AppLoggerService } from '@libs/logger/logger.service';
+import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Injectable()
 export class PaymentsHttpClient {
@@ -37,18 +35,9 @@ export class PaymentsHttpClient {
       if (params.profileIds?.length) {
         queryParams['profileIds'] = params.profileIds;
       }
-
-      if (params.sortBy) {
-        queryParams['sortBy'] = params.sortBy;
-      }
-
-      if (params.sortOrder) {
-        queryParams['sortOrder'] = params.sortOrder;
-      }
-
-      if (params.search) {
-        queryParams['search'] = params.search;
-      }
+      if (params.sortBy) queryParams['sortBy'] = params.sortBy;
+      if (params.sortOrder) queryParams['sortOrder'] = params.sortOrder;
+      if (params.search) queryParams['search'] = params.search;
 
       this.logger.log(
         `Fetching payments from: ${url}`,
@@ -63,6 +52,26 @@ export class PaymentsHttpClient {
           },
           headers: {
             'Content-Type': 'application/json',
+            'x-internal-api-key': this.config.internalApiKey,
+          },
+          timeout: 10000,
+        }),
+      );
+
+      return response.data;
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to fetch payments from external service: ${error?.message}`,
+        PaymentsHttpClient.name,
+      );
+
+      return {
+        data: [],
+        totalCount: 0,
+      };
+    }
+  }
+
   async getUserPayments(
     profileId: number,
     page: number = 1,
@@ -89,17 +98,10 @@ export class PaymentsHttpClient {
         }),
       );
 
-      return response.data;
-    } catch (error) {
-      this.logger.error(
-        `Failed to fetch payments from external service: ${error.message}`,
-        PaymentsHttpClient.name,
-      );
+      if (!response.data || !response.data.items) {
+        return [];
+      }
 
-      return {
-        data: [],
-        totalCount: 0,
-      };
       return response.data.items.map(
         (item) =>
           new PaymentDto({
@@ -112,20 +114,21 @@ export class PaymentsHttpClient {
             subscriptionType: item.subscriptionType,
           }),
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
-        `Payments service error for profile ${profileId}: ${error.message}`,
+        `Payments service error for profile ${profileId}: ${error?.message}`,
         PaymentsHttpClient.name,
       );
+
       return [];
     }
   }
 
   private mapSortByToApiParam(sortBy: PaymentSortBy): string {
     switch (sortBy) {
-      case PaymentSortBy.CREATED_AT_ASC:
+      case PaymentSortBy.DATE_ASC:
         return 'date_asc';
-      case PaymentSortBy.CREATED_AT_DESC:
+      case PaymentSortBy.USERNAME_DESC:
         return 'date_desc';
       case PaymentSortBy.AMOUNT_ASC:
         return 'amount_asc';

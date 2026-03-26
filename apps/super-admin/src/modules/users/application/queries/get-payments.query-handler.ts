@@ -6,17 +6,18 @@ import {
   FindManyOptionsInputDto,
   SortOrder,
 } from '@super-admin/modules/users/api/dto/input/find-many-options.input.dto';
-import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
+
 import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
 import { PaymentOutput } from '@super-admin/modules/users/domain/schema/all-payment.output.dto';
+import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 export class GetPaymentsQuery {
   constructor(
     public readonly pageNumber: number = 1,
     public readonly pageSize: number = 6,
     public readonly search?: string,
-    public readonly sortBy: PaymentSortBy = PaymentSortBy.CREATED_AT_DESC,
+    public readonly sortBy: PaymentSortBy = PaymentSortBy.DATE_DESC,
   ) {}
 }
 
@@ -160,11 +161,11 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
         paymentSortBy = 'createdAt';
         sortOrder = sortBy === PaymentSortBy.USERNAME_ASC ? 'asc' : 'desc';
         break;
-      case PaymentSortBy.CREATED_AT_ASC:
+      case PaymentSortBy.DATE_ASC:
         paymentSortBy = 'createdAt';
         sortOrder = 'asc';
         break;
-      case PaymentSortBy.CREATED_AT_DESC:
+      case PaymentSortBy.DATE_DESC:
         paymentSortBy = 'createdAt';
         sortOrder = 'desc';
         break;

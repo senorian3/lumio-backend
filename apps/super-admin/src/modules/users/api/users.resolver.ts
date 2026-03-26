@@ -19,7 +19,6 @@ import { DeletedUserCommand } from '@super-admin/modules/users/application/comma
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
 import { PaginatedPaymentsOutput } from '../domain/schema/paginated-payments.output.dto';
-import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
 import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
 import { GetPaymentsQuery } from '../application/queries/get-payments.query-handler';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
@@ -101,15 +100,17 @@ export class UsersResolver {
     search?: string,
     @Args('sortBy', {
       type: () => PaymentSortBy,
-      defaultValue: PaymentSortBy.CREATED_AT_DESC,
+      defaultValue: PaymentSortBy.DATE_DESC,
     })
-    sortBy: PaymentSortBy = PaymentSortBy.CREATED_AT_DESC,
+    sortBy: PaymentSortBy = PaymentSortBy.DATE_DESC,
   ): Promise<PaginatedPaymentsOutput> {
     const result: PaginatedPaymentResponse = await this.queryBus.execute(
       new GetPaymentsQuery(pageNumber, pageSize, search, sortBy),
     );
 
     return result;
+  }
+
   @ResolveField(() => [PaymentDto], { name: 'payments' })
   async payments(
     @Parent() user: User,

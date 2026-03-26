@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { IntegrationModule } from '../../core/integration/integration.module';
 import { UsersResolver } from '@super-admin/modules/users/api/users.resolver';
 import { UserRepository } from '@super-admin/modules/users/domain/infrastructure/user.repository';
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
@@ -13,6 +12,7 @@ import { UnBanUserCommandHandler } from '@super-admin/modules/users/application/
 import { HttpModule } from '@nestjs/axios';
 import { GetPaymentsHandler } from '@super-admin/modules/users/application/queries/get-payments.query-handler';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
+import { IntegrationModule } from '@super-admin/core/integration/integration.module';
 
 const repositories = [UserRepository, UserQueryRepository];
 const queryHandlers = [GetUserHandler, GetUsersHandler, GetPaymentsHandler];
@@ -23,7 +23,7 @@ const commandHandlers = [
 ];
 
 @Module({
-  imports: [PrismaModule, CqrsModule, HttpModule],
+  imports: [PrismaModule, CqrsModule, HttpModule, IntegrationModule],
   providers: [
     PaymentsHttpClient,
     UsersResolver,
