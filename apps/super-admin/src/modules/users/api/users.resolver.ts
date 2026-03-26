@@ -1,4 +1,12 @@
-import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
@@ -14,6 +22,12 @@ import { PaginatedPaymentsOutput } from '../domain/schema/paginated-payments.out
 import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
 import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
 import { GetPaymentsQuery } from '../application/queries/get-payments.query-handler';
+import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
+import { FilesHttpClient } from '@super-admin/core/integration/files-http.client';
+import { PaymentDto } from '@super-admin/core/integration/dto/payment.dto';
+import { FileDto } from '@super-admin/core/integration/dto/file.dto';
+import { FileSortBy } from '@super-admin/core/integration/dto/file-sort-by.enum';
+import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Resolver(() => User)
 @UseGuards(BasicAuthGuard)
@@ -21,6 +35,8 @@ export class UsersResolver {
   constructor(
     private readonly queryBus: QueryBus,
     private readonly commandBus: CommandBus,
+    private readonly paymentsHttpClient: PaymentsHttpClient,
+    private readonly filesHttpClient: FilesHttpClient,
   ) {}
 
   @Query(() => User, { nullable: true, name: 'user' })
@@ -94,5 +110,40 @@ export class UsersResolver {
     );
 
     return result;
+  @ResolveField(() => [PaymentDto], { name: 'payments' })
+  async payments(
+    @Parent() user: User,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+    @Args('sortBy', {
+      type: () => PaymentSortBy,
+      defaultValue: PaymentSortBy.DATE_DESC,
+    })
+    sortBy: PaymentSortBy,
+  ): Promise<PaymentDto[]> {
+    if (!user.profile?.id) {
+      return [];
+    }
+
+    return this.paymentsHttpClient.getUserPayments(
+      user.profile.id,
+      page,
+      limit,
+      sortBy,
+    );
+  }
+
+  @ResolveField(() => [FileDto], { name: 'files' })
+  async files(
+    @Parent() user: User,
+    @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
+    @Args('sortBy', {
+      type: () => FileSortBy,
+      defaultValue: FileSortBy.DATE_DESC,
+    })
+    sortBy: FileSortBy,
+  ): Promise<FileDto[]> {
+    return this.filesHttpClient.getUserFiles(user.id, page, limit, sortBy);
   }
 }

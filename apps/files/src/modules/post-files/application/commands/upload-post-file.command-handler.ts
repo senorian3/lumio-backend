@@ -6,6 +6,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 export class UploadFilesCreatedPostCommand {
   constructor(
     public readonly postId: string,
+    public readonly userId: number,
     public readonly files: Array<{ buffer: Buffer; originalname: string }>,
   ) {}
 }
@@ -23,6 +24,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
 
   async execute({
     postId,
+    userId,
     files,
   }: UploadFilesCreatedPostCommand): Promise<void> {
     let uploadedFiles: Array<{
@@ -48,6 +50,7 @@ export class UploadFilesCreatedPostCommandHandler implements ICommandHandler<
       mimetype: file.mimetype,
       size: file.size,
       postId,
+      userId,
     }));
 
     try {

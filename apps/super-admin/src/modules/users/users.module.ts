@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { IntegrationModule } from '../../core/integration/integration.module';
 import { UsersResolver } from '@super-admin/modules/users/api/users.resolver';
 import { UserRepository } from '@super-admin/modules/users/domain/infrastructure/user.repository';
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';

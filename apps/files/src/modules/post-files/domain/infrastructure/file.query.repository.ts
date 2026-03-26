@@ -37,4 +37,22 @@ export class QueryFileRepository {
 
     return files;
   }
+
+  async getAllFilesByUserId(
+    userId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<PostFileEntity[]> {
+    return this.prisma.postFile.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
 }

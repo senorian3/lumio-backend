@@ -58,6 +58,40 @@ describe('PostFilesController', () => {
     queryBus = module.get(QueryBus);
   });
 
+  describe('getUserFiles', () => {
+    it('should return files for a user with pagination', async () => {
+      const userId = 1;
+      const page = 1;
+      const limit = 20;
+
+      queryBus.execute.mockResolvedValue(mockOutputFiles);
+
+      const result = await postFilesController.getUserFiles(
+        userId,
+        page,
+        limit,
+      );
+
+      expect(result).toEqual(mockOutputFiles);
+      expect(queryBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ userId, page, limit }),
+      );
+    });
+
+    it('should use default pagination values', async () => {
+      const userId = 1;
+
+      queryBus.execute.mockResolvedValue(mockOutputFiles);
+
+      const result = await postFilesController.getUserFiles(userId, 1, 50);
+
+      expect(result).toEqual(mockOutputFiles);
+      expect(queryBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ userId, page: 1, limit: 50 }),
+      );
+    });
+  });
+
   describe('getAllUserPostsFiles', () => {
     it('should return files for multiple post IDs', async () => {
       const inputDto: InputGetUserPostsDto = {
@@ -94,6 +128,7 @@ describe('PostFilesController', () => {
     it('should upload files for post and return file info', async () => {
       const uploadDto: InputUploadFilesDto = {
         postId: 'post-123',
+        userId: 1,
       };
 
       commandBus.execute.mockResolvedValue([]); // Mock PostFileEntity array
@@ -119,6 +154,7 @@ describe('PostFilesController', () => {
     it('should handle empty files array', async () => {
       const uploadDto: InputUploadFilesDto = {
         postId: 'post-456',
+        userId: 1,
       };
       const emptyFiles: Express.Multer.File[] = [];
 

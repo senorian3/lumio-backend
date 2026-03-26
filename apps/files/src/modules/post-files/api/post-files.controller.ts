@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -17,6 +20,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { OutputFileType } from '@libs/dto/output/file-output';
 import { GetAllFilesByPostUserQuery } from '../application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQuery } from '../application/queries/get-all-files-by-post-ids.query-handler';
+import { GetAllFilesByUserIdQuery } from '../application/queries/get-all-files-by-user-id.query-handler';
 import { DeletedPostFilesCommand } from '../application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommand } from '../application/commands/upload-post-file.command-handler';
 import { DeleteFileByKeyCommand } from '../application/commands/delete-file-by-key.command-handler';
@@ -29,6 +33,7 @@ import { ApiGetPostFiles } from '@files/core/decorators/swagger/post-files/get-p
 import { ApiUploadPostFiles } from '@files/core/decorators/swagger/post-files/upload-post-files.decorator';
 import { ApiDeletePostFiles } from '@files/core/decorators/swagger/post-files/delete-post-files.decorator';
 import { ApiDeleteFileByKey } from '@files/core/decorators/swagger/post-files/delete-file-by-key.decorator';
+import { ApiGetUserFiles } from '@files/core/decorators/swagger/post-files/get-user-files.decorator';
 
 @Controller(POST_FILES_BASE)
 @UseGuards(InternalApiGuard)
@@ -59,7 +64,7 @@ export class PostFilesController {
     await this.commandBus.execute<
       UploadFilesCreatedPostCommand,
       PostFileEntity[]
-    >(new UploadFilesCreatedPostCommand(dto.postId, files));
+    >(new UploadFilesCreatedPostCommand(dto.postId, dto.userId, files));
 
     return await this.queryBus.execute<
       GetAllFilesByPostUserQuery,
@@ -80,6 +85,18 @@ export class PostFilesController {
   async deleteFile(@Param('key') key: string): Promise<void> {
     return await this.commandBus.execute<DeleteFileByKeyCommand, void>(
       new DeleteFileByKeyCommand(key),
+    );
+  }
+
+  @Get(POST_FILES_ROUTES.GET_USER_FILES)
+  @ApiGetUserFiles()
+  async getUserFiles(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ): Promise<OutputFileType[]> {
+    return await this.queryBus.execute(
+      new GetAllFilesByUserIdQuery(userId, page, limit),
     );
   }
 }

@@ -51,6 +51,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
       mappedFile = await this.filesHttpAdapter.uploadFiles<OutputFileType[]>(
         `${GLOBAL_PREFIX}/files/upload-post-files`,
         postId,
+        command.userId,
         command.files,
       );
     } catch (error) {

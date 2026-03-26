@@ -5,6 +5,10 @@ import { CoreConfig } from '../core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
 import { PaymentsApiResponse } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
+import { PaymentDto } from './dto/payment.dto';
+import { PaymentSortBy } from './dto/payment-sort-by.enum';
+import { PaymentsResponse } from './dto/payments-response.dto';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class PaymentsHttpClient {
@@ -59,6 +63,26 @@ export class PaymentsHttpClient {
           },
           headers: {
             'Content-Type': 'application/json',
+  async getUserPayments(
+    profileId: number,
+    page: number = 1,
+    limit: number = 20,
+    sortBy: PaymentSortBy = PaymentSortBy.DATE_DESC,
+  ): Promise<PaymentDto[]> {
+    try {
+      const url = `${this.config.paymentsServiceUrl}/api/v1/subscription-payments/profile-payments`;
+
+      const sortByParam = this.mapSortByToApiParam(sortBy);
+
+      const response = await firstValueFrom(
+        this.httpService.get<PaymentsResponse>(url, {
+          params: {
+            profileId,
+            page,
+            limit,
+            sortBy: sortByParam,
+          },
+          headers: {
             'x-internal-api-key': this.config.internalApiKey,
           },
           timeout: 10000,
@@ -76,6 +100,24 @@ export class PaymentsHttpClient {
         data: [],
         totalCount: 0,
       };
+      return response.data.items.map(
+        (item) =>
+          new PaymentDto({
+            id: item.id,
+            datePayment: new Date(item.datePayment),
+            endDate: new Date(item.endDate),
+            amount: item.amount,
+            currency: item.currency,
+            paymentProvider: item.paymentProvider,
+            subscriptionType: item.subscriptionType,
+          }),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Payments service error for profile ${profileId}: ${error.message}`,
+        PaymentsHttpClient.name,
+      );
+      return [];
     }
   }
 
