@@ -4,8 +4,6 @@ import { firstValueFrom } from 'rxjs';
 import { CoreConfig } from '../core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentSortBy } from '@super-admin/modules/users/domain/schema/payment-sort-by.enum';
-import { PaymentsResponse } from '@super-admin/modules/users/domain/schema/payments-response.dto';
-import { PaymentDto } from '@super-admin/modules/users/domain/schema/payment.dto';
 import { PaymentsApiResponse } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
 
 @Injectable()
@@ -15,53 +13,6 @@ export class PaymentsHttpClient {
     private readonly config: CoreConfig,
     private readonly logger: AppLoggerService,
   ) {}
-
-  async getUserPayments(
-    profileId: number,
-    page: number = 1,
-    limit: number = 20,
-    sortBy: PaymentSortBy = PaymentSortBy.CREATED_AT_DESC,
-  ): Promise<PaymentDto[]> {
-    try {
-      const url = `${this.config.paymentsServiceUrl}/api/v1/subscription-payments/profile-payments`;
-
-      const sortByParam = this.mapSortByToApiParam(sortBy);
-
-      const response = await firstValueFrom(
-        this.httpService.get<PaymentsResponse>(url, {
-          params: {
-            profileId,
-            page,
-            limit,
-            sortBy: sortByParam,
-          },
-          headers: {
-            'x-internal-api-key': this.config.internalApiKey,
-          },
-          timeout: 10000,
-        }),
-      );
-
-      return response.data.items.map(
-        (item) =>
-          new PaymentDto({
-            id: item.id,
-            datePayment: new Date(item.datePayment),
-            endDate: new Date(item.endDate),
-            amount: item.amount,
-            currency: item.currency,
-            paymentProvider: item.paymentProvider,
-            subscriptionType: item.subscriptionType,
-          }),
-      );
-    } catch (error) {
-      this.logger.error(
-        `Payments service error for profile ${profileId}: ${error.message}`,
-        PaymentsHttpClient.name,
-      );
-      return [];
-    }
-  }
 
   async getAllPayments(params: {
     profileIds?: number[];
