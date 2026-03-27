@@ -1,8 +1,8 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { User } from '@super-admin/modules/users/domain/schema/user.schema';
+import { Post } from '@super-admin/modules/posts/domain/schema/post/post.schema';
 
 @ObjectType()
-export class PaginatedUserResponse {
+export class PaginatedPostResponse {
   @Field(() => Int)
   page: number;
 
@@ -15,6 +15,6 @@ export class PaginatedUserResponse {
   @Field(() => Int)
   totalCount: number;
 
-  @Field(() => [User])
-  items: User[];
+  @Field(() => [Post])
+  items: Post[];
 }

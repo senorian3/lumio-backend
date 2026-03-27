@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { User } from '@super-admin/modules/users/domain/schema/user.schema';
-import { UserProfile } from '@super-admin/modules/users/domain/schema/user-profile.schema';
-import { AccountType } from '@super-admin/modules/users/domain/schema/account-type.enum';
+import { User } from '@super-admin/modules/users/domain/schema/user/user.schema';
+import { UserProfile } from '@super-admin/modules/users/domain/schema/user/user-profile.schema';
+import { AccountType } from '@super-admin/modules/users/domain/schema/user/account-type.enum';
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';

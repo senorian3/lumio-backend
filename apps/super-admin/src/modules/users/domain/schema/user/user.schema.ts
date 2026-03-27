@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { UserProfile } from '@super-admin/modules/users/domain/schema/user-profile.schema';
+import { UserProfile } from '@super-admin/modules/users/domain/schema/user/user-profile.schema';
 
 @ObjectType()
 export class User {

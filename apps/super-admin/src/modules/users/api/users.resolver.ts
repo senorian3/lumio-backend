@@ -8,8 +8,8 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { User } from '@super-admin/modules/users/domain/schema/user.schema';
-import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
+import { User } from '@super-admin/modules/users/domain/schema/user/user.schema';
+import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/user/paginated-user.entity';
 import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
 import { GetUserQuery } from '@super-admin/modules/users/application/queries/get-user.query-handler';
 import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
@@ -18,8 +18,7 @@ import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
 import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
-import { PaginatedPaymentsOutput } from '../domain/schema/paginated-payments.output.dto';
-import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
+import { PaginatedPaymentResponse } from '@super-admin/core/integration/dto/paginated-all-payment.entity';
 import { GetPaymentsQuery } from '../application/queries/get-payments.query-handler';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
 import { FilesHttpClient } from '@super-admin/core/integration/files-http.client';
@@ -90,7 +89,7 @@ export class UsersResolver {
     return true;
   }
 
-  @Query(() => PaginatedPaymentsOutput)
+  @Query(() => PaginatedPaymentResponse)
   async getPayments(
     @Args('pageNumber', { type: () => Int, defaultValue: 1 })
     pageNumber: number,
@@ -103,7 +102,7 @@ export class UsersResolver {
       defaultValue: PaymentSortBy.DATE_DESC,
     })
     sortBy: PaymentSortBy = PaymentSortBy.DATE_DESC,
-  ): Promise<PaginatedPaymentsOutput> {
+  ): Promise<PaginatedPaymentResponse> {
     const result: PaginatedPaymentResponse = await this.queryBus.execute(
       new GetPaymentsQuery(pageNumber, pageSize, search, sortBy),
     );

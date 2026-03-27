@@ -7,9 +7,9 @@ import {
   SortOrder,
 } from '@super-admin/modules/users/api/dto/input/find-many-options.input.dto';
 
-import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
+import { PaginatedPaymentResponse } from '@super-admin/core/integration/dto/paginated-all-payment.entity';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
-import { PaymentOutput } from '@super-admin/modules/users/domain/schema/all-payment.output.dto';
+import { PaymentOutput } from '@super-admin/core/integration/dto/all-payment.output.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 export class GetPaymentsQuery {
