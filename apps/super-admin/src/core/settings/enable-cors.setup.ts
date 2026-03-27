@@ -11,6 +11,7 @@ export function enableCorsSetup(app: INestApplication) {
       'https://lumio.su',
       'https://www.lumio.su',
       'https://admin.lumio.su',
+      `http://localhost:3004/graphql`,
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

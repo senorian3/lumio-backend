@@ -17,6 +17,7 @@ import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.m
 import { FilesHttpAdapter } from './application/files-http.adapter';
 import { PostFilesRepository } from './domain/infrastructure/post-files.repository';
 import { GetPostByIdQueryHandler } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
+import { PubSubModule } from '@libs/graphql/pub-sub.module';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -37,7 +38,13 @@ const repositories = [PostRepository, PostFilesRepository];
 const queryRepositories = [QueryPostRepository];
 
 @Module({
-  imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
+  imports: [
+    UserAccountsModule,
+    JwtModule,
+    SessionsModule,
+    LoggerModule,
+    PubSubModule,
+  ],
   controllers: [PostsController, MainController],
   providers: [...useCases, ...adapters, ...repositories, ...queryRepositories],
 })
