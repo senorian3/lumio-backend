@@ -18,6 +18,6 @@ export class PostFile {
   @Field({ nullable: true })
   deletedAt: Date | null;
 
-  @Field(() => Post)
-  post: Post;
+  @Field(() => Post, { nullable: true })
+  post?: Post;
 }

@@ -10,6 +10,7 @@ import { FilesHttpAdapter } from '../files-http.adapter';
 import { PostFilesRepository } from '../../domain/infrastructure/post-files.repository';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '@lumio/prisma/prisma.service';
+import { PostEventsPublisher } from '../post-events.publisher';
 
 export class CreatePostCommand {
   constructor(
@@ -31,6 +32,7 @@ export class CreatePostCommandHandler implements ICommandHandler<
     private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
     private readonly prisma: PrismaService,
+    private readonly postEventsPublisher: PostEventsPublisher,
   ) {}
 
   async execute(
@@ -59,8 +61,10 @@ export class CreatePostCommandHandler implements ICommandHandler<
     }
 
     try {
+      let newPost: PostEntity;
+
       await this.prisma.$transaction(async (tx) => {
-        const newPost: PostEntity = await this.postRepository.createPost(
+        newPost = await this.postRepository.createPost(
           command.userId,
           postId,
           command.description,
@@ -71,6 +75,33 @@ export class CreatePostCommandHandler implements ICommandHandler<
           mappedFile,
           tx,
         );
+      });
+
+      const userInfo =
+        await this.externalQueryUserAccountsRepository.getUserInfo(
+          command.userId,
+        );
+
+      await this.postEventsPublisher.publishPostCreated({
+        id: postId,
+        description: command.description,
+        createdAt: newPost.createdAt,
+        deletedAt: newPost.deletedAt,
+        userId: command.userId,
+        user: {
+          id: userInfo.id,
+          username: userInfo.username,
+          email: userInfo.email,
+          createdAt: userInfo.createdAt,
+          isBlocked: userInfo.isBlocked,
+        },
+        files: mappedFile.map((file) => ({
+          id: file.id,
+          url: file.url,
+          postId: file.postId,
+          createdAt: file.createdAt,
+          deletedAt: null,
+        })),
       });
 
       return { files: mappedFile, postId };

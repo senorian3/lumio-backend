@@ -12,11 +12,11 @@ export class User {
   @Field()
   email: string;
 
-  @Field()
-  createdAt: Date;
+  @Field(() => Date, { nullable: true })
+  createdAt?: Date;
 
-  @Field(() => Boolean)
-  isBlocked: boolean;
+  @Field(() => Boolean, { nullable: true })
+  isBlocked?: boolean;
 
   @Field(() => Date, { nullable: true })
   bannedAt?: Date;

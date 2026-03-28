@@ -26,6 +26,9 @@ import { PostsModule } from '@super-admin/modules/posts/posts.module';
       sortSchema: true,
       playground: true,
       introspection: true,
+      subscriptions: {
+        'graphql-ws': true,
+      },
       context: ({ req, res }) => ({ req, res }),
     }),
     LoggerModule,

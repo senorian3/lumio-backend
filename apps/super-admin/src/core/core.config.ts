@@ -54,6 +54,11 @@ export class CoreConfig {
   })
   filesServiceUrl: string = this.configService.get('FILES_SERVICE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable RMQ_URL, example: amqp://localhost:5672',
+  })
+  rmqUrl: string = this.configService.get('RMQ_URL');
+
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
