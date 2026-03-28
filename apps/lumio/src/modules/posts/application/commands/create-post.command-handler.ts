@@ -10,9 +10,6 @@ import { FilesHttpAdapter } from '../files-http.adapter';
 import { PostFilesRepository } from '../../domain/infrastructure/post-files.repository';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { PubSub } from 'graphql-subscriptions';
-import { Inject } from '@nestjs/common';
-import { PUB_SUB } from '@libs/graphql/pub-sub.module';
 
 export class CreatePostCommand {
   constructor(
@@ -34,7 +31,6 @@ export class CreatePostCommandHandler implements ICommandHandler<
     private readonly filesHttpAdapter: FilesHttpAdapter,
     private readonly logger: AppLoggerService,
     private readonly prisma: PrismaService,
-    @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
   async execute(
@@ -76,22 +72,6 @@ export class CreatePostCommandHandler implements ICommandHandler<
           tx,
         );
       });
-
-      const createdPost = await this.prisma.post.findUnique({
-        where: { id: postId },
-        include: {
-          user: true,
-          files: {
-            where: { deletedAt: null },
-          },
-        },
-      });
-
-      if (createdPost) {
-        await this.pubSub.publish('POST_CREATED_EVENT', {
-          postCreated: createdPost,
-        });
-      }
 
       return { files: mappedFile, postId };
     } catch (error) {

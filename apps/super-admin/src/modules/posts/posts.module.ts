@@ -4,14 +4,13 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { PostResolver } from '@super-admin/modules/posts/api/posts.resolver';
 import { GetPostsQueryHandler } from '@super-admin/modules/posts/application/queries/get-posts.query-handler';
 import { PostsQueryRepository } from '@super-admin/modules/posts/domain/infrastructure/posts.query-repository';
-import { PubSubModule } from '@libs/graphql/pub-sub.module';
 
 const repositories = [PostsQueryRepository];
 const queryHandlers = [GetPostsQueryHandler];
 const commandHandlers = [];
 
 @Module({
-  imports: [PrismaModule, CqrsModule, PubSubModule],
+  imports: [PrismaModule, CqrsModule],
   providers: [
     PostResolver,
     ...repositories,
