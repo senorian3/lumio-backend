@@ -18,9 +18,7 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
 
   constructor(private readonly coreConfig: CoreConfig) {}
 
-  async onModuleInit() {
-    setTimeout(() => this.connectToRabbitMQ(), 1000);
-  }
+  async onModuleInit() {}
 
   private async connectToRabbitMQ(): Promise<void> {
     try {
@@ -35,7 +33,6 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
           'RabbitMQ connection closed, attempting to reconnect...',
         );
         this.channel = null;
-        setTimeout(() => this.connectToRabbitMQ(), 5000);
       });
 
       this.channel = await this.connection.createChannel();
@@ -97,7 +94,6 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
       );
       this.channel = null;
       this.connection = null;
-      setTimeout(() => this.connectToRabbitMQ(), 5000);
     }
   }
 
