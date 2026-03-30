@@ -37,8 +37,18 @@ describe('GetAllFilesByPostIdsQueryHandler', () => {
   ];
 
   const expectedOutputFiles: OutputFileType[] = [
-    { id: 1, url: 'https://example.com/file1.jpg', postId: '123' },
-    { id: 2, url: 'https://example.com/file2.png', postId: '456' },
+    {
+      id: 1,
+      url: 'https://example.com/file1.jpg',
+      postId: '123',
+      createdAt: new Date('2023-01-01'),
+    },
+    {
+      id: 2,
+      url: 'https://example.com/file2.png',
+      postId: '456',
+      createdAt: new Date('2023-01-02'),
+    },
   ];
 
   beforeEach(async () => {
