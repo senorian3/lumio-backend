@@ -10,9 +10,11 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
   public readonly pubSub: PubSub = new PubSub();
-  private readonly logger: AppLoggerService;
 
-  constructor(private readonly coreConfig: CoreConfig) {}
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly logger: AppLoggerService,
+  ) {}
 
   async onModuleInit() {}
 
