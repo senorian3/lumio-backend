@@ -4,24 +4,24 @@ import { PostFile } from '@super-admin/modules/posts/domain/schema/post/post-fil
 
 @ObjectType()
 export class Post {
-  @Field()
+  @Field({ description: 'Уникальный идентификатор поста' })
   id: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Описание поста' })
   description: string | null;
 
-  @Field()
+  @Field({ description: 'Дата создания' })
   createdAt: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Дата удаления' })
   deletedAt: Date | null;
 
-  @Field(() => Int)
+  @Field(() => Int, { description: 'ID автора поста' })
   userId: number;
 
-  @Field(() => User)
+  @Field(() => User, { description: 'Автор поста' })
   user: User;
 
-  @Field(() => [PostFile])
+  @Field(() => [PostFile], { description: 'Файлы поста' })
   files: PostFile[];
 }

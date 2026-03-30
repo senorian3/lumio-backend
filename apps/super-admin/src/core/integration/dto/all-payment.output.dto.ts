@@ -2,75 +2,75 @@ import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 
 @ObjectType()
 export class PaymentOutput {
-  @Field(() => Int)
+  @Field(() => Int, { description: 'Уникальный идентификатор платежа' })
   id: number;
 
-  @Field()
+  @Field({ description: 'Кастомный ID платежа' })
   customPaymentId: string;
 
-  @Field(() => Int)
+  @Field(() => Int, { description: 'ID профиля' })
   profileId: number;
 
-  @Field()
+  @Field({ description: 'Имя пользователя' })
   username?: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'URL аватара' })
   avatarUrl?: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Имя' })
   firstName?: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Фамилия' })
   lastName?: string;
 
-  @Field()
+  @Field({ description: 'Автопродление' })
   autoRenewal: boolean;
 
-  @Field()
+  @Field({ description: 'Платежный провайдер' })
   paymentProvider: string;
 
-  @Field()
+  @Field({ description: 'Валюта' })
   currency: string;
 
-  @Field(() => Float)
+  @Field(() => Float, { description: 'Сумма платежа' })
   amount: number;
 
-  @Field()
+  @Field({ description: 'Статус платежа' })
   status: string;
 
-  @Field()
+  @Field({ description: 'Дата создания' })
   createdAt: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Дата следующего платежа' })
   nextPaymentDate?: Date;
 
-  @Field()
+  @Field({ description: 'Дата создания в Stripe' })
   stripePaymentCreatedAt: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Дата обновления' })
   updatedAt?: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Дата отмены' })
   cancelledAt?: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'ID подписки' })
   subscriptionId?: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'ID основной подписки' })
   mainSubscriptionId?: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'ID Stripe подписки' })
   stripeSubscriptionId?: string;
 
-  @Field()
+  @Field({ description: 'Тип подписки' })
   subscriptionType: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Начало периода' })
   periodStart?: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Конец периода' })
   periodEnd?: Date;
 
-  @Field()
+  @Field({ description: 'URL для оплаты' })
   paymentsUrl: string;
 }

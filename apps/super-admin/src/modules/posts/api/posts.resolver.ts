@@ -8,7 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { QueryBus } from '@nestjs/cqrs';
 import { UseGuards } from '@nestjs/common';
-import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
+import { SuperAdminJwtGuard } from '@super-admin/core/guard/jwt/super-admin-jwt.guard';
 import { Post } from '@super-admin/modules/posts/domain/schema/post/post.schema';
 import { PaginatedPostResponse } from '../domain/schema/post/paginated-post.schema';
 import { User } from '@super-admin/modules/users/domain/schema/user/user.schema';
@@ -17,7 +17,7 @@ import { PostSortBy } from '@super-admin/modules/posts/domain/schema/post/post-s
 import { GetPostsQuery } from '@super-admin/modules/posts/application/queries/get-posts.query-handler';
 
 @Resolver(() => Post)
-@UseGuards(BasicAuthGuard)
+@UseGuards(SuperAdminJwtGuard)
 export class PostResolver {
   constructor(private readonly queryBus: QueryBus) {}
 

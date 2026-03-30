@@ -3,21 +3,24 @@ import { Post } from '@super-admin/modules/posts/domain/schema/post/post.schema'
 
 @ObjectType()
 export class PostFile {
-  @Field(() => Int)
+  @Field(() => Int, { description: 'Уникальный идентификатор файла' })
   id: number;
 
-  @Field()
+  @Field({ description: 'ID поста' })
   postId: string;
 
-  @Field()
+  @Field({ description: 'URL файла' })
   url: string;
 
-  @Field()
+  @Field({ description: 'Дата создания' })
   createdAt: Date;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'Дата удаления' })
   deletedAt: Date | null;
 
-  @Field(() => Post, { nullable: true })
+  @Field(() => Post, {
+    nullable: true,
+    description: 'Пост, к которому относится файл',
+  })
   post?: Post;
 }

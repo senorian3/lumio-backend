@@ -3,6 +3,7 @@ import { PrismaService } from '@super-admin/prisma/prisma.service';
 import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';
 import { FindManyOptionsInputDto } from '@super-admin/modules/users/api/dto/input/find-many-options.input.dto';
 import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
+import { UserBlockedFilter } from '@super-admin/core/schema/user-blocked-filter.enum';
 
 @Injectable()
 export class UserQueryRepository {
@@ -83,6 +84,14 @@ export class UserQueryRepository {
       };
     }
 
+    if (options.blockedFilter) {
+      if (options.blockedFilter === UserBlockedFilter.BLOCKED) {
+        where.isBlocked = true;
+      } else if (options.blockedFilter === UserBlockedFilter.NOT_BLOCKED) {
+        where.isBlocked = false;
+      }
+    }
+
     let orderBy: any = { createdAt: 'desc' };
 
     if (options.sortBy) {
@@ -125,6 +134,14 @@ export class UserQueryRepository {
         contains: options.search,
         mode: 'insensitive',
       };
+    }
+
+    if (options?.blockedFilter) {
+      if (options.blockedFilter === UserBlockedFilter.BLOCKED) {
+        where.isBlocked = true;
+      } else if (options.blockedFilter === UserBlockedFilter.NOT_BLOCKED) {
+        where.isBlocked = false;
+      }
     }
 
     return this.prisma.user.count({ where });

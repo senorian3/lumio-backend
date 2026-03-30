@@ -11,10 +11,11 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { User } from '@super-admin/modules/users/domain/schema/user/user.schema';
 import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/user/paginated-user.entity';
 import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
+import { UserBlockedFilter } from '@super-admin/core/schema/user-blocked-filter.enum';
 import { GetUserQuery } from '@super-admin/modules/users/application/queries/get-user.query-handler';
 import { GetUsersQuery } from '@super-admin/modules/users/application/queries/get-users.query-handler';
 import { UseGuards } from '@nestjs/common';
-import { BasicAuthGuard } from '@super-admin/core/guard/basic-auth.guard';
+import { SuperAdminJwtGuard } from '@super-admin/core/guard/jwt/super-admin-jwt.guard';
 import { DeletedUserCommand } from '@super-admin/modules/users/application/commands/deleted-user.command-handler';
 import { BanUserCommand } from '@super-admin/modules/users/application/commands/ban-user.command-handler';
 import { UnBanUserCommand } from '@super-admin/modules/users/application/commands/unban-user.command-handler';
@@ -28,7 +29,7 @@ import { FileSortBy } from '@super-admin/core/integration/dto/file-sort-by.enum'
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 @Resolver(() => User)
-@UseGuards(BasicAuthGuard)
+@UseGuards(SuperAdminJwtGuard)
 export class UsersResolver {
   constructor(
     private readonly queryBus: QueryBus,
@@ -58,9 +59,14 @@ export class UsersResolver {
       defaultValue: UserSortBy.CREATED_AT_DESC,
     })
     sortBy: UserSortBy = UserSortBy.CREATED_AT_DESC,
+    @Args('blockedFilter', {
+      type: () => UserBlockedFilter,
+      nullable: true,
+    })
+    blockedFilter?: UserBlockedFilter,
   ): Promise<PaginatedUserResponse> {
     return this.queryBus.execute(
-      new GetUsersQuery(pageNumber, pageSize, search, sortBy),
+      new GetUsersQuery(pageNumber, pageSize, search, sortBy, blockedFilter),
     );
   }
 

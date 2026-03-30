@@ -6,6 +6,7 @@ import { AccountType } from '@super-admin/modules/users/domain/schema/user/accou
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
+import { UserBlockedFilter } from '@super-admin/core/schema/user-blocked-filter.enum';
 import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';
 import {
   FindManyOptionsInputDto,
@@ -18,6 +19,7 @@ export class GetUsersQuery {
     public readonly pageSize: number = 10,
     public readonly search?: string,
     public readonly sortBy: UserSortBy = UserSortBy.CREATED_AT_DESC,
+    public readonly blockedFilter?: UserBlockedFilter,
   ) {}
 }
 
@@ -50,6 +52,7 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
         orderBy,
         search: query.search,
         sortBy: query.sortBy,
+        blockedFilter: query.blockedFilter,
       };
 
       const [users, totalCount] = await Promise.all([

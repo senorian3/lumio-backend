@@ -6,6 +6,7 @@ import { proxySetup } from '@libs/settings/proxy-setup';
 import { validationConstraintsSetup } from '@libs/settings/validation-constraints.setup';
 import { CoreConfig } from '@super-admin/core/core.config';
 import { enableCorsSetup } from '@super-admin/core/settings/enable-cors.setup';
+import { graphqlExceptionFilterSetup } from '@super-admin/core/settings/graphql-exception-filter.setup';
 
 export function appSetup(
   app: INestApplication,
@@ -17,5 +18,6 @@ export function appSetup(
   globalPrefixSetup(app);
   pipesSetup(app);
   validationConstraintsSetup(app, DynamicAppModule);
+  graphqlExceptionFilterSetup(app);
   cookieParserSetup(app);
 }

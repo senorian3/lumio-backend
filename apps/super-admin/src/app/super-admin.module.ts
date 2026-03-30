@@ -11,6 +11,7 @@ import { PrismaModule } from '@super-admin/prisma/prisma.module';
 import { HealthModule } from '@super-admin/modules/health/health.module';
 import { UsersModule } from '@super-admin/modules/users/users.module';
 import { PostsModule } from '@super-admin/modules/posts/posts.module';
+import { AuthModule } from '@super-admin/modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PostsModule } from '@super-admin/modules/posts/posts.module';
     }),
     UsersModule,
     PostsModule,
+    AuthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
