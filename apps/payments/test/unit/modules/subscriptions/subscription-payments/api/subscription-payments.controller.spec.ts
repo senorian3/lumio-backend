@@ -73,6 +73,7 @@ describe('SubscriptionPaymentsController', () => {
           profileId,
           page,
           limit,
+          'date_desc',
         );
 
       expect(result).toEqual({
@@ -99,7 +100,12 @@ describe('SubscriptionPaymentsController', () => {
       queryBus.execute.mockResolvedValue(queryResult);
 
       const result =
-        await subscriptionPaymentsController.getUserProfilePayments(profileId);
+        await subscriptionPaymentsController.getUserProfilePayments(
+          profileId,
+          defaultPage,
+          defaultLimit,
+          'date_desc',
+        );
 
       expect(result).toEqual({
         items: [],
