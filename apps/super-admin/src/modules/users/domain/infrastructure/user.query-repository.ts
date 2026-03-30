@@ -31,7 +31,6 @@ export class UserQueryRepository {
       return [];
     }
 
-    // Убираем дубликаты
     const uniqueProfileIds = [...new Set(profileIds)];
 
     const users = await this.prisma.user.findMany({
@@ -54,7 +53,6 @@ export class UserQueryRepository {
       return [];
     }
 
-    // Убираем дубликаты
     const uniqueIds = [...new Set(ids)];
 
     const users = await this.prisma.user.findMany({

@@ -1,11 +1,9 @@
-import { Catch, HttpException, Logger } from '@nestjs/common';
+import { Catch, HttpException } from '@nestjs/common';
 import { GqlExceptionFilter } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 
 @Catch()
 export class GraphQLExceptionFilter implements GqlExceptionFilter {
-  private readonly logger = new Logger(GraphQLExceptionFilter.name);
-
   catch(exception: unknown): GraphQLError {
     if (exception instanceof GraphQLError) {
       const code = exception.extensions?.code;
@@ -30,8 +28,6 @@ export class GraphQLExceptionFilter implements GqlExceptionFilter {
         },
       });
     }
-
-    this.logger.error(exception);
 
     return new GraphQLError('Internal server error', {
       extensions: {

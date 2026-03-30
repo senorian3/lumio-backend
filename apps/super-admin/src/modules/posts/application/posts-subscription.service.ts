@@ -1,20 +1,16 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { PubSub } from 'graphql-subscriptions';
 import { CoreConfig } from '@super-admin/core/core.config';
 import { PostCreatedSubscription } from '../domain/schema/post/post-created-subscription.schema';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
   private connection: amqp.Connection;
   private channel: amqp.Channel;
   public readonly pubSub: PubSub = new PubSub();
-  private readonly logger = new Logger(PostsSubscriptionService.name);
+  private readonly logger: AppLoggerService;
 
   constructor(private readonly coreConfig: CoreConfig) {}
 

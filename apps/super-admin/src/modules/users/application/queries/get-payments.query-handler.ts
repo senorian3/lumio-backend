@@ -197,7 +197,6 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
     const user = userMap.get(dto.profileId);
 
     return {
-      // 🔹 Payment данные
       id: dto.id,
       customPaymentId: dto.customPaymentId,
       profileId: dto.profileId,
@@ -221,7 +220,6 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
       periodEnd: dto.periodEnd ? new Date(dto.periodEnd) : undefined,
       paymentsUrl: dto.paymentsUrl,
 
-      // 👤 User данные
       username: user?.username ?? 'Unknown',
       avatarUrl: user?.profile?.avatarUrl ?? undefined,
       firstName: user?.profile?.firstName ?? undefined,
