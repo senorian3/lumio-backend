@@ -15,8 +15,18 @@ describe('GetCreatePostQueryHandler', () => {
 
   const mockPostId = '100';
   const mockFiles: OutputFileType[] = [
-    new OutputFileType(1, 'https://example.com/file1.jpg', mockPostId),
-    new OutputFileType(2, 'https://example.com/file2.jpg', mockPostId),
+    new OutputFileType(
+      1,
+      'https://example.com/file1.jpg',
+      mockPostId,
+      new Date('2024-01-15T10:30:00Z'),
+    ),
+    new OutputFileType(
+      2,
+      'https://example.com/file2.jpg',
+      mockPostId,
+      new Date('2024-01-15T10:30:00Z'),
+    ),
   ];
 
   const mockUserProfile = {
@@ -164,7 +174,12 @@ describe('GetCreatePostQueryHandler', () => {
     it('should correctly pass files to PostView.fromEntity', async () => {
       // Arrange
       const customFiles: OutputFileType[] = [
-        new OutputFileType(5, 'https://example.com/custom.jpg', mockPostId),
+        new OutputFileType(
+          5,
+          'https://example.com/custom.jpg',
+          mockPostId,
+          new Date('2024-01-15T10:30:00Z'),
+        ),
       ];
       const query = new GetCreatePostUserQuery(mockPostId, customFiles);
 
