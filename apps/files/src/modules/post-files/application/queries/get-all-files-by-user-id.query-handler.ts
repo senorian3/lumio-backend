@@ -27,7 +27,8 @@ export class GetAllFilesByUserIdQueryHandler implements IQueryHandler<
     );
 
     const mappedFiles = files.map(
-      (file) => new OutputFileType(file.id, file.url, file.postId),
+      (file) =>
+        new OutputFileType(file.id, file.url, file.postId, file.createdAt),
     );
 
     return mappedFiles;

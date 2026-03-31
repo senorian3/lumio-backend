@@ -27,8 +27,18 @@ describe('PostFilesController', () => {
   ] as Express.Multer.File[];
 
   const mockOutputFiles: OutputFileType[] = [
-    new OutputFileType(1, 'https://example.com/file1.jpg', 'post-123'),
-    new OutputFileType(2, 'https://example.com/file2.jpg', 'post-123'),
+    new OutputFileType(
+      1,
+      'https://example.com/file1.jpg',
+      'post-123',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
+    new OutputFileType(
+      2,
+      'https://example.com/file2.jpg',
+      'post-123',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
   ];
 
   beforeEach(async () => {
@@ -70,6 +80,7 @@ describe('PostFilesController', () => {
         userId,
         page,
         limit,
+        'date_desc',
       );
 
       expect(result).toEqual(mockOutputFiles);
@@ -83,7 +94,12 @@ describe('PostFilesController', () => {
 
       queryBus.execute.mockResolvedValue(mockOutputFiles);
 
-      const result = await postFilesController.getUserFiles(userId, 1, 50);
+      const result = await postFilesController.getUserFiles(
+        userId,
+        1,
+        50,
+        'date_desc',
+      );
 
       expect(result).toEqual(mockOutputFiles);
       expect(queryBus.execute).toHaveBeenCalledWith(

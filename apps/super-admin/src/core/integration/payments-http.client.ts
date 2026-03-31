@@ -3,10 +3,15 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CoreConfig } from '../core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { PaymentsApiResponse } from '@super-admin/modules/users/domain/infrastructure/payments-api.client';
+
 import { PaymentDto } from './dto/payment.dto';
 import { PaymentsResponse } from './dto/payments-response.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
+
+export interface PaymentsApiResponse {
+  data: any[];
+  totalCount: number;
+}
 
 @Injectable()
 export class PaymentsHttpClient {

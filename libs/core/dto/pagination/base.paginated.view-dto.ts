@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export abstract class PaginatedViewDto<T> {
-  @ApiProperty({ type: [Object] }) // Добавьте декоратор для Swagger
+  @ApiProperty({ type: [Object] })
   items: T;
 
   @ApiProperty()
@@ -17,7 +17,7 @@ export abstract class PaginatedViewDto<T> {
   pageSize: number;
 
   @ApiProperty({ example: 5, required: false })
-  unreadCount?: number; // ✅ Новое поле
+  unreadCount?: number;
 
   public static mapToView<T>(data: {
     items: T;

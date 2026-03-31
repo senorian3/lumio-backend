@@ -3,5 +3,6 @@ export class OutputFileType {
     public id: number,
     public url: string,
     public postId: string,
+    public createdAt: Date,
   ) {}
 }

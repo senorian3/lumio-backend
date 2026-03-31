@@ -28,7 +28,12 @@ describe('PostsController', () => {
     userId: 1,
 
     postFiles: [
-      new OutputFileType(1, 'https://example.com/file.jpg', 'post-123'),
+      new OutputFileType(
+        1,
+        'https://example.com/file.jpg',
+        'post-123',
+        new Date('2024-01-15T10:30:00Z'),
+      ),
     ],
   };
 
@@ -50,8 +55,18 @@ describe('PostsController', () => {
   ] as Express.Multer.File[];
 
   const mockOutputFiles: OutputFileType[] = [
-    new OutputFileType(1, 'https://example.com/file1.jpg', 'post-123'),
-    new OutputFileType(2, 'https://example.com/file2.jpg', 'post-123'),
+    new OutputFileType(
+      1,
+      'https://example.com/file1.jpg',
+      'post-123',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
+    new OutputFileType(
+      2,
+      'https://example.com/file2.jpg',
+      'post-123',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
   ];
 
   beforeEach(async () => {

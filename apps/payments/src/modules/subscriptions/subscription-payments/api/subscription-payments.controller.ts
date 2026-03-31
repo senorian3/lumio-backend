@@ -23,6 +23,7 @@ import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscrip
 import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
 import { ApiPaymentSuccess } from '@payments/core/decorators/swagger/subscription-payments/payment-success.decorator';
 import { ApiPaymentError } from '@payments/core/decorators/swagger/subscription-payments/payment-error.decorator';
+import { ApiGetAllPayments } from '@payments/core/decorators/swagger/subscription-payments/get-all-payments.decorator';
 import { ApiGetUserProfilePayments } from '@payments/core/decorators/swagger/subscription-payments/get-user-profile-payments.decorator';
 import {
   SUBSCRIPTION_PAYMENTS_BASE,
@@ -116,6 +117,7 @@ export class SubscriptionPaymentsController {
   }
 
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ALL_PAYMENTS)
+  @ApiGetAllPayments()
   @UseGuards(InternalApiGuard)
   async getAllPayments(@Query() query: GetAllPaymentsQueryDto) {
     const result = await this.queryBus.execute(

@@ -54,6 +54,37 @@ export class CoreConfig {
   })
   filesServiceUrl: string = this.configService.get('FILES_SERVICE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable RMQ_URL, example: amqp://localhost:5672',
+  })
+  rmqUrl: string = this.configService.get('RMQ_URL');
+
+  @IsNotEmpty({
+    message: 'Set Env variable SUPER_ADMIN_SECRET',
+  })
+  superAdminSecret: string = this.configService.get('SUPER_ADMIN_SECRET');
+
+  @IsNotEmpty({
+    message: 'Set Env variable SUPER_ADMIN_EMAIL',
+  })
+  superAdminEmail: string = this.configService.get('SUPER_ADMIN_EMAIL');
+
+  @IsNotEmpty({
+    message: 'Set Env variable SUPER_ADMIN_PASSWORD',
+  })
+  superAdminPassword: string = this.configService.get('SUPER_ADMIN_PASSWORD');
+
+  @IsNumber(
+    {},
+    {
+      message:
+        'Set Env variable SUPER_ADMIN_TOKEN_EXPIRATION_MINUTES, example: 15',
+    },
+  )
+  superAdminTokenExpirationMinutes: number = Number(
+    this.configService.get('SUPER_ADMIN_TOKEN_EXPIRATION_MINUTES'),
+  );
+
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }

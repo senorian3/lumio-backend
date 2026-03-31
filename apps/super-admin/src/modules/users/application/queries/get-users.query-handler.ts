@@ -1,12 +1,10 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/paginated-user.entity';
-import { User } from '@super-admin/modules/users/domain/schema/user.schema';
-import { UserProfile } from '@super-admin/modules/users/domain/schema/user-profile.schema';
-import { AccountType } from '@super-admin/modules/users/domain/schema/account-type.enum';
+import { PaginatedUserResponse } from '@super-admin/modules/users/domain/schema/user/paginated-user.entity';
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { UserSortBy } from '@super-admin/core/schema/user-sort-by.enum';
-import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';
+import { UserBlockedFilter } from '@super-admin/core/schema/user-blocked-filter.enum';
+import { UserMapper } from '../mappers/user.mapper';
 import {
   FindManyOptionsInputDto,
   SortOrder,
@@ -18,11 +16,14 @@ export class GetUsersQuery {
     public readonly pageSize: number = 10,
     public readonly search?: string,
     public readonly sortBy: UserSortBy = UserSortBy.CREATED_AT_DESC,
+    public readonly blockedFilter?: UserBlockedFilter,
   ) {}
 }
 
 @QueryHandler(GetUsersQuery)
 export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
+  private readonly userMapper = new UserMapper();
+
   constructor(
     private readonly userQueryRepository: UserQueryRepository,
     private readonly logger: AppLoggerService,
@@ -50,6 +51,7 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
         orderBy,
         search: query.search,
         sortBy: query.sortBy,
+        blockedFilter: query.blockedFilter,
       };
 
       const [users, totalCount] = await Promise.all([
@@ -65,7 +67,7 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
         pageSize: query.pageSize,
         pagesCount: pagesCount,
         totalCount: totalCount,
-        items: users.map((user) => this.mapFromDto(user)),
+        items: this.userMapper.mapFromDtoArray(users),
       };
     } catch (error) {
       this.logger.error(
@@ -82,36 +84,5 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
         items: [],
       };
     }
-  }
-
-  private mapFromDto(dto: UserWithProfileOutputDto): User {
-    return {
-      id: dto.id,
-      username: dto.username,
-      email: dto.email,
-      createdAt: dto.createdAt,
-      isBlocked: dto.isBlocked ?? false,
-      bannedAt: dto.bannedAt || undefined,
-      banReason: dto.banReason || undefined,
-      profile: dto.profile ? this.mapProfileFromDto(dto.profile) : undefined,
-    };
-  }
-
-  private mapProfileFromDto(profileDto: any): UserProfile {
-    return {
-      id: profileDto.id,
-      firstName: profileDto.firstName || undefined,
-      lastName: profileDto.lastName || undefined,
-      dateOfBirth: profileDto.dateOfBirth || undefined,
-      country: profileDto.country || undefined,
-      city: profileDto.city || undefined,
-      aboutMe: profileDto.aboutMe || undefined,
-      avatarUrl: profileDto.avatarUrl || undefined,
-      profileFilled: profileDto.profileFilled || false,
-      profileFilledAt: profileDto.profileFilledAt || undefined,
-      profileUpdatedAt: profileDto.profileUpdatedAt || undefined,
-      accountType:
-        (profileDto.accountType as AccountType) || AccountType.PERSONAL,
-    };
   }
 }

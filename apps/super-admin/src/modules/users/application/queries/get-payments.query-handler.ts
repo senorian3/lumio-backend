@@ -7,9 +7,9 @@ import {
   SortOrder,
 } from '@super-admin/modules/users/api/dto/input/find-many-options.input.dto';
 
-import { PaginatedPaymentResponse } from '@super-admin/modules/users/domain/schema/paginated-payment.entity';
+import { PaginatedPaymentResponse } from '@super-admin/core/integration/dto/paginated-all-payment.entity';
 import { PaymentsHttpClient } from '@super-admin/core/integration/payments-http.client';
-import { PaymentOutput } from '@super-admin/modules/users/domain/schema/all-payment.output.dto';
+import { PaymentOutput } from '@super-admin/core/integration/dto/all-payment.output.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
 
 export class GetPaymentsQuery {
@@ -197,7 +197,6 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
     const user = userMap.get(dto.profileId);
 
     return {
-      // 🔹 Payment данные
       id: dto.id,
       customPaymentId: dto.customPaymentId,
       profileId: dto.profileId,
@@ -221,7 +220,6 @@ export class GetPaymentsHandler implements IQueryHandler<GetPaymentsQuery> {
       periodEnd: dto.periodEnd ? new Date(dto.periodEnd) : undefined,
       paymentsUrl: dto.paymentsUrl,
 
-      // 👤 User данные
       username: user?.username ?? 'Unknown',
       avatarUrl: user?.profile?.avatarUrl ?? undefined,
       firstName: user?.profile?.firstName ?? undefined,

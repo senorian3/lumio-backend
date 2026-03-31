@@ -44,7 +44,14 @@ describe('GetMainPageQueryHandler', () => {
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       userId: 1,
-      postFiles: [{ id: 1, url: 'https://example.com/file1.jpg', postId: '1' }],
+      postFiles: [
+        {
+          id: 1,
+          url: 'https://example.com/file1.jpg',
+          postId: '1',
+          createdAt: new Date('2024-01-01'),
+        },
+      ],
     },
     {
       id: '2',

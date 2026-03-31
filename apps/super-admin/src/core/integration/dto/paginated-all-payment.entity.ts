@@ -1,8 +1,8 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { PaymentOutput } from '@super-admin/modules/users/domain/schema/all-payment.output.dto';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { PaymentOutput } from '@super-admin/core/integration/dto/all-payment.output.dto';
 
 @ObjectType()
-export class PaginatedPaymentsOutput {
+export class PaginatedPaymentResponse {
   @Field(() => Int)
   page: number;
 
