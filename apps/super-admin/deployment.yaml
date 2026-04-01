@@ -95,6 +95,16 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-sa-production-config-secret
                   key: SUPER_ADMIN_TOKEN_EXPIRATION_MINUTES
+            - name: IS_GRAPHQL_PLAYGROUND_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-sa-production-config-secret
+                  key: IS_GRAPHQL_PLAYGROUND_ENABLED
+            - name: IS_GRAPHQL_INTROSPECTION_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-sa-production-config-secret
+                  key: IS_GRAPHQL_INTROSPECTION_ENABLED
             - name: NODE_ENV
               valueFrom:
                 secretKeyRef:

@@ -22,16 +22,20 @@ import { AuthModule } from '@super-admin/modules/auth/auth.module';
     UsersModule,
     PostsModule,
     AuthModule,
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
-      sortSchema: true,
-      playground: true,
-      introspection: true,
-      subscriptions: {
-        'graphql-ws': true,
-      },
-      context: ({ req, res }) => ({ req, res }),
+      useFactory: (coreConfig: CoreConfig) => ({
+        autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
+        sortSchema: true,
+        playground: coreConfig.isGraphqlPlaygroundEnabled,
+        introspection: coreConfig.isGraphqlIntrospectionEnabled,
+        path: 'api/v1/graphql',
+        subscriptions: {
+          'graphql-ws': true,
+        },
+        context: ({ req, res }) => ({ req, res }),
+      }),
+      inject: [CoreConfig],
     }),
     LoggerModule,
     CoreModule,

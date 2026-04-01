@@ -31,12 +31,26 @@ export class CoreConfig {
   })
   env: string = this.configService.get('NODE_ENV');
 
+  @IsNotEmpty({
+    message: 'Set Env variable IS_GRAPHQL_PLAYGROUND_ENABLED',
+  })
   @IsBoolean({
     message:
       'Set Env variable IS_GRAPHQL_PLAYGROUND_ENABLED to enable/disable GraphQL Playground, example: true, available values: true, false',
   })
   isGraphqlPlaygroundEnabled = configValidationUtility.convertToBoolean(
     this.configService.get('IS_GRAPHQL_PLAYGROUND_ENABLED'),
+  ) as boolean;
+
+  @IsNotEmpty({
+    message: 'Set Env variable IS_GRAPHQL_INTROSPECTION_ENABLED',
+  })
+  @IsBoolean({
+    message:
+      'Set Env variable IS_GRAPHQL_INTROSPECTION_ENABLED to enable/disable GraphQL Introspection, example: true, available values: true, false',
+  })
+  isGraphqlIntrospectionEnabled = configValidationUtility.convertToBoolean(
+    this.configService.get('IS_GRAPHQL_INTROSPECTION_ENABLED'),
   ) as boolean;
 
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
