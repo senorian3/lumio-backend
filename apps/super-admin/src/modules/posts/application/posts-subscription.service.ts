@@ -16,7 +16,9 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async onModuleInit() {}
+  async onModuleInit() {
+    await this.connectToRabbitMQ();
+  }
 
   private async connectToRabbitMQ(): Promise<void> {
     try {
@@ -43,6 +45,9 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
         this.channel = null;
       });
 
+      await this.channel.assertExchange('lumio_events', 'topic', {
+        durable: true,
+      });
       await this.channel.assertQueue('super-admin_posts_queue', {
         durable: true,
       });

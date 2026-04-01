@@ -68,6 +68,9 @@ export class PostEventsPublisher implements OnModuleInit, OnModuleDestroy {
 
     try {
       const message = Buffer.from(JSON.stringify(postData));
+      await this.channel.assertExchange('lumio_events', 'topic', {
+        durable: true,
+      });
       this.channel.publish('lumio_events', 'post.created', message);
     } catch (error) {
       this.logger.error(
