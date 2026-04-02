@@ -36,6 +36,15 @@ export function ApiGetUserProfilePayments() {
       description: 'Number of items per page (default: 10, max: 100)',
       example: 10,
     }),
+    ApiQuery({
+      name: 'sortBy',
+      type: String,
+      required: false,
+      description:
+        'Sort order: date_asc, date_desc, amount_asc, amount_desc (default: date_desc)',
+      example: 'date_desc',
+      enum: ['date_asc', 'date_desc', 'amount_asc', 'amount_desc'],
+    }),
     ApiResponse({
       status: 200,
       description: 'Payments retrieved successfully',

@@ -35,6 +35,9 @@ describe('DeletePostCommandHandler', () => {
       password: 'hash',
       createdAt: new Date(),
       deletedAt: null,
+      isBlocked: false,
+      bannedAt: null,
+      banReason: null,
     },
     files: [
       {

@@ -3,15 +3,15 @@ import { DatabaseHealth } from './database-health.schema';
 
 @ObjectType()
 export class HealthResponse {
-  @Field()
+  @Field({ description: 'Общий статус сервиса' })
   status: string;
 
-  @Field()
+  @Field({ description: 'Временная метка проверки' })
   timestamp: Date;
 
-  @Field()
+  @Field({ description: 'Время работы сервиса в секундах' })
   uptime: number;
 
-  @Field(() => DatabaseHealth)
+  @Field(() => DatabaseHealth, { description: 'Информация о состоянии БД' })
   database: DatabaseHealth;
 }

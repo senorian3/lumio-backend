@@ -63,7 +63,7 @@ pipeline {
                        
                        # Генерируем Prisma клиент для сборки (без env переменных)
                        echo "Generating Prisma client for build..."
-                       npx prisma generate --schema apps/super-admin/src/prisma/schema.prisma
+                       npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
                     '''
                 }
             }
@@ -136,10 +136,10 @@ pipeline {
 
     post {
         success {
-            echo "Lumio service pipeline completed successfully!"
+            echo "Super-admin service pipeline completed successfully!"
         }
         failure {
-            echo "Lumio service pipeline failed!"
+            echo "Super-admin service pipeline failed!"
         }
     }
 }

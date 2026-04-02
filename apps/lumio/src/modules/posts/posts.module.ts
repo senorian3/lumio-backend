@@ -17,6 +17,7 @@ import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.m
 import { FilesHttpAdapter } from './application/files-http.adapter';
 import { PostFilesRepository } from './domain/infrastructure/post-files.repository';
 import { GetPostByIdQueryHandler } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
+import { PostEventsPublisher } from './application/post-events.publisher';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -36,9 +37,17 @@ const repositories = [PostRepository, PostFilesRepository];
 
 const queryRepositories = [QueryPostRepository];
 
+const eventPublishers = [PostEventsPublisher];
+
 @Module({
   imports: [UserAccountsModule, JwtModule, SessionsModule, LoggerModule],
   controllers: [PostsController, MainController],
-  providers: [...useCases, ...adapters, ...repositories, ...queryRepositories],
+  providers: [
+    ...useCases,
+    ...adapters,
+    ...repositories,
+    ...queryRepositories,
+    ...eventPublishers,
+  ],
 })
 export class PostsModule {}

@@ -37,6 +37,9 @@ describe('AuthService', () => {
     password: 'hashedPassword123',
     createdAt: new Date(),
     deletedAt: null,
+    isBlocked: false,
+    bannedAt: null,
+    banReason: null,
     profile: mockUserProfile,
     emailConfirmation: {
       id: 1,

@@ -13,6 +13,7 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
   let mockFileRepository: jest.Mocked<FileRepository>;
 
   const mockPostId = '123';
+  const mockUserId = 1;
 
   const mockFiles = [
     { buffer: Buffer.from('test'), originalname: 'file1.jpg' },
@@ -82,7 +83,11 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
   describe('execute', () => {
     it('should upload files successfully', async () => {
       // Arrange
-      const command = new UploadFilesCreatedPostCommand(mockPostId, mockFiles);
+      const command = new UploadFilesCreatedPostCommand(
+        mockPostId,
+        mockUserId,
+        mockFiles,
+      );
 
       mockS3Adapter.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockFileRepository.createFiles.mockResolvedValue(undefined);
@@ -101,7 +106,11 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
 
     it('should throw error when S3 upload fails', async () => {
       // Arrange
-      const command = new UploadFilesCreatedPostCommand(mockPostId, mockFiles);
+      const command = new UploadFilesCreatedPostCommand(
+        mockPostId,
+        mockUserId,
+        mockFiles,
+      );
       const uploadError = new Error('S3 upload failed');
 
       mockS3Adapter.uploadFiles.mockRejectedValue(uploadError);
@@ -112,7 +121,11 @@ describe('UploadFilesCreatedPostCommandHandler', () => {
 
     it('should throw error and cleanup S3 when DB fails', async () => {
       // Arrange
-      const command = new UploadFilesCreatedPostCommand(mockPostId, mockFiles);
+      const command = new UploadFilesCreatedPostCommand(
+        mockPostId,
+        mockUserId,
+        mockFiles,
+      );
       const dbError = new Error('Database error');
 
       mockS3Adapter.uploadFiles.mockResolvedValue(mockUploadedFiles);

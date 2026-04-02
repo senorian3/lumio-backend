@@ -21,6 +21,7 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       createdAt: new Date('2023-01-01'),
       deletedAt: null,
       postId: '123',
+      userId: 1,
     },
     {
       id: 2,
@@ -31,12 +32,23 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
       createdAt: new Date('2023-01-02'),
       deletedAt: null,
       postId: '123',
+      userId: 1,
     },
   ];
 
   const expectedOutputFiles: OutputFileType[] = [
-    { id: 1, url: 'https://example.com/file1.jpg', postId: '123' },
-    { id: 2, url: 'https://example.com/file2.png', postId: '123' },
+    {
+      id: 1,
+      url: 'https://example.com/file1.jpg',
+      postId: '123',
+      createdAt: new Date('2023-01-01'),
+    },
+    {
+      id: 2,
+      url: 'https://example.com/file2.png',
+      postId: '123',
+      createdAt: new Date('2023-01-02'),
+    },
   ];
 
   beforeEach(async () => {
@@ -128,11 +140,11 @@ describe('GetAllFilesByPostUserQueryHandler', () => {
         id: mockPostFiles[0].id,
         url: mockPostFiles[0].url,
         postId: mockPostFiles[0].postId,
+        createdAt: mockPostFiles[0].createdAt,
       });
       expect(result[0]).not.toHaveProperty('key');
       expect(result[0]).not.toHaveProperty('mimetype');
       expect(result[0]).not.toHaveProperty('size');
-      expect(result[0]).not.toHaveProperty('createdAt');
       expect(result[0]).not.toHaveProperty('deletedAt');
     });
   });

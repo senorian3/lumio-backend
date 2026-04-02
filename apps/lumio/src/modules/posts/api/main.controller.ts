@@ -12,6 +12,7 @@ import { ApiGetMainPage } from '@lumio/core/decorators/swagger/main/get-main-pag
 import { GetMainPageQuery } from '@lumio/modules/posts/application/queries/get-main-page.query-handler';
 import { GetMainPageInputDto } from '@lumio/modules/posts/api/dto/input/get-main-page.input.dto';
 import { MainPageView } from './dto/output/main-page.output.dto';
+import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 
 @UseGuards(ThrottlerGuard)
 @Controller('/')
@@ -20,6 +21,7 @@ export class MainController {
 
   @Get()
   @ApiGetMainPage()
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getMainPage(
     @Query() queryParams: GetMainPageInputDto,

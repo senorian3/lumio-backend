@@ -1,10 +1,8 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { User } from '@super-admin/modules/users/domain/schema/user.schema';
-import { UserProfile } from '@super-admin/modules/users/domain/schema/user-profile.schema';
-import { AccountType } from '@super-admin/modules/users/domain/schema/account-type.enum';
+import { User } from '@super-admin/modules/users/domain/schema/user/user.schema';
 import { UserQueryRepository } from '@super-admin/modules/users/domain/infrastructure/user.query-repository';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { UserWithProfileOutputDto } from '@super-admin/modules/users/api/dto/output/user-with-profile.output.dto';
+import { UserMapper } from '../mappers/user.mapper';
 
 export class GetUserQuery {
   constructor(public readonly id: number) {}
@@ -12,6 +10,8 @@ export class GetUserQuery {
 
 @QueryHandler(GetUserQuery)
 export class GetUserHandler implements IQueryHandler<GetUserQuery> {
+  private readonly userMapper = new UserMapper();
+
   constructor(
     private readonly userQueryRepository: UserQueryRepository,
     private readonly logger: AppLoggerService,
@@ -25,8 +25,7 @@ export class GetUserHandler implements IQueryHandler<GetUserQuery> {
         return null;
       }
 
-      const user = this.mapFromDto(userDto);
-      return user;
+      return this.userMapper.mapFromDto(userDto);
     } catch (error) {
       this.logger.error(
         `Failed to get user by id: ${query.id}`,
@@ -35,33 +34,5 @@ export class GetUserHandler implements IQueryHandler<GetUserQuery> {
       );
       return null;
     }
-  }
-
-  private mapFromDto(dto: UserWithProfileOutputDto): User {
-    return {
-      id: dto.id,
-      username: dto.username,
-      email: dto.email,
-      createdAt: dto.createdAt,
-      profile: dto.profile ? this.mapProfileFromDto(dto.profile) : undefined,
-    };
-  }
-
-  private mapProfileFromDto(profileDto: any): UserProfile {
-    return {
-      id: profileDto.id,
-      firstName: profileDto.firstName || undefined,
-      lastName: profileDto.lastName || undefined,
-      dateOfBirth: profileDto.dateOfBirth || undefined,
-      country: profileDto.country || undefined,
-      city: profileDto.city || undefined,
-      aboutMe: profileDto.aboutMe || undefined,
-      avatarUrl: profileDto.avatarUrl || undefined,
-      profileFilled: profileDto.profileFilled || false,
-      profileFilledAt: profileDto.profileFilledAt || undefined,
-      profileUpdatedAt: profileDto.profileUpdatedAt || undefined,
-      accountType:
-        (profileDto.accountType as AccountType) || AccountType.PERSONAL,
-    };
   }
 }

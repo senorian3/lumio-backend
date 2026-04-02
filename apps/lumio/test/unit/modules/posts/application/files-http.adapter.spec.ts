@@ -85,6 +85,7 @@ describe('FilesHttpAdapter', () => {
       const result = await adapter.uploadFiles(
         'files/upload',
         'post_123',
+        1,
         mockFiles,
       );
 
@@ -104,7 +105,7 @@ describe('FilesHttpAdapter', () => {
       mockAxios.post.mockRejectedValue(new Error('Upload error'));
 
       await expect(
-        adapter.uploadFiles('endpoint', 'post_123', []),
+        adapter.uploadFiles('endpoint', 'post_123', 1, []),
       ).rejects.toThrow('Upload error');
     });
   });

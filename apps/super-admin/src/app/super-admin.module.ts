@@ -10,6 +10,8 @@ import { CoreConfig } from '@super-admin/core/core.config';
 import { PrismaModule } from '@super-admin/prisma/prisma.module';
 import { HealthModule } from '@super-admin/modules/health/health.module';
 import { UsersModule } from '@super-admin/modules/users/users.module';
+import { PostsModule } from '@super-admin/modules/posts/posts.module';
+import { AuthModule } from '@super-admin/modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -18,13 +20,22 @@ import { UsersModule } from '@super-admin/modules/users/users.module';
       isGlobal: true,
     }),
     UsersModule,
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    PostsModule,
+    AuthModule,
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
-      sortSchema: true,
-      playground: true,
-      introspection: true,
-      context: ({ req, res }) => ({ req, res }),
+      useFactory: (coreConfig: CoreConfig) => ({
+        autoSchemaFile: join(process.cwd(), 'apps/super-admin/src/schema.gql'),
+        sortSchema: true,
+        playground: coreConfig.isGraphqlPlaygroundEnabled,
+        introspection: coreConfig.isGraphqlIntrospectionEnabled,
+        path: 'api/v1/graphql',
+        subscriptions: {
+          'graphql-ws': true,
+        },
+        context: ({ req, res }) => ({ req, res }),
+      }),
+      inject: [CoreConfig],
     }),
     LoggerModule,
     CoreModule,

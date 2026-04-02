@@ -7,6 +7,7 @@ import { LoggerModule } from '@libs/logger/logger.module';
 import { PostFilesController } from '@files/modules/post-files/api/post-files.controller';
 import { GetAllFilesByPostUserQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post.query-handler';
 import { GetAllFilesByPostIdsQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-post-ids.query-handler';
+import { GetAllFilesByUserIdQueryHandler } from '@files/modules/post-files/application/queries/get-all-files-by-user-id.query-handler';
 import { DeletedPostFilesCommandHandler } from '@files/modules/post-files/application/commands/deleted-post-files.command-handler';
 import { UploadFilesCreatedPostCommandHandler } from '@files/modules/post-files/application/commands/upload-post-file.command-handler';
 import { DeleteFileByKeyCommandHandler } from '@files/modules/post-files/application/commands/delete-file-by-key.command-handler';
@@ -29,6 +30,7 @@ const commandHandlers = [
 const queryHandlers = [
   GetAllFilesByPostUserQueryHandler,
   GetAllFilesByPostIdsQueryHandler,
+  GetAllFilesByUserIdQueryHandler,
 ];
 const adapters = [S3FilesHttpAdapter];
 const repositories = [FileRepository, ProfileRepository];

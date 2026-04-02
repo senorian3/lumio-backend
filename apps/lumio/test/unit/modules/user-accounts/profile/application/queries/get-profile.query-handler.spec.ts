@@ -35,6 +35,9 @@ describe('GetProfileQueryHandler', () => {
     password: 'hashedpassword',
     createdAt: new Date(),
     deletedAt: null,
+    isBlocked: false,
+    bannedAt: null,
+    banReason: null,
     profile: mockUserProfile,
   };
 

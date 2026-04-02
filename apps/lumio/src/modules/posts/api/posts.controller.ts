@@ -69,6 +69,7 @@ export class PostsController {
 
   @Get(':profileId')
   @ApiGetProfilePost()
+  @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
     @Param('profileId', ParseIntPipe) profileId: number,

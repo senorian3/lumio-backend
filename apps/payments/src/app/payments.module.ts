@@ -24,6 +24,8 @@ import { OutboxScheduler } from '@payments/modules/subscriptions/outbox/applicat
 import { ExternalCallsProcessor } from '@payments/modules/subscriptions/outbox/application/external-calls.processor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TestingModule } from '@payments/modules/tests/testing.module';
+import { GetAllPaymentsHandler } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
+import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/ayments.query-repository';
 
 const adapters = [StripeAdapter];
 
@@ -37,7 +39,7 @@ const useCases = [
   GetUserProfilePaymentsQueryHandler,
 ];
 
-const repositories = [PaymentsRepository];
+const repositories = [PaymentsRepository, QueryPaymentsRepository];
 
 const outboxComponents = [
   OutboxRepository,
@@ -91,6 +93,7 @@ const services = [RetryService, ManualReviewService];
 
   controllers: [SubscriptionPaymentsController],
   providers: [
+    GetAllPaymentsHandler,
     ...adapters,
     ...useCases,
     ...repositories,

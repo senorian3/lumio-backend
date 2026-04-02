@@ -22,7 +22,10 @@ export class PostView {
     view.postFiles = allFiles
       ? allFiles
           .filter((file) => file.postId === post.id)
-          .map((f) => new OutputFileType(f.id, f.url, f.postId || post.id))
+          .map(
+            (f) =>
+              new OutputFileType(f.id, f.url, f.postId || post.id, f.createdAt),
+          )
       : [];
 
     return view;
@@ -38,7 +41,8 @@ export class PostView {
 
     view.postFiles =
       post.files?.map(
-        (file) => new OutputFileType(file.id, file.url, file.postId),
+        (file) =>
+          new OutputFileType(file.id, file.url, file.postId, file.createdAt),
       ) || [];
 
     return view;

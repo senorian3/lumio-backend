@@ -19,6 +19,10 @@ model User {
   createdAt       DateTime         @default(now())
   deletedAt       DateTime?
 
+  isBlocked       Boolean          @default(false)
+  bannedAt        DateTime?
+  banReason       String?          @db.VarChar(255)
+
   profile         UserProfile?
 
   emailConfirmation EmailConfirmation?

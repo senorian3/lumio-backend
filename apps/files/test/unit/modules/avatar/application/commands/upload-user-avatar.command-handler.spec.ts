@@ -29,6 +29,7 @@ describe('UploadUserAvatarCommandHandler', () => {
     createdAt: new Date(),
     deletedAt: null,
     postId: '1',
+    userId: 1,
   };
 
   beforeEach(async () => {

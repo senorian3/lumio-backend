@@ -1,13 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
-import { ExecutionContext } from '@nestjs/common';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtAuthGuard],
+      providers: [
+        JwtAuthGuard,
+        {
+          provide: ExternalQuerySessionsRepository,
+          useValue: {
+            getSessionByUserAndDeviceId: jest.fn(),
+          },
+        },
+        {
+          provide: ExternalQueryUserAccountsRepository,
+          useValue: {
+            isUserBlocked: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     guard = module.get<JwtAuthGuard>(JwtAuthGuard);
@@ -19,24 +34,5 @@ describe('JwtAuthGuard', () => {
 
   it('should extend AuthGuard', () => {
     expect(guard).toBeInstanceOf(JwtAuthGuard);
-  });
-
-  describe('canActivate', () => {
-    it('should call super.canActivate', async () => {
-      const context = {
-        switchToHttp: () => ({
-          getRequest: () => ({}),
-        }),
-      } as ExecutionContext;
-
-      // Mock the parent canActivate method
-      const mockCanActivate = jest.spyOn(guard as any, 'canActivate');
-      mockCanActivate.mockResolvedValue(true);
-
-      const result = await guard.canActivate(context);
-
-      expect(result).toBe(true);
-      expect(mockCanActivate).toHaveBeenCalledWith(context);
-    });
   });
 });

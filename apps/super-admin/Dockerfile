@@ -13,7 +13,7 @@ RUN yarn install
 
 COPY --chown=node . .
 
-RUN npx prisma generate --schema apps/${SERVICE}/src/prisma/schema.prisma
+RUN npx prisma generate --schema apps/lumio/src/prisma/schema.prisma
 
 RUN yarn build:${SERVICE}
 

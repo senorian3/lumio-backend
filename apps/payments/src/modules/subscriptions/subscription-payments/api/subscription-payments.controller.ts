@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Patch,
   Post,
@@ -22,6 +23,7 @@ import { ApiChangeAutorenewal } from '@payments/core/decorators/swagger/subscrip
 import { ApiStripeHook } from '@payments/core/decorators/swagger/subscription-payments/stripe-hook.decorator';
 import { ApiPaymentSuccess } from '@payments/core/decorators/swagger/subscription-payments/payment-success.decorator';
 import { ApiPaymentError } from '@payments/core/decorators/swagger/subscription-payments/payment-error.decorator';
+import { ApiGetAllPayments } from '@payments/core/decorators/swagger/subscription-payments/get-all-payments.decorator';
 import { ApiGetUserProfilePayments } from '@payments/core/decorators/swagger/subscription-payments/get-user-profile-payments.decorator';
 import {
   SUBSCRIPTION_PAYMENTS_BASE,
@@ -30,6 +32,8 @@ import {
 import { GetUserProfilePaymentsQuery } from '../application/queries/get-user-profile-payments.query-handler';
 import { InputCreateSubscriptionPaymentUrlDto } from './dto/input/input-create-subscription-payment-url.dto';
 import { InputChangeAutorenewalSubscriptionPaymentDto } from './dto/input/input-update-autorenewal.dto';
+import { GetAllPaymentsQuery } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
+import { GetAllPaymentsQueryDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/get-all-payments.input';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
@@ -45,9 +49,10 @@ export class SubscriptionPaymentsController {
     @Query('profileId') profileId: number,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('sortBy', new DefaultValuePipe('date_desc')) sortBy: string,
   ) {
     const result = await this.queryBus.execute(
-      new GetUserProfilePaymentsQuery(profileId, page, limit),
+      new GetUserProfilePaymentsQuery(profileId, page, limit, sortBy),
     );
 
     return {
@@ -109,5 +114,23 @@ export class SubscriptionPaymentsController {
     await this.commandBus.execute(
       new ChangeAutoRenewalSubscriptionCommand(payload),
     );
+  }
+
+  @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ALL_PAYMENTS)
+  @ApiGetAllPayments()
+  @UseGuards(InternalApiGuard)
+  async getAllPayments(@Query() query: GetAllPaymentsQueryDto) {
+    const result = await this.queryBus.execute(
+      new GetAllPaymentsQuery(
+        query.profileIds,
+        query.skip,
+        query.take,
+        query.sortBy,
+        query.sortOrder,
+        query.search,
+      ),
+    );
+
+    return result;
   }
 }

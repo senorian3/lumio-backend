@@ -20,9 +20,11 @@ model PostFile {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
   postId    String?
+  userId    Int?
 
   @@index([postId])
   @@index([deletedAt])
+  @@index([userId])
 }
 
 model UserAvatar {
