@@ -7,6 +7,7 @@ export class GetUserProfilePaymentsQuery {
     public readonly profileId: number,
     public readonly page: number,
     public readonly limit: number,
+    public readonly sortBy: string = 'date_desc',
   ) {}
 }
 
@@ -20,6 +21,7 @@ export class GetUserProfilePaymentsQueryHandler implements IQueryHandler<GetUser
         query.profileId,
         query.page,
         query.limit,
+        query.sortBy,
       );
 
     const items = UserProfilePaymentResponseDto.mapManyToView(payments);

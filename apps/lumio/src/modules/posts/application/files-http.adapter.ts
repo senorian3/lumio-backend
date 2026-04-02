@@ -33,12 +33,14 @@ export class FilesHttpAdapter {
   async uploadFiles<T>(
     endpoint: string,
     postId: string,
+    userId: number,
     files: Array<Express.Multer.File>,
   ): Promise<T> {
     const url = `${this.coreConfig.filesFrontendUrl}/${endpoint}`;
     const formData = new FormData();
 
     formData.append('postId', postId.toString());
+    formData.append('userId', userId.toString());
 
     files.forEach((file) => {
       formData.append('files', file.buffer, {

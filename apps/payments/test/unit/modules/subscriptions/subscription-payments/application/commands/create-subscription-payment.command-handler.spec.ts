@@ -105,6 +105,7 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         mockDto.profileId,
         mockDto.currency,
         'null',
+        undefined,
       );
       expect(result).toBe(mockSession.url);
     });
@@ -136,6 +137,7 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         mockDto.profileId,
         mockDto.currency,
         'sub_123',
+        undefined,
       );
       expect(result).toBe(mockSession.url);
     });

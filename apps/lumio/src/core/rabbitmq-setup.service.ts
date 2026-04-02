@@ -63,6 +63,20 @@ export class RabbitMQSetupService implements OnModuleInit {
         'lumio.#',
       );
 
+      await channel.assertExchange('lumio_events', 'topic', {
+        durable: true,
+      });
+
+      await channel.assertQueue('super-admin_posts_queue', {
+        durable: true,
+      });
+
+      await channel.bindQueue(
+        'super-admin_posts_queue',
+        'lumio_events',
+        'post.created',
+      );
+
       await channel.close();
       await connection.close();
     } catch (error) {

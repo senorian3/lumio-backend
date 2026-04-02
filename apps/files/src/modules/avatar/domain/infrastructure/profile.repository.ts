@@ -19,16 +19,6 @@ export class ProfileRepository {
     });
   }
 
-  async updateAvatar(
-    id: number,
-    data: Partial<CreateUserAvatarDto>,
-  ): Promise<UserAvatar> {
-    return this.prisma.userAvatar.update({
-      where: { id },
-      data,
-    });
-  }
-
   async deleteAvatar(id: number): Promise<void> {
     await this.prisma.userAvatar.delete({ where: { id } });
   }

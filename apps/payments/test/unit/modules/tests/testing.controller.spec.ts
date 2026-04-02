@@ -1,6 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TestingController } from '@payments/modules/tests/testing.controller';
 import { PrismaService } from '@payments/prisma/prisma.service';
+import { CoreConfig } from '@payments/core/core.config';
+
+// Mock Stripe
+jest.mock('stripe', () => {
+  return jest.fn().mockImplementation(() => ({
+    customers: {
+      list: jest.fn().mockResolvedValue({ data: [], has_more: false }),
+      del: jest.fn().mockResolvedValue({}),
+    },
+  }));
+});
 
 describe('TestingController', () => {
   let testingController: TestingController;
@@ -16,6 +27,12 @@ describe('TestingController', () => {
             $transaction: jest.fn(),
             payment: { deleteMany: jest.fn() },
             outboxMessage: { deleteMany: jest.fn() },
+          },
+        },
+        {
+          provide: CoreConfig,
+          useValue: {
+            stripeApiKey: 'test_stripe_api_key',
           },
         },
       ],

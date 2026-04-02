@@ -1,11 +1,16 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ExternalQuerySessionsRepository } from '@lumio/modules/sessions/domain/infrastructure/session.external-query.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+import { ForbiddenDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
   constructor(
     private readonly externalQuerySessionRepository: ExternalQuerySessionsRepository,
+    private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
+    private readonly logger: AppLoggerService,
   ) {
     super();
   }
@@ -21,6 +26,10 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
         return true;
       }
     } catch (err) {
+      this.logger.error(
+        `OptionalJwtAuthGuard error: ${err.message}`,
+        OptionalJwtAuthGuard.name,
+      );
       this.clearUser(request);
       return true;
     }
@@ -49,6 +58,16 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
     ) {
       this.clearUser(request);
       return true;
+    }
+
+    const isBlocked =
+      await this.externalQueryUserAccountsRepository.isUserBlocked(user.userId);
+
+    if (isBlocked) {
+      throw ForbiddenDomainException.create(
+        'User account is blocked',
+        'userBlocked',
+      );
     }
 
     return true;

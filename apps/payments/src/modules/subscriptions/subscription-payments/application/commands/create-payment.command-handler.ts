@@ -10,7 +10,6 @@ import {
   PaymentStatus,
   SUBSCRIPTION_PRICES,
 } from '@payments/modules/subscriptions/constants/stripe-constants';
-import { PrismaService } from '@payments/prisma/prisma.service';
 
 export class CreateSubscriptionPaymentCommand {
   constructor(public dto: SubscriptionPaymentTransferDto) {}
@@ -25,7 +24,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
     private readonly paymentsRepository: PaymentsRepository,
     private readonly stripeAdapter: StripeAdapter,
     private readonly logger: AppLoggerService,
-    private readonly prisma: PrismaService,
   ) {}
 
   async execute({ dto }: CreateSubscriptionPaymentCommand): Promise<string> {
@@ -52,6 +50,7 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         dto.profileId,
         dto.currency,
         activeSubscription ? activeSubscription.subscriptionId : 'null',
+        dto.localhostOrigin,
       )
       .catch((error) => {
         throw BadRequestDomainException.create(

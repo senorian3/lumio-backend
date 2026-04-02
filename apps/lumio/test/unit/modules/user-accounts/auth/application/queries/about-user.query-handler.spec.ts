@@ -33,6 +33,9 @@ describe('AboutUserQueryHandler', () => {
     password: 'hashedPassword123',
     createdAt: new Date('2025-01-01T10:00:00Z'),
     deletedAt: null,
+    isBlocked: false,
+    bannedAt: null,
+    banReason: null,
     profile: mockUserProfile,
     emailConfirmation: {
       id: 1,

@@ -23,6 +23,10 @@ export class UserEntity implements User {
   createdAt: Date;
   deletedAt: Date | null;
 
+  isBlocked: boolean;
+  bannedAt: Date | null;
+  banReason: string | null;
+
   profile?: UserProfileEntity | null;
 
   emailConfirmation?: EmailConfirmationEntity | null;

@@ -73,6 +73,7 @@ describe('SubscriptionPaymentsController', () => {
           profileId,
           page,
           limit,
+          'date_desc',
         );
 
       expect(result).toEqual({
@@ -99,7 +100,12 @@ describe('SubscriptionPaymentsController', () => {
       queryBus.execute.mockResolvedValue(queryResult);
 
       const result =
-        await subscriptionPaymentsController.getUserProfilePayments(profileId);
+        await subscriptionPaymentsController.getUserProfilePayments(
+          profileId,
+          defaultPage,
+          defaultLimit,
+          'date_desc',
+        );
 
       expect(result).toEqual({
         items: [],
@@ -153,7 +159,37 @@ describe('SubscriptionPaymentsController', () => {
 
       expect(result).toEqual({ url: expectedUrl });
       expect(commandBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ dto: payload }),
+        expect.objectContaining({
+          dto: payload,
+        }),
+      );
+    });
+
+    it('should pass localhostOrigin from payload to command', async () => {
+      const payload: InputCreateSubscriptionPaymentUrlDto = {
+        profileId: '1',
+        currency: 'usd',
+        subscriptionType: '1 month',
+        paymentProvider: 'stripe',
+        localhostOrigin: 'http://localhost:3000',
+      };
+
+      const expectedUrl = 'https://checkout.stripe.com/pay_123';
+
+      commandBus.execute.mockResolvedValue(expectedUrl);
+
+      const result =
+        await subscriptionPaymentsController.createSubscriptionPaymentUrl(
+          payload,
+        );
+
+      expect(result).toEqual({ url: expectedUrl });
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dto: expect.objectContaining({
+            localhostOrigin: 'http://localhost:3000',
+          }),
+        }),
       );
     });
   });

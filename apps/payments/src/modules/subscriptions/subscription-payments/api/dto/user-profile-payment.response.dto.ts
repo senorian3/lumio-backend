@@ -2,21 +2,23 @@ import { plainToInstance } from 'class-transformer';
 import { Payment } from 'generated/prisma-payments';
 
 export class UserProfilePaymentResponseDto {
+  id: number;
   datePayment: string;
   endDate: string;
   amount: number;
   currency: string;
-  paymentType: string;
+  paymentProvider: string;
   subscriptionType: string | null;
 
   static mapToView(payment: Payment): UserProfilePaymentResponseDto {
     return plainToInstance(UserProfilePaymentResponseDto, {
+      id: payment.id,
       datePayment: payment.stripePaymentCreatedAt.toISOString(),
       endDate:
         payment.periodEnd?.toISOString() || payment.createdAt.toISOString(),
       amount: Number(payment.amount),
       currency: payment.currency,
-      paymentType: payment.paymentProvider,
+      paymentProvider: payment.paymentProvider,
       subscriptionType: payment.subscriptionType || null,
     });
   }

@@ -13,6 +13,7 @@ import {
 } from '@lumio/modules/posts/application/commands/create-post.command-handler';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
 import { OutputFileType } from '@libs/dto/output/file-output';
+import { PostEventsPublisher } from '@lumio/modules/posts/application/post-events.publisher';
 
 describe('CreatePostCommandHandler', () => {
   let handler: CreatePostCommandHandler;
@@ -47,6 +48,9 @@ describe('CreatePostCommandHandler', () => {
     password: 'hashedPassword',
     createdAt: new Date(),
     deletedAt: null,
+    isBlocked: false,
+    bannedAt: null,
+    banReason: null,
     firstName: 'John',
     lastName: 'Doe',
     dateOfBirth: new Date('1990-01-01'),
@@ -70,8 +74,18 @@ describe('CreatePostCommandHandler', () => {
   };
 
   const mockUploadedFiles: OutputFileType[] = [
-    new OutputFileType(1, 'https://example.com/file1.jpg', '100'),
-    new OutputFileType(2, 'https://example.com/file2.jpg', '100'),
+    new OutputFileType(
+      1,
+      'https://example.com/file1.jpg',
+      '100',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
+    new OutputFileType(
+      2,
+      'https://example.com/file2.jpg',
+      '100',
+      new Date('2024-01-15T10:30:00Z'),
+    ),
   ];
 
   beforeEach(async () => {
@@ -82,6 +96,7 @@ describe('CreatePostCommandHandler', () => {
           provide: ExternalQueryUserAccountsRepository,
           useValue: {
             findUserId: jest.fn(),
+            getUserInfo: jest.fn(),
           },
         },
         {
@@ -116,6 +131,12 @@ describe('CreatePostCommandHandler', () => {
             $transaction: jest.fn(),
           },
         },
+        {
+          provide: PostEventsPublisher,
+          useValue: {
+            publishPostCreated: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -142,22 +163,18 @@ describe('CreatePostCommandHandler', () => {
       );
 
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
+      mockExternalQueryUserRepository.getUserInfo.mockResolvedValue({
+        id: mockUserId,
+        username: 'testuser',
+        email: 'test@example.com',
+        createdAt: new Date(),
+        isBlocked: false,
+      });
       mockFilesHttpAdapter.uploadFiles.mockResolvedValue(mockUploadedFiles);
       mockPostRepository.createPost.mockResolvedValue(mockPost);
       mockPostFilesRepository.createPostFiles.mockResolvedValue(undefined);
-      mockPrisma.$transaction.mockImplementation(async () => {
-        await mockPostRepository.createPost(
-          command.userId,
-          expect.any(String),
-          command.description,
-          {},
-        );
-        await mockPostFilesRepository.createPostFiles(
-          expect.any(String),
-          mockUploadedFiles,
-          {},
-        );
-        return undefined;
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockPrisma as any);
       });
 
       const result = await handler.execute(command);

@@ -20,6 +20,27 @@ export class ExternalQueryUserAccountsRepository {
     return user.id;
   }
 
+  async getUserInfo(id: number): Promise<{
+    id: number;
+    username: string;
+    email: string;
+    createdAt: Date;
+    isBlocked: boolean;
+  } | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        createdAt: true,
+        isBlocked: true,
+      },
+    });
+
+    return user;
+  }
+
   async getProfileByUserId(userId: number): Promise<UserProfile | null> {
     return this.prisma.userProfile.findUnique({
       where: {
@@ -66,5 +87,17 @@ export class ExternalQueryUserAccountsRepository {
         profileUpdatedAt: new Date(),
       },
     });
+  }
+
+  async isUserBlocked(userId: number): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isBlocked: true,
+        deletedAt: true,
+      },
+    });
+
+    return user?.isBlocked === true || user?.deletedAt !== null;
   }
 }
