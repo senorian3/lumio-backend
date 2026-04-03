@@ -114,6 +114,9 @@ model Post {
   id          String     @id
   description String?
 
+  likeCount    Int           @default(0)
+  dislikeCount Int           @default(0)
+
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
