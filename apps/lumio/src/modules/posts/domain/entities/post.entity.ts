@@ -5,6 +5,8 @@ import { PostFileEntity } from '@lumio/modules/posts/domain/entities/post-file.e
 export class PostEntity implements Post {
   id: string;
   description: string;
+  likeCount: number = 0;
+  dislikeCount: number = 0;
   createdAt: Date;
   deletedAt: Date | null;
 

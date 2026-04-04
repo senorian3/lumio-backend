@@ -7,6 +7,9 @@ export class PostView {
   description: string;
   createdAt: Date;
 
+  likeCount: number;
+  dislikeCount: number;
+
   userId: number;
 
   postFiles?: OutputFileType[];
@@ -18,6 +21,9 @@ export class PostView {
     view.description = post.description;
     view.createdAt = post.createdAt;
     view.userId = post.userId;
+
+    view.likeCount = post.likeCount;
+    view.dislikeCount = post.dislikeCount;
 
     view.postFiles = allFiles
       ? allFiles
@@ -38,6 +44,9 @@ export class PostView {
     view.description = post.description;
     view.createdAt = post.createdAt;
     view.userId = post.userId;
+
+    view.likeCount = post.likeCount;
+    view.dislikeCount = post.dislikeCount;
 
     view.postFiles =
       post.files?.map(

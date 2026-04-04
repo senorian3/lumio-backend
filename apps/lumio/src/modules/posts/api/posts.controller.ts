@@ -42,6 +42,13 @@ import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-p
 import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by-post-id.decorator';
 import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
+import { CreateCommentInputDto } from './dto/create-comment.input-dto';
+import { CreateCommentCommand } from '@lumio/modules/posts/application/commands/create-comment.command-handler';
+import { GetPostWithCommentsQuery } from '@lumio/modules/posts/application/queries/get-post-with-comments.query-handler';
+import { GetCreatedCommentQuery } from '@lumio/modules/posts/application/queries/get-created-comment.query-handler';
+import { CommentViewDto } from './dto/output/comment.output.dto';
+import { GetPostCommentsQueryDto } from './dto/input/get-post-comments.query.dto';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 
 @UseGuards(ThrottlerGuard)
 @Controller(POST_BASE)
@@ -142,6 +149,37 @@ export class PostsController {
   ): Promise<PostView> {
     return await this.queryBus.execute<GetPostByIdQuery, PostView>(
       new GetPostByIdQuery(postId, userId),
+    );
+  }
+
+  @Post(':postId/comments')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
+  async createComment(
+    @Param('postId') postId: string,
+    @UserId() userId: number,
+    @Body() dto: CreateCommentInputDto,
+  ): Promise<CommentViewDto> {
+    const { commentId } = await this.commandBus.execute<
+      CreateCommentCommand,
+      { commentId: number }
+    >(new CreateCommentCommand(userId, postId, dto.content));
+
+    return await this.queryBus.execute<GetCreatedCommentQuery, CommentViewDto>(
+      new GetCreatedCommentQuery(commentId, userId),
+    );
+  }
+
+  @Get(':postId/comments')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalJwtAuthGuard)
+  async getPostWithComments(
+    @Param('postId') postId: string,
+    @Query() query: GetPostCommentsQueryDto,
+    @OptionalUserId() userId: number | null,
+  ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    return await this.queryBus.execute<GetPostWithCommentsQuery>(
+      new GetPostWithCommentsQuery(postId, userId, query),
     );
   }
 }

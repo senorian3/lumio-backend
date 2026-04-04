@@ -5,8 +5,10 @@ import {
   GetPostsQueryParams,
   PostsSortBy,
 } from '../../api/dto/input/get-all-user-posts.query.dto';
+import { GetPostCommentsQueryDto } from '../../api/dto/input/get-post-comments.query.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { PostView } from '../../api/dto/output/post.output.dto';
+import { CommentViewDto } from '@lumio/modules/posts/api/dto/output/comment.output.dto';
 
 @Injectable()
 export class QueryPostRepository {
@@ -20,6 +22,80 @@ export class QueryPostRepository {
         files: true,
       },
     });
+  }
+
+  async exists(postId: string): Promise<boolean> {
+    const count = await this.prisma.post.count({
+      where: {
+        id: postId,
+        deletedAt: null,
+      },
+    });
+
+    return count > 0;
+  }
+
+  async findCommentsByPostId(
+    postId: string,
+    pagination: GetPostCommentsQueryDto,
+  ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    const whereOptions = { postId, deletedAt: null };
+
+    const orderBy = {
+      [pagination.sortBy]: pagination.sortDirection,
+    };
+
+    const [comments, totalCount] = await Promise.all([
+      this.prisma.comment.findMany({
+        where: whereOptions,
+        skip: pagination.calculateSkip(),
+        take: pagination.pageSize,
+        orderBy,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              profile: { select: { avatarUrl: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.comment.count({ where: whereOptions }),
+    ]);
+
+    const mappedComments = comments.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      likeCount: comment.likeCount,
+      dislikeCount: comment.dislikeCount,
+      createdAt: comment.createdAt,
+      userId: comment.user.id,
+      username: comment.user.username,
+      avatarUrl: comment.user.profile?.avatarUrl ?? null,
+    }));
+
+    return PaginatedViewDto.mapToView({
+      items: mappedComments,
+      page: pagination.pageNumber,
+      size: pagination.pageSize,
+      totalCount,
+    });
+  }
+
+  async findCommentById(commentId: number): Promise<any | null> {
+    const comment = await this.prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        deletedAt: null,
+      },
+    });
+
+    if (!comment) {
+      return null;
+    }
+
+    return comment;
   }
 
   async findUserPosts(
