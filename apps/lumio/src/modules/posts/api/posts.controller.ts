@@ -163,7 +163,7 @@ export class PostsController {
     const { commentId } = await this.commandBus.execute<
       CreateCommentCommand,
       { commentId: number }
-    >(new CreateCommentCommand(userId, postId, dto.content));
+    >(new CreateCommentCommand(userId, postId, dto.content, dto.parentId));
 
     return await this.queryBus.execute<GetCreatedCommentQuery, CommentViewDto>(
       new GetCreatedCommentQuery(commentId, userId),

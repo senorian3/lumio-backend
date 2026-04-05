@@ -37,20 +37,20 @@ export class QueryPostRepository {
 
   async findCommentsByPostId(
     postId: string,
-    pagination: GetPostCommentsQueryDto,
+    pagination?: GetPostCommentsQueryDto,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
-    const whereOptions = { postId, deletedAt: null };
+    const rootWhere = { postId, parentId: null, deletedAt: null };
+    const skip = pagination?.calculateSkip() ?? 0;
+    const take = pagination?.pageSize ?? 10;
 
-    const orderBy = {
-      [pagination.sortBy]: pagination.sortDirection,
-    };
-
-    const [comments, totalCount] = await Promise.all([
+    const [roots, totalCount] = await Promise.all([
       this.prisma.comment.findMany({
-        where: whereOptions,
-        skip: pagination.calculateSkip(),
-        take: pagination.pageSize,
-        orderBy,
+        where: rootWhere,
+        skip,
+        take,
+        orderBy: pagination
+          ? { [pagination.sortBy]: pagination.sortDirection }
+          : { createdAt: 'desc' },
         include: {
           user: {
             select: {
@@ -61,24 +61,51 @@ export class QueryPostRepository {
           },
         },
       }),
-      this.prisma.comment.count({ where: whereOptions }),
+      this.prisma.comment.count({ where: rootWhere }),
     ]);
 
-    const mappedComments = comments.map((comment) => ({
-      id: comment.id,
-      content: comment.content,
-      likeCount: comment.likeCount,
-      dislikeCount: comment.dislikeCount,
-      createdAt: comment.createdAt,
-      userId: comment.user.id,
-      username: comment.user.username,
-      avatarUrl: comment.user.profile?.avatarUrl ?? null,
-    }));
+    if (roots.length === 0) {
+      return PaginatedViewDto.mapToView({
+        items: [],
+        page: pagination?.pageNumber ?? 1,
+        size: take,
+        totalCount,
+      });
+    }
+
+    const rootIds = roots.map((r) => r.id);
+    const replies = await this.prisma.comment.findMany({
+      where: { rootId: { in: rootIds }, deletedAt: null },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            profile: { select: { avatarUrl: true } },
+          },
+        },
+      },
+    });
+
+    const repliesMap = new Map<number, any[]>();
+    replies.forEach((reply) => {
+      const list = repliesMap.get(reply.rootId!) || [];
+      list.push(reply);
+      repliesMap.set(reply.rootId!, list);
+    });
+
+    const mappedComments: CommentViewDto[] = roots.map((root) => {
+      const rootReplies = (repliesMap.get(root.id) || []).map((r) =>
+        CommentViewDto.fromPrismaReply(r),
+      );
+      return CommentViewDto.fromPrismaRoot(root, rootReplies);
+    });
 
     return PaginatedViewDto.mapToView({
       items: mappedComments,
-      page: pagination.pageNumber,
-      size: pagination.pageSize,
+      page: pagination?.pageNumber ?? 1,
+      size: take,
       totalCount,
     });
   }

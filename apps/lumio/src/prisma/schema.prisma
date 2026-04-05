@@ -193,6 +193,7 @@ model Comment {
   commentLikes CommentLike[]
 
   parentId     Int?
+  rootId       Int?
   parent       Comment?      @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
   replies      Comment[]     @relation("CommentThread")
 
