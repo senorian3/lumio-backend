@@ -22,6 +22,7 @@ import { PostEventsPublisher } from './application/post-events.publisher';
 import { CreateCommentCommandHandler } from './application/commands/create-comment.command-handler';
 import { CommentRepository } from '@lumio/modules/posts/domain/infrastructure/comment.repository';
 import { GetCreatedCommentQueryHandler } from './application/queries/get-created-comment.query-handler';
+import { ExternalQueryPostsRepository } from './domain/infrastructure/post.external-query.repository';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -44,6 +45,8 @@ const repositories = [PostRepository, PostFilesRepository, CommentRepository];
 
 const queryRepositories = [QueryPostRepository];
 
+const externalQueryRepositories = [ExternalQueryPostsRepository];
+
 const eventPublishers = [PostEventsPublisher];
 
 @Module({
@@ -54,7 +57,9 @@ const eventPublishers = [PostEventsPublisher];
     ...adapters,
     ...repositories,
     ...queryRepositories,
+    ...externalQueryRepositories,
     ...eventPublishers,
   ],
+  exports: [...externalQueryRepositories],
 })
 export class PostsModule {}
