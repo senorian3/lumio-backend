@@ -19,6 +19,9 @@ export class UserProfileEntity implements UserProfile {
 
   accountType: string;
 
+  followersCount: number;
+  followingCount: number;
+
   userId: number;
   user: UserEntity;
 

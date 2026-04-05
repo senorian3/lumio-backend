@@ -13,6 +13,7 @@ import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
 import { HealthModule } from '@lumio/modules/features/health/health.module';
 import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
+import { UserFollowsModule } from '@lumio/modules/user-follows/user-follows.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { NotificationsModule } from '@lumio/modules/notifications/notifications.
     PostsModule,
     PaymentsModule,
     SessionsModule,
+    UserFollowsModule,
   ],
 })
 export class AppModule {
