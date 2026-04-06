@@ -154,6 +154,7 @@ export class QueryPostRepository {
   async findUserPosts(
     userId: number,
     query: GetPostsQueryParams,
+    currentUserId?: number,
   ): Promise<PaginatedViewDto<PostView[]>> {
     const whereOptions = { userId, deletedAt: null };
     const sortDirection = query.sortDirection === 'asc' ? 'asc' : 'desc';
@@ -174,11 +175,104 @@ export class QueryPostRepository {
       this.prisma.post.count({ where: whereOptions }),
     ]);
 
+    const userReactionsMap = new Map<string, 'like' | 'dislike'>();
+    if (currentUserId && posts.length > 0) {
+      const postIds = posts.map((p) => p.id);
+      const userReactions = await this.prisma.postLike.findMany({
+        where: {
+          userId: currentUserId,
+          postId: { in: postIds },
+        },
+        select: {
+          postId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.postId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
+    const mappedPosts = posts.map((post) => {
+      const reaction = userReactionsMap.get(post.id) ?? 'none';
+      return PostView.fromPrisma(post, reaction);
+    });
+
     return PaginatedViewDto.mapToView({
-      items: posts,
+      items: mappedPosts,
       page: query.pageNumber,
       size: query.pageSize,
       totalCount,
     });
+  }
+
+  async getPostsWithPagination(
+    skip: number,
+    take: number,
+    currentUserId?: number,
+  ): Promise<{ posts: any[]; totalCount: number }> {
+    const [posts, totalCount] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          files: true,
+        },
+      }),
+      this.prisma.post.count({
+        where: { deletedAt: null },
+      }),
+    ]);
+
+    const userReactionsMap = new Map<string, 'like' | 'dislike'>();
+    if (currentUserId && posts.length > 0) {
+      const postIds = posts.map((p) => p.id);
+      const userReactions = await this.prisma.postLike.findMany({
+        where: {
+          userId: currentUserId,
+          postId: { in: postIds },
+        },
+        select: {
+          postId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.postId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
+    const mappedPosts = posts.map((post) => {
+      const reaction = userReactionsMap.get(post.id) ?? 'none';
+      return PostView.fromPrisma(post, reaction);
+    });
+
+    return { posts: mappedPosts, totalCount };
+  }
+
+  async findUserReactionToPost(
+    postId: string,
+    userId: number,
+  ): Promise<'like' | 'dislike' | null> {
+    const reaction = await this.prisma.postLike.findUnique({
+      where: {
+        postId_userId: { postId, userId },
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    return reaction ? (reaction.status as 'like' | 'dislike') : null;
   }
 }

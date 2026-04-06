@@ -85,11 +85,12 @@ export class PostsController {
   async getProfilePost(
     @Param('profileId', ParseIntPipe) profileId: number,
     @Query('postId') postId: string,
+    @OptionalUserId() currentUserId: number | null,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
       PostView
-    >(new GetProfilePostQuery(profileId, postId));
+    >(new GetProfilePostQuery(profileId, postId, currentUserId));
 
     return profilePost;
   }

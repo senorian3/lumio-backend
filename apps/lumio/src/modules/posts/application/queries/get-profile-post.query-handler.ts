@@ -1,13 +1,14 @@
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { PostView } from '../../api/dto/output/post.output.dto';
-import { PostRepository } from '../../domain/infrastructure/post.repository';
+import { QueryPostRepository } from '../../domain/infrastructure/post.query.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class GetProfilePostQuery {
   constructor(
     public profileId: number,
     public postId: string,
+    public currentUserId: number | null,
   ) {}
 }
 
@@ -18,7 +19,7 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
 > {
   constructor(
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
-    private readonly postRepository: PostRepository,
+    private readonly postQueryRepository: QueryPostRepository,
   ) {}
 
   async execute(query: GetProfilePostQuery): Promise<PostView> {
@@ -43,12 +44,23 @@ export class GetProfilePostQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Post is not found', 'postId');
     }
 
-    const post = await this.postRepository.findById(query.postId);
+    const post = await this.postQueryRepository.findById(query.postId);
 
     if (!post || post.deletedAt !== null || post.userId !== profile.userId) {
       throw NotFoundDomainException.create('Post is not found', 'postId');
     }
 
-    return PostView.fromPrisma(post);
+    let currentUserReaction: 'like' | 'dislike' | 'none' = 'none';
+
+    if (query.currentUserId) {
+      const userReaction =
+        await this.postQueryRepository.findUserReactionToPost(
+          query.postId,
+          query.currentUserId,
+        );
+      currentUserReaction = userReaction ?? 'none';
+    }
+
+    return PostView.fromPrisma(post, currentUserReaction);
   }
 }
