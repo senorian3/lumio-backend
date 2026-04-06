@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
+import { LikeStatus } from '@lumio/modules/posts/api/dto/input/like-comment.input.dto';
 
 @Injectable()
 export class CommentRepository {
@@ -53,5 +54,50 @@ export class CommentRepository {
     });
 
     return { commentId: comment.id };
+  }
+
+  async updateCommentLike(
+    commentId: number,
+    userId: number,
+    status: LikeStatus,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      if (status === 'none') {
+        // 🔹 Удаляем реакцию, если она есть
+        await tx.commentLike.deleteMany({
+          where: { commentId, userId },
+        });
+      } else {
+        // 🔹 Создаём или обновляем реакцию
+        await tx.commentLike.upsert({
+          where: {
+            commentId_userId: { commentId, userId },
+          },
+          create: {
+            commentId,
+            userId,
+            status,
+          },
+          update: {
+            status,
+          },
+        });
+      }
+
+      // 🔹 Пересчитываем счётчики (учитываем, что записей может не быть)
+      const [likeCount, dislikeCount] = await Promise.all([
+        tx.commentLike.count({
+          where: { commentId, status: 'like' },
+        }),
+        tx.commentLike.count({
+          where: { commentId, status: 'dislike' },
+        }),
+      ]);
+
+      await tx.comment.update({
+        where: { id: commentId },
+        data: { likeCount, dislikeCount },
+      });
+    });
   }
 }

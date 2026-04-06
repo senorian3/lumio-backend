@@ -23,6 +23,7 @@ import { CreateCommentCommandHandler } from './application/commands/create-comme
 import { CommentRepository } from '@lumio/modules/posts/domain/infrastructure/comment.repository';
 import { GetCreatedCommentQueryHandler } from './application/queries/get-created-comment.query-handler';
 import { ExternalQueryPostsRepository } from './domain/infrastructure/post.external-query.repository';
+import { LikeCommentCommandHandler } from '@lumio/modules/posts/application/commands/like-comment.command-handler';
 
 const useCases = [
   CreatePostCommandHandler,
@@ -37,6 +38,7 @@ const useCases = [
   GetPostByIdQueryHandler,
   GetPostWithCommentsQueryHandler,
   GetCreatedCommentQueryHandler,
+  LikeCommentCommandHandler,
 ];
 
 const adapters = [FilesHttpAdapter];
