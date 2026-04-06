@@ -7,12 +7,14 @@ export class CommentViewDto {
   userId: number;
   username: string;
   avatarUrl: string | null;
+  userReaction: 'none' | 'like' | 'dislike';
 
   replies?: CommentViewDto[];
 
   static fromPrismaRoot(
     comment: any,
     replies: CommentViewDto[] = [],
+    userReaction: 'none' | 'like' | 'dislike' = 'none',
   ): CommentViewDto {
     return {
       id: comment.id,
@@ -23,6 +25,7 @@ export class CommentViewDto {
       userId: comment.user.id,
       username: comment.user.username,
       avatarUrl: comment.user.profile?.avatarUrl ?? null,
+      userReaction,
       replies,
     };
   }

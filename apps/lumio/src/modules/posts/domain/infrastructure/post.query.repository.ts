@@ -38,6 +38,7 @@ export class QueryPostRepository {
   async findCommentsByPostId(
     postId: string,
     pagination?: GetPostCommentsQueryDto,
+    userId?: number,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     const rootWhere = { postId, parentId: null, deletedAt: null };
     const skip = pagination?.calculateSkip() ?? 0;
@@ -88,6 +89,28 @@ export class QueryPostRepository {
       },
     });
 
+    const userReactionsMap = new Map<number, 'like' | 'dislike'>();
+    if (userId) {
+      const allCommentIds = [...rootIds, ...replies.map((r) => r.id)];
+      const userReactions = await this.prisma.commentLike.findMany({
+        where: {
+          userId,
+          commentId: { in: allCommentIds },
+        },
+        select: {
+          commentId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.commentId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
     const repliesMap = new Map<number, any[]>();
     replies.forEach((reply) => {
       const list = repliesMap.get(reply.rootId!) || [];
@@ -96,10 +119,13 @@ export class QueryPostRepository {
     });
 
     const mappedComments: CommentViewDto[] = roots.map((root) => {
-      const rootReplies = (repliesMap.get(root.id) || []).map((r) =>
-        CommentViewDto.fromPrismaReply(r),
-      );
-      return CommentViewDto.fromPrismaRoot(root, rootReplies);
+      const rootReplies = (repliesMap.get(root.id) || []).map((r) => {
+        const reaction = userReactionsMap.get(r.id) ?? 'none';
+        return CommentViewDto.fromPrismaRoot(r, [], reaction);
+      });
+
+      const rootReaction = userReactionsMap.get(root.id) ?? 'none';
+      return CommentViewDto.fromPrismaRoot(root, rootReplies, rootReaction);
     });
 
     return PaginatedViewDto.mapToView({
