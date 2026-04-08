@@ -49,6 +49,10 @@ import { GetCreatedCommentQuery } from '@lumio/modules/posts/application/queries
 import { CommentViewDto } from './dto/output/comment.output.dto';
 import { GetPostCommentsQueryDto } from './dto/input/get-post-comments.query.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { LikeCommentInputDto } from './dto/input/like-comment.input.dto';
+import { LikePostInputDto } from './dto/input/like-post.input.dto';
+import { LikePostCommand } from '@lumio/modules/posts/application/commands/like-post.command-handler';
+import { LikeCommentCommand } from '@lumio/modules/posts/application/commands/like-comment.command-handler';
 
 @UseGuards(ThrottlerGuard)
 @Controller(POST_BASE)
@@ -81,11 +85,12 @@ export class PostsController {
   async getProfilePost(
     @Param('profileId', ParseIntPipe) profileId: number,
     @Query('postId') postId: string,
+    @OptionalUserId() currentUserId: number | null,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
       PostView
-    >(new GetProfilePostQuery(profileId, postId));
+    >(new GetProfilePostQuery(profileId, postId, currentUserId));
 
     return profilePost;
   }
@@ -180,6 +185,32 @@ export class PostsController {
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     return await this.queryBus.execute<GetPostWithCommentsQuery>(
       new GetPostWithCommentsQuery(postId, userId, query),
+    );
+  }
+
+  @Post('comments/:commentId/like')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async likeComment(
+    @UserId() userId: number,
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Body() dto: LikeCommentInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute<LikeCommentCommand, void>(
+      new LikeCommentCommand(userId, commentId, dto.status),
+    );
+  }
+
+  @Post(':postId/like')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async likePost(
+    @UserId() userId: number,
+    @Param('postId') postId: string,
+    @Body() dto: LikePostInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute<LikePostCommand, void>(
+      new LikePostCommand(userId, postId, dto.status),
     );
   }
 }

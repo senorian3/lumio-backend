@@ -32,6 +32,7 @@ export class GetPostWithCommentsQueryHandler implements IQueryHandler<
     return await this.queryPostRepository.findCommentsByPostId(
       query.postId,
       query.pagination,
+      query.userId,
     );
   }
 }

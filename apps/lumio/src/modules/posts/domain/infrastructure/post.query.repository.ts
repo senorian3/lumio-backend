@@ -7,7 +7,7 @@ import {
 } from '../../api/dto/input/get-all-user-posts.query.dto';
 import { GetPostCommentsQueryDto } from '../../api/dto/input/get-post-comments.query.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
-import { PostView } from '../../api/dto/output/post.output.dto';
+import { PostView, PostLikeView } from '../../api/dto/output/post.output.dto';
 import { CommentViewDto } from '@lumio/modules/posts/api/dto/output/comment.output.dto';
 
 @Injectable()
@@ -38,6 +38,7 @@ export class QueryPostRepository {
   async findCommentsByPostId(
     postId: string,
     pagination?: GetPostCommentsQueryDto,
+    userId?: number,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     const rootWhere = { postId, parentId: null, deletedAt: null };
     const skip = pagination?.calculateSkip() ?? 0;
@@ -88,6 +89,28 @@ export class QueryPostRepository {
       },
     });
 
+    const userReactionsMap = new Map<number, 'like' | 'dislike'>();
+    if (userId) {
+      const allCommentIds = [...rootIds, ...replies.map((r) => r.id)];
+      const userReactions = await this.prisma.commentLike.findMany({
+        where: {
+          userId,
+          commentId: { in: allCommentIds },
+        },
+        select: {
+          commentId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.commentId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
     const repliesMap = new Map<number, any[]>();
     replies.forEach((reply) => {
       const list = repliesMap.get(reply.rootId!) || [];
@@ -96,10 +119,13 @@ export class QueryPostRepository {
     });
 
     const mappedComments: CommentViewDto[] = roots.map((root) => {
-      const rootReplies = (repliesMap.get(root.id) || []).map((r) =>
-        CommentViewDto.fromPrismaReply(r),
-      );
-      return CommentViewDto.fromPrismaRoot(root, rootReplies);
+      const rootReplies = (repliesMap.get(root.id) || []).map((r) => {
+        const reaction = userReactionsMap.get(r.id) ?? 'none';
+        return CommentViewDto.fromPrismaRoot(r, [], reaction);
+      });
+
+      const rootReaction = userReactionsMap.get(root.id) ?? 'none';
+      return CommentViewDto.fromPrismaRoot(root, rootReplies, rootReaction);
     });
 
     return PaginatedViewDto.mapToView({
@@ -128,6 +154,7 @@ export class QueryPostRepository {
   async findUserPosts(
     userId: number,
     query: GetPostsQueryParams,
+    currentUserId?: number,
   ): Promise<PaginatedViewDto<PostView[]>> {
     const whereOptions = { userId, deletedAt: null };
     const sortDirection = query.sortDirection === 'asc' ? 'asc' : 'desc';
@@ -148,11 +175,212 @@ export class QueryPostRepository {
       this.prisma.post.count({ where: whereOptions }),
     ]);
 
+    const userReactionsMap = new Map<string, 'like' | 'dislike'>();
+    if (currentUserId && posts.length > 0) {
+      const postIds = posts.map((p) => p.id);
+      const userReactions = await this.prisma.postLike.findMany({
+        where: {
+          userId: currentUserId,
+          postId: { in: postIds },
+        },
+        select: {
+          postId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.postId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
+    const postIds = posts.map((p) => p.id);
+    const newestLikesMap = new Map<string, PostLikeView[]>();
+
+    if (postIds.length > 0) {
+      const allNewestLikes = await this.prisma.postLike.findMany({
+        where: {
+          postId: { in: postIds },
+          status: 'like',
+        },
+        orderBy: {
+          addedAt: 'desc',
+        },
+        select: {
+          postId: true,
+          userId: true,
+          addedAt: true,
+          user: {
+            select: {
+              username: true,
+              profile: {
+                select: {
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      for (const like of allNewestLikes) {
+        const postLikes = newestLikesMap.get(like.postId) || [];
+        if (postLikes.length < 3) {
+          postLikes.push(PostLikeView.fromPrisma(like));
+          newestLikesMap.set(like.postId, postLikes);
+        }
+      }
+    }
+
+    const mappedPosts = posts.map((post) => {
+      const reaction = userReactionsMap.get(post.id) ?? 'none';
+      const newestLikes = newestLikesMap.get(post.id) || [];
+      return PostView.fromPrisma(post, reaction, newestLikes);
+    });
+
     return PaginatedViewDto.mapToView({
-      items: posts,
+      items: mappedPosts,
       page: query.pageNumber,
       size: query.pageSize,
       totalCount,
+    });
+  }
+
+  async getPostsWithPagination(
+    skip: number,
+    take: number,
+    currentUserId?: number,
+  ): Promise<{ posts: any[]; totalCount: number }> {
+    const [posts, totalCount] = await Promise.all([
+      this.prisma.post.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          files: true,
+        },
+      }),
+      this.prisma.post.count({
+        where: { deletedAt: null },
+      }),
+    ]);
+
+    const userReactionsMap = new Map<string, 'like' | 'dislike'>();
+    if (currentUserId && posts.length > 0) {
+      const postIds = posts.map((p) => p.id);
+      const userReactions = await this.prisma.postLike.findMany({
+        where: {
+          userId: currentUserId,
+          postId: { in: postIds },
+        },
+        select: {
+          postId: true,
+          status: true,
+        },
+      });
+
+      userReactions.forEach((reaction) => {
+        userReactionsMap.set(
+          reaction.postId,
+          reaction.status as 'like' | 'dislike',
+        );
+      });
+    }
+
+    const postIds = posts.map((p) => p.id);
+    const newestLikesMap = new Map<string, PostLikeView[]>();
+
+    if (postIds.length > 0) {
+      const allNewestLikes = await this.prisma.postLike.findMany({
+        where: {
+          postId: { in: postIds },
+          status: 'like',
+        },
+        orderBy: {
+          addedAt: 'desc',
+        },
+        select: {
+          postId: true,
+          userId: true,
+          addedAt: true,
+          user: {
+            select: {
+              username: true,
+              profile: {
+                select: {
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      for (const like of allNewestLikes) {
+        const postLikes = newestLikesMap.get(like.postId) || [];
+        if (postLikes.length < 3) {
+          postLikes.push(PostLikeView.fromPrisma(like));
+          newestLikesMap.set(like.postId, postLikes);
+        }
+      }
+    }
+
+    const mappedPosts = posts.map((post) => {
+      const reaction = userReactionsMap.get(post.id) ?? 'none';
+      const newestLikes = newestLikesMap.get(post.id) || [];
+      return PostView.fromPrisma(post, reaction, newestLikes);
+    });
+
+    return { posts: mappedPosts, totalCount };
+  }
+
+  async findUserReactionToPost(
+    postId: string,
+    userId: number,
+  ): Promise<'like' | 'dislike' | null> {
+    const reaction = await this.prisma.postLike.findUnique({
+      where: {
+        postId_userId: { postId, userId },
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    return reaction ? (reaction.status as 'like' | 'dislike') : null;
+  }
+
+  async findNewestLikesForPost(
+    postId: string,
+    limit: number = 3,
+  ): Promise<any[]> {
+    return this.prisma.postLike.findMany({
+      where: {
+        postId,
+        status: 'like',
+      },
+      orderBy: {
+        addedAt: 'desc',
+      },
+      take: limit,
+      select: {
+        userId: true,
+        addedAt: true,
+        user: {
+          select: {
+            username: true,
+            profile: {
+              select: {
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 }
