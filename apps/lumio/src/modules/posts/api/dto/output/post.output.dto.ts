@@ -1,6 +1,6 @@
 import { OutputFileType } from '@libs/dto/output/file-output';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
-import { Post } from 'generated/prisma-lumio';
+import { Post } from '@generated/prisma-lumio';
 
 export class PostLikeView {
   userId: number;

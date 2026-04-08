@@ -1,5 +1,5 @@
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
-import { Post } from 'generated/prisma-lumio';
+import { Post } from '@generated/prisma-lumio';
 import { PostFileEntity } from '@lumio/modules/posts/domain/entities/post-file.entity';
 
 export class PostEntity implements Post {

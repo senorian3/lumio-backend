@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import { Subscription } from 'generated/prisma-lumio';
+import { Subscription } from '@generated/prisma-lumio';
 
 @Injectable()
 export class SubscriptionRepository {

@@ -1,4 +1,4 @@
-import { PostFile } from 'generated/prisma-files';
+import { PostFile } from '@generated/prisma-files';
 
 export class PostFileEntity implements PostFile {
   id: number;

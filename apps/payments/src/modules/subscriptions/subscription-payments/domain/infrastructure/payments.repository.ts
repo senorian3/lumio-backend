@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@payments/prisma/prisma.service';
-import { Payment } from 'generated/prisma-payments';
+import { Payment } from '@generated/prisma-payments';
 import { CreatePaymentDomainDto } from '../dto/create-payment.domain.dto';
 import { UpdatePaymentDomainDto } from '../dto/update-payment.domain.dto';
 import { PaymentStatus } from '@payments/modules/subscriptions/constants/stripe-constants';
