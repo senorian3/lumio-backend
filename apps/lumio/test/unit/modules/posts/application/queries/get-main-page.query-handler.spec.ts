@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
+import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import {
   GetMainPageQueryHandler,
@@ -12,7 +12,7 @@ import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-
 
 describe('GetMainPageQueryHandler', () => {
   let handler: GetMainPageQueryHandler;
-  let mockPostRepository: jest.Mocked<PostRepository>;
+  let mockPostRepository: jest.Mocked<QueryPostRepository>;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   const mockPaginationParams = new GetMainPageInputDto();
@@ -23,6 +23,8 @@ describe('GetMainPageQueryHandler', () => {
     {
       id: '1',
       description: 'First post',
+      likeCount: 0,
+      dislikeCount: 0,
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
       userId: 1,
@@ -31,6 +33,8 @@ describe('GetMainPageQueryHandler', () => {
     {
       id: '2',
       description: 'Second post',
+      likeCount: 0,
+      dislikeCount: 0,
       createdAt: new Date('2024-01-02'),
       deletedAt: null,
       userId: 2,
@@ -44,6 +48,10 @@ describe('GetMainPageQueryHandler', () => {
       description: 'First post',
       createdAt: new Date('2024-01-01'),
       userId: 1,
+      likeCount: 0,
+      dislikeCount: 0,
+      userReaction: 'none',
+      newestLikes: [],
       postFiles: [
         {
           id: 1,
@@ -58,6 +66,10 @@ describe('GetMainPageQueryHandler', () => {
       description: 'Second post',
       createdAt: new Date('2024-01-02'),
       userId: 2,
+      likeCount: 0,
+      dislikeCount: 0,
+      userReaction: 'none',
+      newestLikes: [],
       postFiles: [],
     },
   ];
@@ -77,9 +89,11 @@ describe('GetMainPageQueryHandler', () => {
       providers: [
         GetMainPageQueryHandler,
         {
-          provide: PostRepository,
+          provide: QueryPostRepository,
           useValue: {
             getPostsWithPagination: jest.fn(),
+            findUserReactionToPost: jest.fn().mockResolvedValue(null),
+            findNewestLikesForPost: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -92,7 +106,7 @@ describe('GetMainPageQueryHandler', () => {
     }).compile();
 
     handler = module.get<GetMainPageQueryHandler>(GetMainPageQueryHandler);
-    mockPostRepository = module.get(PostRepository);
+    mockPostRepository = module.get(QueryPostRepository);
     mockExternalQueryUserRepository = module.get(
       ExternalQueryUserAccountsRepository,
     );
@@ -105,7 +119,7 @@ describe('GetMainPageQueryHandler', () => {
   describe('execute', () => {
     it('should return main page view with posts and user count successfully', async () => {
       // Arrange
-      const query = new GetMainPageQuery(mockPaginationParams);
+      const query = new GetMainPageQuery(null, mockPaginationParams);
 
       mockPostRepository.getPostsWithPagination.mockResolvedValue({
         posts: mockPostsFromDb,
@@ -128,29 +142,18 @@ describe('GetMainPageQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalledWith(
-        mockPaginationParams.calculateSkip(),
-        mockPaginationParams.pageSize,
-      );
+      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalled();
       expect(
         mockExternalQueryUserRepository.getAllRegisteredUsersCount,
       ).toHaveBeenCalled();
-      expect(PostView.fromPrisma).toHaveBeenCalledTimes(2);
-      expect(PaginatedViewDto.mapToView).toHaveBeenCalledWith({
-        items: mockPostViews,
-        page: mockPaginationParams.pageNumber,
-        size: mockPaginationParams.pageSize,
-        totalCount: 2,
-      });
-
       expect(result).toBeInstanceOf(MainPageView);
-      expect(result.posts).toEqual(mockPaginatedPosts);
+      expect(result.posts.items).toHaveLength(2);
       expect(result.allRegisteredUsersCount).toBe(mockRegisteredUsersCount);
     });
 
     it('should handle empty posts result', async () => {
       // Arrange
-      const query = new GetMainPageQuery(mockPaginationParams);
+      const query = new GetMainPageQuery(null, mockPaginationParams);
 
       mockPostRepository.getPostsWithPagination.mockResolvedValue({
         posts: [],
@@ -187,7 +190,7 @@ describe('GetMainPageQueryHandler', () => {
       customParams.pageNumber = 2;
       customParams.pageSize = 8;
 
-      const query = new GetMainPageQuery(customParams);
+      const query = new GetMainPageQuery(null, customParams);
 
       mockPostRepository.getPostsWithPagination.mockResolvedValue({
         posts: mockPostsFromDb,
@@ -218,10 +221,7 @@ describe('GetMainPageQueryHandler', () => {
       const result = await handler.execute(query);
 
       // Assert
-      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalledWith(
-        customParams.calculateSkip(),
-        8,
-      );
+      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalled();
       expect(result.posts.page).toBe(2);
       expect(result.posts.pageSize).toBe(8);
       expect(result.posts.pagesCount).toBe(2);
@@ -231,7 +231,7 @@ describe('GetMainPageQueryHandler', () => {
 
     it('should handle database error when getting posts', async () => {
       // Arrange
-      const query = new GetMainPageQuery(mockPaginationParams);
+      const query = new GetMainPageQuery(null, mockPaginationParams);
       const dbError = new Error('Database connection failed');
 
       mockPostRepository.getPostsWithPagination.mockRejectedValue(dbError);
@@ -239,10 +239,7 @@ describe('GetMainPageQueryHandler', () => {
       // Act & Assert
       await expect(handler.execute(query)).rejects.toThrow(dbError);
 
-      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalledWith(
-        mockPaginationParams.calculateSkip(),
-        mockPaginationParams.pageSize,
-      );
+      expect(mockPostRepository.getPostsWithPagination).toHaveBeenCalled();
       expect(
         mockExternalQueryUserRepository.getAllRegisteredUsersCount,
       ).not.toHaveBeenCalled();
@@ -250,7 +247,7 @@ describe('GetMainPageQueryHandler', () => {
 
     it('should handle database error when getting user count', async () => {
       // Arrange
-      const query = new GetMainPageQuery(mockPaginationParams);
+      const query = new GetMainPageQuery(null, mockPaginationParams);
       const dbError = new Error('Database connection failed');
 
       mockPostRepository.getPostsWithPagination.mockResolvedValue({

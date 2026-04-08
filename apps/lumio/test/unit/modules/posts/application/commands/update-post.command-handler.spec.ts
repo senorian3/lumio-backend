@@ -47,6 +47,8 @@ describe('UpdatePostCommandHandler', () => {
   const mockPost: PostEntity = {
     id: mockPostId,
     description: 'Original description',
+    likeCount: 0,
+    dislikeCount: 0,
     createdAt: new Date(),
     deletedAt: null,
     userId: mockUserId,
@@ -64,7 +66,11 @@ describe('UpdatePostCommandHandler', () => {
     description: mockDescription,
     createdAt: mockPost.createdAt,
     userId: mockUserId,
+    likeCount: 0,
+    dislikeCount: 0,
+    userReaction: 'none',
     postFiles: [],
+    newestLikes: [],
   };
 
   beforeEach(async () => {

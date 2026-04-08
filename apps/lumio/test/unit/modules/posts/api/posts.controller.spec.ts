@@ -26,7 +26,9 @@ describe('PostsController', () => {
     description: 'Test post description',
     createdAt: new Date('2024-01-15T10:30:00Z'),
     userId: 1,
-
+    likeCount: 0,
+    dislikeCount: 0,
+    userReaction: 'none',
     postFiles: [
       new OutputFileType(
         1,
@@ -35,6 +37,7 @@ describe('PostsController', () => {
         new Date('2024-01-15T10:30:00Z'),
       ),
     ],
+    newestLikes: [],
   };
 
   const mockPaginatedPosts: PaginatedPostViewDto = new PaginatedPostViewDto(
@@ -166,14 +169,19 @@ describe('PostsController', () => {
     it('should return profile post by postId', async () => {
       const profileId = 1;
       const postId = 'post-123';
+      const currentUserId = 1;
 
       queryBus.execute.mockResolvedValue(mockPostView);
 
-      const result = await postsController.getProfilePost(profileId, postId);
+      const result = await postsController.getProfilePost(
+        profileId,
+        postId,
+        currentUserId,
+      );
 
       expect(result).toEqual(mockPostView);
       expect(queryBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ profileId, postId }),
+        expect.objectContaining({ profileId, postId, currentUserId }),
       );
     });
   });

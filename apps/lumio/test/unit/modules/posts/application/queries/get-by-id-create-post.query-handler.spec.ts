@@ -41,7 +41,9 @@ describe('GetCreatePostQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
-    accountType: 'free',
+    followersCount: 0,
+    followingCount: 0,
+    accountType: 'Personal',
     userId: 1,
     user: {} as any,
   };
@@ -49,6 +51,8 @@ describe('GetCreatePostQueryHandler', () => {
   const mockPost: PostEntity = {
     id: mockPostId,
     description: 'Test post description',
+    likeCount: 0,
+    dislikeCount: 0,
     createdAt: new Date(),
     deletedAt: null,
     userId: 1,
@@ -72,6 +76,10 @@ describe('GetCreatePostQueryHandler', () => {
     description: 'Test post description',
     createdAt: mockPost.createdAt,
     userId: 1,
+    likeCount: 0,
+    dislikeCount: 0,
+    userReaction: 'none',
+    newestLikes: [],
     postFiles: mockFiles,
   };
 

@@ -38,6 +38,8 @@ describe('GetPostByIdQueryHandler', () => {
           provide: QueryPostRepository,
           useValue: {
             findById: jest.fn(),
+            findUserReactionToPost: jest.fn().mockResolvedValue(null),
+            findNewestLikesForPost: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -67,6 +69,8 @@ describe('GetPostByIdQueryHandler', () => {
 
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockQueryPostRepository.findById.mockResolvedValue(mockPost as any);
+      mockQueryPostRepository.findUserReactionToPost.mockResolvedValue(null);
+      mockQueryPostRepository.findNewestLikesForPost.mockResolvedValue([]);
 
       // Act
       const result = await handler.execute(query);
@@ -76,6 +80,12 @@ describe('GetPostByIdQueryHandler', () => {
         mockUserId,
       );
       expect(mockQueryPostRepository.findById).toHaveBeenCalledWith(mockPostId);
+      expect(
+        mockQueryPostRepository.findUserReactionToPost,
+      ).toHaveBeenCalledWith(mockPostId, mockUserId);
+      expect(
+        mockQueryPostRepository.findNewestLikesForPost,
+      ).toHaveBeenCalledWith(mockPostId, 3);
 
       expect(result).toBeInstanceOf(PostView);
       expect(result.id).toBe(100);

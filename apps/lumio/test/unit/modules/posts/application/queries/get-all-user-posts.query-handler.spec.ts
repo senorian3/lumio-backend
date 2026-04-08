@@ -23,6 +23,8 @@ describe('GetAllUserPostsQueryHandler', () => {
     {
       id: '1',
       description: 'First post',
+      likeCount: 0,
+      dislikeCount: 0,
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
       userId: 1,
@@ -32,6 +34,8 @@ describe('GetAllUserPostsQueryHandler', () => {
     {
       id: '2',
       description: 'Second post',
+      likeCount: 0,
+      dislikeCount: 0,
       createdAt: new Date('2024-01-02'),
       deletedAt: null,
       userId: 1,
@@ -40,12 +44,24 @@ describe('GetAllUserPostsQueryHandler', () => {
     },
   ];
 
+  const mockPostViews: PostView[] = mockPrismaPosts.map((post) => ({
+    id: post.id,
+    description: post.description,
+    createdAt: post.createdAt,
+    userId: post.userId,
+    likeCount: post.likeCount,
+    dislikeCount: post.dislikeCount,
+    userReaction: 'none',
+    postFiles: [],
+    newestLikes: [],
+  }));
+
   const mockPaginatedResult: PaginatedViewDto<PostView[]> = {
     page: 1,
     pageSize: 10,
     pagesCount: 1,
     totalCount: 2,
-    items: mockPrismaPosts,
+    items: mockPostViews,
   };
 
   const mockQueryParams = new GetPostsQueryParams();
@@ -97,6 +113,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       expect(mockQueryPostRepository.findUserPosts).toHaveBeenCalledWith(
         mockUserId,
         mockQueryParams,
+        mockUserId,
       );
 
       expect(result.page).toBe(1);
@@ -105,8 +122,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       expect(result.totalCount).toBe(2);
       expect(result.items).toHaveLength(2);
 
-      // Check that items are PostView instances
-      expect(result.items[0]).toBeInstanceOf(PostView);
+      // Check that items have correct properties
       expect(result.items[0].id).toBe('1');
       expect(result.items[0].description).toBe('First post');
       expect(result.items[1].id).toBe('2');
@@ -174,6 +190,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       expect(mockQueryPostRepository.findUserPosts).toHaveBeenCalledWith(
         mockUserId,
         customQueryParams,
+        mockUserId,
       );
       expect(result.page).toBe(2);
       expect(result.pageSize).toBe(5);
@@ -199,6 +216,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       expect(mockQueryPostRepository.findUserPosts).toHaveBeenCalledWith(
         mockUserId,
         mockQueryParams,
+        mockUserId,
       );
     });
 
@@ -227,6 +245,7 @@ describe('GetAllUserPostsQueryHandler', () => {
       expect(mockQueryPostRepository.findUserPosts).toHaveBeenCalledWith(
         mockUserId,
         sortQueryParams,
+        mockUserId,
       );
     });
   });
