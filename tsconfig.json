@@ -9,22 +9,23 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
+    "useUnknownInCatchVariables": false,
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "types": ["jest", "node", "@types/multer"],
     "paths": {
-      "@files/*": ["apps/files/src/*"],
-      "@libs/*": ["libs/*"],
-      "@lumio/*": ["apps/lumio/src/*"],
-      "@payments/*": ["apps/payments/src/*"],
-      "@super-admin/*": ["apps/super-admin/src/*"]
+      "@files/*": ["./apps/files/src/*"],
+      "@libs/*": ["./libs/*"],
+      "@lumio/*": ["./apps/lumio/src/*"],
+      "@payments/*": ["./apps/payments/src/*"],
+      "@super-admin/*": ["./apps/super-admin/src/*"],
+      "@generated/*": ["./generated/*"]
     }
   }
 }
