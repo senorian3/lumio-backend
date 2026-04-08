@@ -10,7 +10,7 @@ export class PostView {
   likeCount: number;
   dislikeCount: number;
 
-  currentUserReaction: 'like' | 'dislike' | 'none' = 'none';
+  userReaction: 'like' | 'dislike' | 'none' = 'none';
 
   userId: number;
 
@@ -41,7 +41,7 @@ export class PostView {
 
   static fromPrisma(
     post: Post & { files: any[] },
-    currentUserReaction?: 'like' | 'dislike' | 'none',
+    userReaction?: 'like' | 'dislike' | 'none',
   ): PostView {
     const view = new PostView();
 
@@ -53,7 +53,7 @@ export class PostView {
     view.likeCount = post.likeCount;
     view.dislikeCount = post.dislikeCount;
 
-    view.currentUserReaction = currentUserReaction ?? 'none';
+    view.userReaction = userReaction ?? 'none';
 
     view.postFiles =
       post.files?.map(

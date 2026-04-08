@@ -36,6 +36,11 @@ export class GetPostByIdQueryHandler implements IQueryHandler<
       throw NotFoundDomainException.create('Post does not exist', 'post');
     }
 
-    return PostView.fromEntity(post, post.files);
+    const userReaction = await this.queryPostRepository.findUserReactionToPost(
+      query.postId,
+      query.userId,
+    );
+
+    return PostView.fromPrisma(post, userReaction ?? 'none');
   }
 }
