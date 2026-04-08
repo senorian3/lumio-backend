@@ -25,11 +25,7 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
         this.clearUser(request);
         return true;
       }
-    } catch (err) {
-      this.logger.error(
-        `OptionalJwtAuthGuard error: ${err.message}`,
-        OptionalJwtAuthGuard.name,
-      );
+    } catch {
       this.clearUser(request);
       return true;
     }
