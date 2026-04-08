@@ -1,5 +1,8 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
+import {
+  PostView,
+  PostLikeView,
+} from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
@@ -41,6 +44,12 @@ export class GetPostByIdQueryHandler implements IQueryHandler<
       query.userId,
     );
 
-    return PostView.fromPrisma(post, userReaction ?? 'none');
+    const newestLikesRaw =
+      await this.queryPostRepository.findNewestLikesForPost(query.postId, 3);
+    const newestLikes = newestLikesRaw.map((like) =>
+      PostLikeView.fromPrisma(like),
+    );
+
+    return PostView.fromPrisma(post, userReaction ?? 'none', newestLikes);
   }
 }
