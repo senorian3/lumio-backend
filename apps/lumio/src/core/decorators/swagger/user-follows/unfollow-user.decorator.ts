@@ -76,6 +76,23 @@ export function ApiUnfollowUser() {
       },
     }),
     ApiResponse({
+      status: 403,
+      description: 'Forbidden - Profile not filled',
+      examples: {
+        profile_not_filled: {
+          summary: 'User profile is not filled',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Profile is not filled',
+                field: 'profileFilled',
+              },
+            ],
+          },
+        },
+      },
+    }),
+    ApiResponse({
       status: 401,
       description: 'Unauthorized',
       examples: {

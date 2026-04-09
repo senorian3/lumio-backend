@@ -13,6 +13,7 @@ describe('FollowUserCommandHandler', () => {
   beforeEach(async () => {
     const mockRepository = {
       getUser: jest.fn(),
+      getUserProfileWithFilledCheck: jest.fn(),
       createFollowWithCounters: jest.fn(),
       getProfileCounters: jest.fn(),
     };
@@ -52,9 +53,14 @@ describe('FollowUserCommandHandler', () => {
         bannedAt: null,
         banReason: null,
       };
+      const mockProfile = {
+        profileFilled: true,
+        userId: followerId,
+      };
       const followerCounters = { followersCount: 10, followingCount: 5 };
       const followingCounters = { followersCount: 20, followingCount: 15 };
 
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockResolvedValue(mockUser);
       repository.createFollowWithCounters.mockResolvedValue(undefined);
       repository.getProfileCounters
@@ -68,6 +74,9 @@ describe('FollowUserCommandHandler', () => {
       expect(result.followersCount).toBe(followingCounters.followersCount);
       expect(result.followingCount).toBe(followerCounters.followingCount);
 
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        followerId,
+      );
       expect(repository.getUser).toHaveBeenCalledWith(followingId);
       expect(repository.createFollowWithCounters).toHaveBeenCalledWith(
         followerId,
@@ -83,9 +92,18 @@ describe('FollowUserCommandHandler', () => {
       const followingId = 999;
       const command = new FollowUserCommand(followerId, followingId);
 
+      const mockProfile = {
+        profileFilled: true,
+        userId: followerId,
+      };
+
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockRejectedValue(new Error('User not found'));
 
       await expect(handler.execute(command)).rejects.toThrow('User not found');
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        followerId,
+      );
       expect(repository.getUser).toHaveBeenCalledWith(followingId);
       expect(repository.createFollowWithCounters).not.toHaveBeenCalled();
     });
@@ -94,6 +112,12 @@ describe('FollowUserCommandHandler', () => {
       const userId = 1;
       const command = new FollowUserCommand(userId, userId);
 
+      const mockProfile = {
+        profileFilled: true,
+        userId: userId,
+      };
+
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockResolvedValue({
         id: userId,
         username: 'self',
@@ -111,6 +135,9 @@ describe('FollowUserCommandHandler', () => {
 
       await expect(handler.execute(command)).rejects.toThrow(
         'Cannot follow yourself',
+      );
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        userId,
       );
       expect(repository.getUser).toHaveBeenCalledWith(userId);
       expect(repository.createFollowWithCounters).toHaveBeenCalledWith(

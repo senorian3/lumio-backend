@@ -19,6 +19,8 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
   async execute(command: UnfollowUserCommand): Promise<FollowStatusViewDto> {
     const { followerId, followingId } = command;
 
+    await this.userFollowRepository.getUserProfileWithFilledCheck(followerId);
+
     await this.userFollowRepository.getUser(followingId);
 
     await this.userFollowRepository.deleteFollowWithCounters(

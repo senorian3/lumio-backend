@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import {
   BadRequestDomainException,
+  ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
 
@@ -152,6 +153,22 @@ export class UserFollowRepository {
       throw NotFoundDomainException.create('User not found', 'userId');
     }
     return user;
+  }
+
+  async getUserProfileWithFilledCheck(userId: number) {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { profileFilled: true, userId: true },
+    });
+
+    if (!profile || !profile.profileFilled) {
+      throw ForbiddenDomainException.create(
+        'Profile is not filled',
+        'profileFilled',
+      );
+    }
+
+    return profile;
   }
 
   async createFollowWithCounters(followerId: number, followingId: number) {

@@ -13,6 +13,7 @@ describe('UnfollowUserCommandHandler', () => {
   beforeEach(async () => {
     const mockRepository = {
       getUser: jest.fn(),
+      getUserProfileWithFilledCheck: jest.fn(),
       deleteFollowWithCounters: jest.fn(),
       getProfileCounters: jest.fn(),
     };
@@ -54,9 +55,14 @@ describe('UnfollowUserCommandHandler', () => {
         bannedAt: null,
         banReason: null,
       };
+      const mockProfile = {
+        profileFilled: true,
+        userId: followerId,
+      };
       const followerCounters = { followersCount: 10, followingCount: 5 };
       const followingCounters = { followersCount: 20, followingCount: 15 };
 
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockResolvedValue(mockUser);
       repository.deleteFollowWithCounters.mockResolvedValue(undefined);
       repository.getProfileCounters
@@ -70,6 +76,9 @@ describe('UnfollowUserCommandHandler', () => {
       expect(result.followersCount).toBe(followingCounters.followersCount);
       expect(result.followingCount).toBe(followerCounters.followingCount);
 
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        followerId,
+      );
       expect(repository.getUser).toHaveBeenCalledWith(followingId);
       expect(repository.deleteFollowWithCounters).toHaveBeenCalledWith(
         followerId,
@@ -85,9 +94,18 @@ describe('UnfollowUserCommandHandler', () => {
       const followingId = 999;
       const command = new UnfollowUserCommand(followerId, followingId);
 
+      const mockProfile = {
+        profileFilled: true,
+        userId: followerId,
+      };
+
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockRejectedValue(new Error('User not found'));
 
       await expect(handler.execute(command)).rejects.toThrow('User not found');
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        followerId,
+      );
       expect(repository.getUser).toHaveBeenCalledWith(followingId);
       expect(repository.deleteFollowWithCounters).not.toHaveBeenCalled();
     });
@@ -96,6 +114,12 @@ describe('UnfollowUserCommandHandler', () => {
       const userId = 1;
       const command = new UnfollowUserCommand(userId, userId);
 
+      const mockProfile = {
+        profileFilled: true,
+        userId: userId,
+      };
+
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockResolvedValue({
         id: userId,
         username: 'self',
@@ -113,6 +137,9 @@ describe('UnfollowUserCommandHandler', () => {
 
       await expect(handler.execute(command)).rejects.toThrow(
         'Cannot unfollow yourself',
+      );
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        userId,
       );
       expect(repository.getUser).toHaveBeenCalledWith(userId);
       expect(repository.deleteFollowWithCounters).toHaveBeenCalledWith(
@@ -137,9 +164,14 @@ describe('UnfollowUserCommandHandler', () => {
         bannedAt: null,
         banReason: null,
       };
+      const mockProfile = {
+        profileFilled: true,
+        userId: followerId,
+      };
       const followerCounters = { followersCount: 10, followingCount: 5 };
       const followingCounters = { followersCount: 20, followingCount: 15 };
 
+      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
       repository.getUser.mockResolvedValue(mockUser);
       repository.deleteFollowWithCounters.mockResolvedValue(undefined);
       repository.getProfileCounters
@@ -150,6 +182,10 @@ describe('UnfollowUserCommandHandler', () => {
 
       expect(result).toBeInstanceOf(FollowStatusViewDto);
       expect(result.isFollowing).toBe(false);
+      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+        followerId,
+      );
+      expect(repository.getUser).toHaveBeenCalledWith(followingId);
     });
   });
 });

@@ -18,6 +18,8 @@ export class FollowUserCommandHandler implements ICommandHandler<
   async execute(command: FollowUserCommand): Promise<FollowStatusViewDto> {
     const { followerId, followingId } = command;
 
+    await this.userFollowRepository.getUserProfileWithFilledCheck(followerId);
+
     await this.userFollowRepository.getUser(followingId);
 
     await this.userFollowRepository.createFollowWithCounters(
