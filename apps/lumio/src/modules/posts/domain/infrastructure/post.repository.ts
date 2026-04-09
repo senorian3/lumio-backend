@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
-import { Post } from 'generated/prisma-lumio';
+import { Post } from '@generated/prisma-lumio';
 import { LikePostStatus } from '@lumio/modules/posts/api/dto/input/like-post.input.dto';
 
 @Injectable()

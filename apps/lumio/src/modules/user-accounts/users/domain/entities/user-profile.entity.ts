@@ -1,6 +1,6 @@
 import { UserEntity } from '@lumio/modules/user-accounts/users/domain/entities/user.entity';
 import { SubscriptionEntity } from '@lumio/modules/user-accounts/users/domain/entities/subscription.entity';
-import { UserProfile } from 'generated/prisma-lumio';
+import { UserProfile } from '@generated/prisma-lumio';
 
 export class UserProfileEntity implements UserProfile {
   id: number;

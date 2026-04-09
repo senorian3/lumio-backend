@@ -5,7 +5,7 @@ import {
 } from '@libs/core/exceptions/domain-exceptions';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { UserRepository } from '../../users/domain/infrastructure/user.repository';
-import { User } from 'generated/prisma-lumio';
+import { User } from '@generated/prisma-lumio';
 
 @Injectable()
 export class AuthService {

@@ -33,9 +33,16 @@ describe('PostsSubscriptionService', () => {
     }).compile();
 
     service = module.get<PostsSubscriptionService>(PostsSubscriptionService);
+
+    // Mock the private connectToRabbitMQ method to prevent real TCP connections
+    jest
+      .spyOn(service as any, 'connectToRabbitMQ')
+      .mockResolvedValue(undefined);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Ensure any connections are closed
+    await service.onModuleDestroy();
     jest.clearAllMocks();
   });
 

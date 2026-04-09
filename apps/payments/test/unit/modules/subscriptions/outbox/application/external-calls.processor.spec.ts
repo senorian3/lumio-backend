@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExternalCallsProcessor } from '@payments/modules/subscriptions/outbox/application/external-calls.processor';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { OutboxMessage } from 'generated/prisma-payments';
+import { OutboxMessage } from '@generated/prisma-payments';
 
 describe('ExternalCallsProcessor', () => {
   let processor: ExternalCallsProcessor;

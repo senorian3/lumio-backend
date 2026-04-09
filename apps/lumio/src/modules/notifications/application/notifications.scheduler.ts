@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotificationRepository } from '@lumio/modules/notifications/domain/infrastructure/notifications.repository';
 import { NotificationsGateway } from '@lumio/modules/notifications/application/notifications.gateway';
-import { Notification } from 'generated/prisma-lumio';
+import { Notification } from '@generated/prisma-lumio';
 import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()

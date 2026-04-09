@@ -25,6 +25,8 @@ describe('DeletePostCommandHandler', () => {
   const mockPost = {
     id: mockPostId,
     description: 'Test post',
+    likeCount: 0,
+    dislikeCount: 0,
     createdAt: new Date(),
     deletedAt: null,
     userId: mockUserId,

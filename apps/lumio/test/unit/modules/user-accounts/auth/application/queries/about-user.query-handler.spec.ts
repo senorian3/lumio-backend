@@ -21,6 +21,8 @@ describe('AboutUserQueryHandler', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    followersCount: 0,
+    followingCount: 0,
     accountType: 'free',
     userId: mockUserId,
     user: {} as any,

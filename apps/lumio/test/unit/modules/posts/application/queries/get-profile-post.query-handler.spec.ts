@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
+import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import {
   GetProfilePostQueryHandler,
@@ -10,7 +10,7 @@ import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions
 
 describe('GetProfilePostQueryHandler', () => {
   let handler: GetProfilePostQueryHandler;
-  let mockPostRepository: jest.Mocked<PostRepository>;
+  let mockPostRepository: jest.Mocked<QueryPostRepository>;
   let mockExternalQueryUserRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   const mockUserId = 1;
@@ -41,6 +41,8 @@ describe('GetProfilePostQueryHandler', () => {
   const mockPostFromDb = {
     id: mockPostId,
     description: 'Test post description',
+    likeCount: 0,
+    dislikeCount: 0,
     createdAt: new Date(),
     deletedAt: null,
     userId: mockUserId,
@@ -48,22 +50,16 @@ describe('GetProfilePostQueryHandler', () => {
     files: [],
   };
 
-  const mockPostView: PostView = {
-    id: mockPostId,
-    description: 'Test post description',
-    createdAt: mockPostFromDb.createdAt,
-    userId: mockUserId,
-    postFiles: [],
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GetProfilePostQueryHandler,
         {
-          provide: PostRepository,
+          provide: QueryPostRepository,
           useValue: {
             findById: jest.fn(),
+            findUserReactionToPost: jest.fn().mockResolvedValue(null),
+            findNewestLikesForPost: jest.fn().mockResolvedValue([]),
           },
         },
         {
@@ -79,7 +75,7 @@ describe('GetProfilePostQueryHandler', () => {
     handler = module.get<GetProfilePostQueryHandler>(
       GetProfilePostQueryHandler,
     );
-    mockPostRepository = module.get(PostRepository);
+    mockPostRepository = module.get(QueryPostRepository);
     mockExternalQueryUserRepository = module.get(
       ExternalQueryUserAccountsRepository,
     );
@@ -92,15 +88,13 @@ describe('GetProfilePostQueryHandler', () => {
   describe('execute', () => {
     it('should return post view when user and post exist and post belongs to user', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
         userId: mockUserId,
       } as any);
       mockExternalQueryUserRepository.findUserId.mockResolvedValue(mockUserId);
       mockPostRepository.findById.mockResolvedValue(mockPostFromDb);
-
-      jest.spyOn(PostView, 'fromPrisma').mockReturnValue(mockPostView);
 
       // Act
       const result = await handler.execute(query);
@@ -113,13 +107,15 @@ describe('GetProfilePostQueryHandler', () => {
         mockUserId,
       );
       expect(mockPostRepository.findById).toHaveBeenCalledWith(mockPostId);
-      expect(PostView.fromPrisma).toHaveBeenCalledWith(mockPostFromDb);
-      expect(result).toEqual(mockPostView);
+      expect(result).toBeInstanceOf(PostView);
+      expect(result.id).toBe(mockPostId);
+      expect(result.description).toBe('Test post description');
+      expect(result.userId).toBe(mockUserId);
     });
 
     it('should throw NotFoundDomainException when user does not exist', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue(null);
 
@@ -145,7 +141,7 @@ describe('GetProfilePostQueryHandler', () => {
 
     it('should throw NotFoundDomainException when postId is not provided', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, null);
+      const query = new GetProfilePostQuery(mockUserId, null, null);
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
         userId: mockUserId,
@@ -177,7 +173,7 @@ describe('GetProfilePostQueryHandler', () => {
 
     it('should throw NotFoundDomainException when post does not exist', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue({
         userId: mockUserId,
@@ -210,7 +206,7 @@ describe('GetProfilePostQueryHandler', () => {
 
     it('should throw NotFoundDomainException when post does not belong to user', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
       const otherUserPost = {
         ...mockPostFromDb,
         userId: 999,
@@ -248,7 +244,7 @@ describe('GetProfilePostQueryHandler', () => {
 
     it('should handle database error when finding user', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
       const dbError = new Error('Database connection failed');
 
       mockExternalQueryUserRepository.getProfileById.mockRejectedValue(dbError);
@@ -264,7 +260,7 @@ describe('GetProfilePostQueryHandler', () => {
 
     it('should handle database error when finding post', async () => {
       // Arrange
-      const query = new GetProfilePostQuery(mockUserId, mockPostId);
+      const query = new GetProfilePostQuery(mockUserId, mockPostId, null);
       const dbError = new Error('Database connection failed');
 
       mockExternalQueryUserRepository.getProfileById.mockResolvedValue({

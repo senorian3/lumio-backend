@@ -5,6 +5,8 @@ import { UnfollowUserCommandHandler } from './application/commands/unfollow-user
 import { SearchUsersQueryHandler } from './application/queries/search-users.query-handler';
 import { GetUserProfileQueryHandler } from './application/queries/get-user-profile.query-handler';
 import { GetFeedQueryHandler } from './application/queries/get-feed.query-handler';
+import { GetFollowersQueryHandler } from './application/queries/get-followers.query-handler';
+import { GetFollowingQueryHandler } from './application/queries/get-following.query-handler';
 import { UserFollowRepository } from './domain/infrastructure/user-follow.repository';
 import { UserFollowQueryRepository } from './domain/infrastructure/user-follow.query-repository';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
@@ -20,6 +22,8 @@ const useCases = [
   SearchUsersQueryHandler,
   GetUserProfileQueryHandler,
   GetFeedQueryHandler,
+  GetFollowersQueryHandler,
+  GetFollowingQueryHandler,
 ];
 
 const repositories = [UserFollowRepository, UserFollowQueryRepository];

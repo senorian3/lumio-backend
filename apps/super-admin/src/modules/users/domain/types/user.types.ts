@@ -1,4 +1,4 @@
-import { Prisma } from 'generated/prisma-lumio';
+import { Prisma } from '@generated/prisma-lumio';
 
 /**
  * Тип для пользователя с профилем (используя Prisma infer)

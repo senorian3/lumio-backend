@@ -1,4 +1,4 @@
-import { Yandex } from 'generated/prisma-lumio';
+import { Yandex } from '@generated/prisma-lumio';
 import { UserEntity } from './user.entity';
 
 export class YandexEntity implements Yandex {

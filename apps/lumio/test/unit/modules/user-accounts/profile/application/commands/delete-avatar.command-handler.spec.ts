@@ -28,6 +28,8 @@ describe('DeleteUserAvatarCommandHandler', () => {
     profileFilled: true,
     profileFilledAt: new Date(),
     profileUpdatedAt: new Date(),
+    followersCount: 0,
+    followingCount: 0,
     user: {
       id: 1,
       username: 'testuser',

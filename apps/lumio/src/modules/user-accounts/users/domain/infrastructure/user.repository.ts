@@ -2,7 +2,7 @@ import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { add } from 'date-fns';
-import { EmailConfirmation, User } from 'generated/prisma-lumio';
+import { EmailConfirmation, User } from '@generated/prisma-lumio';
 import { CreateUserDomainDto } from '../dto/create-user.domain.dto';
 import { UserEntity } from '../entities/user.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';
