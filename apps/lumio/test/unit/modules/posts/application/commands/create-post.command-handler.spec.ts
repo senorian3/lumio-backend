@@ -66,6 +66,8 @@ describe('CreatePostCommandHandler', () => {
   const mockPost: PostEntity = {
     id: mockPostId,
     description: mockDescription,
+    likeCount: 0,
+    dislikeCount: 0,
     createdAt: new Date(),
     deletedAt: null,
     userId: mockUserId,

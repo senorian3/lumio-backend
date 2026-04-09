@@ -25,6 +25,8 @@ describe('AuthService', () => {
     profileFilled: false,
     profileFilledAt: null,
     profileUpdatedAt: null,
+    followersCount: 0,
+    followingCount: 0,
     accountType: 'free',
     userId: 1,
     user: {} as any,

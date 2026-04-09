@@ -31,6 +31,15 @@ model User {
   posts             Post[]
   notifications     Notification[]
 
+  comments          Comment[]
+  commentLikes      CommentLike[]
+  postLikes         PostLike[]
+
+  // Подписки (кто на меня подписан)
+  followers        UserFollow[]    @relation("Follower")
+  // Мои подписки (на кого я подписан)
+  following        UserFollow[]    @relation("Following")
+
   @@index([deletedAt])
 }
 
@@ -46,6 +55,9 @@ model UserProfile {
   profileFilled    Boolean   @default(false)
   profileFilledAt  DateTime?
   profileUpdatedAt DateTime? @db.Timestamp(0)
+
+  followersCount   Int       @default(0)  // Количество подписчиков
+  followingCount   Int       @default(0)  // Количество подписок
 
   accountType      String    @default("Personal") @db.VarChar(50)
 
@@ -110,6 +122,9 @@ model Post {
   id          String     @id
   description String?
 
+  likeCount    Int           @default(0)
+  dislikeCount Int           @default(0)
+
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
@@ -117,6 +132,9 @@ model Post {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   files PostFile[]
+
+  comments Comment[]
+  postLikes PostLike[]
 
   @@index([userId])
   @@index([deletedAt])
@@ -163,5 +181,80 @@ model Notification {
 
   @@index([status])
   @@index([executeAt])
+  @@index([deletedAt])
+}
+
+model Comment {
+  id           Int           @id @default(autoincrement())
+  content      String        @db.VarChar(300)
+  likeCount    Int           @default(0)
+  dislikeCount Int           @default(0)
+  createdAt    DateTime      @default(now())
+  deletedAt    DateTime?
+
+  postId       String
+  post         Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  commentLikes CommentLike[]
+
+  parentId     Int?
+  rootId       Int?
+  parent       Comment?      @relation("CommentThread", fields: [parentId], references: [id], onDelete: SetNull)
+  replies      Comment[]     @relation("CommentThread")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([deletedAt])
+  @@index([parentId])
+}
+
+model CommentLike {
+  id        Int      @id @default(autoincrement())
+  status    String   @db.VarChar(10)
+  addedAt   DateTime @default(now())
+
+  commentId Int
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
+}
+
+model PostLike {
+  id        Int      @id @default(autoincrement())
+  status    String   @db.VarChar(10)
+  addedAt   DateTime @default(now())
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model UserFollow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int      // Тот, кто подписывается
+  followingId Int      // Тот, на кого подписываются
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime? // Для soft delete (отписки)
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
   @@index([deletedAt])
 }

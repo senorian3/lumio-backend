@@ -15,7 +15,6 @@ import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
 import { OutputFileType } from '@libs/dto/output/file-output';
 import { FileValidationPipe } from '@libs/core/pipe/validation/validation-files.pipe';
-
 describe('PostsController', () => {
   let postsController: PostsController;
   let commandBus: jest.Mocked<CommandBus>;
@@ -26,7 +25,9 @@ describe('PostsController', () => {
     description: 'Test post description',
     createdAt: new Date('2024-01-15T10:30:00Z'),
     userId: 1,
-
+    likeCount: 0,
+    dislikeCount: 0,
+    userReaction: 'none',
     postFiles: [
       new OutputFileType(
         1,
@@ -35,6 +36,7 @@ describe('PostsController', () => {
         new Date('2024-01-15T10:30:00Z'),
       ),
     ],
+    newestLikes: [],
   };
 
   const mockPaginatedPosts: PaginatedPostViewDto = new PaginatedPostViewDto(
@@ -166,14 +168,19 @@ describe('PostsController', () => {
     it('should return profile post by postId', async () => {
       const profileId = 1;
       const postId = 'post-123';
+      const currentUserId = 1;
 
       queryBus.execute.mockResolvedValue(mockPostView);
 
-      const result = await postsController.getProfilePost(profileId, postId);
+      const result = await postsController.getProfilePost(
+        profileId,
+        postId,
+        currentUserId,
+      );
 
       expect(result).toEqual(mockPostView);
       expect(queryBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({ profileId, postId }),
+        expect.objectContaining({ profileId, postId, currentUserId }),
       );
     });
   });
@@ -305,6 +312,158 @@ describe('PostsController', () => {
       expect(result).toEqual(mockPostView);
       expect(queryBus.execute).toHaveBeenCalledWith(
         expect.objectContaining({ postId, userId }),
+      );
+    });
+  });
+
+  describe('likePost', () => {
+    it('should successfully like a post', async () => {
+      const postId = 'post-123';
+      const userId = 1;
+      const dto = { status: 'like' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likePost(userId, postId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          postId,
+          status: 'like',
+        }),
+      );
+    });
+
+    it('should successfully dislike a post', async () => {
+      const postId = 'post-123';
+      const userId = 1;
+      const dto = { status: 'dislike' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likePost(userId, postId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          postId,
+          status: 'dislike',
+        }),
+      );
+    });
+
+    it('should successfully remove reaction from post', async () => {
+      const postId = 'post-123';
+      const userId = 1;
+      const dto = { status: 'none' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likePost(userId, postId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          postId,
+          status: 'none',
+        }),
+      );
+    });
+
+    it('should handle command bus error', async () => {
+      const postId = 'post-123';
+      const userId = 1;
+      const dto = { status: 'like' as const };
+      const error = new Error('Command failed');
+
+      commandBus.execute.mockRejectedValue(error);
+
+      await expect(
+        postsController.likePost(userId, postId, dto),
+      ).rejects.toThrow(error);
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          postId,
+          status: 'like',
+        }),
+      );
+    });
+  });
+
+  describe('likeComment', () => {
+    it('should successfully like a comment', async () => {
+      const commentId = 123;
+      const userId = 1;
+      const dto = { status: 'like' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likeComment(userId, commentId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          commentId,
+          status: 'like',
+        }),
+      );
+    });
+
+    it('should successfully dislike a comment', async () => {
+      const commentId = 123;
+      const userId = 1;
+      const dto = { status: 'dislike' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likeComment(userId, commentId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          commentId,
+          status: 'dislike',
+        }),
+      );
+    });
+
+    it('should successfully remove reaction from comment', async () => {
+      const commentId = 123;
+      const userId = 1;
+      const dto = { status: 'none' as const };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      await postsController.likeComment(userId, commentId, dto);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          commentId,
+          status: 'none',
+        }),
+      );
+    });
+
+    it('should handle command bus error', async () => {
+      const commentId = 123;
+      const userId = 1;
+      const dto = { status: 'like' as const };
+      const error = new Error('Command failed');
+
+      commandBus.execute.mockRejectedValue(error);
+
+      await expect(
+        postsController.likeComment(userId, commentId, dto),
+      ).rejects.toThrow(error);
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          commentId,
+          status: 'like',
+        }),
       );
     });
   });

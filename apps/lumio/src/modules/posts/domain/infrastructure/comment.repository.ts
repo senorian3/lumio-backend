@@ -1,0 +1,103 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@lumio/prisma/prisma.service';
+import { LikeStatus } from '@lumio/modules/posts/api/dto/input/like-comment.input.dto';
+
+@Injectable()
+export class CommentRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findExistingAndActivePost(postId: string) {
+    return this.prisma.post.findFirst({
+      where: {
+        id: postId,
+        deletedAt: null,
+      },
+    });
+  }
+
+  async findActiveCommentById(commentId: number) {
+    return this.prisma.comment.findFirst({
+      where: { id: commentId, deletedAt: null },
+    });
+  }
+
+  private async resolveRootId(parentId?: number): Promise<number | null> {
+    if (!parentId) return null;
+
+    const parent = await this.prisma.comment.findFirst({
+      where: { id: parentId, deletedAt: null },
+      select: { id: true, rootId: true },
+    });
+
+    if (!parent) return null;
+
+    return parent.rootId ?? parent.id;
+  }
+
+  async createComment(
+    userId: number,
+    postId: string,
+    content: string,
+    parentId?: number,
+  ): Promise<{ commentId: number }> {
+    const rootId = await this.resolveRootId(parentId);
+
+    const comment = await this.prisma.comment.create({
+      data: {
+        content,
+        postId,
+        userId,
+        ...(parentId && { parentId }),
+        rootId,
+      },
+      select: { id: true },
+    });
+
+    return { commentId: comment.id };
+  }
+
+  async updateCommentLike(
+    commentId: number,
+    userId: number,
+    status: LikeStatus,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      if (status === 'none') {
+        // 🔹 Удаляем реакцию, если она есть
+        await tx.commentLike.deleteMany({
+          where: { commentId, userId },
+        });
+      } else {
+        // 🔹 Создаём или обновляем реакцию
+        await tx.commentLike.upsert({
+          where: {
+            commentId_userId: { commentId, userId },
+          },
+          create: {
+            commentId,
+            userId,
+            status,
+          },
+          update: {
+            status,
+          },
+        });
+      }
+
+      // 🔹 Пересчитываем счётчики (учитываем, что записей может не быть)
+      const [likeCount, dislikeCount] = await Promise.all([
+        tx.commentLike.count({
+          where: { commentId, status: 'like' },
+        }),
+        tx.commentLike.count({
+          where: { commentId, status: 'dislike' },
+        }),
+      ]);
+
+      await tx.comment.update({
+        where: { id: commentId },
+        data: { likeCount, dislikeCount },
+      });
+    });
+  }
+}

@@ -27,6 +27,8 @@ describe('GetUserSubscriptionQueryHandler', () => {
     profileFilled: true,
     profileFilledAt: new Date(),
     profileUpdatedAt: new Date(),
+    followersCount: 0,
+    followingCount: 0,
     accountType: 'free',
     userId: mockUserId,
     user: {} as any,

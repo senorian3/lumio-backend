@@ -1,4 +1,4 @@
-import { Payment } from 'generated/prisma-payments';
+import { Payment } from '@generated/prisma-payments';
 
 export class PaymentEntity implements Payment {
   id: number;

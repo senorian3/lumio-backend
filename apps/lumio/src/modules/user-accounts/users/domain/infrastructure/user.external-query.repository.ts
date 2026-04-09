@@ -1,6 +1,6 @@
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { UserProfile } from 'generated/prisma-lumio';
+import { UserProfile } from '@generated/prisma-lumio';
 
 @Injectable()
 export class ExternalQueryUserAccountsRepository {

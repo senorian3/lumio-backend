@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { Payment } from 'generated/prisma-payments';
+import { Payment } from '@generated/prisma-payments';
 
 export class UserProfilePaymentResponseDto {
   id: number;

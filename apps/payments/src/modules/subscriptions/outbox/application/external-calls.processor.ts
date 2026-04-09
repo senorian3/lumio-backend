@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { OutboxMessage } from 'generated/prisma-payments';
+import { OutboxMessage } from '@generated/prisma-payments';
 import { UpdateCustomerSubscriptionEndDateDto } from '@libs/dto/transfer/update-customer-subscription-end-date.dto';
 import { UpdateSubscriptionMetadataDto } from '@libs/dto/transfer/update-subscription-metadata.dto';
 import { CancelSubscriptionImmediatelyDto } from '@libs/dto/transfer/cancel-subscription-immediately.dto';

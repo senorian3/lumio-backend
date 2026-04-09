@@ -1,0 +1,180 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@lumio/prisma/prisma.service';
+import {
+  BadRequestDomainException,
+  NotFoundDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
+
+@Injectable()
+export class UserFollowRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createFollow(followerId: number, followingId: number, tx?: any) {
+    if (followerId === followingId) {
+      throw BadRequestDomainException.create(
+        'Cannot follow yourself',
+        'followingId',
+      );
+    }
+
+    const client = tx || this.prisma;
+
+    const existingFollow = await client.userFollow.findFirst({
+      where: {
+        followerId,
+        followingId,
+        deletedAt: null,
+      },
+    });
+
+    if (existingFollow) {
+      throw BadRequestDomainException.create(
+        'Already following this user',
+        'followingId',
+      );
+    }
+
+    const softDeletedFollow = await client.userFollow.findFirst({
+      where: {
+        followerId,
+        followingId,
+        deletedAt: { not: null },
+      },
+    });
+
+    if (softDeletedFollow) {
+      return await client.userFollow.update({
+        where: { id: softDeletedFollow.id },
+        data: { deletedAt: null },
+      });
+    }
+
+    return await client.userFollow.create({
+      data: {
+        followerId,
+        followingId,
+      },
+    });
+  }
+
+  async deleteFollow(followerId: number, followingId: number, tx?: any) {
+    const client = tx || this.prisma;
+
+    const existingFollow = await client.userFollow.findFirst({
+      where: {
+        followerId,
+        followingId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingFollow) {
+      throw BadRequestDomainException.create(
+        'Not following this user',
+        'followingId',
+      );
+    }
+
+    return await client.userFollow.update({
+      where: { id: existingFollow.id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  async isFollowing(followerId: number, followingId: number): Promise<boolean> {
+    const follow = await this.prisma.userFollow.findFirst({
+      where: {
+        followerId,
+        followingId,
+        deletedAt: null,
+      },
+    });
+
+    return !!follow;
+  }
+
+  async updateProfileCounters(
+    userId: number,
+    followersDelta: number,
+    followingDelta: number,
+    tx?: any,
+  ) {
+    const client = tx || this.prisma;
+
+    await client.userProfile.update({
+      where: { userId },
+      data: {
+        followersCount: { increment: followersDelta },
+        followingCount: { increment: followingDelta },
+      },
+    });
+  }
+
+  async getFollowingIds(userId: number): Promise<number[]> {
+    const follows = await this.prisma.userFollow.findMany({
+      where: {
+        followerId: userId,
+        deletedAt: null,
+      },
+      select: { followingId: true },
+    });
+
+    return follows.map((follow) => follow.followingId);
+  }
+
+  async getProfileCounters(userId: number): Promise<{
+    followersCount: number;
+    followingCount: number;
+  }> {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { followersCount: true, followingCount: true },
+    });
+
+    return {
+      followersCount: profile?.followersCount || 0,
+      followingCount: profile?.followingCount || 0,
+    };
+  }
+
+  async checkUserExists(userId: number): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null, isBlocked: false },
+    });
+    return !!user;
+  }
+
+  async getUser(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null, isBlocked: false },
+    });
+    if (!user) {
+      throw NotFoundDomainException.create('User not found', 'userId');
+    }
+    return user;
+  }
+
+  async createFollowWithCounters(followerId: number, followingId: number) {
+    return await this.prisma.$transaction(async (tx) => {
+      const follow = await this.createFollow(followerId, followingId, tx);
+
+      await this.updateProfileCounters(followerId, 0, 1, tx);
+
+      await this.updateProfileCounters(followingId, 1, 0, tx);
+
+      return follow;
+    });
+  }
+
+  async deleteFollowWithCounters(followerId: number, followingId: number) {
+    return await this.prisma.$transaction(async (tx) => {
+      const result = await this.deleteFollow(followerId, followingId, tx);
+
+      await this.updateProfileCounters(followerId, 0, -1, tx);
+
+      await this.updateProfileCounters(followingId, -1, 0, tx);
+
+      return result;
+    });
+  }
+}
