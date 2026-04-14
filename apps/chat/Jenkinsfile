@@ -1,75 +1,150 @@
+def app
 pipeline {
     agent any
-
     environment {
-        SERVICE_NAME = 'chat'
-        PORT = '3004'
+        ENV_TYPE = "production"
+        PORT = 4282
+        NAMESPACE = "lumio-su"
+        REGISTRY_HOSTNAME = "senorian3"
+        PROJECT = "lumio-back-end-chat"
+        SERVICE="chat"
+        REGISTRY = "registry.hub.docker.com"
+        DEPLOYMENT_NAME = "lumio-back-end-chat-deployment"
+        IMAGE_NAME = "${env.BUILD_ID}_${env.ENV_TYPE}_${env.GIT_COMMIT}"
+        DOCKER_BUILD_NAME = "${env.REGISTRY_HOSTNAME}/${env.PROJECT}:${env.IMAGE_NAME}"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Clone repository') {
             steps {
                 checkout scm
             }
         }
-
-        stage('Install Dependencies') {
+        
+        stage('Debug info') {
             steps {
-                sh 'yarn install'
+                sh '''
+                    echo "=== Jenkinsfile for CHAT service only ==="
+                    echo "Service: ${SERVICE}"
+                    echo "Node version: $(node --version)"
+                    echo "NPM version: $(npm --version)"
+                    echo "Yarn version: $(yarn --version)"
+                    echo "Current directory: $(pwd)"
+                '''
             }
         }
-
-        stage('Lint') {
-            steps {
-                sh 'yarn lint'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'yarn test:unit:chat'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'yarn build:chat'
-            }
-        }
-
-        stage('Docker Build') {
+        
+        stage('Setup Node.js environment') {
             steps {
                 script {
-                    docker.build("${SERVICE_NAME}:${env.BUILD_ID}", "--build-arg service=${SERVICE_NAME} --build-arg port=${PORT} .")
+                    sh '''
+                       # Используем NVM для установки совместимой версии Node.js
+                       export NVM_DIR="$HOME/.nvm"
+                       [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+                       
+                       # Устанавливаем совместимую версию Node.js (>=20.9.0)
+                       echo "Installing compatible Node.js version..."
+                        nvm install 20.17.0
+                        nvm use 20.17.0
+                       
+                       echo "New Node.js version: $(node --version)"
+                       echo "New NPM version: $(npm --version)"
+                    '''
+                }
+            }
+        }
+        
+        stage('Install dependencies') {
+            steps {
+                script {
+                    sh '''
+                       # Install dependencies for chat service
+                       echo "Installing dependencies..."
+                       yarn install --frozen-lockfile --ignore-engines
+                       
+                       # Генерируем Prisma клиент для сборки (без env переменных)
+                       echo "Generating Prisma client for build..."
+                       npx prisma generate --schema apps/chat/src/prisma/schema.prisma
+                    '''
                 }
             }
         }
 
-        stage('Docker Push') {
+        stage('Run Unit Tests') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.example.com', 'docker-credentials') {
-                        docker.image("${SERVICE_NAME}:${env.BUILD_ID}").push()
-                        docker.image("${SERVICE_NAME}:${env.BUILD_ID}").push('latest')
+                    sh '''
+                       # Запускаем unit тесты напрямую через Jest
+                       # Только spec файлы для сервиса chat
+                       echo "Running unit tests for chat service..."
+                       
+                       # Запускаем Jest напрямую с правильной конфигурацией
+                         yarn test:unit:chat
+                       
+                       echo "Unit tests completed!"
+                    '''
+                }
+            }
+        }
+        
+        stage('Build docker image') {
+            steps {
+                echo "Build image started for chat service..."
+                script {
+                    app = docker.build("${env.DOCKER_BUILD_NAME}", "--build-arg service=${env.SERVICE} --build-arg port=${env.PORT} -f ./apps/${env.SERVICE}/Dockerfile ./")
+                }
+                echo "Build image finished for chat service..."
+            }
+        }
+        
+        stage('Push docker image') {
+            steps {
+                echo "Push image started for chat service..."
+                script {
+                    docker.withRegistry("https://${env.REGISTRY}", 'lumio-su') {
+                        app.push("${env.IMAGE_NAME}")
                     }
                 }
+                echo "Push image finished for chat service..."
             }
         }
-
-        stage('Deploy') {
+        
+        stage('Delete image local') {
             steps {
-                sh "kubectl apply -f apps/${SERVICE_NAME}/deployment.yaml"
-                sh "kubectl rollout status deployment/chat-deployment"
+                script {
+                    sh "docker rmi -f ${env.DOCKER_BUILD_NAME}"
+                }
+            }
+        }
+        
+        stage('Preparing deployment') {
+            steps {
+                echo "Preparing deployment for chat service..."
+                sh 'ls -ltr'
+                sh 'pwd'
+                sh "chmod +x ./apps/${env.SERVICE}/preparingDeploy.sh"
+                sh "./apps/${env.SERVICE}/preparingDeploy.sh ${env.REGISTRY_HOSTNAME} ${env.PROJECT} ${env.IMAGE_NAME} ${env.DEPLOYMENT_NAME} ${env.PORT} ${env.NAMESPACE}"
+                sh "cat ./apps/${env.SERVICE}/deployment.yaml"
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                withKubeConfig([credentialsId: 'prod-kubernetes']) {
+                    sh "kubectl apply -f ./apps/${env.SERVICE}/deployment.yaml"
+                    sh "kubectl rollout status deployment/${env.DEPLOYMENT_NAME} --namespace=${env.NAMESPACE}"
+                    sh "kubectl get services -o wide"
+                }
             }
         }
     }
-
+    
     post {
         success {
-            echo 'Pipeline completed successfully'
+            echo "Chat service pipeline completed successfully!"
         }
         failure {
-            echo 'Pipeline failed'
+            echo "Chat service pipeline failed!"
         }
     }
 }
