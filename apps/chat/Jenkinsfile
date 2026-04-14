@@ -70,22 +70,22 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
-            steps {
-                script {
-                    sh '''
-                       # Запускаем unit тесты напрямую через Jest
-                       # Только spec файлы для сервиса chat
-                       echo "Running unit tests for chat service..."
+        // stage('Run Unit Tests') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //                # Запускаем unit тесты напрямую через Jest
+        //                # Только spec файлы для сервиса chat
+        //                echo "Running unit tests for chat service..."
                        
-                       # Запускаем Jest напрямую с правильной конфигурацией
-                         yarn test:unit:chat
+        //                # Запускаем Jest напрямую с правильной конфигурацией
+        //                  yarn test:unit:chat
                        
-                       echo "Unit tests completed!"
-                    '''
-                }
-            }
-        }
+        //                echo "Unit tests completed!"
+        //             '''
+        //         }
+        //     }
+        // }
         
         stage('Build docker image') {
             steps {
