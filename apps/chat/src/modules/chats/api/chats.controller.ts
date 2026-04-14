@@ -60,9 +60,7 @@ export class ChatsController {
   async addParticipant(
     @Param('id') id: string,
     @Body() body: { userId: number },
-    @Request() req,
   ) {
-    const addedBy = req.user?.id || 1; // Заглушка для тестирования
-    return this.chatsService.addParticipant(+id, body.userId, addedBy);
+    return this.chatsService.addParticipant(+id, body.userId);
   }
 }
