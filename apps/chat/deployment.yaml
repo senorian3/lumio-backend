@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-deployment
+  labels:
+    app: chat
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chat
+  template:
+    metadata:
+      labels:
+        app: chat
+    spec:
+      containers:
+        - name: chat
+          image: chat:latest
+          ports:
+            - containerPort: 3004
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: PORT
+              value: '3004'
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: database-url
+            - name: INTERNAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: internal-api-key
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-secrets
+                  key: rabbitmq-url
+            - name: RABBITMQ_QUEUE
+              value: 'chat_queue'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+spec:
+  selector:
+    app: chat
+  ports:
+    - port: 3004
+      targetPort: 3004
+  type: ClusterIP

@@ -25,6 +25,7 @@ module.exports = (options) => {
         '@files': path.join(rootDir, 'apps/files/src'),
         '@payments': path.join(rootDir, 'apps/payments/src'),
         '@super-admin': path.join(rootDir, 'apps/super-admin/src'),
+        '@chat': path.join(rootDir, 'apps/chat/src'),
         '@generated': path.join(rootDir, 'generated'),
       },
     },

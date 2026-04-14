@@ -25,6 +25,7 @@
       "@lumio/*": ["./apps/lumio/src/*"],
       "@payments/*": ["./apps/payments/src/*"],
       "@super-admin/*": ["./apps/super-admin/src/*"],
+      "@chat/*": ["./apps/chat/src/*"],
       "@generated/*": ["./generated/*"]
     }
   }

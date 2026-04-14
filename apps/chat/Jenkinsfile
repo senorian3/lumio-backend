@@ -1,0 +1,75 @@
+pipeline {
+    agent any
+
+    environment {
+        SERVICE_NAME = 'chat'
+        PORT = '3004'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'yarn install'
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                sh 'yarn lint'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'yarn test:unit:chat'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'yarn build:chat'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    docker.build("${SERVICE_NAME}:${env.BUILD_ID}", "--build-arg service=${SERVICE_NAME} --build-arg port=${PORT} .")
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.example.com', 'docker-credentials') {
+                        docker.image("${SERVICE_NAME}:${env.BUILD_ID}").push()
+                        docker.image("${SERVICE_NAME}:${env.BUILD_ID}").push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh "kubectl apply -f apps/${SERVICE_NAME}/deployment.yaml"
+                sh "kubectl rollout status deployment/chat-deployment"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully'
+        }
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
+}
