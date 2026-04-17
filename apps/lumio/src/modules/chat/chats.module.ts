@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
-import { ChatsController } from '@chat/modules/chats/api/chats.controller';
+import { ChatsController } from '@lumio/modules/chat/api/chats.controller';
+import { ChatHttpAdapter } from '@lumio/modules/chat/application/chat-http.adapter';
+import { CreateCommentCommandHandler } from '@lumio/modules/chat/application/commands/send-message.command-handler';
 
-const useCases = [];
+const useCases = [CreateCommentCommandHandler];
 
 const adapters = [];
 
@@ -14,7 +16,13 @@ const queryRepositories = [];
 @Module({
   imports: [UserAccountsModule, LoggerModule],
   controllers: [ChatsController],
-  providers: [...useCases, ...adapters, ...repositories, ...queryRepositories],
+  providers: [
+    ...useCases,
+    ...adapters,
+    ...repositories,
+    ...queryRepositories,
+    ChatHttpAdapter,
+  ],
   exports: [],
 })
 export class ChatsModule {}

@@ -74,6 +74,9 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable PAYMENTS_FRONTEND_URL' })
   paymentsFrontendUrl: string = this.configService.get('PAYMENTS_FRONTEND_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable CHAT_FRONTEND_URL' })
+  chatFrontendUrl: string = this.configService.get('CHAT_FRONTEND_URL');
+
   @IsNotEmpty({
     message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',
   })
