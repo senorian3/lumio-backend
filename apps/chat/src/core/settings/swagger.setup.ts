@@ -16,7 +16,6 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
       .addBearerAuth()
       .addServer('https://lumio.su', 'Testing')
       .addServer('http://localhost:3004', 'Local')
-      .addServer('http://localhost:3006', 'Local')
       .setVersion('1.0')
       .setDescription('Lumio Chat API documentation')
       .addSecurity('internal', {
@@ -49,7 +48,7 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
         displayRequestDuration: true,
         urls: [
           {
-            url: 'api/v1/swagger/json',
+            url: '/api/v1/swagger/json',
             name: 'API v1',
           },
         ],
