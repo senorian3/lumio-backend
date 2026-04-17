@@ -13,32 +13,28 @@ export class SendMessageCommand {
 }
 
 @CommandHandler(SendMessageCommand)
-export class CreateCommentCommandHandler implements ICommandHandler<
-  SendMessageCommand,
-  void
-> {
+export class SendMessageCommandHandler implements ICommandHandler<SendMessageCommand> {
   constructor(
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly chatHttpAdapter: ChatHttpAdapter,
   ) {}
 
-  async execute(command: SendMessageCommand): Promise<void> {
+  async execute(command: SendMessageCommand) {
     const recipient = await this.externalQueryUserAccountsRepository.findUserId(
       command.recipientId,
     );
     if (!recipient) {
-      throw BadRequestDomainException.create('Recipient not found');
+      throw BadRequestDomainException.create(
+        'Recipient not found',
+        'recipientId',
+      );
     }
 
-    console.log('send message');
-
-    const response = await this.chatHttpAdapter.sendMessage(
+    return this.chatHttpAdapter.sendMessage(
       `${GLOBAL_PREFIX}/chats/send-message`,
       command.userId,
       command.recipientId,
       command.message,
     );
-
-    console.log('response', response);
   }
 }

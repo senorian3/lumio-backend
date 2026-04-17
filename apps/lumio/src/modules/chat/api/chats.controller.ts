@@ -22,8 +22,8 @@ export class ChatsController {
     @UserId() userId: number,
     @Param('recipientId', ParseIntPipe) recipientId: number,
     @Body() dto: SendMessageInputDto,
-  ): Promise<any> {
-    await this.commandBus.execute(
+  ) {
+    return this.commandBus.execute(
       new SendMessageCommand(userId, recipientId, dto.message),
     );
   }

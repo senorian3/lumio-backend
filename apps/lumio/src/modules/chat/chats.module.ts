@@ -3,9 +3,9 @@ import { LoggerModule } from '@libs/logger/logger.module';
 import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.module';
 import { ChatsController } from '@lumio/modules/chat/api/chats.controller';
 import { ChatHttpAdapter } from '@lumio/modules/chat/application/chat-http.adapter';
-import { CreateCommentCommandHandler } from '@lumio/modules/chat/application/commands/send-message.command-handler';
+import { SendMessageCommandHandler } from '@lumio/modules/chat/application/commands/send-message.command-handler';
 
-const useCases = [CreateCommentCommandHandler];
+const useCases = [SendMessageCommandHandler];
 
 const adapters = [];
 
