@@ -1,11 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { SendMessageInputDto } from '@chat/modules/chats/api/dto/input/send-message.input.dto';
 import { GetChatMessagesInputDto } from '@chat/modules/chats/api/dto/input/get-chat-messages.input.dto';
 import { SendMessageCommand } from '@chat/modules/chats/application/commands/send-message.command-handler';
 import { MarkMessageReadCommand } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
 import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
+import { InternalApiGuard } from '@chat/core/guards/internal/internal-api.guard';
 
+@UseGuards(InternalApiGuard)
 @Controller('chats')
 export class ChatsController {
   constructor(
