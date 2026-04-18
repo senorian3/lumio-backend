@@ -50,13 +50,6 @@ export class CoreConfig {
     this.configService.get('INCLUDE_TESTING_MODULE'),
   ) as boolean;
 
-  // RabbitMQ configuration
-  @IsNotEmpty({ message: 'Set Env variable RABBITMQ_URL' })
-  rabbitmqUrl: string = this.configService.get('RABBITMQ_URL');
-
-  @IsNotEmpty({ message: 'Set Env variable RABBITMQ_QUEUE' })
-  rabbitmqQueue: string = this.configService.get('RABBITMQ_QUEUE');
-
   constructor(private readonly configService: ConfigService<any, true>) {
     configValidationUtility.validateConfig(this);
   }
