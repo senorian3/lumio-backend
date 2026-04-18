@@ -19,7 +19,10 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
     const { userId, recipientId, page, limit } = query;
 
     if (userId === recipientId) {
-      throw NotFoundDomainException.create('Chat not found');
+      throw NotFoundDomainException.create(
+        'You cannot chat with yourself',
+        'recipientId',
+      );
     }
 
     const chat = await this.chatRepository.findPrivateChatByUsers(

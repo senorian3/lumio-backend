@@ -20,9 +20,17 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
   ) {}
 
   async execute(command: SendMessageCommand) {
+    if (command.userId === command.recipientId) {
+      throw BadRequestDomainException.create(
+        'Cannot send message to yourself',
+        'recipientId',
+      );
+    }
+
     const recipient = await this.externalQueryUserAccountsRepository.findUserId(
       command.recipientId,
     );
+
     if (!recipient) {
       throw BadRequestDomainException.create(
         'Recipient not found',

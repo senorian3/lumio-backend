@@ -18,6 +18,7 @@ import { MarkMessageReadCommand } from '@lumio/modules/chat/application/commands
 import { GetChatMessagesQuery } from '@lumio/modules/chat/application/queries/get-chat-messages.query-handler';
 
 @Controller('chats')
+@UseGuards(JwtAuthGuard)
 export class ChatsController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -25,7 +26,6 @@ export class ChatsController {
   ) {}
 
   @Post('send-message/:recipientId')
-  @UseGuards(JwtAuthGuard)
   async sendMessage(
     @UserId() userId: number,
     @Param('recipientId', ParseIntPipe) recipientId: number,
@@ -37,7 +37,6 @@ export class ChatsController {
   }
 
   @Get('messages/:recipientId')
-  @UseGuards(JwtAuthGuard)
   async getChatMessages(
     @UserId() userId: number,
     @Param('recipientId', ParseIntPipe) recipientId: number,
@@ -49,7 +48,6 @@ export class ChatsController {
   }
 
   @Post('messages/:messageId/read')
-  @UseGuards(JwtAuthGuard)
   async markMessageAsRead(
     @UserId() userId: number,
     @Param('messageId') messageId: string,

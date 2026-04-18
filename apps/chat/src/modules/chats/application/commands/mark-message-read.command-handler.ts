@@ -22,7 +22,10 @@ export class MarkMessageReadCommandHandler implements ICommandHandler<MarkMessag
     );
 
     if (result.count === 0) {
-      throw NotFoundDomainException.create('Message not found or already read');
+      throw NotFoundDomainException.create(
+        'Message not found or already read',
+        'messageId',
+      );
     }
 
     return {

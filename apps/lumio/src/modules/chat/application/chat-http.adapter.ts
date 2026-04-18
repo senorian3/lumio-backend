@@ -1,10 +1,15 @@
 import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
+import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class ChatHttpAdapter {
-  constructor(private readonly coreConfig: CoreConfig) {}
+  constructor(
+    private readonly coreConfig: CoreConfig,
+    private readonly httpService: HttpService,
+  ) {}
 
   private getHeaders(additionalHeaders?: Record<string, string>) {
     return {
@@ -25,7 +30,9 @@ export class ChatHttpAdapter {
     const payload = { userId, recipientId, message };
 
     try {
-      const response = await axios.post<T>(url, payload, { headers });
+      const response = await lastValueFrom(
+        this.httpService.post<T>(url, payload, { headers }),
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -44,7 +51,9 @@ export class ChatHttpAdapter {
     const payload = { userId, recipientId, page, limit };
 
     try {
-      const response = await axios.get<T>(url, { headers, params: payload });
+      const response = await lastValueFrom(
+        this.httpService.get<T>(url, { headers, params: payload }),
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -60,13 +69,20 @@ export class ChatHttpAdapter {
     const headers = this.getHeaders();
     const payload = { userId };
 
-    console.log('url=     ' + url);
-
     try {
-      const response = await axios.post<T>(url, payload, { headers });
+      const response = await lastValueFrom(
+        this.httpService.post<T>(url, payload, { headers }),
+      );
       return response.data;
     } catch (error) {
-      throw error;
+      if (error.response.status === 404) {
+        throw NotFoundDomainException.create(
+          'Message not found or already read',
+          'messageId',
+        );
+      } else {
+        throw error;
+      }
     }
   }
 }

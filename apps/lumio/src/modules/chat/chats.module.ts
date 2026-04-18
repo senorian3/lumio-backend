@@ -6,6 +6,7 @@ import { ChatHttpAdapter } from '@lumio/modules/chat/application/chat-http.adapt
 import { SendMessageCommandHandler } from '@lumio/modules/chat/application/commands/send-message.command-handler';
 import { GetChatMessagesQueryHandler } from '@lumio/modules/chat/application/queries/get-chat-messages.query-handler';
 import { MarkMessageReadCommandHandler } from '@lumio/modules/chat/application/commands/mark-message-read.command-handler';
+import { HttpModule } from '@nestjs/axios';
 
 const useCases = [
   SendMessageCommandHandler,
@@ -20,7 +21,7 @@ const repositories = [];
 const queryRepositories = [];
 
 @Module({
-  imports: [UserAccountsModule, LoggerModule],
+  imports: [UserAccountsModule, LoggerModule, HttpModule],
   controllers: [ChatsController],
   providers: [
     ...useCases,

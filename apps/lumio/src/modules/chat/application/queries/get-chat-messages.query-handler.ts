@@ -21,9 +21,17 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
   ) {}
 
   async execute(query: GetChatMessagesQuery) {
+    if (query.userId === query.recipientId) {
+      throw BadRequestDomainException.create(
+        'You cannot chat with yourself',
+        'recipientId',
+      );
+    }
+
     const recipient = await this.externalQueryUserAccountsRepository.findUserId(
       query.recipientId,
     );
+
     if (!recipient) {
       throw BadRequestDomainException.create(
         'Recipient not found',
