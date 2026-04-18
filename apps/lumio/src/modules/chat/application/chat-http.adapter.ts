@@ -60,6 +60,8 @@ export class ChatHttpAdapter {
     const headers = this.getHeaders();
     const payload = { userId };
 
+    console.log('url=     ' + url);
+
     try {
       const response = await axios.post<T>(url, payload, { headers });
       return response.data;
