@@ -3,6 +3,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChatHttpAdapter } from '@lumio/modules/chat/application/chat-http.adapter';
 import { GLOBAL_PREFIX } from '@libs/settings/global-prefix.setup';
+import { NotificationsService } from '@lumio/modules/notifications/application/notifications.service';
 
 export class SendMessageCommand {
   constructor(
@@ -17,6 +18,7 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
   constructor(
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
     private readonly chatHttpAdapter: ChatHttpAdapter,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async execute(command: SendMessageCommand) {
@@ -26,6 +28,10 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
         'recipientId',
       );
     }
+
+    const sender = await this.externalQueryUserAccountsRepository.getUserInfo(
+      command.userId,
+    );
 
     const recipient = await this.externalQueryUserAccountsRepository.findUserId(
       command.recipientId,
@@ -38,11 +44,19 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
       );
     }
 
-    return this.chatHttpAdapter.sendMessage(
+    const result = await this.chatHttpAdapter.sendMessage(
       `${GLOBAL_PREFIX}/chats/send-message`,
       command.userId,
       command.recipientId,
       command.message,
     );
+
+    await this.notificationsService.createUserSendMessageNotification(
+      command.recipientId,
+      command.message,
+      sender.username,
+    );
+
+    return result;
   }
 }

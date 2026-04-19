@@ -7,6 +7,7 @@ import { SendMessageCommandHandler } from '@lumio/modules/chat/application/comma
 import { GetChatMessagesQueryHandler } from '@lumio/modules/chat/application/queries/get-chat-messages.query-handler';
 import { MarkMessageReadCommandHandler } from '@lumio/modules/chat/application/commands/mark-message-read.command-handler';
 import { HttpModule } from '@nestjs/axios';
+import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
 
 const useCases = [
   SendMessageCommandHandler,
@@ -21,7 +22,7 @@ const repositories = [];
 const queryRepositories = [];
 
 @Module({
-  imports: [UserAccountsModule, LoggerModule, HttpModule],
+  imports: [UserAccountsModule, LoggerModule, HttpModule, NotificationsModule],
   controllers: [ChatsController],
   providers: [
     ...useCases,
