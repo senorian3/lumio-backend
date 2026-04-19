@@ -10,6 +10,7 @@ import { SendMessageCommandHandler } from '@chat/modules/chats/application/comma
 import { GetChatMessagesQueryHandler } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { TestingModule } from '@chat/modules/tests/testing.module';
+import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/query-chat.repository';
 
 const commandHandlers = [
   MarkMessageReadCommandHandler,
@@ -17,7 +18,7 @@ const commandHandlers = [
 ];
 const queryHandlers = [GetChatMessagesQueryHandler];
 const adapters = [];
-const repositories = [ChatRepository];
+const repositories = [ChatRepository, ChatQueryRepository];
 const queryRepositories = [];
 
 @Module({

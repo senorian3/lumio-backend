@@ -1,6 +1,7 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
+import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/query-chat.repository';
 
 export class GetChatMessagesQuery {
   constructor(
@@ -13,7 +14,10 @@ export class GetChatMessagesQuery {
 
 @QueryHandler(GetChatMessagesQuery)
 export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessagesQuery> {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(
+    private readonly chatRepository: ChatRepository,
+    private readonly chatQueryRepository: ChatQueryRepository,
+  ) {}
 
   async execute(query: GetChatMessagesQuery) {
     const { userId, recipientId, page, limit } = query;
@@ -48,6 +52,6 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
       throw NotFoundDomainException.create('Chat not found');
     }
 
-    return this.chatRepository.getChatMessages(chat.id, page, limit);
+    return this.chatQueryRepository.getChatMessages(chat.id, page, limit);
   }
 }
