@@ -1,6 +1,7 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
+import { MessageCreatedEvent } from '../events/message-created.event';
 
 export class SendMessageCommand {
   constructor(
@@ -12,7 +13,10 @@ export class SendMessageCommand {
 
 @CommandHandler(SendMessageCommand)
 export class SendMessageCommandHandler implements ICommandHandler<SendMessageCommand> {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(
+    private readonly chatRepository: ChatRepository,
+    private readonly eventBus: EventBus,
+  ) {}
 
   async execute(command: SendMessageCommand) {
     const { userId, recipientId, message } = command;
@@ -39,6 +43,16 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
       content: message,
       type: 'TEXT',
     });
+
+    this.eventBus.publish(
+      new MessageCreatedEvent(
+        chat.id,
+        createdMessage.id,
+        userId,
+        message,
+        createdMessage.createdAt,
+      ),
+    );
 
     return createdMessage;
   }

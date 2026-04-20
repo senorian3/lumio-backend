@@ -6,11 +6,16 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { SendMessageInputDto } from '@chat/modules/chats/api/dto/input/send-message.input.dto';
+import { SendMediaMessageInputDto } from '@chat/modules/chats/api/dto/input/send-media-message.input.dto';
 import { GetChatMessagesInputDto } from '@chat/modules/chats/api/dto/input/get-chat-messages.input.dto';
 import { SendMessageCommand } from '@chat/modules/chats/application/commands/send-message.command-handler';
+import { SendMediaMessageCommand } from '@chat/modules/chats/application/commands/send-media-message.command-handler';
 import { MarkMessageReadCommand } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
 import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 import { InternalApiGuard } from '@chat/core/guards/internal/internal-api.guard';
@@ -27,6 +32,28 @@ export class ChatsController {
   async sendMessage(@Body() dto: SendMessageInputDto) {
     return await this.commandBus.execute(
       new SendMessageCommand(dto.userId, dto.recipientId, dto.message),
+    );
+  }
+
+  @Post('send-media-message')
+  @UseInterceptors(FileInterceptor('file'))
+  async sendMediaMessage(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: SendMediaMessageInputDto,
+  ) {
+    return await this.commandBus.execute(
+      new SendMediaMessageCommand(
+        dto.userId,
+        dto.recipientId,
+        dto.type,
+        file,
+        dto.text,
+        {
+          duration: dto.duration,
+          width: dto.width,
+          height: dto.height,
+        },
+      ),
     );
   }
 

@@ -101,4 +101,39 @@ export class ChatRepository {
       },
     });
   }
+
+  async createMessageWithAttachment(
+    data: Prisma.MessageCreateInput & {
+      attachments: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput;
+    },
+  ): Promise<Message & { attachments: any[] }> {
+    return this.prisma.$transaction(async (tx) => {
+      const message = await tx.message.create({
+        data: {
+          ...data,
+          attachments: data.attachments,
+        },
+        include: {
+          attachments: true,
+        },
+      });
+
+      await tx.chat.update({
+        where: { id: data.chat.connect?.id },
+        data: { lastMessageAt: new Date() },
+      });
+
+      return message;
+    });
+  }
+
+  async updateChatLastMessage(
+    chatId: number,
+    lastMessageAt: Date,
+  ): Promise<void> {
+    await this.prisma.chat.update({
+      where: { id: chatId },
+      data: { lastMessageAt },
+    });
+  }
 }

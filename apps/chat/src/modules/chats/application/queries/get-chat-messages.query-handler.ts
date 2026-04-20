@@ -1,7 +1,10 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
-import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
+import {
+  BadRequestDomainException,
+  NotFoundDomainException,
+} from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
-import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/query-chat.repository';
+import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/chat-query.repository';
 
 export class GetChatMessagesQuery {
   constructor(
@@ -23,7 +26,7 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
     const { userId, recipientId, page, limit } = query;
 
     if (userId === recipientId) {
-      throw NotFoundDomainException.create(
+      throw BadRequestDomainException.create(
         'You cannot chat with yourself',
         'recipientId',
       );
@@ -49,7 +52,7 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
       userId,
     );
     if (!isParticipant) {
-      throw NotFoundDomainException.create('Chat not found');
+      throw NotFoundDomainException.create('Chat not found', 'recipientId');
     }
 
     return this.chatQueryRepository.getChatMessages(chat.id, page, limit);
