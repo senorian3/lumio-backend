@@ -49,6 +49,7 @@ export class SendMessageCommandHandler implements ICommandHandler<SendMessageCom
         chat.id,
         createdMessage.id,
         userId,
+        recipientId,
         message,
         createdMessage.createdAt,
       ),

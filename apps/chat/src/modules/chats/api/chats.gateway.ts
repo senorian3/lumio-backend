@@ -163,7 +163,8 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private handleMessageCreated(event: MessageCreatedEvent) {
-    const { chatId, messageId, senderId, content, createdAt } = event;
+    const { chatId, messageId, senderId, recipientId, content, createdAt } =
+      event;
 
     this.server.to(`chat:${chatId}`).emit('message:created', {
       messageId,
@@ -176,6 +177,14 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(`user:${senderId}`).emit('message:sent', {
       messageId,
       chatId,
+      content,
+      createdAt,
+    });
+
+    this.server.to(`user:${recipientId}`).emit('message:received', {
+      messageId,
+      chatId,
+      senderId,
       content,
       createdAt,
     });
