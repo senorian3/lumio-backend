@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WsException } from '@nestjs/websockets';
 import { EventBus } from '@nestjs/cqrs';
 import { Server, Socket } from 'socket.io';
-import { ChatsGateway } from '@chat/modules/chats/api/chats.gateway';
+import { ChatsGateway } from '@chat/modules/chats/application/chats.gateway';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { LumioAuthHttpAdapter } from '@chat/core/adapters/lumio-auth-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';

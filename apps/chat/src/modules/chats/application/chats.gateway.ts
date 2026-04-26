@@ -11,9 +11,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UseGuards } from '@nestjs/common';
 import { EventBus } from '@nestjs/cqrs';
-import { MessageCreatedEvent } from '../application/events/message-created.event';
-import { MediaMessageCreatedEvent } from '../application/events/media-message-created.event';
-import { MessageReadEvent } from '../application/events/message-read.event';
+import { MessageCreatedEvent } from './events/message-created.event';
+import { MediaMessageCreatedEvent } from './events/media-message-created.event';
+import { MessageReadEvent } from './events/message-read.event';
 import { WsJwtGuard } from '../../../core/guards/ws-jwt.guard';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { LumioAuthHttpAdapter } from '@chat/core/adapters/lumio-auth-http.adapter';
@@ -104,47 +104,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     this.logger.log(`User ${userId} disconnected`);
-  }
-
-  @UseGuards(WsJwtGuard)
-  @SubscribeMessage('join:chat')
-  async handleJoinChat(
-    @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { chatId: number },
-  ) {
-    const { chatId } = data;
-    await this.ensureChatMembership(chatId, client);
-    client.join(`chat:${chatId}`);
-    this.logger.log(`User ${client.data.userId} joined chat ${chatId}`);
-    return { success: true, chatId };
-  }
-
-  @UseGuards(WsJwtGuard)
-  @SubscribeMessage('leave:chat')
-  async handleLeaveChat(
-    @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { chatId: number },
-  ) {
-    const { chatId } = data;
-    await this.ensureChatMembership(chatId, client);
-    client.leave(`chat:${chatId}`);
-    this.logger.log(`User ${client.data.userId} left chat ${chatId}`);
-    return { success: true, chatId };
-  }
-
-  @UseGuards(WsJwtGuard)
-  @SubscribeMessage('typing:start')
-  async handleTypingStart(
-    @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: { chatId: number },
-  ) {
-    const { chatId } = data;
-    await this.ensureChatMembership(chatId, client);
-    client.to(`chat:${chatId}`).emit('user:typing', {
-      userId: client.data.userId,
-      chatId,
-      isTyping: true,
-    });
   }
 
   @UseGuards(WsJwtGuard)

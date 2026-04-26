@@ -6,7 +6,7 @@ import { ChatCoreModule } from '@chat/core/core.module';
 import { CoreConfig } from '@chat/core/core.config';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { ChatsController } from '@chat/modules/chats/api/chats.controller';
-import { ChatsGatewayModule } from '@chat/modules/chats/api/chats-gateway.module';
+import { ChatsGatewayModule } from '@chat/modules/chats/application/chats-gateway.module';
 import { MarkMessageReadCommandHandler } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
 import { SendMessageCommandHandler } from '@chat/modules/chats/application/commands/send-message.command-handler';
 import { SendMediaMessageCommandHandler } from '@chat/modules/chats/application/commands/send-media-message.command-handler';
