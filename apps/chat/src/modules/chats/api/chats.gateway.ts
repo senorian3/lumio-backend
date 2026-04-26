@@ -1,24 +1,24 @@
 import {
-  WebSocketGateway,
-  WebSocketServer,
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
-  MessageBody,
-  ConnectedSocket,
+  WebSocketGateway,
+  WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { UseGuards } from '@nestjs/common';
 import { EventBus } from '@nestjs/cqrs';
 import { MessageCreatedEvent } from '../application/events/message-created.event';
 import { MediaMessageCreatedEvent } from '../application/events/media-message-created.event';
 import { MessageReadEvent } from '../application/events/message-read.event';
 import { WsJwtGuard } from '../../../core/guards/ws-jwt.guard';
-
-interface AuthenticatedSocket extends Socket {
-  userId?: number;
-}
+import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
+import { LumioAuthHttpAdapter } from '@chat/core/adapters/lumio-auth-http.adapter';
+import { AuthenticatedSocket } from '@chat/modules/chats/api/types/authenticated-socket.type';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @WebSocketGateway({
   cors: {
@@ -31,12 +31,13 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private readonly logger = new Logger(ChatsGateway.name);
-  private readonly userSockets = new Map<number, string[]>(); // userId -> socketIds
+  private readonly userSockets = new Map<number, string[]>();
 
   constructor(
-    private readonly jwtService: JwtService,
     private readonly eventBus: EventBus,
+    private readonly chatRepository: ChatRepository,
+    private readonly lumioAuthHttpAdapter: LumioAuthHttpAdapter,
+    private readonly logger: AppLoggerService,
   ) {
     this.subscribeToEvents();
   }
@@ -63,80 +64,84 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const payload = this.jwtService.verify(token);
-      client.userId = payload.sub;
+      const { userId } =
+        await this.lumioAuthHttpAdapter.validateAccessToken(token);
+      client.data.userId = userId;
 
-      // Store socket connection
-      if (!this.userSockets.has(client.userId)) {
-        this.userSockets.set(client.userId, []);
+      if (!this.userSockets.has(userId)) {
+        this.userSockets.set(userId, []);
       }
-      this.userSockets.get(client.userId).push(client.id);
+      this.userSockets.get(userId)!.push(client.id);
 
-      this.logger.log(
-        `User ${client.userId} connected with socket ${client.id}`,
-      );
-
-      // Join user to their personal room for direct messages
-      client.join(`user:${client.userId}`);
-
-      // Notify user about successful connection
-      client.emit('connection:established', { userId: client.userId });
+      this.logger.log(`User ${userId} connected with socket ${client.id}`);
+      client.join(`user:${userId}`);
+      client.emit('connection:established', { userId });
     } catch (error) {
-      this.logger.error(`Connection error: ${error.message}`);
+      this.logger.error(
+        `Connection error: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+        ChatsGateway.name,
+      );
       client.disconnect();
     }
   }
 
   handleDisconnect(client: AuthenticatedSocket) {
-    if (client.userId) {
-      const sockets = this.userSockets.get(client.userId);
-      if (sockets) {
-        const index = sockets.indexOf(client.id);
-        if (index > -1) {
-          sockets.splice(index, 1);
-        }
-        if (sockets.length === 0) {
-          this.userSockets.delete(client.userId);
-        }
-      }
-      this.logger.log(`User ${client.userId} disconnected`);
+    const userId = client.data?.userId;
+    if (!userId) {
+      return;
     }
+
+    const sockets = this.userSockets.get(userId);
+    if (sockets) {
+      const index = sockets.indexOf(client.id);
+      if (index > -1) {
+        sockets.splice(index, 1);
+      }
+      if (sockets.length === 0) {
+        this.userSockets.delete(userId);
+      }
+    }
+
+    this.logger.log(`User ${userId} disconnected`);
   }
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('join:chat')
-  handleJoinChat(
+  async handleJoinChat(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: number },
   ) {
     const { chatId } = data;
+    await this.ensureChatMembership(chatId, client);
     client.join(`chat:${chatId}`);
-    this.logger.log(`User ${client.userId} joined chat ${chatId}`);
+    this.logger.log(`User ${client.data.userId} joined chat ${chatId}`);
     return { success: true, chatId };
   }
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave:chat')
-  handleLeaveChat(
+  async handleLeaveChat(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: number },
   ) {
     const { chatId } = data;
+    await this.ensureChatMembership(chatId, client);
     client.leave(`chat:${chatId}`);
-    this.logger.log(`User ${client.userId} left chat ${chatId}`);
+    this.logger.log(`User ${client.data.userId} left chat ${chatId}`);
     return { success: true, chatId };
   }
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('typing:start')
-  handleTypingStart(
+  async handleTypingStart(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: number },
   ) {
     const { chatId } = data;
-    // Notify other participants in the chat
+    await this.ensureChatMembership(chatId, client);
     client.to(`chat:${chatId}`).emit('user:typing', {
-      userId: client.userId,
+      userId: client.data.userId,
       chatId,
       isTyping: true,
     });
@@ -144,14 +149,14 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('typing:stop')
-  handleTypingStop(
+  async handleTypingStop(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { chatId: number },
   ) {
     const { chatId } = data;
-    // Notify other participants in the chat
+    await this.ensureChatMembership(chatId, client);
     client.to(`chat:${chatId}`).emit('user:typing', {
-      userId: client.userId,
+      userId: client.data.userId,
       chatId,
       isTyping: false,
     });
@@ -160,7 +165,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private handleMessageCreated(event: MessageCreatedEvent) {
     const { chatId, messageId, senderId, content, createdAt } = event;
 
-    // Emit to all participants in the chat room
     this.server.to(`chat:${chatId}`).emit('message:created', {
       messageId,
       chatId,
@@ -169,7 +173,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt,
     });
 
-    // Also emit to sender's personal room (for confirmation)
     this.server.to(`user:${senderId}`).emit('message:sent', {
       messageId,
       chatId,
@@ -192,7 +195,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt,
     } = event;
 
-    // Emit to all participants in the chat room
     this.server.to(`chat:${chatId}`).emit('message:created', {
       messageId,
       chatId,
@@ -203,7 +205,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt,
     });
 
-    // Also emit to sender's personal room (for confirmation)
     this.server.to(`user:${senderId}`).emit('message:sent', {
       messageId,
       chatId,
@@ -213,7 +214,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt,
     });
 
-    // Emit to recipient's personal room if they're not in the chat room
     this.server.to(`user:${recipientId}`).emit('message:received', {
       messageId,
       chatId,
@@ -228,45 +228,72 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private handleMessageRead(event: MessageReadEvent) {
-    const { messageId, readerId, readAt } = event;
+    const { messageId, chatId, readerId, senderId, readAt } = event;
 
-    // Notify all participants in relevant chats about read status
-    // This would need additional logic to determine which chat the message belongs to
-    // For now, we'll emit a generic event
-    this.server.emit('message:read', {
+    this.server.to(`chat:${chatId}`).emit('message:read', {
       messageId,
+      chatId,
+      readerId,
+      readAt,
+    });
+    this.server.to(`user:${senderId}`).emit('message:read', {
+      messageId,
+      chatId,
       readerId,
       readAt,
     });
 
-    this.logger.log(`Message ${messageId} read by user ${readerId}`);
+    this.logger.log(
+      `Message ${messageId} in chat ${chatId} read by user ${readerId}`,
+    );
   }
 
   private extractTokenFromSocket(client: Socket): string | null {
-    // Try to get token from handshake auth
     const auth = client.handshake.auth;
     if (auth && auth.token) {
       return auth.token;
     }
 
-    // Try to get token from query parameters
     const query = client.handshake.query;
     if (query && query.token) {
       return Array.isArray(query.token) ? query.token[0] : query.token;
     }
 
+    const authorization = client.handshake.headers.authorization;
+    if (authorization?.startsWith('Bearer ')) {
+      return authorization.slice('Bearer '.length);
+    }
+
     return null;
   }
 
-  // Helper method to get all sockets for a user
+  private async ensureChatMembership(
+    chatId: number,
+    client: AuthenticatedSocket,
+  ): Promise<void> {
+    const userId = client.data?.userId;
+    if (!userId) {
+      throw new WsException('Unauthorized: Socket is not authenticated');
+    }
+
+    const isParticipant = await this.chatRepository.isUserInChat(
+      chatId,
+      userId,
+    );
+    if (!isParticipant) {
+      throw new WsException(
+        'Forbidden: User is not a participant of this chat',
+      );
+    }
+  }
+
   getUserSockets(userId: number): string[] {
     return this.userSockets.get(userId) || [];
   }
 
-  // Helper method to check if user is online
   isUserOnline(userId: number): boolean {
     return (
-      this.userSockets.has(userId) && this.userSockets.get(userId).length > 0
+      this.userSockets.has(userId) && this.userSockets.get(userId)!.length > 0
     );
   }
 }

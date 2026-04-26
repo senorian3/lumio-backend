@@ -1,42 +1,30 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
-
-export interface UploadFileResponse {
-  id: string;
-  url: string;
-  key: string;
-  size: number;
-  mimeType: string;
-  createdAt: string;
-}
-
-export interface UploadFileDto {
-  file: Express.Multer.File;
-  userId: number;
-  metadata?: {
-    type?: 'IMAGE' | 'VOICE';
-    duration?: number; // for voice messages in seconds
-    width?: number; // for images
-    height?: number; // for images
-  };
-}
+import { UploadFileResponse } from '@chat/core/adapters/dto/upload-file.response';
+import { UploadFileDto } from '@chat/core/adapters/dto/upload-file.dto';
+import { AppLoggerService } from '@libs/logger/logger.service';
 
 @Injectable()
 export class FilesHttpAdapter {
-  private readonly logger = new Logger(FilesHttpAdapter.name);
   private readonly filesServiceUrl: string;
+  private readonly internalApiKey: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly logger: AppLoggerService,
   ) {
     this.filesServiceUrl = this.configService.get<string>(
       'FILES_SERVICE_URL',
       'http://localhost:3001/api/v1',
+    );
+    this.internalApiKey = this.configService.get<string>(
+      'INTERNAL_API_KEY',
+      '',
     );
   }
 
@@ -46,40 +34,55 @@ export class FilesHttpAdapter {
       const blob = new Blob([dto.file.buffer as any], {
         type: dto.file.mimetype,
       });
-      formData.append('files', blob, dto.file.originalname);
+      formData.append('file', blob, dto.file.originalname);
+      formData.append('userId', String(dto.userId));
+      formData.append('chatId', String(dto.chatId));
+      formData.append('messageId', dto.messageId);
+      if (dto.metadata?.type) {
+        formData.append('fileType', dto.metadata.type);
+      }
 
       const response = await firstValueFrom(
-        this.httpService.post<UploadFileResponse[]>(
-          `${this.filesServiceUrl}/chat-files/upload`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'x-internal-api-key': 'internal-api-key',
-            },
+        this.httpService.post<{
+          fileKey?: string;
+          key?: string;
+          url: string;
+          size?: number;
+          mimeType?: string;
+          createdAt: string;
+        }>(`${this.filesServiceUrl}/chat-files/upload`, formData, {
+          headers: {
+            'x-internal-api-key': this.internalApiKey,
           },
-        ),
+        }),
       );
 
-      if (!response.data || response.data.length === 0) {
+      if (
+        !response.data?.url ||
+        (!response.data.fileKey && !response.data.key)
+      ) {
         throw BadRequestDomainException.create(
           'Failed to upload file to files service',
           'file',
         );
       }
 
-      const fileData = response.data[0];
+      const fileKey = response.data.key ?? response.data.fileKey!;
 
-      // Add metadata to the response
       return {
-        ...fileData,
-        // Include additional metadata from the request
-        ...(dto.metadata?.duration && { duration: dto.metadata.duration }),
-        ...(dto.metadata?.width && { width: dto.metadata.width }),
-        ...(dto.metadata?.height && { height: dto.metadata.height }),
+        id: fileKey,
+        url: response.data.url,
+        key: fileKey,
+        size: response.data.size ?? dto.file.size,
+        mimeType: response.data.mimeType ?? dto.file.mimetype,
+        createdAt: response.data.createdAt,
       };
     } catch (error) {
-      this.logger.error('Failed to upload file to files service', error);
+      this.logger.error(
+        'Failed to upload file to files service',
+        error instanceof Error ? error.stack : undefined,
+        FilesHttpAdapter.name,
+      );
 
       if (error instanceof AxiosError) {
         throw BadRequestDomainException.create(
@@ -96,11 +99,19 @@ export class FilesHttpAdapter {
     try {
       await firstValueFrom(
         this.httpService.delete(
-          `${this.filesServiceUrl}/files/delete-file/${fileKey}`,
+          `${this.filesServiceUrl}/chat-files/${fileKey}`,
+          {
+            headers: {
+              'x-internal-api-key': this.internalApiKey,
+            },
+          },
         ),
       );
     } catch (error) {
-      this.logger.warn(`Failed to delete file ${fileKey}`, error);
+      this.logger.warn(
+        `Failed to delete file ${fileKey}: ${error instanceof Error ? error.message : String(error)}`,
+        FilesHttpAdapter.name,
+      );
       // Don't throw error for deletion failures in chat context
       // The file will remain in storage but won't affect chat functionality
     }

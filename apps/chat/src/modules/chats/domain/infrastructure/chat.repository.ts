@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@chat/prisma/prisma.service';
 import { Message, Prisma } from '@generated/prisma-chat';
+import { ChatMessageWithAttachments } from '@chat/modules/chats/domain/types/chat-message-with-attachments.type';
 
 @Injectable()
 export class ChatRepository {
@@ -86,19 +87,48 @@ export class ChatRepository {
   }
 
   async markMessageAsRead(messageId: string, userId: number) {
-    return this.prisma.message.updateMany({
-      where: {
-        id: messageId,
-        senderId: {
-          not: userId,
+    return this.prisma.$transaction(async (tx) => {
+      const message = await tx.message.findFirst({
+        where: {
+          id: messageId,
+          senderId: {
+            not: userId,
+          },
+          status: 'SENT',
+          deletedAt: null,
+          chat: {
+            participants: {
+              some: {
+                userId,
+                leftAt: null,
+              },
+            },
+          },
         },
-        status: 'SENT',
-        deletedAt: null,
-      },
-      data: {
-        status: 'READ',
-        readAt: new Date(),
-      },
+        select: {
+          id: true,
+          chatId: true,
+          senderId: true,
+        },
+      });
+
+      if (!message) {
+        return null;
+      }
+
+      const readAt = new Date();
+      await tx.message.update({
+        where: { id: messageId },
+        data: {
+          status: 'READ',
+          readAt,
+        },
+      });
+
+      return {
+        ...message,
+        readAt,
+      };
     });
   }
 
@@ -106,7 +136,7 @@ export class ChatRepository {
     data: Prisma.MessageCreateInput & {
       attachments: Prisma.MessageAttachmentCreateNestedManyWithoutMessageInput;
     },
-  ): Promise<Message & { attachments: any[] }> {
+  ): Promise<ChatMessageWithAttachments> {
     return this.prisma.$transaction(async (tx) => {
       const message = await tx.message.create({
         data: {

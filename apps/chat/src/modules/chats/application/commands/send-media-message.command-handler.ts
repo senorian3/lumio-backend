@@ -1,12 +1,15 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
+import { FilesHttpAdapter } from '@chat/core/adapters/files-http.adapter';
+import { UploadFileDto } from '@chat/core/adapters/dto/upload-file.dto';
 import {
-  FilesHttpAdapter,
-  UploadFileDto,
-} from '@chat/core/adapters/files-http.adapter';
-import { MessageType } from '@chat/modules/chats/domain/message-types.enum';
+  AttachmentType,
+  MessageType,
+} from '@chat/modules/chats/domain/message-types.enum';
 import { MediaMessageCreatedEvent } from '../events/media-message-created.event';
+import { randomUUID } from 'crypto';
+import { MediaMessageMetadata } from '@chat/modules/chats/application/types/media-message-metadata.type';
 
 export class SendMediaMessageCommand {
   constructor(
@@ -15,11 +18,7 @@ export class SendMediaMessageCommand {
     public readonly type: MessageType,
     public readonly file: Express.Multer.File,
     public readonly text?: string,
-    public readonly metadata?: {
-      duration?: number; // for voice messages in seconds
-      width?: number; // for images
-      height?: number; // for images
-    },
+    public readonly metadata?: MediaMessageMetadata,
   ) {}
 }
 
@@ -33,6 +32,10 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
 
   async execute(command: SendMediaMessageCommand) {
     const { userId, recipientId, type, file, text, metadata } = command;
+
+    if (!file) {
+      throw BadRequestDomainException.create('Media file is required', 'file');
+    }
 
     if (userId === recipientId) {
       throw BadRequestDomainException.create(
@@ -52,19 +55,6 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       );
     }
 
-    const uploadDto: UploadFileDto = {
-      file,
-      userId,
-      metadata: {
-        type: type as 'IMAGE' | 'VOICE',
-        duration: metadata?.duration,
-        width: metadata?.width,
-        height: metadata?.height,
-      },
-    };
-
-    const uploadedFile = await this.filesHttpAdapter.uploadFile(uploadDto);
-
     let chat = await this.chatRepository.findPrivateChatByUsers(
       userId,
       recipientId,
@@ -74,16 +64,34 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       chat = await this.chatRepository.createPrivateChat(userId, recipientId);
     }
 
+    const messageId = randomUUID();
+    const attachmentType = this.mapToAttachmentType(type);
+    const uploadDto: UploadFileDto = {
+      file,
+      userId,
+      chatId: chat.id,
+      messageId,
+      metadata: {
+        type: attachmentType,
+        duration: metadata?.duration,
+        width: metadata?.width,
+        height: metadata?.height,
+      },
+    };
+
+    const uploadedFile = await this.filesHttpAdapter.uploadFile(uploadDto);
+
     // Create message with attachment
     const createdMessage =
       await this.chatRepository.createMessageWithAttachment({
+        id: messageId,
         chat: { connect: { id: chat.id } },
         senderId: userId,
         content: text || '', // Text is optional for media messages
         type,
         attachments: {
           create: {
-            type: type as any, // TEXT, IMAGE, or VOICE
+            type: attachmentType,
             url: uploadedFile.url,
             mimeType: uploadedFile.mimeType,
             size: uploadedFile.size,
@@ -93,12 +101,6 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
           },
         },
       });
-
-    // Update chat's last message timestamp
-    await this.chatRepository.updateChatLastMessage(
-      chat.id,
-      createdMessage.createdAt,
-    );
 
     // Emit event for real-time notification
     this.eventBus.publish(
@@ -126,5 +128,20 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       message: createdMessage,
       file: uploadedFile,
     };
+  }
+
+  private mapToAttachmentType(type: MessageType): AttachmentType {
+    if (type === MessageType.IMAGE) {
+      return AttachmentType.IMAGE;
+    }
+
+    if (type === MessageType.VOICE) {
+      return AttachmentType.VOICE;
+    }
+
+    throw BadRequestDomainException.create(
+      'Unsupported media type for attachment creation',
+      'type',
+    );
   }
 }

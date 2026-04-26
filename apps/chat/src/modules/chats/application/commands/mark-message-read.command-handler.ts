@@ -1,6 +1,7 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
+import { MessageReadEvent } from '../events/message-read.event';
 
 export class MarkMessageReadCommand {
   constructor(
@@ -11,7 +12,10 @@ export class MarkMessageReadCommand {
 
 @CommandHandler(MarkMessageReadCommand)
 export class MarkMessageReadCommandHandler implements ICommandHandler<MarkMessageReadCommand> {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(
+    private readonly chatRepository: ChatRepository,
+    private readonly eventBus: EventBus,
+  ) {}
 
   async execute(command: MarkMessageReadCommand) {
     const { messageId, userId } = command;
@@ -21,12 +25,22 @@ export class MarkMessageReadCommandHandler implements ICommandHandler<MarkMessag
       userId,
     );
 
-    if (result.count === 0) {
+    if (!result) {
       throw NotFoundDomainException.create(
         'Message not found or already read',
         'messageId',
       );
     }
+
+    this.eventBus.publish(
+      new MessageReadEvent(
+        result.id,
+        result.chatId,
+        userId,
+        result.senderId,
+        result.readAt,
+      ),
+    );
 
     return {
       success: true,

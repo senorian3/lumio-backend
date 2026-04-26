@@ -13,7 +13,6 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
 
     const builder = new DocumentBuilder()
       .setTitle('CHAT API')
-      .addBearerAuth()
       .addServer('https://lumio.su', 'Testing')
       .addServer('http://localhost:3004', 'Local')
       .setVersion('1.0')

@@ -19,8 +19,23 @@ export class ChatQueryRepository {
           chatId: true,
           senderId: true,
           content: true,
+          type: true,
           status: true,
+          readAt: true,
           createdAt: true,
+          attachments: {
+            select: {
+              id: true,
+              type: true,
+              url: true,
+              mimeType: true,
+              size: true,
+              duration: true,
+              width: true,
+              height: true,
+              createdAt: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
