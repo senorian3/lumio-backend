@@ -105,11 +105,11 @@ enum MessageType {
 
 enum MessageStatus {
   SENT
-  DELIVERED
   READ
 }
 
 enum AttachmentType {
+  TEXT
   IMAGE
   VOICE
 }

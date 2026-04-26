@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
+import { Global, Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { CoreConfig } from './core.config';
 
+@Global()
 @Module({
-  imports: [ConfigModule],
-  providers: [CoreConfig],
-  exports: [CoreConfig],
+  imports: [CqrsModule],
+  providers: [CoreConfig, ConfigService],
+  exports: [CoreConfig, CqrsModule],
 })
-export class CoreModule {}
+export class ChatCoreModule {}

@@ -40,3 +40,23 @@ model UserAvatar {
   @@index([deletedAt])
 }
 
+model ChatFile {
+  id           Int       @id @default(autoincrement())
+  key          String    @unique
+  url          String
+  type         String    // IMAGE, VOICE, DOCUMENT
+  size         Int
+  originalName String
+  mimeType     String
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+  userId       Int?
+  chatId       Int?
+  messageId    String?
+
+  @@index([deletedAt])
+  @@index([userId])
+  @@index([chatId])
+  @@index([messageId])
+}
+
