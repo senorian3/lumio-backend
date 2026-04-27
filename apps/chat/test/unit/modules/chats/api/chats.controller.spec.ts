@@ -176,7 +176,7 @@ describe('ChatsController', () => {
       ),
     ).toBe(true);
     expect(getMessagesOperation?.responses?.['200']).toBeDefined();
-    expect(getMessagesOperation?.responses?.['404']).toBeUndefined();
+    expect(getMessagesOperation?.responses?.['404']).toBeDefined();
 
     expect(
       markReadParameters.some(
@@ -199,5 +199,52 @@ describe('ChatsController', () => {
     );
 
     expect(controllerSource).not.toContain('@nestjs/swagger');
+  });
+
+  it('propagates errors from command bus when sending a message fails', async () => {
+    commandBus.execute.mockRejectedValue(new Error('Command failed'));
+
+    await expect(
+      controller.sendMessage(77, {
+        recipientId: 12,
+        message: 'hello',
+      }),
+    ).rejects.toThrow('Command failed');
+  });
+
+  it('propagates errors from query bus when fetching messages fails', async () => {
+    queryBus.execute.mockRejectedValue(new Error('Query failed'));
+
+    await expect(
+      controller.getChatMessages(77, {
+        recipientId: 12,
+        page: 1,
+        limit: 20,
+      }),
+    ).rejects.toThrow('Query failed');
+  });
+
+  it('propagates errors from command bus when marking a message as read fails', async () => {
+    commandBus.execute.mockRejectedValue(new Error('Mark read failed'));
+
+    await expect(controller.markMessageAsRead('message-1', 77)).rejects.toThrow(
+      'Mark read failed',
+    );
+  });
+
+  it('propagates errors from command bus when sending a media message fails', async () => {
+    const file = {
+      originalname: 'image.png',
+      mimetype: 'image/png',
+      size: 1024,
+    } as Express.Multer.File;
+    commandBus.execute.mockRejectedValue(new Error('Media send failed'));
+
+    await expect(
+      controller.sendMediaMessage(77, file, {
+        recipientId: 12,
+        type: 'IMAGE' as any,
+      }),
+    ).rejects.toThrow('Media send failed');
   });
 });
