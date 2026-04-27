@@ -72,5 +72,20 @@ export function ApiGetChatMessages() {
         },
       },
     }),
+    ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: 'Chat not found.',
+      schema: {
+        ...chatErrorResponseSchema,
+        example: {
+          errorsMessages: [
+            {
+              message: 'Chat not found',
+              field: 'recipientId',
+            },
+          ],
+        },
+      },
+    }),
   );
 }

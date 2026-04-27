@@ -36,6 +36,21 @@ export function ApiMarkChatMessageRead() {
       },
     }),
     ApiResponse({
+      status: HttpStatus.BAD_REQUEST,
+      description: 'Validation failed.',
+      schema: {
+        ...chatErrorResponseSchema,
+        example: {
+          errorsMessages: [
+            {
+              message: 'Invalid messageId format',
+              field: 'messageId',
+            },
+          ],
+        },
+      },
+    }),
+    ApiResponse({
       status: HttpStatus.NOT_FOUND,
       description: 'Message not found or already read.',
       schema: {
