@@ -1,85 +1,211 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Lumio Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API for Lumio application — a NestJS monorepo with microservices architecture.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture
 
-## Description
+The project consists of **5 microservices**:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Microservice    | Port | Description                                                            |
+| --------------- | ---- | ---------------------------------------------------------------------- |
+| **lumio**       | 3000 | Main API Gateway — user accounts, auth, posts, payments, notifications |
+| **files**       | 3001 | File management — avatars, post files, chat files (S3/MinIO)           |
+| **payments**    | 3002 | Payment processing — Stripe integration, subscriptions                 |
+| **super-admin** | 3003 | Admin panel — GraphQL API for user management                          |
+| **chat**        | 3004 | Real-time messaging — WebSocket + REST API                             |
 
-## Project setup
+### Tech Stack
 
-```bash
-$ yarn install
+- **Framework**: NestJS 11.x
+- **Database**: PostgreSQL + Prisma ORM
+- **Message Broker**: RabbitMQ (via amqplib)
+- **Caching**: Redis (via BullMQ)
+- **File Storage**: AWS S3 / MinIO
+- **Payments**: Stripe
+- **Auth**: JWT, Passport (local, Yandex OAuth2)
+- **API**: REST (Swagger) + GraphQL (super-admin) + WebSocket (chat)
+- **Testing**: Jest with ts-jest
+
+## Project Structure
+
+```
+lumio/
+├── apps/
+│   ├── lumio/           # Main API Gateway
+│   ├── files/           # File management service
+│   ├── payments/        # Payment processing service
+│   ├── super-admin/     # Admin panel (GraphQL)
+│   └── chat/            # Real-time chat service
+├── libs/
+│   ├── core/            # Shared utilities, exceptions, pipes, decorators
+│   ├── dto/             # Shared DTOs (file output, transfer DTOs)
+│   ├── logger/          # Logger module
+│   └── settings/        # Configuration utilities
+├── generated/           # Generated Prisma clients
+└── docs/                # Documentation
 ```
 
-## Compile and run the project
+## Prerequisites
+
+- Node.js >= 20.x
+- Yarn
+- PostgreSQL 15+
+- Docker (for local development)
+
+## Quick Start
+
+### 1. Install dependencies
 
 ```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+yarn install
 ```
 
-## Run tests
+### 2. Start infrastructure (PostgreSQL, RabbitMQ)
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+# Start all services
+yarn docker:up:lumio
+yarn docker:up:files
+yarn docker:up:payments
+yarn docker:up:chat
 ```
 
-## Resources
+### 3. Set up environment variables
 
-Check out a few resources that may come in handy when working with NestJS:
+Each microservice has its own `.env` file:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```
+apps/lumio/.env.lumio.development
+apps/files/.env.files.development
+apps/payments/.env.payments.development
+apps/super-admin/.env.super-admin.development
+apps/chat/.env.chat.development
+```
 
-## Support
+Copy from `.example` files if needed.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 4. Run database migrations
 
-## Stay in touch
+```bash
+yarn prisma:dev:lumio
+yarn prisma:dev:files
+yarn prisma:dev:payments
+yarn prisma:dev:chat
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 5. Start development servers
+
+```bash
+# Start all services in separate terminals
+yarn start:dev:lumio
+yarn start:dev:files
+yarn start:dev:payments
+yarn start:dev:super-admin
+yarn start:dev:chat
+```
+
+## Available Scripts
+
+### Development
+
+| Script                       | Description                     |
+| ---------------------------- | ------------------------------- |
+| `yarn start:dev:lumio`       | Start lumio in watch mode       |
+| `yarn start:dev:files`       | Start files in watch mode       |
+| `yarn start:dev:payments`    | Start payments in watch mode    |
+| `yarn start:dev:super-admin` | Start super-admin in watch mode |
+| `yarn start:dev:chat`        | Start chat in watch mode        |
+
+### Database (Prisma)
+
+| Script                       | Description                                   |
+| ---------------------------- | --------------------------------------------- |
+| `yarn prisma:dev:lumio`      | Run migrations + generate client for lumio    |
+| `yarn prisma:dev:files`      | Run migrations + generate client for files    |
+| `yarn prisma:dev:payments`   | Run migrations + generate client for payments |
+| `yarn prisma:dev:chat`       | Run migrations + generate client for chat     |
+| `yarn prisma:studio:lumio`   | Open Prisma Studio for lumio                  |
+| `yarn prisma:generate:lumio` | Generate Prisma client for lumio              |
+
+### Testing
+
+| Script                       | Description                                 |
+| ---------------------------- | ------------------------------------------- |
+| `yarn test:unit:all`         | Run all unit tests across all microservices |
+| `yarn test:unit:lumio`       | Run lumio unit tests                        |
+| `yarn test:unit:files`       | Run files unit tests                        |
+| `yarn test:unit:payments`    | Run payments unit tests                     |
+| `yarn test:unit:super-admin` | Run super-admin unit tests                  |
+| `yarn test:unit:chat`        | Run chat unit tests                         |
+| `yarn test:coverage:all`     | Run all tests with coverage                 |
+
+### Build
+
+| Script                   | Description                      |
+| ------------------------ | -------------------------------- |
+| `yarn build:lumio`       | Build lumio for production       |
+| `yarn build:files`       | Build files for production       |
+| `yarn build:payments`    | Build payments for production    |
+| `yarn build:super-admin` | Build super-admin for production |
+| `yarn build:chat`        | Build chat for production        |
+
+### Docker
+
+| Script                    | Description                           |
+| ------------------------- | ------------------------------------- |
+| `yarn docker:up:lumio`    | Start PostgreSQL + RabbitMQ for lumio |
+| `yarn docker:up:files`    | Start PostgreSQL for files            |
+| `yarn docker:up:payments` | Start PostgreSQL for payments         |
+| `yarn docker:up:chat`     | Start PostgreSQL for chat             |
+
+## API Documentation
+
+### REST API (Swagger)
+
+Each REST microservice exposes Swagger documentation:
+
+- **lumio**: `http://localhost:3000/api/v1/docs`
+- **files**: `http://localhost:3001/api/v1/docs`
+- **payments**: `http://localhost:3002/api/v1/docs`
+- **chat**: `http://localhost:3004/api/v1/docs`
+
+### GraphQL (super-admin)
+
+- **Playground**: `http://localhost:3003/graphql`
+
+### WebSocket (chat)
+
+- **Socket.IO**: `http://localhost:3004/chat`
+
+## Import Aliases
+
+| Alias            | Path                     |
+| ---------------- | ------------------------ |
+| `@lumio/*`       | `apps/lumio/src/*`       |
+| `@files/*`       | `apps/files/src/*`       |
+| `@payments/*`    | `apps/payments/src/*`    |
+| `@super-admin/*` | `apps/super-admin/src/*` |
+| `@chat/*`        | `apps/chat/src/*`        |
+| `@libs/*`        | `libs/*`                 |
+| `@generated/*`   | `generated/*`            |
+
+## Module Structure
+
+Each microservice follows Clean Architecture:
+
+```
+module-name/
+├── api/              # Controllers / Resolvers
+├── application/      # Use Cases, CQRS Commands/Queries
+├── domain/           # Entities, Domain Logic, Repositories
+└── infrastructure/   # External services, adapters
+```
+
+## Authors
+
+- Klim Androsov — discodiedance@gmail.com
+- Ilya Kozlovsky — kozlvskiilya@gmail.com
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT
