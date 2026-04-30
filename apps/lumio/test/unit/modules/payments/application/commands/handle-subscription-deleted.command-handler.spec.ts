@@ -24,7 +24,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
           provide: SubscriptionRepository,
           useValue: {
             findSubscriptionByProfileId: jest.fn(),
-            deletelSubscription: jest.fn(),
+            deleteSubscription: jest.fn(),
           },
         },
         {
@@ -111,7 +111,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       ).toHaveBeenCalledWith(1);
       expect(mockPrisma.$transaction).toHaveBeenCalled();
       expect(
-        mockSubscriptionRepository.deletelSubscription,
+        mockSubscriptionRepository.deleteSubscription,
       ).toHaveBeenCalledWith('sub-123', expect.any(Object));
       expect(mockUserRepository.updateAccountType).toHaveBeenCalledWith(
         1,
@@ -151,7 +151,7 @@ describe('HandleSubscriptionDeletedCommandHandler', () => {
       ).toHaveBeenCalledWith(1);
       expect(mockPrisma.$transaction).not.toHaveBeenCalled();
       expect(
-        mockSubscriptionRepository.deletelSubscription,
+        mockSubscriptionRepository.deleteSubscription,
       ).not.toHaveBeenCalled();
       expect(mockUserRepository.updateAccountType).not.toHaveBeenCalled();
     });
