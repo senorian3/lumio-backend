@@ -25,7 +25,7 @@ import { ExternalCallsProcessor } from '@payments/modules/subscriptions/outbox/a
 import { ScheduleModule } from '@nestjs/schedule';
 import { TestingModule } from '@payments/modules/tests/testing.module';
 import { GetAllPaymentsHandler } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
-import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/ayments.query-repository';
+import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.query-repository';
 
 const adapters = [StripeAdapter];
 

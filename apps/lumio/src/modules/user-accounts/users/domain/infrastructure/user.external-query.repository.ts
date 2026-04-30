@@ -98,6 +98,10 @@ export class ExternalQueryUserAccountsRepository {
       },
     });
 
-    return user?.isBlocked === true || user?.deletedAt !== null;
+    if (!user) {
+      return false;
+    }
+
+    return user.isBlocked === true || user.deletedAt !== null;
   }
 }

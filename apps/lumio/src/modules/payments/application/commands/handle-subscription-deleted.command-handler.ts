@@ -31,7 +31,7 @@ export class HandleSubscriptionDeletedCommandHandler implements ICommandHandler<
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.subscriptionRepository.deletelSubscription(
+        await this.subscriptionRepository.deleteSubscription(
           subscriptionId,
           tx,
         );

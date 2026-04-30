@@ -25,15 +25,4 @@ export class IdempotencyKeyRepository {
       create: { id: messageId, expiresAt },
     });
   }
-
-  async deleteExpired(): Promise<number> {
-    const result = await this.prisma.idempotencyKey.deleteMany({
-      where: {
-        expiresAt: {
-          lt: new Date(),
-        },
-      },
-    });
-    return result.count;
-  }
 }
