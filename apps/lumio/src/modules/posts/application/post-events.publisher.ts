@@ -2,28 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import * as amqp from 'amqplib';
 import { CoreConfig } from '@lumio/core/core.config';
 import { AppLoggerService } from '@libs/logger/logger.service';
-
-interface PostCreatedEvent {
-  id: string;
-  description: string | null;
-  createdAt: Date;
-  deletedAt: Date | null;
-  userId: number;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    createdAt: Date;
-    isBlocked: boolean;
-  };
-  files: Array<{
-    id: number;
-    url: string;
-    postId: string;
-    createdAt: Date;
-    deletedAt: Date | null;
-  }>;
-}
+import { PostCreatedEvent } from '../domain/events/post-created.event';
 
 @Injectable()
 export class PostEventsPublisher implements OnModuleInit, OnModuleDestroy {

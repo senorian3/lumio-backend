@@ -1,10 +1,11 @@
 import {
   IsString,
-  IsIn,
+  IsEnum,
   IsNotEmpty,
   IsNumberString,
   IsOptional,
 } from 'class-validator';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 
 export class InputCreateSubscriptionPaymentUrlDto {
   @IsNumberString()
@@ -15,9 +16,8 @@ export class InputCreateSubscriptionPaymentUrlDto {
   @IsNotEmpty()
   currency: string;
 
-  @IsString()
-  @IsIn(['1 week', '2 weeks', '1 month', '3 months', '1 year'])
-  subscriptionType: '1 week' | '2 weeks' | '1 month' | '3 months' | '1 year';
+  @IsEnum(SubscriptionType)
+  subscriptionType: SubscriptionType;
 
   @IsString()
   @IsNotEmpty()

@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
-import { subscriptionConfigs } from '../../constants/stripe-constants';
 import { CoreConfig } from '@payments/core/core.config';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
+import { subscriptionConfigs } from '../../constants/stripe-constants';
 
 @Injectable()
 export class StripeAdapter {
@@ -17,7 +18,7 @@ export class StripeAdapter {
   }
 
   async createPaymentSession(
-    subscriptionType: '1 week' | '2 weeks' | '1 month' | '3 months' | '1 year',
+    subscriptionType: SubscriptionType,
     amount: number,
     profileId: string,
     currency: string,
