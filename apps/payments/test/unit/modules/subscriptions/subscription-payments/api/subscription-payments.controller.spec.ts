@@ -4,6 +4,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { InputCreateSubscriptionPaymentUrlDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-create-subscription-payment-url.dto';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 import { InputChangeAutorenewalSubscriptionPaymentDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-update-autorenewal.dto';
 
 describe('SubscriptionPaymentsController', () => {
@@ -144,7 +145,7 @@ describe('SubscriptionPaymentsController', () => {
       const payload: InputCreateSubscriptionPaymentUrlDto = {
         profileId: '1',
         currency: 'usd',
-        subscriptionType: '1 month',
+        subscriptionType: SubscriptionType.ONE_MONTH,
         paymentProvider: 'stripe',
       };
 
@@ -169,7 +170,7 @@ describe('SubscriptionPaymentsController', () => {
       const payload: InputCreateSubscriptionPaymentUrlDto = {
         profileId: '1',
         currency: 'usd',
-        subscriptionType: '1 month',
+        subscriptionType: SubscriptionType.ONE_MONTH,
         paymentProvider: 'stripe',
         localhostOrigin: 'http://localhost:3000',
       };

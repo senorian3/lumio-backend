@@ -5,7 +5,7 @@ import {
 } from '@lumio/modules/user-follows/application/queries/get-following.query-handler';
 import { UserFollowQueryRepository } from '@lumio/modules/user-follows/domain/infrastructure/user-follow.query-repository';
 import { PaginatedFollowingViewDto } from '@lumio/modules/user-follows/api/dto/output/following.paginated.view-dto';
-import { GetFollowingInputDto } from '@lumio/modules/user-follows/api/dto/input/get-following.input-dto';
+import { UserFollowQueryDto } from '@lumio/modules/user-follows/api/dto/input/user-follow-query.input-dto';
 
 describe('GetFollowingQueryHandler', () => {
   let handler: GetFollowingQueryHandler;
@@ -38,7 +38,7 @@ describe('GetFollowingQueryHandler', () => {
     it('should return paginated following', async () => {
       const currentUserId = 1;
       const targetUserId = 2;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
       queryDto.userId = targetUserId;
@@ -83,7 +83,7 @@ describe('GetFollowingQueryHandler', () => {
     it('should handle empty following list', async () => {
       const currentUserId = 1;
       const targetUserId = 2;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
       queryDto.userId = targetUserId;
@@ -112,7 +112,7 @@ describe('GetFollowingQueryHandler', () => {
     it('should handle pagination correctly', async () => {
       const currentUserId = 1;
       const targetUserId = 2;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 2;
       queryDto.pageSize = 5;
       queryDto.userId = targetUserId;

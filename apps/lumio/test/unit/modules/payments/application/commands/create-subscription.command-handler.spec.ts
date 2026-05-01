@@ -4,6 +4,7 @@ import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-account
 import { PaymentsHttpAdapter } from '@lumio/modules/payments/application/payments-http.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { InputCreateSubscriptionPaymentDto } from '@lumio/modules/payments/api/dto/input/subscription-create.input.dto';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 import {
   CreateSubscriptionPaymentUrlCommandHandler,
   CreateSubscriptionPaymentUrlCommand,
@@ -20,7 +21,7 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
   const mockDto = new InputCreateSubscriptionPaymentDto();
   mockDto.profileId = '1';
   mockDto.currency = 'RUB';
-  mockDto.subscriptionType = '1 month';
+  mockDto.subscriptionType = SubscriptionType.ONE_MONTH;
   mockDto.paymentProvider = 'yookassa';
 
   beforeEach(async () => {
