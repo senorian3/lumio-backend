@@ -25,17 +25,18 @@ import { ApiSendChatMessage } from '@chat/core/decorators/swagger/chats/send-cha
 import { ApiSendChatMediaMessage } from '@chat/core/decorators/swagger/chats/send-chat-media-message.decorator';
 import { ApiGetChatMessages } from '@chat/core/decorators/swagger/chats/get-chat-messages.decorator';
 import { ApiMarkChatMessageRead } from '@chat/core/decorators/swagger/chats/mark-chat-message-read.decorator';
+import { CHAT_BASE, CHAT_ROUTES } from '@chat/core/routes/chat-routes';
 
 @UseGuards(InternalApiGuard)
 @ApiChatsController()
-@Controller('chats')
+@Controller(CHAT_BASE)
 export class ChatsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Post('send-message')
+  @Post(CHAT_ROUTES.SEND_MESSAGE)
   @ApiSendChatMessage()
   async sendMessage(
     @ActorUserId() actorUserId: number,
@@ -46,7 +47,7 @@ export class ChatsController {
     );
   }
 
-  @Post('send-media-message')
+  @Post(CHAT_ROUTES.SEND_MEDIA_MESSAGE)
   @UseInterceptors(FileInterceptor('file'))
   @ApiSendChatMediaMessage()
   async sendMediaMessage(
@@ -70,7 +71,7 @@ export class ChatsController {
     );
   }
 
-  @Get('messages')
+  @Get(CHAT_ROUTES.GET_CHAT_MESSAGES)
   @ApiGetChatMessages()
   async getChatMessages(
     @ActorUserId() actorUserId: number,
@@ -86,7 +87,7 @@ export class ChatsController {
     );
   }
 
-  @Post('messages/:messageId/read')
+  @Post(CHAT_ROUTES.MARK_MESSAGE_READ)
   @ApiMarkChatMessageRead()
   async markMessageAsRead(
     @Param('messageId') messageId: string,

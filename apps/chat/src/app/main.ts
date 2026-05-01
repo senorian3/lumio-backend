@@ -12,12 +12,12 @@ async function bootstrap() {
   });
 
   const coreConfig = app.get<CoreConfig>(CoreConfig);
-  const logger = app.get(AppLoggerService);
-  app.useLogger(logger);
 
   appSetup(app, coreConfig, DynamicAppModule);
 
   const port = coreConfig.port;
+
+  const logger = app.get(AppLoggerService);
 
   await app.listen(port, () => {
     logger.log(`Chat starting listen port: ${port}`, bootstrap.name);

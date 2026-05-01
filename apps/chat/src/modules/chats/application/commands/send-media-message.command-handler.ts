@@ -81,13 +81,12 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
 
     const uploadedFile = await this.filesHttpAdapter.uploadFile(uploadDto);
 
-    // Create message with attachment
     const createdMessage =
       await this.chatRepository.createMessageWithAttachment({
         id: messageId,
         chat: { connect: { id: chat.id } },
         senderId: userId,
-        content: text || '', // Text is optional for media messages
+        content: text || '',
         type,
         attachments: {
           create: {
@@ -102,7 +101,6 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
         },
       });
 
-    // Emit event for real-time notification
     this.eventBus.publish(
       new MediaMessageCreatedEvent(
         chat.id,

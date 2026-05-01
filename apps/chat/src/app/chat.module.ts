@@ -24,8 +24,8 @@ const commandHandlers = [
 ];
 const queryHandlers = [GetChatMessagesQueryHandler];
 const adapters = [FilesHttpAdapter];
-const repositories = [ChatRepository, ChatQueryRepository];
-const queryRepositories = [];
+const repositories = [ChatRepository];
+const queryRepositories = [ChatQueryRepository];
 
 @Module({
   imports: [
@@ -42,6 +42,7 @@ const queryRepositories = [];
     }),
     ChatsGatewayModule,
   ],
+
   controllers: [ChatsController],
   providers: [
     ...adapters,

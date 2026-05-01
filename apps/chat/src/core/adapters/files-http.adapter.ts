@@ -18,14 +18,8 @@ export class FilesHttpAdapter {
     private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {
-    this.filesServiceUrl = this.configService.get<string>(
-      'FILES_SERVICE_URL',
-      'http://localhost:3001/api/v1',
-    );
-    this.internalApiKey = this.configService.get<string>(
-      'INTERNAL_API_KEY',
-      '',
-    );
+    this.filesServiceUrl = this.configService.get<string>('FILES_SERVICE_URL');
+    this.internalApiKey = this.configService.get<string>('INTERNAL_API_KEY');
   }
 
   async uploadFile(dto: UploadFileDto): Promise<UploadFileResponse> {
@@ -112,15 +106,10 @@ export class FilesHttpAdapter {
         `Failed to delete file ${fileKey}: ${error instanceof Error ? error.message : String(error)}`,
         FilesHttpAdapter.name,
       );
-      // Don't throw error for deletion failures in chat context
-      // The file will remain in storage but won't affect chat functionality
     }
   }
 
   async getFileUrl(fileKey: string): Promise<string> {
-    // In a real implementation, this would construct the URL based on storage configuration
-    // For S3, it would be: https://bucket.s3.region.amazonaws.com/key
-    // For now, return a placeholder
     return `${this.filesServiceUrl}/files/${fileKey}`;
   }
 

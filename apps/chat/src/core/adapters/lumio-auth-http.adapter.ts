@@ -15,10 +15,7 @@ export class LumioAuthHttpAdapter {
     private readonly httpService: HttpService,
     private readonly logger: AppLoggerService,
   ) {
-    this.lumioServiceUrl = this.configService.get<string>(
-      'LUMIO_SERVICE_URL',
-      'http://localhost:3000/api/v1',
-    );
+    this.lumioServiceUrl = this.configService.get<string>('LUMIO_SERVICE_URL');
   }
 
   async validateAccessToken(
