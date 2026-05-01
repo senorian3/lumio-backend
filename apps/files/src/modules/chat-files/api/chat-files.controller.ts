@@ -15,13 +15,14 @@ import { InternalApiGuard } from '@files/core/guards/internal/internal-api.guard
 import { UploadChatFileCommand } from '../application/commands/upload-chat-file.command-handler';
 import { DeleteChatFileCommand } from '../application/commands/delete-chat-file.command-handler';
 import { UploadChatFileInputDto } from './dto/input/upload-chat-file.input.dto';
+import { FILES_BASE, FILES_ROUTES } from '@files/core/routes/chat-files-routes';
 
-@Controller('chat-files')
+@Controller(FILES_BASE)
 @UseGuards(InternalApiGuard)
 export class ChatFilesController {
   constructor(private readonly commandBus: CommandBus) {}
 
-  @Post('upload')
+  @Post(FILES_ROUTES.UPLOAD)
   @UseInterceptors(FileInterceptor('file'))
   async uploadChatFile(
     @UploadedFile() file: Express.Multer.File,
