@@ -33,7 +33,7 @@ async function bootstrap() {
   appSetup(app, coreConfig, DynamicAppModule);
   const port = coreConfig.port;
 
-  const logger = new AppLoggerService();
+  const logger = app.get(AppLoggerService);
 
   await app.startAllMicroservices();
   await app.listen(port, () => {
