@@ -53,6 +53,10 @@ import { LikeCommentInputDto } from './dto/input/like-comment.input.dto';
 import { LikePostInputDto } from './dto/input/like-post.input.dto';
 import { LikePostCommand } from '@lumio/modules/posts/application/commands/like-post.command-handler';
 import { LikeCommentCommand } from '@lumio/modules/posts/application/commands/like-comment.command-handler';
+import { ApiCreatePostComment } from '@lumio/core/decorators/swagger/posts/create-post-comment.decorator';
+import { ApiGetPostComments } from '@lumio/core/decorators/swagger/posts/get-post-comments.decorator';
+import { ApiLikeComment } from '@lumio/core/decorators/swagger/posts/like-comment.decorator';
+import { ApiLikePost } from '@lumio/core/decorators/swagger/posts/like-post.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(POST_BASE)
@@ -158,6 +162,7 @@ export class PostsController {
   }
 
   @Post(':postId/comments')
+  @ApiCreatePostComment()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
   async createComment(
@@ -176,6 +181,7 @@ export class PostsController {
   }
 
   @Get(':postId/comments')
+  @ApiGetPostComments()
   @HttpCode(HttpStatus.OK)
   @UseGuards(OptionalJwtAuthGuard)
   async getPostWithComments(
@@ -189,6 +195,7 @@ export class PostsController {
   }
 
   @Post('comments/:commentId/like')
+  @ApiLikeComment()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async likeComment(
@@ -202,6 +209,7 @@ export class PostsController {
   }
 
   @Post(':postId/like')
+  @ApiLikePost()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async likePost(
