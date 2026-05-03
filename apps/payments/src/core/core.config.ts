@@ -6,11 +6,7 @@ import {
   InternalApiKeys,
   parseInternalApiKeys,
 } from '@libs/core/internal-api/internal-api';
-
-export enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-}
+import { Environments } from '@libs/settings/environments.enum';
 
 @Injectable()
 export class CoreConfig {

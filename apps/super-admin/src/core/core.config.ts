@@ -2,11 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from '@libs/settings/config-valdation.utility';
-
-export enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-}
+import { Environments } from '@libs/settings/environments.enum';
 
 @Injectable()
 export class CoreConfig {
