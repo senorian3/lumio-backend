@@ -54,7 +54,6 @@ export class ChatFilesController {
   @Get(':fileKey')
   @ApiGetChatFile()
   async getChatFile(@Param('fileKey') fileKey: string) {
-    // TODO: Implement query to get file info
     return { fileKey, url: `https://s3.amazonaws.com/bucket/${fileKey}` };
   }
 }

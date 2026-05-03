@@ -35,7 +35,7 @@ import { ApiGetUserPosts } from '@lumio/core/decorators/swagger/posts/get-my-pos
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
-import { POST_BASE } from '@lumio/core/routes/post-routes';
+import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
@@ -66,7 +66,7 @@ export class PostsController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get(':userId')
+  @Get(POST_ROUTES.GET_USER_POSTS)
   @ApiGetUserPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(OptionalJwtAuthGuard)
@@ -82,7 +82,7 @@ export class PostsController {
     >(new GetAllUserPostsQuery(currentUserId, query, userId));
   }
 
-  @Get(':profileId')
+  @Get(POST_ROUTES.GET_PROFILE_POST)
   @ApiGetProfilePost()
   @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -119,7 +119,7 @@ export class PostsController {
     );
   }
 
-  @Put(':postId')
+  @Put(POST_ROUTES.UPDATE_POST)
   @ApiUpdatePost()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -136,7 +136,7 @@ export class PostsController {
     return updatedPost;
   }
 
-  @Delete(':postId')
+  @Delete(POST_ROUTES.DELETE_POST)
   @ApiDeletePost()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
@@ -149,7 +149,7 @@ export class PostsController {
     );
   }
 
-  @Get('post/:postId')
+  @Get(POST_ROUTES.GET_POST_BY_ID)
   @ApiGetPostById()
   @UseGuards(JwtAuthGuard)
   async getPostById(
@@ -161,7 +161,7 @@ export class PostsController {
     );
   }
 
-  @Post(':postId/comments')
+  @Post(POST_ROUTES.CREATE_COMMENT)
   @ApiCreatePostComment()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard)
@@ -180,7 +180,7 @@ export class PostsController {
     );
   }
 
-  @Get(':postId/comments')
+  @Get(POST_ROUTES.GET_POST_COMMENTS)
   @ApiGetPostComments()
   @HttpCode(HttpStatus.OK)
   @UseGuards(OptionalJwtAuthGuard)
@@ -194,7 +194,7 @@ export class PostsController {
     );
   }
 
-  @Post('comments/:commentId/like')
+  @Post(POST_ROUTES.LIKE_COMMENT)
   @ApiLikeComment()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -208,7 +208,7 @@ export class PostsController {
     );
   }
 
-  @Post(':postId/like')
+  @Post(POST_ROUTES.LIKE_POST)
   @ApiLikePost()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

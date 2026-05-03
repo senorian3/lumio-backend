@@ -1,4 +1,3 @@
-// @lumio/modules/posts/api/dto/input/get-post-comments.query.dto.ts
 import { IsEnum, IsOptional } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';

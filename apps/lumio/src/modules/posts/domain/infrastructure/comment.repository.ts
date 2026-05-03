@@ -63,12 +63,10 @@ export class CommentRepository {
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       if (status === 'none') {
-        // 🔹 Удаляем реакцию, если она есть
         await tx.commentLike.deleteMany({
           where: { commentId, userId },
         });
       } else {
-        // 🔹 Создаём или обновляем реакцию
         await tx.commentLike.upsert({
           where: {
             commentId_userId: { commentId, userId },
@@ -84,7 +82,6 @@ export class CommentRepository {
         });
       }
 
-      // 🔹 Пересчитываем счётчики (учитываем, что записей может не быть)
       const [likeCount, dislikeCount] = await Promise.all([
         tx.commentLike.count({
           where: { commentId, status: 'like' },
