@@ -2,12 +2,10 @@ import {
   BadRequestDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import {
-  GetChatMessagesQuery,
-  GetChatMessagesQueryHandler,
-} from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
+import { GetChatMessagesQueryHandler } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/chat-query.repository';
+import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query';
 
 describe('GetChatMessagesQueryHandler', () => {
   let handler: GetChatMessagesQueryHandler;

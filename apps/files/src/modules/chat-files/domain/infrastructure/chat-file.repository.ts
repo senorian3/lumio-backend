@@ -1,24 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@files/prisma/prisma.service';
 import { ChatFileEntity } from '../entities/chat-file.entity';
-
-interface CreateChatFileDto {
-  key: string;
-  url: string;
-  type: string;
-  size: number;
-  userId: number;
-  chatId: number;
-  messageId: string;
-  originalName: string;
-  mimeType: string;
-}
+import { CreateChatFileDomainDto } from '../dto/create-chat-file.domain.dto';
 
 @Injectable()
 export class ChatFileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateChatFileDto): Promise<ChatFileEntity> {
+  async create(dto: CreateChatFileDomainDto): Promise<ChatFileEntity> {
     return this.prisma.chatFile.create({
       data: {
         key: dto.key,

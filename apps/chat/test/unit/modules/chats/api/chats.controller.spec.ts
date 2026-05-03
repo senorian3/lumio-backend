@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ChatsController } from '@chat/modules/chats/api/chats.controller';
 import { SendMessageCommand } from '@chat/modules/chats/application/commands/send-message.command-handler';
-import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
+import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query';
 import { MarkMessageReadCommand } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
 import { SendMediaMessageCommand } from '@chat/modules/chats/application/commands/send-media-message.command-handler';
 import { CoreConfig } from '@chat/core/core.config';
