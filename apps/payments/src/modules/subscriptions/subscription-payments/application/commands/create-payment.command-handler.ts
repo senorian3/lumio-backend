@@ -50,7 +50,6 @@ export class CreateSubscriptionPaymentCommandHandler implements ICommandHandler<
         dto.profileId,
         dto.currency,
         activeSubscription ? activeSubscription.subscriptionId : 'null',
-        dto.localhostOrigin,
       )
       .catch((error) => {
         throw BadRequestDomainException.create(

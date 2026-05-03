@@ -5,5 +5,4 @@ export class SubscriptionPaymentTransferDto {
   currency: string;
   subscriptionType: SubscriptionType;
   paymentProvider: string;
-  localhostOrigin?: string;
 }

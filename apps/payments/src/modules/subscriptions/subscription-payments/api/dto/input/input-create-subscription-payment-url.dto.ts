@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsEnum,
-  IsNotEmpty,
-  IsNumberString,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsEnum, IsNotEmpty, IsNumberString } from 'class-validator';
 import { SubscriptionType } from '@libs/core/types/subscription-type';
 
 export class InputCreateSubscriptionPaymentUrlDto {
@@ -22,8 +16,4 @@ export class InputCreateSubscriptionPaymentUrlDto {
   @IsString()
   @IsNotEmpty()
   paymentProvider: string;
-
-  @IsString()
-  @IsOptional()
-  localhostOrigin?: string;
 }

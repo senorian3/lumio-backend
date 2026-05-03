@@ -165,34 +165,6 @@ describe('SubscriptionPaymentsController', () => {
         }),
       );
     });
-
-    it('should pass localhostOrigin from payload to command', async () => {
-      const payload: InputCreateSubscriptionPaymentUrlDto = {
-        profileId: '1',
-        currency: 'usd',
-        subscriptionType: SubscriptionType.ONE_MONTH,
-        paymentProvider: 'stripe',
-        localhostOrigin: 'http://localhost:3000',
-      };
-
-      const expectedUrl = 'https://checkout.stripe.com/pay_123';
-
-      commandBus.execute.mockResolvedValue(expectedUrl);
-
-      const result =
-        await subscriptionPaymentsController.createSubscriptionPaymentUrl(
-          payload,
-        );
-
-      expect(result).toEqual({ url: expectedUrl });
-      expect(commandBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dto: expect.objectContaining({
-            localhostOrigin: 'http://localhost:3000',
-          }),
-        }),
-      );
-    });
   });
 
   describe('stripeHook', () => {

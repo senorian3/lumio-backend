@@ -89,36 +89,6 @@ describe('CreateSubscriptionPaymentUrlCommandHandler', () => {
       expect(result).toBe(mockPaymentUrl);
     });
 
-    it('should pass localhostOrigin to payments http adapter', async () => {
-      // Arrange
-      const localhostOrigin = 'http://localhost:3000';
-      const command = new CreateSubscriptionPaymentUrlCommand(
-        mockUserId,
-        mockDto,
-        localhostOrigin,
-      );
-      const mockPaymentUrl = 'https://payment.example.com/pay/123';
-
-      mockExternalQueryUserRepository.getProfileIdByUserId.mockResolvedValue(
-        mockProfileId,
-      );
-      mockPaymentsHttpAdapter.createPaymentUrl.mockResolvedValue({
-        url: mockPaymentUrl,
-      });
-
-      // Act
-      const result = await handler.execute(command);
-
-      // Assert
-      expect(mockPaymentsHttpAdapter.createPaymentUrl).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          localhostOrigin: localhostOrigin,
-        }),
-      );
-      expect(result).toBe(mockPaymentUrl);
-    });
-
     it('should throw BadRequestDomainException when profile does not exist', async () => {
       // Arrange
       const command = new CreateSubscriptionPaymentUrlCommand(
