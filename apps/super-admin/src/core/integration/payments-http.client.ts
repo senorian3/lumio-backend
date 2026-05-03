@@ -45,11 +45,6 @@ export class PaymentsHttpClient {
       if (params.sortOrder) queryParams['sortOrder'] = params.sortOrder;
       if (params.search) queryParams['search'] = params.search;
 
-      this.logger.log(
-        `Fetching payments from: ${url}`,
-        PaymentsHttpClient.name,
-      );
-
       const response = await firstValueFrom(
         this.httpService.get<PaymentsApiResponse>(url, {
           params: queryParams,

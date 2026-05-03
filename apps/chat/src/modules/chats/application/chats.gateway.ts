@@ -73,7 +73,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       this.userSockets.get(userId)!.push(client.id);
 
-      this.logger.log(`User ${userId} connected with socket ${client.id}`);
       client.join(`user:${userId}`);
       client.emit('connection:established', { userId });
     } catch (error) {
@@ -102,8 +101,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.userSockets.delete(userId);
       }
     }
-
-    this.logger.log(`User ${userId} disconnected`);
   }
 
   @UseGuards(WsJwtGuard)
@@ -147,8 +144,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       content,
       createdAt,
     });
-
-    this.logger.log(`Message ${messageId} created in chat ${chatId}`);
   }
 
   private handleMediaMessageCreated(event: MediaMessageCreatedEvent) {
@@ -191,8 +186,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       attachment,
       createdAt,
     });
-
-    this.logger.log(`Media message ${messageId} created in chat ${chatId}`);
   }
 
   private handleMessageRead(event: MessageReadEvent) {
@@ -210,10 +203,6 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       readerId,
       readAt,
     });
-
-    this.logger.log(
-      `Message ${messageId} in chat ${chatId} read by user ${readerId}`,
-    );
   }
 
   private extractTokenFromSocket(client: Socket): string | null {

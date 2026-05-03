@@ -144,7 +144,6 @@ describe('ChatsGateway', () => {
     gateway.handleDisconnect(client);
 
     expect(gateway.isUserOnline(42)).toBe(false);
-    expect(logger.log).toHaveBeenCalledWith('User 42 disconnected');
   });
 
   it('rejects typing:stop events when actor is not a participant of the chat', async () => {
