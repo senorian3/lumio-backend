@@ -25,6 +25,7 @@ import { ApiSendChatMessage } from '@chat/core/decorators/swagger/chats/send-cha
 import { ApiSendChatMediaMessage } from '@chat/core/decorators/swagger/chats/send-chat-media-message.decorator';
 import { ApiGetChatMessages } from '@chat/core/decorators/swagger/chats/get-chat-messages.decorator';
 import { ApiMarkChatMessageRead } from '@chat/core/decorators/swagger/chats/mark-chat-message-read.decorator';
+import { WebSocketChatDocs } from '@chat/core/decorators/swagger/chats/websocket-chat-docs.decorator';
 import { CHAT_BASE, CHAT_ROUTES } from '@chat/core/routes/chat-routes';
 import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
@@ -37,6 +38,95 @@ export class ChatsController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
+
+  @Get(CHAT_ROUTES.WEBSOCKET_DOCS)
+  @WebSocketChatDocs()
+  getWebSocketDocs(): {
+    message: string;
+    websocket: { namespace: string; url: string };
+    events: {
+      'connection:established': { userId: number };
+      'message:created': {
+        messageId: string;
+        chatId: number;
+        senderId: number;
+        content: string;
+        createdAt: string;
+      };
+      'message:sent': {
+        messageId: string;
+        chatId: number;
+        content: string;
+        createdAt: string;
+      };
+      'message:received': {
+        messageId: string;
+        chatId: number;
+        senderId: number;
+        content: string;
+        createdAt: string;
+      };
+      'message:read': {
+        messageId: string;
+        chatId: number;
+        readerId: number;
+        readAt: string;
+      };
+      'user:typing': {
+        userId: number;
+        chatId: number;
+        isTyping: boolean;
+      };
+      error: { message: string };
+    };
+  } {
+    return {
+      message: 'See Swagger description for WebSocket documentation',
+      websocket: {
+        namespace: '/',
+        url: 'wss://lumio.su',
+      },
+      events: {
+        'connection:established': {
+          userId: 77,
+        },
+        'message:created': {
+          messageId: '8c9e1671-9f3c-493f-a8df-8a8e8e8c8e8e',
+          chatId: 5,
+          senderId: 77,
+          content: 'hello',
+          createdAt: '2026-04-22T10:00:00.000Z',
+        },
+        'message:sent': {
+          messageId: '8c9e1671-9f3c-493f-a8df-8a8e8e8c8e8e',
+          chatId: 5,
+          content: 'hello',
+          createdAt: '2026-04-22T10:00:00.000Z',
+        },
+        'message:received': {
+          messageId: '8c9e1671-9f3c-493f-a8df-8a8e8e8c8e8e',
+          chatId: 5,
+          senderId: 77,
+          content: 'hello',
+          createdAt: '2026-04-22T10:00:00.000Z',
+        },
+        'message:read': {
+          messageId: '8c9e1671-9f3c-493f-a8df-8a8e8e8c8e8e',
+          chatId: 5,
+          readerId: 42,
+          readAt: '2026-04-22T10:05:00.000Z',
+        },
+        'user:typing': {
+          userId: 77,
+          chatId: 5,
+          isTyping: true,
+        },
+        error: {
+          message: 'Unauthorized: Missing token',
+        },
+      },
+    };
+  }
 
   @Post(CHAT_ROUTES.SEND_MESSAGE)
   @ApiSendChatMessage()
