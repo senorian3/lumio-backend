@@ -79,8 +79,7 @@ export class CoreConfig {
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
-  internalServiceName: string =
-    this.configService.get('INTERNAL_SERVICE_NAME') ?? 'lumio';
+  internalServiceName: string = this.configService.get('INTERNAL_SERVICE_NAME');
 
   @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
   filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
@@ -90,6 +89,20 @@ export class CoreConfig {
 
   @IsNotEmpty({ message: 'Set Env variable CHAT_FRONTEND_URL' })
   chatFrontendUrl: string = this.configService.get('CHAT_FRONTEND_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable FILES_SERVICE_URL' })
+  filesServiceUrl: string = this.configService.get('FILES_SERVICE_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable PAYMENTS_SERVICE_URL' })
+  paymentsServiceUrl: string = this.configService.get('PAYMENTS_SERVICE_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable SUPER_ADMIN_SERVICE_URL' })
+  superAdminServiceUrl: string = this.configService.get(
+    'SUPER_ADMIN_SERVICE_URL',
+  );
+
+  @IsNotEmpty({ message: 'Set Env variable CHAT_SERVICE_URL' })
+  chatServiceUrl: string = this.configService.get('CHAT_SERVICE_URL');
 
   @IsNotEmpty({
     message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',

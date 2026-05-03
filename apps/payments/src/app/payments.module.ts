@@ -26,6 +26,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TestingModule } from '@payments/modules/tests/testing.module';
 import { GetAllPaymentsHandler } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
 import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.query-repository';
+import { HealthModule } from '@payments/modules/health/health.module';
 
 const adapters = [StripeAdapter];
 
@@ -60,6 +61,7 @@ const services = [RetryService, ManualReviewService];
     }),
     LoggerModule,
     CoreModule,
+    HealthModule,
     LoggerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),

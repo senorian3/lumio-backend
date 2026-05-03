@@ -16,6 +16,7 @@ import { TestingModule } from '@chat/modules/tests/testing.module';
 import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/chat-query.repository';
 import { FilesHttpAdapter } from '@chat/core/adapters/files-http.adapter';
 import { HttpModule } from '@nestjs/axios';
+import { HealthModule } from '@chat/modules/health/health.module';
 
 const commandHandlers = [
   MarkMessageReadCommandHandler,
@@ -40,6 +41,7 @@ const queryRepositories = [ChatQueryRepository];
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),
       inject: [CoreConfig],
     }),
+    HealthModule,
     ChatsGatewayModule,
   ],
 
