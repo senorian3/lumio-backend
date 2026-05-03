@@ -10,6 +10,9 @@ export enum Environments {
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({
+    message: 'Set Env variable PORT, example: 3003',
+  })
   @IsNumber(
     {},
     {
@@ -24,6 +27,9 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable NODE_ENV, example: development',
+  })
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
@@ -92,6 +98,10 @@ export class CoreConfig {
   })
   superAdminPassword: string = this.configService.get('SUPER_ADMIN_PASSWORD');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable SUPER_ADMIN_TOKEN_EXPIRATION_MINUTES, example: 15',
+  })
   @IsNumber(
     {},
     {

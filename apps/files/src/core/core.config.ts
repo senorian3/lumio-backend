@@ -14,6 +14,9 @@ export enum Environments {
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({
+    message: 'Set Env variable PORT, example: 3001',
+  })
   @IsNumber(
     {},
     {
@@ -28,6 +31,9 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable NODE_ENV, example: development',
+  })
   @IsEnum(Environments, {
     message:
       'Ser correct NODE_ENV value, available values: ' +
@@ -35,6 +41,10 @@ export class CoreConfig {
   })
   env: string = this.configService.get('NODE_ENV');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
+  })
   @IsBoolean({
     message:
       'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
@@ -65,6 +75,7 @@ export class CoreConfig {
   internalServiceName: string =
     this.configService.get('INTERNAL_SERVICE_NAME') ?? 'files';
 
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEYS' })
   internalApiKeys: InternalApiKeys = parseInternalApiKeys(
     this.configService.get('INTERNAL_API_KEYS'),
     this.internalApiKey,

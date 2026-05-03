@@ -11,6 +11,7 @@ export enum Environments {
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({ message: 'Set Env variable PORT, example: 3000' })
   @IsNumber({}, { message: 'Set Env variable PORT, example: 3000' })
   port: number = Number(this.configService.get('PORT'));
 
@@ -30,6 +31,7 @@ export class CoreConfig {
   })
   rmqUrl: string = this.configService.get('RMQ_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable NODE_ENV, example: development' })
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
@@ -37,6 +39,10 @@ export class CoreConfig {
   })
   env: string = this.configService.get('NODE_ENV');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
+  })
   @IsBoolean({
     message:
       'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
@@ -45,6 +51,10 @@ export class CoreConfig {
     this.configService.get('IS_SWAGGER_ENABLED'),
   ) as boolean;
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
+  })
   @IsBoolean({
     message:
       'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
