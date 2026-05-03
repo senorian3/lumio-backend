@@ -7,6 +7,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentDto } from './dto/payment.dto';
 import { PaymentsResponse } from './dto/payments-response.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 export interface PaymentsApiResponse {
   data: any[];
@@ -57,7 +58,10 @@ export class PaymentsHttpClient {
           },
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-api-key': this.config.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.config.internalServiceName,
+              this.config.internalApiKey,
+            ),
           },
           timeout: 10000,
         }),
@@ -97,7 +101,10 @@ export class PaymentsHttpClient {
             sortBy: sortByParam,
           },
           headers: {
-            'x-internal-api-key': this.config.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.config.internalServiceName,
+              this.config.internalApiKey,
+            ),
           },
           timeout: 10000,
         }),

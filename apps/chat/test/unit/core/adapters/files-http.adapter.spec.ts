@@ -27,6 +27,7 @@ describe('FilesHttpAdapter', () => {
         const values: Record<string, string> = {
           FILES_SERVICE_URL: 'http://files-service/api/v1',
           INTERNAL_API_KEY: 'test-internal-key',
+          INTERNAL_SERVICE_NAME: 'chat',
         };
         return values[key] ?? defaultValue;
       }),
@@ -68,6 +69,7 @@ describe('FilesHttpAdapter', () => {
       expect.any(FormData),
       expect.objectContaining({
         headers: expect.objectContaining({
+          'x-internal-service': 'chat',
           'x-internal-api-key': 'test-internal-key',
         }),
       }),
@@ -89,6 +91,7 @@ describe('FilesHttpAdapter', () => {
       'http://files-service/api/v1/chat-files/file-1',
       expect.objectContaining({
         headers: {
+          'x-internal-service': 'chat',
           'x-internal-api-key': 'test-internal-key',
         },
       }),

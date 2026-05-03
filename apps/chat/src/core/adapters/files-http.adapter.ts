@@ -7,11 +7,13 @@ import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptio
 import { UploadFileResponse } from '@chat/core/adapters/dto/upload-file.response';
 import { UploadFileDto } from '@chat/core/adapters/dto/upload-file.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 @Injectable()
 export class FilesHttpAdapter {
   private readonly filesServiceUrl: string;
   private readonly internalApiKey: string;
+  private readonly internalServiceName: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -20,6 +22,8 @@ export class FilesHttpAdapter {
   ) {
     this.filesServiceUrl = this.configService.get<string>('FILES_SERVICE_URL');
     this.internalApiKey = this.configService.get<string>('INTERNAL_API_KEY');
+    this.internalServiceName =
+      this.configService.get<string>('INTERNAL_SERVICE_NAME') ?? 'chat';
   }
 
   async uploadFile(dto: UploadFileDto): Promise<UploadFileResponse> {
@@ -46,7 +50,10 @@ export class FilesHttpAdapter {
           createdAt: string;
         }>(`${this.filesServiceUrl}/chat-files/upload`, formData, {
           headers: {
-            'x-internal-api-key': this.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.internalServiceName,
+              this.internalApiKey,
+            ),
           },
         }),
       );
@@ -96,7 +103,10 @@ export class FilesHttpAdapter {
           `${this.filesServiceUrl}/chat-files/${fileKey}`,
           {
             headers: {
-              'x-internal-api-key': this.internalApiKey,
+              ...buildInternalApiHeaders(
+                this.internalServiceName,
+                this.internalApiKey,
+              ),
             },
           },
         ),

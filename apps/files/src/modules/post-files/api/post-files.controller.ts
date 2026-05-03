@@ -34,9 +34,11 @@ import { ApiUploadPostFiles } from '@files/core/decorators/swagger/post-files/up
 import { ApiDeletePostFiles } from '@files/core/decorators/swagger/post-files/delete-post-files.decorator';
 import { ApiDeleteFileByKey } from '@files/core/decorators/swagger/post-files/delete-file-by-key.decorator';
 import { ApiGetUserFiles } from '@files/core/decorators/swagger/post-files/get-user-files.decorator';
+import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
 @Controller(POST_FILES_BASE)
 @UseGuards(InternalApiGuard)
+@AllowInternalServices('lumio')
 export class PostFilesController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -90,6 +92,7 @@ export class PostFilesController {
 
   @Get(POST_FILES_ROUTES.GET_USER_FILES)
   @ApiGetUserFiles()
+  @AllowInternalServices('lumio', 'super-admin')
   async getUserFiles(
     @Param('userId', ParseIntPipe) userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

@@ -1,9 +1,18 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { UnauthorizedDomainException } from '@libs/core/exceptions/domain-exceptions';
+import { InternalRequest } from '@libs/core/internal-api/internal-api';
 
 export const ActorUserId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): number => {
-    const request = ctx.switchToHttp().getRequest();
+    const request = ctx.switchToHttp().getRequest<any & InternalRequest>();
+
+    if (!request.internalCaller) {
+      throw UnauthorizedDomainException.create(
+        'Internal caller is not verified',
+        'internal-api',
+      );
+    }
+
     const actorUserIdHeader = request.headers['x-actor-user-id'];
     const actorUserIdValue = Array.isArray(actorUserIdHeader)
       ? actorUserIdHeader[0]

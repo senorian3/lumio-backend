@@ -22,6 +22,11 @@ export function ApiChatsController() {
       required: true,
     }),
     ApiHeader({
+      name: 'x-internal-service',
+      description: 'Internal caller service name.',
+      required: true,
+    }),
+    ApiHeader({
       name: 'x-actor-user-id',
       description:
         'Trusted actor user ID propagated by the calling internal service.',

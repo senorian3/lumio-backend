@@ -56,6 +56,10 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
+  internalServiceName: string =
+    this.configService.get('INTERNAL_SERVICE_NAME') ?? 'super-admin';
+
   @IsNotEmpty({
     message:
       'Set Env variable PAYMENTS_SERVICE_URL, example: http://localhost:3001',

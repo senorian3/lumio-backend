@@ -19,9 +19,11 @@ import { FILES_BASE, FILES_ROUTES } from '@files/core/routes/chat-files-routes';
 import { ApiUploadChatFile } from '@files/core/decorators/swagger/chat-files/upload-chat-file.decorator';
 import { ApiDeleteChatFile } from '@files/core/decorators/swagger/chat-files/delete-chat-file.decorator';
 import { ApiGetChatFile } from '@files/core/decorators/swagger/chat-files/get-chat-file.decorator';
+import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
 @Controller(FILES_BASE)
 @UseGuards(InternalApiGuard)
+@AllowInternalServices('chat')
 export class ChatFilesController {
   constructor(private readonly commandBus: CommandBus) {}
 

@@ -3,6 +3,7 @@ import { SubscriptionPaymentTransferDto } from '@libs/dto/transfer/subscription-
 import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 @Injectable()
 export class PaymentsHttpAdapter {
@@ -10,7 +11,10 @@ export class PaymentsHttpAdapter {
 
   private getHeaders(additionalHeaders?: Record<string, string>) {
     return {
-      'X-Internal-API-Key': this.coreConfig.internalApiKey,
+      ...buildInternalApiHeaders(
+        this.coreConfig.internalServiceName,
+        this.coreConfig.internalApiKey,
+      ),
       'Content-Type': 'application/json',
       ...additionalHeaders,
     };

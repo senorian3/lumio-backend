@@ -22,9 +22,11 @@ import {
 } from '@files/core/routes/avatar-files-routes';
 import { ApiUploadUserAvatar } from '@files/core/decorators/swagger/avatar/upload-user-avatar.decorator';
 import { ApiDeleteUserAvatar } from '@files/core/decorators/swagger/avatar/delete-user-avatar.decorator';
+import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
 @Controller(AVATAR_FILES_BASE)
 @UseGuards(InternalApiGuard)
+@AllowInternalServices('lumio')
 export class AvatarController {
   constructor(private readonly commandBus: CommandBus) {}
 

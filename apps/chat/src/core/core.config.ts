@@ -2,6 +2,10 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from '@libs/settings/config-valdation.utility';
+import {
+  InternalApiKeys,
+  parseInternalApiKeys,
+} from '@libs/core/internal-api/internal-api';
 
 export enum Environments {
   DEVELOPMENT = 'development',
@@ -41,6 +45,15 @@ export class CoreConfig {
 
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
+
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
+  internalServiceName: string =
+    this.configService.get('INTERNAL_SERVICE_NAME') ?? 'chat';
+
+  internalApiKeys: InternalApiKeys = parseInternalApiKeys(
+    this.configService.get('INTERNAL_API_KEYS'),
+    this.internalApiKey,
+  );
 
   @IsNotEmpty({
     message:

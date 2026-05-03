@@ -26,8 +26,10 @@ import { ApiSendChatMediaMessage } from '@chat/core/decorators/swagger/chats/sen
 import { ApiGetChatMessages } from '@chat/core/decorators/swagger/chats/get-chat-messages.decorator';
 import { ApiMarkChatMessageRead } from '@chat/core/decorators/swagger/chats/mark-chat-message-read.decorator';
 import { CHAT_BASE, CHAT_ROUTES } from '@chat/core/routes/chat-routes';
+import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
 @UseGuards(InternalApiGuard)
+@AllowInternalServices('lumio')
 @ApiChatsController()
 @Controller(CHAT_BASE)
 export class ChatsController {

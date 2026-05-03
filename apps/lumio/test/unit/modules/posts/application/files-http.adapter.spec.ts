@@ -18,6 +18,7 @@ describe('FilesHttpAdapter', () => {
           useValue: {
             filesFrontendUrl: 'http://files-service:3000',
             internalApiKey: 'test-api-key',
+            internalServiceName: 'lumio',
           },
         },
       ],
@@ -42,7 +43,8 @@ describe('FilesHttpAdapter', () => {
         'http://files-service:3000/files/delete-file/key123',
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
             'Content-Type': 'application/json',
           }),
         },
@@ -94,7 +96,8 @@ describe('FilesHttpAdapter', () => {
         expect.any(Object),
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
           }),
         },
       );
@@ -132,7 +135,8 @@ describe('FilesHttpAdapter', () => {
         expect.any(Object),
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
           }),
         },
       );
@@ -164,7 +168,8 @@ describe('FilesHttpAdapter', () => {
         'http://files-service:3000/api/v1/profile/1',
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
           }),
         },
       );

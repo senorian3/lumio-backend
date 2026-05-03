@@ -35,6 +35,16 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-chat-production-config-secret
                   key: INTERNAL_API_KEY
+            - name: INTERNAL_SERVICE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-chat-production-config-secret
+                  key: INTERNAL_SERVICE_NAME
+            - name: INTERNAL_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-chat-production-config-secret
+                  key: INTERNAL_API_KEYS
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

@@ -135,6 +135,11 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: INTERNAL_API_KEY
+            - name: INTERNAL_SERVICE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: INTERNAL_SERVICE_NAME
             - name: PAYMENTS_FRONTEND_URL
               valueFrom:
                 secretKeyRef:
