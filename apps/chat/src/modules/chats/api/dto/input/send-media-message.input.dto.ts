@@ -37,7 +37,7 @@ export class SendMediaMessageInputDto {
   type: MessageType;
 
   @ApiPropertyOptional({
-    description: 'Optional caption or text attached to the media message',
+    description: 'Optional caption for IMAGE messages only.',
     example: 'Look at this',
     maxLength: 500,
   })
@@ -48,7 +48,7 @@ export class SendMediaMessageInputDto {
   text?: string;
 
   @ApiPropertyOptional({
-    description: 'Image width in pixels. Used for IMAGE messages.',
+    description: 'Image width in pixels. Allowed for IMAGE messages only.',
     example: 1080,
     minimum: 1,
   })
@@ -60,7 +60,7 @@ export class SendMediaMessageInputDto {
   width?: number;
 
   @ApiPropertyOptional({
-    description: 'Image height in pixels. Used for IMAGE messages.',
+    description: 'Image height in pixels. Allowed for IMAGE messages only.',
     example: 720,
     minimum: 1,
   })
@@ -72,7 +72,8 @@ export class SendMediaMessageInputDto {
   height?: number;
 
   @ApiPropertyOptional({
-    description: 'Voice message duration in seconds. Used for VOICE messages.',
+    description:
+      'Voice message duration in seconds. Allowed for VOICE messages only.',
     example: 17,
     minimum: 1,
   })

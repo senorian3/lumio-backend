@@ -24,7 +24,7 @@ export function ApiSendChatMediaMessage() {
     ApiSecurity('internal'),
     ApiBody({
       description:
-        'Multipart payload with a single file attachment. IMAGE files must be JPEG/PNG/GIF/WEBP up to 1 MB. VOICE files must be MPEG/WAV/OGG/WEBM up to 3 MB.',
+        'Multipart payload with a single file attachment. IMAGE files may include optional text, width, and height. VOICE files may include optional duration, but cannot include text, width, or height. IMAGE files must be JPEG/PNG/GIF/WEBP up to 1 MB. VOICE files must be MPEG/WAV/OGG/WEBM up to 3 MB.',
       schema: {
         type: 'object',
         properties: {
@@ -46,21 +46,22 @@ export function ApiSendChatMediaMessage() {
             type: 'string',
             example: 'Look at this',
             maxLength: 500,
+            description: 'Allowed for IMAGE messages only.',
           },
           width: {
             type: 'number',
             example: 1080,
-            description: 'Used for IMAGE messages.',
+            description: 'Allowed for IMAGE messages only.',
           },
           height: {
             type: 'number',
             example: 720,
-            description: 'Used for IMAGE messages.',
+            description: 'Allowed for IMAGE messages only.',
           },
           duration: {
             type: 'number',
             example: 17,
-            description: 'Used for VOICE messages.',
+            description: 'Allowed for VOICE messages only.',
           },
         },
         required: ['file', 'recipientId', 'type'],

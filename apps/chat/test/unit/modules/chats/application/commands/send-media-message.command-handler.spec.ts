@@ -123,6 +123,79 @@ describe('SendMediaMessageCommandHandler', () => {
     expect(filesHttpAdapter.validateImageFile).not.toHaveBeenCalled();
   });
 
+  it('throws when a VOICE message includes text', async () => {
+    const file = createMockFile({ mimetype: 'audio/mpeg', size: 500000 });
+
+    await expect(
+      handler.execute(
+        new SendMediaMessageCommand(77, 12, MessageType.VOICE, file, 'hello'),
+      ),
+    ).rejects.toThrow(BadRequestDomainException);
+  });
+
+  it('throws when a VOICE message includes image dimensions', async () => {
+    const file = createMockFile({ mimetype: 'audio/mpeg', size: 500000 });
+
+    await expect(
+      handler.execute(
+        new SendMediaMessageCommand(77, 12, MessageType.VOICE, file, '', {
+          width: 1080,
+          height: 720,
+        }),
+      ),
+    ).rejects.toThrow(BadRequestDomainException);
+  });
+
+  it('throws when an IMAGE message includes voice duration', async () => {
+    const file = createMockFile();
+
+    await expect(
+      handler.execute(
+        new SendMediaMessageCommand(77, 12, MessageType.IMAGE, file, 'look', {
+          duration: 17,
+        }),
+      ),
+    ).rejects.toThrow(BadRequestDomainException);
+  });
+
+  it('stores VOICE messages without text content and without image metadata', async () => {
+    const file = createMockFile({ mimetype: 'audio/mpeg', size: 500000 });
+    chatRepository.findPrivateChatByUsers.mockResolvedValue({ id: 15 } as any);
+    chatRepository.createMessageWithAttachment.mockResolvedValue({
+      id: 'message-1',
+      content: '',
+      createdAt: new Date('2026-04-22T10:00:00.000Z'),
+      attachments: [],
+    } as any);
+    filesHttpAdapter.uploadFile.mockResolvedValue({
+      id: 'file-1',
+      url: 'https://files.example.com/chat/voice.mp3',
+      key: 'chat/5/voice.mp3',
+      size: 500000,
+      mimeType: 'audio/mpeg',
+      createdAt: '2026-04-22T10:00:00.000Z',
+    });
+
+    await handler.execute(
+      new SendMediaMessageCommand(77, 12, MessageType.VOICE, file, '   ', {
+        duration: 17,
+      }),
+    );
+
+    expect(chatRepository.createMessageWithAttachment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: '',
+        attachments: {
+          create: expect.objectContaining({
+            duration: 17,
+            width: undefined,
+            height: undefined,
+          }),
+        },
+      }),
+    );
+  });
+
   it('throws for unsupported media type', async () => {
     const file = createMockFile();
 

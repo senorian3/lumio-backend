@@ -55,6 +55,9 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       );
     }
 
+    this.validateMediaPayload(type, text, metadata);
+    const mediaMetadata = this.buildMediaMetadata(type, metadata);
+
     let chat = await this.chatRepository.findPrivateChatByUsers(
       userId,
       recipientId,
@@ -66,6 +69,7 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
 
     const messageId = randomUUID();
     const attachmentType = this.mapToAttachmentType(type);
+    const messageContent = type === MessageType.VOICE ? '' : text || '';
     const uploadDto: UploadFileDto = {
       file,
       userId,
@@ -73,9 +77,9 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       messageId,
       metadata: {
         type: attachmentType,
-        duration: metadata?.duration,
-        width: metadata?.width,
-        height: metadata?.height,
+        duration: mediaMetadata.duration,
+        width: mediaMetadata.width,
+        height: mediaMetadata.height,
       },
     };
 
@@ -86,7 +90,7 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
         id: messageId,
         chat: { connect: { id: chat.id } },
         senderId: userId,
-        content: text || '',
+        content: messageContent,
         type,
         attachments: {
           create: {
@@ -94,9 +98,9 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
             url: uploadedFile.url,
             mimeType: uploadedFile.mimeType,
             size: uploadedFile.size,
-            duration: metadata?.duration,
-            width: metadata?.width,
-            height: metadata?.height,
+            duration: mediaMetadata.duration,
+            width: mediaMetadata.width,
+            height: mediaMetadata.height,
           },
         },
       });
@@ -114,9 +118,9 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
           key: uploadedFile.key,
           mimeType: uploadedFile.mimeType,
           size: uploadedFile.size,
-          duration: metadata?.duration,
-          width: metadata?.width,
-          height: metadata?.height,
+          duration: mediaMetadata.duration,
+          width: mediaMetadata.width,
+          height: mediaMetadata.height,
         },
         createdMessage.createdAt,
       ),
@@ -126,6 +130,59 @@ export class SendMediaMessageCommandHandler implements ICommandHandler<SendMedia
       message: createdMessage,
       file: uploadedFile,
     };
+  }
+
+  private validateMediaPayload(
+    type: MessageType,
+    text?: string,
+    metadata?: MediaMessageMetadata,
+  ): void {
+    if (type === MessageType.VOICE) {
+      if (text?.trim()) {
+        throw BadRequestDomainException.create(
+          'Voice messages cannot include text',
+          'text',
+        );
+      }
+
+      if (this.hasValue(metadata?.width) || this.hasValue(metadata?.height)) {
+        throw BadRequestDomainException.create(
+          'Voice messages cannot include image dimensions',
+          'metadata',
+        );
+      }
+    }
+
+    if (type === MessageType.IMAGE && this.hasValue(metadata?.duration)) {
+      throw BadRequestDomainException.create(
+        'Image messages cannot include voice duration',
+        'duration',
+      );
+    }
+  }
+
+  private buildMediaMetadata(
+    type: MessageType,
+    metadata?: MediaMessageMetadata,
+  ): MediaMessageMetadata {
+    if (type === MessageType.IMAGE) {
+      return {
+        width: metadata?.width,
+        height: metadata?.height,
+      };
+    }
+
+    if (type === MessageType.VOICE) {
+      return {
+        duration: metadata?.duration,
+      };
+    }
+
+    return {};
+  }
+
+  private hasValue(value: unknown): boolean {
+    return value !== undefined && value !== null;
   }
 
   private mapToAttachmentType(type: MessageType): AttachmentType {
