@@ -1,6 +1,32 @@
 import { Global, Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import {
+  ClientsModule,
+  Transport,
+  MicroserviceOptions,
+} from '@nestjs/microservices';
 import { CoreConfig } from './core.config';
+
+export const getRabbitmqMicroserviceOptions = (
+  coreConfig: CoreConfig,
+): MicroserviceOptions => ({
+  transport: Transport.RMQ,
+  options: {
+    urls: [coreConfig.rmqUrl],
+    exchange: 'sub_payments_exchange',
+    exchangeOptions: {
+      type: 'topic',
+      durable: true,
+    },
+    queue: 'payments_to_lumio_queue',
+    queueOptions: {
+      durable: true,
+      deadLetterExchange: 'dlx_payments_exchange',
+      deadLetterRoutingKey: 'dlq.payments',
+      messageTtl: 300000,
+    },
+    noAck: false,
+  },
+});
 
 @Global()
 @Module({
