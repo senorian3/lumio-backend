@@ -1,54 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import {
-  BadRequestDomainException,
-  ForbiddenDomainException,
-  NotFoundDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UserFollowRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createFollow(followerId: number, followingId: number, tx?: any) {
-    if (followerId === followingId) {
-      throw BadRequestDomainException.create(
-        'Cannot follow yourself',
-        'followingId',
-      );
-    }
-
-    const client = tx || this.prisma;
-
-    const existingFollow = await client.userFollow.findFirst({
+  async isAlreadyFollowing(followerId: number, followingId: number) {
+    const follow = await this.prisma.userFollow.findFirst({
       where: {
         followerId,
         followingId,
         deletedAt: null,
       },
     });
+    return follow;
+  }
 
-    if (existingFollow) {
-      throw BadRequestDomainException.create(
-        'Already following this user',
-        'followingId',
-      );
-    }
+  async createFollow(followerId: number, followingId: number, tx?: any) {
+    const client = tx || this.prisma;
 
-    const softDeletedFollow = await client.userFollow.findFirst({
-      where: {
-        followerId,
-        followingId,
-        deletedAt: { not: null },
-      },
-    });
-
-    if (softDeletedFollow) {
-      return await client.userFollow.update({
-        where: { id: softDeletedFollow.id },
-        data: { deletedAt: null },
-      });
-    }
+    // Здесь было востановление подписки из soft delete
 
     return await client.userFollow.create({
       data: {
@@ -58,26 +29,11 @@ export class UserFollowRepository {
     });
   }
 
-  async deleteFollow(followerId: number, followingId: number, tx?: any) {
+  async deleteFollow(followId: number, tx?: any) {
     const client = tx || this.prisma;
 
-    const existingFollow = await client.userFollow.findFirst({
-      where: {
-        followerId,
-        followingId,
-        deletedAt: null,
-      },
-    });
-
-    if (!existingFollow) {
-      throw BadRequestDomainException.create(
-        'Not following this user',
-        'followingId',
-      );
-    }
-
     return await client.userFollow.update({
-      where: { id: existingFollow.id },
+      where: { id: followId },
       data: { deletedAt: new Date() },
     });
   }
@@ -146,33 +102,20 @@ export class UserFollowRepository {
   }
 
   async getUser(userId: number) {
-    const user = await this.prisma.user.findUnique({
+    return this.prisma.user.findUnique({
       where: { id: userId, deletedAt: null, isBlocked: false },
     });
-    if (!user) {
-      throw NotFoundDomainException.create('User not found', 'userId');
-    }
-    return user;
   }
 
-  async getUserProfileWithFilledCheck(userId: number) {
-    const profile = await this.prisma.userProfile.findUnique({
+  async getUserProfile(userId: number) {
+    return this.prisma.userProfile.findUnique({
       where: { userId },
       select: { profileFilled: true, userId: true },
     });
-
-    if (!profile || !profile.profileFilled) {
-      throw ForbiddenDomainException.create(
-        'Profile is not filled',
-        'profileFilled',
-      );
-    }
-
-    return profile;
   }
 
   async createFollowWithCounters(followerId: number, followingId: number) {
-    return await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const follow = await this.createFollow(followerId, followingId, tx);
 
       await this.updateProfileCounters(followerId, 0, 1, tx);
@@ -183,9 +126,13 @@ export class UserFollowRepository {
     });
   }
 
-  async deleteFollowWithCounters(followerId: number, followingId: number) {
-    return await this.prisma.$transaction(async (tx) => {
-      const result = await this.deleteFollow(followerId, followingId, tx);
+  async deleteFollowWithCounters(
+    followerId: number,
+    followingId: number,
+    followId: number,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const result = await this.deleteFollow(followId, tx);
 
       await this.updateProfileCounters(followerId, 0, -1, tx);
 
