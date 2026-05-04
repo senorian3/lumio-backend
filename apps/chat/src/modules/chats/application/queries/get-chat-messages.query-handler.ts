@@ -5,7 +5,15 @@ import {
 } from '@libs/core/exceptions/domain-exceptions';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/chat-query.repository';
-import { GetChatMessagesQuery } from './get-chat-messages.query';
+
+export class GetChatMessagesQuery {
+  constructor(
+    public readonly userId: number,
+    public readonly recipientId: number,
+    public readonly page: number,
+    public readonly limit: number,
+  ) {}
+}
 
 @QueryHandler(GetChatMessagesQuery)
 export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessagesQuery> {

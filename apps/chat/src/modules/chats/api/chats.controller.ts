@@ -17,7 +17,6 @@ import { GetChatMessagesInputDto } from '@chat/modules/chats/api/dto/input/get-c
 import { SendMessageCommand } from '@chat/modules/chats/application/commands/send-message.command-handler';
 import { SendMediaMessageCommand } from '@chat/modules/chats/application/commands/send-media-message.command-handler';
 import { MarkMessageReadCommand } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
-import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query';
 import { InternalApiGuard } from '@chat/core/guards/internal/internal-api.guard';
 import { ActorUserId } from '@chat/core/decorators/actor-user-id.decorator';
 import { ApiChatsController } from '@chat/core/decorators/swagger/chats/chats-controller.decorator';
@@ -28,6 +27,7 @@ import { ApiMarkChatMessageRead } from '@chat/core/decorators/swagger/chats/mark
 import { WebSocketChatDocs } from '@chat/core/decorators/swagger/chats/websocket-chat-docs.decorator';
 import { CHAT_BASE, CHAT_ROUTES } from '@chat/core/routes/chat-routes';
 import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
+import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 
 @UseGuards(InternalApiGuard)
 @AllowInternalServices('lumio')
