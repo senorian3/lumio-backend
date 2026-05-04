@@ -36,9 +36,11 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
       followingId,
     );
 
+    console.log(following);
+
     if (!following) {
       throw BadRequestDomainException.create(
-        'Already following this user',
+        'Not following this user',
         'followingId',
       );
     }

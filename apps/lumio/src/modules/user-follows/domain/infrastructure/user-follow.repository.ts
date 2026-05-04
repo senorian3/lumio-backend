@@ -32,9 +32,8 @@ export class UserFollowRepository {
   async deleteFollow(followId: number, tx?: any) {
     const client = tx || this.prisma;
 
-    return await client.userFollow.update({
+    return await client.userFollow.delete({
       where: { id: followId },
-      data: { deletedAt: new Date() },
     });
   }
 
