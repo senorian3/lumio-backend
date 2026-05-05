@@ -6,7 +6,6 @@ import { PaginationParams } from '@libs/core/dto/pagination/base.query-params.in
 export class GetFollowersQuery {
   constructor(
     public readonly currentUserId: number,
-    public readonly targetUserId: number,
     public readonly query: PaginationParams,
   ) {}
 }
@@ -20,7 +19,7 @@ export class GetFollowersQueryHandler implements IQueryHandler<
 
   async execute(query: GetFollowersQuery): Promise<PaginatedFollowersViewDto> {
     return await this.queryRepository.getFollowers(
-      query.targetUserId,
+      query.currentUserId,
       query.query.pageNumber,
       query.query.pageSize,
     );

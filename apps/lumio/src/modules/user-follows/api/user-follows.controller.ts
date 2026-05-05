@@ -133,13 +133,7 @@ export class UserFollowsController {
     return await this.queryBus.execute<
       GetFollowersQuery,
       PaginatedFollowersViewDto
-    >(
-      new GetFollowersQuery(
-        currentUserId,
-        query.userId ?? currentUserId,
-        query,
-      ),
-    );
+    >(new GetFollowersQuery(currentUserId, query));
   }
 
   @Get(USER_FOLLOW_ROUTES.FOLLOWING)
@@ -153,13 +147,7 @@ export class UserFollowsController {
     return await this.queryBus.execute<
       GetFollowingQuery,
       PaginatedFollowingViewDto
-    >(
-      new GetFollowingQuery(
-        currentUserId,
-        query.userId ?? currentUserId,
-        query,
-      ),
-    );
+    >(new GetFollowingQuery(currentUserId, query));
   }
 
   @Get(USER_FOLLOW_ROUTES.USER_FOLLOWERS)
@@ -167,14 +155,13 @@ export class UserFollowsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getUserFollowers(
-    @UserId() currentUserId: number,
     @Param('userId', ParseIntPipe) targetUserId: number,
     @Query() query: UserFollowQueryDto,
   ): Promise<PaginatedFollowersViewDto> {
     return await this.queryBus.execute<
       GetFollowersQuery,
       PaginatedFollowersViewDto
-    >(new GetFollowersQuery(currentUserId, targetUserId, query));
+    >(new GetFollowersQuery(targetUserId, query));
   }
 
   @Get(USER_FOLLOW_ROUTES.USER_FOLLOWING)
@@ -182,13 +169,12 @@ export class UserFollowsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getUserFollowing(
-    @UserId() currentUserId: number,
     @Param('userId', ParseIntPipe) targetUserId: number,
     @Query() query: UserFollowQueryDto,
   ): Promise<PaginatedFollowingViewDto> {
     return await this.queryBus.execute<
       GetFollowingQuery,
       PaginatedFollowingViewDto
-    >(new GetFollowingQuery(currentUserId, targetUserId, query));
+    >(new GetFollowingQuery(targetUserId, query));
   }
 }

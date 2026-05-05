@@ -5,7 +5,6 @@ import { PaginationParams } from '@libs/core/dto/pagination/base.query-params.in
 
 export class GetFollowingQuery {
   constructor(
-    public readonly currentUserId: number,
     public readonly targetUserId: number,
     public readonly query: PaginationParams,
   ) {}
