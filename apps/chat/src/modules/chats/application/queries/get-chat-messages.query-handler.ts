@@ -10,8 +10,8 @@ export class GetChatMessagesQuery {
   constructor(
     public readonly userId: number,
     public readonly recipientId: number,
-    public readonly page: number,
-    public readonly limit: number,
+    public readonly cursorId?: string,
+    public readonly limit: number = 20,
   ) {}
 }
 
@@ -23,7 +23,7 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
   ) {}
 
   async execute(query: GetChatMessagesQuery) {
-    const { userId, recipientId, page, limit } = query;
+    const { userId, recipientId, cursorId, limit } = query;
 
     if (userId === recipientId) {
       throw BadRequestDomainException.create(
@@ -39,11 +39,11 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
 
     if (!chat) {
       return {
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
         items: [],
+        nextCursor: null,
+        totalCount: 0,
+        limit,
+        currentCursor: cursorId ?? null,
       };
     }
 
@@ -55,6 +55,6 @@ export class GetChatMessagesQueryHandler implements IQueryHandler<GetChatMessage
       throw NotFoundDomainException.create('Chat not found', 'recipientId');
     }
 
-    return this.chatQueryRepository.getChatMessages(chat.id, page, limit);
+    return this.chatQueryRepository.getChatMessages(chat.id, limit, cursorId);
   }
 }

@@ -1,28 +1,26 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsOptional, Max, Min, IsString } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class GetChatMessagesInputDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Recipient user ID',
     example: 12,
     minimum: 1,
   })
   @Type(() => Number)
-  @IsInt()
-  recipientId: number;
-
-  @ApiPropertyOptional({
-    description: 'Page number',
-    example: 1,
-    minimum: 1,
-    default: 1,
-  })
   @IsOptional()
-  @Type(() => Number)
   @IsInt()
   @Min(1)
-  page?: number = 1;
+  recipientId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Cursor message ID (UUID) for pagination',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsOptional()
+  @IsString()
+  cursor?: string;
 
   @ApiPropertyOptional({
     description: 'Page size',

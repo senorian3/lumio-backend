@@ -5,58 +5,59 @@ import { PrismaService } from '@chat/prisma/prisma.service';
 export class ChatQueryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getChatMessages(chatId: number, page: number, limit: number) {
-    const skip = (page - 1) * limit;
+  async getChatMessages(chatId: number, limit: number, cursorId?: string) {
+    const orderBy = [{ createdAt: 'desc' as const }, { id: 'desc' as const }];
 
-    const [messages, total] = await Promise.all([
-      this.prisma.message.findMany({
-        where: {
-          chatId,
-          deletedAt: null,
-        },
-        select: {
-          id: true,
-          chatId: true,
-          senderId: true,
-          content: true,
-          type: true,
-          status: true,
-          readAt: true,
-          createdAt: true,
-          attachments: {
-            select: {
-              id: true,
-              type: true,
-              url: true,
-              mimeType: true,
-              size: true,
-              duration: true,
-              width: true,
-              height: true,
-              createdAt: true,
-            },
+    const messages = await this.prisma.message.findMany({
+      where: {
+        chatId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        chatId: true,
+        senderId: true,
+        content: true,
+        type: true,
+        status: true,
+        readAt: true,
+        createdAt: true,
+        attachments: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            mimeType: true,
+            size: true,
+            duration: true,
+            width: true,
+            height: true,
+            createdAt: true,
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      this.prisma.message.count({
-        where: {
-          chatId,
-          deletedAt: null,
-        },
-      }),
-    ]);
+      },
+      cursor: cursorId ? { id: cursorId } : undefined,
+      skip: cursorId ? 1 : 0,
+      take: limit + 1,
+      orderBy,
+    });
+
+    const hasMore = messages.length > limit;
+
+    const items = hasMore ? messages.slice(0, limit) : messages;
+
+    const nextCursor = hasMore ? (items[items.length - 1]?.id ?? null) : null;
+
+    const totalCount = await this.prisma.message.count({
+      where: { chatId, deletedAt: null },
+    });
 
     return {
-      total,
-      page,
+      items,
+      nextCursor,
+      totalCount,
       limit,
-      totalPages: Math.ceil(total / limit),
-      items: messages,
+      currentCursor: cursorId ?? null,
     };
   }
 }

@@ -173,7 +173,7 @@ export class ChatsController {
       new GetChatMessagesQuery(
         actorUserId,
         dto.recipientId,
-        dto.page,
+        dto.cursor,
         dto.limit,
       ),
     );
