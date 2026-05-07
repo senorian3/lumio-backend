@@ -43,5 +43,20 @@ export function ApiSendChatMessage() {
         },
       },
     }),
+    ApiResponse({
+      status: HttpStatus.NOT_FOUND,
+      description: 'Recipient user not found.',
+      schema: {
+        ...chatErrorResponseSchema,
+        example: {
+          errorsMessages: [
+            {
+              message: 'Recipient user not found',
+              field: 'recipientId',
+            },
+          ],
+        },
+      },
+    }),
   );
 }

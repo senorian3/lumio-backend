@@ -15,7 +15,7 @@ import {
 
 export function ApiChatsController() {
   return applyDecorators(
-    ApiTags('chats'),
+    ApiTags('Chats'),
     ApiHeader({
       name: 'x-internal-api-key',
       description: 'Internal API key for service-to-service communication.',
