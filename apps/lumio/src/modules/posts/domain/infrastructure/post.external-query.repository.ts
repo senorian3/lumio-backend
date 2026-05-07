@@ -33,4 +33,10 @@ export class ExternalQueryPostsRepository {
 
     return { posts, totalCount };
   }
+
+  async getPostsCountByUserId(userId: number): Promise<number> {
+    return this.prisma.post.count({
+      where: { userId, deletedAt: null },
+    });
+  }
 }

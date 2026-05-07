@@ -6,6 +6,8 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
+
 export class FollowUserCommand {
   constructor(
     public readonly followerId: number,
@@ -18,7 +20,10 @@ export class FollowUserCommandHandler implements ICommandHandler<
   FollowUserCommand,
   FollowStatusViewDto
 > {
-  constructor(private readonly userFollowRepository: UserFollowRepository) {}
+  constructor(
+    private readonly userFollowRepository: UserFollowRepository,
+    private readonly externalQueryUserRepository: ExternalQueryUserAccountsRepository,
+  ) {}
 
   async execute(command: FollowUserCommand): Promise<FollowStatusViewDto> {
     const { followerId, followingId } = command;
@@ -42,7 +47,8 @@ export class FollowUserCommandHandler implements ICommandHandler<
       );
     }
 
-    const profile = await this.userFollowRepository.getUserProfile(followerId);
+    const profile =
+      await this.externalQueryUserRepository.getProfileByUserId(followerId);
     if (!profile || !profile.profileFilled) {
       throw ForbiddenDomainException.create(
         'Profile is not filled',
@@ -50,7 +56,8 @@ export class FollowUserCommandHandler implements ICommandHandler<
       );
     }
 
-    const user = await this.userFollowRepository.getUser(followingId);
+    const user =
+      await this.externalQueryUserRepository.getUserInfo(followingId);
     if (!user) {
       throw NotFoundDomainException.create('User not found', 'userId');
     }
@@ -61,9 +68,9 @@ export class FollowUserCommandHandler implements ICommandHandler<
     );
 
     const followerCounters =
-      await this.userFollowRepository.getProfileCounters(followerId);
+      await this.externalQueryUserRepository.getProfileCounters(followerId);
     const followingCounters =
-      await this.userFollowRepository.getProfileCounters(followingId);
+      await this.externalQueryUserRepository.getProfileCounters(followingId);
 
     return FollowStatusViewDto.create(
       true,

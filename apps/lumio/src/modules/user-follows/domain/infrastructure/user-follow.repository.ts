@@ -19,8 +19,6 @@ export class UserFollowRepository {
   async createFollow(followerId: number, followingId: number, tx?: any) {
     const client = tx || this.prisma;
 
-    // Здесь было востановление подписки из soft delete
-
     return await client.userFollow.create({
       data: {
         followerId,
@@ -78,39 +76,11 @@ export class UserFollowRepository {
     return follows.map((follow) => follow.followingId);
   }
 
-  async getProfileCounters(userId: number): Promise<{
-    followersCount: number;
-    followingCount: number;
-  }> {
-    const profile = await this.prisma.userProfile.findUnique({
-      where: { userId },
-      select: { followersCount: true, followingCount: true },
-    });
-
-    return {
-      followersCount: profile?.followersCount || 0,
-      followingCount: profile?.followingCount || 0,
-    };
-  }
-
   async checkUserExists(userId: number): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId, deletedAt: null, isBlocked: false },
     });
     return !!user;
-  }
-
-  async getUser(userId: number) {
-    return this.prisma.user.findUnique({
-      where: { id: userId, deletedAt: null, isBlocked: false },
-    });
-  }
-
-  async getUserProfile(userId: number) {
-    return this.prisma.userProfile.findUnique({
-      where: { userId },
-      select: { profileFilled: true, userId: true },
-    });
   }
 
   async createFollowWithCounters(followerId: number, followingId: number) {

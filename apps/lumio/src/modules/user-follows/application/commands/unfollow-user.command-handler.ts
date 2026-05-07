@@ -6,6 +6,7 @@ import {
   ForbiddenDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class UnfollowUserCommand {
   constructor(
@@ -19,7 +20,10 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
   UnfollowUserCommand,
   FollowStatusViewDto
 > {
-  constructor(private readonly userFollowRepository: UserFollowRepository) {}
+  constructor(
+    private readonly userFollowRepository: UserFollowRepository,
+    private readonly externalQueryUserRepository: ExternalQueryUserAccountsRepository,
+  ) {}
 
   async execute(command: UnfollowUserCommand): Promise<FollowStatusViewDto> {
     const { followerId, followingId } = command;
@@ -36,8 +40,6 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
       followingId,
     );
 
-    console.log(following);
-
     if (!following) {
       throw BadRequestDomainException.create(
         'Not following this user',
@@ -45,7 +47,8 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
       );
     }
 
-    const profile = await this.userFollowRepository.getUserProfile(followerId);
+    const profile =
+      await this.externalQueryUserRepository.getProfileByUserId(followerId);
     if (!profile || !profile.profileFilled) {
       throw ForbiddenDomainException.create(
         'Profile is not filled',
@@ -53,7 +56,8 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
       );
     }
 
-    const user = await this.userFollowRepository.getUser(followingId);
+    const user =
+      await this.externalQueryUserRepository.getUserInfo(followingId);
     if (!user) {
       throw NotFoundDomainException.create('User not found', 'userId');
     }
@@ -65,9 +69,9 @@ export class UnfollowUserCommandHandler implements ICommandHandler<
     );
 
     const followerCounters =
-      await this.userFollowRepository.getProfileCounters(followerId);
+      await this.externalQueryUserRepository.getProfileCounters(followerId);
     const followingCounters =
-      await this.userFollowRepository.getProfileCounters(followingId);
+      await this.externalQueryUserRepository.getProfileCounters(followingId);
 
     return FollowStatusViewDto.create(
       false,

@@ -104,4 +104,19 @@ export class ExternalQueryUserAccountsRepository {
 
     return user.isBlocked === true || user.deletedAt !== null;
   }
+
+  async getProfileCounters(userId: number): Promise<{
+    followersCount: number;
+    followingCount: number;
+  }> {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { followersCount: true, followingCount: true },
+    });
+
+    return {
+      followersCount: profile?.followersCount || 0,
+      followingCount: profile?.followingCount || 0,
+    };
+  }
 }
