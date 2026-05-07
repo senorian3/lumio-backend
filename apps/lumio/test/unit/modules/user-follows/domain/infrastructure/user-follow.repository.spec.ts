@@ -1,11 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserFollowRepository } from '@lumio/modules/user-follows/domain/infrastructure/user-follow.repository';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-  ForbiddenDomainException,
-} from '@libs/core/exceptions/domain-exceptions';
 
 describe('UserFollowRepository', () => {
   let repository: UserFollowRepository;
@@ -15,11 +10,10 @@ describe('UserFollowRepository', () => {
       findFirst: jest.fn(),
       findMany: jest.fn(),
       create: jest.fn(),
-      update: jest.fn(),
+      delete: jest.fn(),
     },
     userProfile: {
       update: jest.fn(),
-      findUnique: jest.fn(),
     },
     user: {
       findUnique: jest.fn(),
@@ -42,48 +36,35 @@ describe('UserFollowRepository', () => {
     jest.clearAllMocks();
   });
 
-  describe('createFollow', () => {
-    it('should throw when trying to follow yourself', async () => {
-      await expect(repository.createFollow(1, 1)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-    });
-
-    it('should throw when already following', async () => {
-      mockPrisma.userFollow.findFirst.mockResolvedValueOnce({
+  describe('isAlreadyFollowing', () => {
+    it('should return follow record when following exists', async () => {
+      const mockFollow = {
         id: 1,
         followerId: 1,
         followingId: 2,
         deletedAt: null,
-      });
+      };
+      mockPrisma.userFollow.findFirst.mockResolvedValue(mockFollow);
 
-      await expect(repository.createFollow(1, 2)).rejects.toThrow(
-        BadRequestDomainException,
-      );
-    });
+      const result = await repository.isAlreadyFollowing(1, 2);
 
-    it('should restore soft-deleted follow', async () => {
-      mockPrisma.userFollow.findFirst
-        .mockResolvedValueOnce(null) // no active follow
-        .mockResolvedValueOnce({ id: 1, deletedAt: new Date() }); // soft-deleted follow exists
-      mockPrisma.userFollow.update.mockResolvedValue({
-        id: 1,
-        deletedAt: null,
-      });
-
-      const result = await repository.createFollow(1, 2);
-
-      expect(result).toEqual({ id: 1, deletedAt: null });
-      expect(mockPrisma.userFollow.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { deletedAt: null },
+      expect(result).toEqual(mockFollow);
+      expect(mockPrisma.userFollow.findFirst).toHaveBeenCalledWith({
+        where: { followerId: 1, followingId: 2, deletedAt: null },
       });
     });
 
-    it('should create a new follow', async () => {
-      mockPrisma.userFollow.findFirst
-        .mockResolvedValueOnce(null) // no active follow
-        .mockResolvedValueOnce(null); // no soft-deleted follow
+    it('should return null when not following', async () => {
+      mockPrisma.userFollow.findFirst.mockResolvedValue(null);
+
+      const result = await repository.isAlreadyFollowing(1, 2);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('createFollow', () => {
+    it('should create a new follow record', async () => {
       mockPrisma.userFollow.create.mockResolvedValue({
         id: 1,
         followerId: 1,
@@ -97,35 +78,41 @@ describe('UserFollowRepository', () => {
         data: { followerId: 1, followingId: 2 },
       });
     });
+
+    it('should use transaction client when provided', async () => {
+      const tx = {
+        userFollow: { create: jest.fn().mockResolvedValue({ id: 1 }) },
+      };
+
+      await repository.createFollow(1, 2, tx);
+
+      expect(tx.userFollow.create).toHaveBeenCalledWith({
+        data: { followerId: 1, followingId: 2 },
+      });
+    });
   });
 
   describe('deleteFollow', () => {
-    it('should throw when not following', async () => {
-      mockPrisma.userFollow.findFirst.mockResolvedValue(null);
+    it('should delete follow by id', async () => {
+      mockPrisma.userFollow.delete.mockResolvedValue({ id: 1 });
 
-      await expect(repository.deleteFollow(1, 2)).rejects.toThrow(
-        BadRequestDomainException,
-      );
+      const result = await repository.deleteFollow(1);
+
+      expect(result).toEqual({ id: 1 });
+      expect(mockPrisma.userFollow.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
 
-    it('should soft-delete follow', async () => {
-      mockPrisma.userFollow.findFirst.mockResolvedValue({
-        id: 1,
-        followerId: 1,
-        followingId: 2,
-        deletedAt: null,
-      });
-      mockPrisma.userFollow.update.mockResolvedValue({
-        id: 1,
-        deletedAt: new Date(),
-      });
+    it('should use transaction client when provided', async () => {
+      const tx = {
+        userFollow: { delete: jest.fn().mockResolvedValue({ id: 1 }) },
+      };
 
-      const result = await repository.deleteFollow(1, 2);
+      await repository.deleteFollow(1, tx);
 
-      expect(result).toEqual({ id: 1, deletedAt: expect.any(Date) });
-      expect(mockPrisma.userFollow.update).toHaveBeenCalledWith({
+      expect(tx.userFollow.delete).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { deletedAt: expect.any(Date) },
       });
     });
   });
@@ -162,6 +149,22 @@ describe('UserFollowRepository', () => {
         },
       });
     });
+
+    it('should use transaction client when provided', async () => {
+      const tx = {
+        userProfile: { update: jest.fn().mockResolvedValue({}) },
+      };
+
+      await repository.updateProfileCounters(1, 1, 0, tx);
+
+      expect(tx.userProfile.update).toHaveBeenCalledWith({
+        where: { userId: 1 },
+        data: {
+          followersCount: { increment: 1 },
+          followingCount: { increment: 0 },
+        },
+      });
+    });
   });
 
   describe('getFollowingIds', () => {
@@ -185,27 +188,6 @@ describe('UserFollowRepository', () => {
     });
   });
 
-  describe('getProfileCounters', () => {
-    it('should return profile counters', async () => {
-      mockPrisma.userProfile.findUnique.mockResolvedValue({
-        followersCount: 10,
-        followingCount: 5,
-      });
-
-      const result = await repository.getProfileCounters(1);
-
-      expect(result).toEqual({ followersCount: 10, followingCount: 5 });
-    });
-
-    it('should return zeros when profile not found', async () => {
-      mockPrisma.userProfile.findUnique.mockResolvedValue(null);
-
-      const result = await repository.getProfileCounters(1);
-
-      expect(result).toEqual({ followersCount: 0, followingCount: 0 });
-    });
-  });
-
   describe('checkUserExists', () => {
     it('should return true when user exists and is active', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1 });
@@ -224,68 +206,14 @@ describe('UserFollowRepository', () => {
     });
   });
 
-  describe('getUser', () => {
-    it('should return user when found', async () => {
-      const mockUser = { id: 1, username: 'test' };
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
-
-      const result = await repository.getUser(1);
-
-      expect(result).toEqual(mockUser);
-    });
-
-    it('should throw when user not found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-
-      await expect(repository.getUser(999)).rejects.toThrow(
-        NotFoundDomainException,
-      );
-    });
-  });
-
-  describe('getUserProfileWithFilledCheck', () => {
-    it('should return profile when filled', async () => {
-      const mockProfile = { profileFilled: true, userId: 1 };
-      mockPrisma.userProfile.findUnique.mockResolvedValue(mockProfile);
-
-      const result = await repository.getUserProfileWithFilledCheck(1);
-
-      expect(result).toEqual(mockProfile);
-    });
-
-    it('should throw when profile not found', async () => {
-      mockPrisma.userProfile.findUnique.mockResolvedValue(null);
-
-      await expect(repository.getUserProfileWithFilledCheck(1)).rejects.toThrow(
-        ForbiddenDomainException,
-      );
-    });
-
-    it('should throw when profile not filled', async () => {
-      mockPrisma.userProfile.findUnique.mockResolvedValue({
-        profileFilled: false,
-        userId: 1,
-      });
-
-      await expect(repository.getUserProfileWithFilledCheck(1)).rejects.toThrow(
-        ForbiddenDomainException,
-      );
-    });
-  });
-
   describe('createFollowWithCounters', () => {
     it('should create follow and update counters in transaction', async () => {
       mockPrisma.$transaction.mockImplementation(async (cb: any) => {
         const tx = {
           userFollow: {
-            findFirst: jest
-              .fn()
-              .mockResolvedValueOnce(null)
-              .mockResolvedValueOnce(null),
             create: jest
               .fn()
               .mockResolvedValue({ id: 1, followerId: 1, followingId: 2 }),
-            update: jest.fn(),
           },
           userProfile: {
             update: jest.fn().mockResolvedValue({}),
@@ -306,12 +234,7 @@ describe('UserFollowRepository', () => {
       mockPrisma.$transaction.mockImplementation(async (cb: any) => {
         const tx = {
           userFollow: {
-            findFirst: jest
-              .fn()
-              .mockResolvedValue({ id: 1, followerId: 1, followingId: 2 }),
-            update: jest
-              .fn()
-              .mockResolvedValue({ id: 1, deletedAt: new Date() }),
+            delete: jest.fn().mockResolvedValue({ id: 1 }),
           },
           userProfile: {
             update: jest.fn().mockResolvedValue({}),
@@ -320,9 +243,9 @@ describe('UserFollowRepository', () => {
         return cb(tx);
       });
 
-      const result = await repository.deleteFollowWithCounters(1, 2);
+      const result = await repository.deleteFollowWithCounters(1, 2, 1);
 
-      expect(result).toEqual({ id: 1, deletedAt: expect.any(Date) });
+      expect(result).toEqual({ id: 1 });
       expect(mockPrisma.$transaction).toHaveBeenCalled();
     });
   });

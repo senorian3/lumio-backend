@@ -2,10 +2,12 @@ import {
   BadRequestDomainException,
   NotFoundDomainException,
 } from '@libs/core/exceptions/domain-exceptions';
-import { GetChatMessagesQueryHandler } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
+import {
+  GetChatMessagesQueryHandler,
+  GetChatMessagesQuery,
+} from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 import { ChatRepository } from '@chat/modules/chats/domain/infrastructure/chat.repository';
 import { ChatQueryRepository } from '@chat/modules/chats/domain/infrastructure/chat-query.repository';
-import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query';
 
 describe('GetChatMessagesQueryHandler', () => {
   let handler: GetChatMessagesQueryHandler;
@@ -30,7 +32,7 @@ describe('GetChatMessagesQueryHandler', () => {
 
   it('throws when the actor queries themself', async () => {
     await expect(
-      handler.execute(new GetChatMessagesQuery(77, 77, 1, 20)),
+      handler.execute(new GetChatMessagesQuery(77, 77, undefined, 20)),
     ).rejects.toThrow(BadRequestDomainException);
   });
 
@@ -38,15 +40,15 @@ describe('GetChatMessagesQueryHandler', () => {
     chatRepository.findPrivateChatByUsers.mockResolvedValue(null);
 
     const result = await handler.execute(
-      new GetChatMessagesQuery(77, 12, 1, 20),
+      new GetChatMessagesQuery(77, 12, undefined, 20),
     );
 
     expect(result).toEqual({
-      total: 0,
-      page: 1,
-      limit: 20,
-      totalPages: 0,
       items: [],
+      nextCursor: null,
+      totalCount: 0,
+      limit: 20,
+      currentCursor: null,
     });
     expect(chatRepository.isUserInChat).not.toHaveBeenCalled();
     expect(chatQueryRepository.getChatMessages).not.toHaveBeenCalled();
@@ -57,16 +59,12 @@ describe('GetChatMessagesQueryHandler', () => {
     chatRepository.isUserInChat.mockResolvedValue(false);
 
     await expect(
-      handler.execute(new GetChatMessagesQuery(77, 12, 1, 20)),
+      handler.execute(new GetChatMessagesQuery(77, 12, undefined, 20)),
     ).rejects.toThrow(NotFoundDomainException);
   });
 
   it('returns paginated messages when the actor is a participant', async () => {
     const mockMessages = {
-      total: 5,
-      page: 1,
-      limit: 20,
-      totalPages: 1,
       items: [
         {
           id: 'message-1',
@@ -80,6 +78,10 @@ describe('GetChatMessagesQueryHandler', () => {
           attachments: [],
         },
       ],
+      nextCursor: null,
+      totalCount: 5,
+      limit: 20,
+      currentCursor: null,
     };
 
     chatRepository.findPrivateChatByUsers.mockResolvedValue({ id: 15 } as any);
@@ -87,28 +89,36 @@ describe('GetChatMessagesQueryHandler', () => {
     chatQueryRepository.getChatMessages.mockResolvedValue(mockMessages as any);
 
     const result = await handler.execute(
-      new GetChatMessagesQuery(77, 12, 1, 20),
+      new GetChatMessagesQuery(77, 12, undefined, 20),
     );
 
     expect(chatRepository.findPrivateChatByUsers).toHaveBeenCalledWith(77, 12);
     expect(chatRepository.isUserInChat).toHaveBeenCalledWith(15, 77);
-    expect(chatQueryRepository.getChatMessages).toHaveBeenCalledWith(15, 1, 20);
+    expect(chatQueryRepository.getChatMessages).toHaveBeenCalledWith(
+      15,
+      20,
+      undefined,
+    );
     expect(result).toEqual(mockMessages);
   });
 
-  it('passes pagination parameters correctly', async () => {
+  it('passes cursor pagination parameters correctly', async () => {
     chatRepository.findPrivateChatByUsers.mockResolvedValue({ id: 15 } as any);
     chatRepository.isUserInChat.mockResolvedValue(true);
     chatQueryRepository.getChatMessages.mockResolvedValue({
-      total: 0,
-      page: 2,
-      limit: 10,
-      totalPages: 0,
       items: [],
+      nextCursor: null,
+      totalCount: 0,
+      limit: 10,
+      currentCursor: 'cursor-1',
     });
 
-    await handler.execute(new GetChatMessagesQuery(77, 12, 2, 10));
+    await handler.execute(new GetChatMessagesQuery(77, 12, 'cursor-1', 10));
 
-    expect(chatQueryRepository.getChatMessages).toHaveBeenCalledWith(15, 2, 10);
+    expect(chatQueryRepository.getChatMessages).toHaveBeenCalledWith(
+      15,
+      10,
+      'cursor-1',
+    );
   });
 });

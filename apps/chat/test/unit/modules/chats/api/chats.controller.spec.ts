@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ChatsController } from '@chat/modules/chats/api/chats.controller';
 import { SendMessageCommand } from '@chat/modules/chats/application/commands/send-message.command-handler';
-import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query';
+import { GetChatMessagesQuery } from '@chat/modules/chats/application/queries/get-chat-messages.query-handler';
 import { MarkMessageReadCommand } from '@chat/modules/chats/application/commands/mark-message-read.command-handler';
 import { SendMediaMessageCommand } from '@chat/modules/chats/application/commands/send-media-message.command-handler';
 import { CoreConfig } from '@chat/core/core.config';
@@ -69,12 +69,12 @@ describe('ChatsController', () => {
   it('uses actor user id from trusted context when reading chat history', async () => {
     await controller.getChatMessages(77, {
       recipientId: 12,
-      page: 2,
+      cursor: undefined,
       limit: 25,
     });
 
     expect(queryBus.execute).toHaveBeenCalledWith(
-      new GetChatMessagesQuery(77, 12, 2, 25),
+      new GetChatMessagesQuery(77, 12, undefined, 25),
     );
   });
 
@@ -218,7 +218,7 @@ describe('ChatsController', () => {
     await expect(
       controller.getChatMessages(77, {
         recipientId: 12,
-        page: 1,
+        cursor: undefined,
         limit: 20,
       }),
     ).rejects.toThrow('Query failed');

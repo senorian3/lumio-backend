@@ -4,17 +4,23 @@ import {
   UnfollowUserCommand,
 } from '@lumio/modules/user-follows/application/commands/unfollow-user.command-handler';
 import { UserFollowRepository } from '@lumio/modules/user-follows/domain/infrastructure/user-follow.repository';
+import { ExternalQueryUserAccountsRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.external-query.repository';
 import { FollowStatusViewDto } from '@lumio/modules/user-follows/api/dto/output/follow-status.view-dto';
 
 describe('UnfollowUserCommandHandler', () => {
   let handler: UnfollowUserCommandHandler;
-  let repository: jest.Mocked<UserFollowRepository>;
+  let userFollowRepository: jest.Mocked<UserFollowRepository>;
+  let externalQueryRepository: jest.Mocked<ExternalQueryUserAccountsRepository>;
 
   beforeEach(async () => {
-    const mockRepository = {
-      getUser: jest.fn(),
-      getUserProfileWithFilledCheck: jest.fn(),
+    const mockUserFollowRepository = {
+      isAlreadyFollowing: jest.fn(),
       deleteFollowWithCounters: jest.fn(),
+    };
+
+    const mockExternalQueryRepository = {
+      getProfileByUserId: jest.fn(),
+      getUserInfo: jest.fn(),
       getProfileCounters: jest.fn(),
     };
 
@@ -23,7 +29,11 @@ describe('UnfollowUserCommandHandler', () => {
         UnfollowUserCommandHandler,
         {
           provide: UserFollowRepository,
-          useValue: mockRepository,
+          useValue: mockUserFollowRepository,
+        },
+        {
+          provide: ExternalQueryUserAccountsRepository,
+          useValue: mockExternalQueryRepository,
         },
       ],
     }).compile();
@@ -31,7 +41,8 @@ describe('UnfollowUserCommandHandler', () => {
     handler = module.get<UnfollowUserCommandHandler>(
       UnfollowUserCommandHandler,
     );
-    repository = module.get(UserFollowRepository);
+    userFollowRepository = module.get(UserFollowRepository);
+    externalQueryRepository = module.get(ExternalQueryUserAccountsRepository);
   });
 
   it('should be defined', () => {
@@ -44,28 +55,35 @@ describe('UnfollowUserCommandHandler', () => {
       const followingId = 2;
       const command = new UnfollowUserCommand(followerId, followingId);
 
-      const mockUser = {
-        id: followingId,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'hashed_password',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        deletedAt: null,
-        isBlocked: false,
-        bannedAt: null,
-        banReason: null,
-      };
       const mockProfile = {
         profileFilled: true,
         userId: followerId,
       };
+      const mockUser = {
+        id: followingId,
+        username: 'testuser',
+        email: 'test@example.com',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        isBlocked: false,
+      };
       const followerCounters = { followersCount: 10, followingCount: 5 };
       const followingCounters = { followersCount: 20, followingCount: 15 };
 
-      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
-      repository.getUser.mockResolvedValue(mockUser);
-      repository.deleteFollowWithCounters.mockResolvedValue(undefined);
-      repository.getProfileCounters
+      userFollowRepository.isAlreadyFollowing.mockResolvedValue({
+        id: 1,
+        followerId,
+        followingId,
+        createdAt: new Date(),
+        deletedAt: null,
+      });
+      externalQueryRepository.getProfileByUserId.mockResolvedValue(
+        mockProfile as any,
+      );
+      externalQueryRepository.getUserInfo.mockResolvedValue(mockUser);
+      userFollowRepository.deleteFollowWithCounters.mockResolvedValue(
+        undefined,
+      );
+      externalQueryRepository.getProfileCounters
         .mockResolvedValueOnce(followerCounters)
         .mockResolvedValueOnce(followingCounters);
 
@@ -76,17 +94,28 @@ describe('UnfollowUserCommandHandler', () => {
       expect(result.followersCount).toBe(followingCounters.followersCount);
       expect(result.followingCount).toBe(followerCounters.followingCount);
 
-      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
-        followerId,
-      );
-      expect(repository.getUser).toHaveBeenCalledWith(followingId);
-      expect(repository.deleteFollowWithCounters).toHaveBeenCalledWith(
+      expect(userFollowRepository.isAlreadyFollowing).toHaveBeenCalledWith(
         followerId,
         followingId,
       );
-      expect(repository.getProfileCounters).toHaveBeenCalledTimes(2);
-      expect(repository.getProfileCounters).toHaveBeenCalledWith(followerId);
-      expect(repository.getProfileCounters).toHaveBeenCalledWith(followingId);
+      expect(externalQueryRepository.getProfileByUserId).toHaveBeenCalledWith(
+        followerId,
+      );
+      expect(externalQueryRepository.getUserInfo).toHaveBeenCalledWith(
+        followingId,
+      );
+      expect(
+        userFollowRepository.deleteFollowWithCounters,
+      ).toHaveBeenCalledWith(followerId, followingId, 1);
+      expect(externalQueryRepository.getProfileCounters).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(externalQueryRepository.getProfileCounters).toHaveBeenCalledWith(
+        followerId,
+      );
+      expect(externalQueryRepository.getProfileCounters).toHaveBeenCalledWith(
+        followingId,
+      );
     });
 
     it('should throw error when trying to unfollow non-existent user', async () => {
@@ -99,93 +128,90 @@ describe('UnfollowUserCommandHandler', () => {
         userId: followerId,
       };
 
-      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
-      repository.getUser.mockRejectedValue(new Error('User not found'));
+      userFollowRepository.isAlreadyFollowing.mockResolvedValue({
+        id: 1,
+        followerId,
+        followingId,
+        createdAt: new Date(),
+        deletedAt: null,
+      });
+      externalQueryRepository.getProfileByUserId.mockResolvedValue(
+        mockProfile as any,
+      );
+      externalQueryRepository.getUserInfo.mockResolvedValue(null);
 
-      await expect(handler.execute(command)).rejects.toThrow('User not found');
-      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+      await expect(handler.execute(command)).rejects.toThrow('Not Found');
+      expect(externalQueryRepository.getProfileByUserId).toHaveBeenCalledWith(
         followerId,
       );
-      expect(repository.getUser).toHaveBeenCalledWith(followingId);
-      expect(repository.deleteFollowWithCounters).not.toHaveBeenCalled();
+      expect(externalQueryRepository.getUserInfo).toHaveBeenCalledWith(
+        followingId,
+      );
+      expect(
+        userFollowRepository.deleteFollowWithCounters,
+      ).not.toHaveBeenCalled();
     });
 
     it('should throw error when trying to unfollow yourself', async () => {
       const userId = 1;
       const command = new UnfollowUserCommand(userId, userId);
 
-      const mockProfile = {
-        profileFilled: true,
-        userId: userId,
-      };
-
-      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
-      repository.getUser.mockResolvedValue({
-        id: userId,
-        username: 'self',
-        email: 'self@example.com',
-        password: 'hashed_password',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        deletedAt: null,
-        isBlocked: false,
-        bannedAt: null,
-        banReason: null,
-      });
-      repository.deleteFollowWithCounters.mockRejectedValue(
-        new Error('Cannot unfollow yourself'),
-      );
-
-      await expect(handler.execute(command)).rejects.toThrow(
-        'Cannot unfollow yourself',
-      );
-      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
-        userId,
-      );
-      expect(repository.getUser).toHaveBeenCalledWith(userId);
-      expect(repository.deleteFollowWithCounters).toHaveBeenCalledWith(
-        userId,
-        userId,
-      );
+      await expect(handler.execute(command)).rejects.toThrow('Bad Request');
+      expect(userFollowRepository.isAlreadyFollowing).not.toHaveBeenCalled();
+      expect(externalQueryRepository.getProfileByUserId).not.toHaveBeenCalled();
+      expect(externalQueryRepository.getUserInfo).not.toHaveBeenCalled();
+      expect(
+        userFollowRepository.deleteFollowWithCounters,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should handle case when not following the user', async () => {
+    it('should throw error when profile is not filled', async () => {
       const followerId = 1;
       const followingId = 2;
       const command = new UnfollowUserCommand(followerId, followingId);
 
-      const mockUser = {
-        id: followingId,
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'hashed_password',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        deletedAt: null,
-        isBlocked: false,
-        bannedAt: null,
-        banReason: null,
-      };
       const mockProfile = {
-        profileFilled: true,
+        profileFilled: false,
         userId: followerId,
       };
-      const followerCounters = { followersCount: 10, followingCount: 5 };
-      const followingCounters = { followersCount: 20, followingCount: 15 };
 
-      repository.getUserProfileWithFilledCheck.mockResolvedValue(mockProfile);
-      repository.getUser.mockResolvedValue(mockUser);
-      repository.deleteFollowWithCounters.mockResolvedValue(undefined);
-      repository.getProfileCounters
-        .mockResolvedValueOnce(followerCounters)
-        .mockResolvedValueOnce(followingCounters);
+      userFollowRepository.isAlreadyFollowing.mockResolvedValue({
+        id: 1,
+        followerId,
+        followingId,
+        createdAt: new Date(),
+        deletedAt: null,
+      });
+      externalQueryRepository.getProfileByUserId.mockResolvedValue(
+        mockProfile as any,
+      );
 
-      const result = await handler.execute(command);
-
-      expect(result).toBeInstanceOf(FollowStatusViewDto);
-      expect(result.isFollowing).toBe(false);
-      expect(repository.getUserProfileWithFilledCheck).toHaveBeenCalledWith(
+      await expect(handler.execute(command)).rejects.toThrow('Forbidden');
+      expect(externalQueryRepository.getProfileByUserId).toHaveBeenCalledWith(
         followerId,
       );
-      expect(repository.getUser).toHaveBeenCalledWith(followingId);
+      expect(externalQueryRepository.getUserInfo).not.toHaveBeenCalled();
+      expect(
+        userFollowRepository.deleteFollowWithCounters,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when not following the user', async () => {
+      const followerId = 1;
+      const followingId = 2;
+      const command = new UnfollowUserCommand(followerId, followingId);
+
+      userFollowRepository.isAlreadyFollowing.mockResolvedValue(null);
+
+      await expect(handler.execute(command)).rejects.toThrow('Bad Request');
+      expect(userFollowRepository.isAlreadyFollowing).toHaveBeenCalledWith(
+        followerId,
+        followingId,
+      );
+      expect(externalQueryRepository.getProfileByUserId).not.toHaveBeenCalled();
+      expect(
+        userFollowRepository.deleteFollowWithCounters,
+      ).not.toHaveBeenCalled();
     });
   });
 });

@@ -80,17 +80,15 @@ describe('UserFollowsController', () => {
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
       expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(currentUserId);
       expect(query.query).toBe(queryDto);
     });
 
     it('should return paginated followers for specific user', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
       const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
+      queryDto.userId = 2;
 
       const mockResult = new PaginatedFollowersViewDto();
       mockResult.items = [
@@ -116,7 +114,6 @@ describe('UserFollowsController', () => {
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
       expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });
   });
@@ -151,18 +148,16 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
       expect(query.targetUserId).toBe(currentUserId);
       expect(query.query).toBe(queryDto);
     });
 
     it('should return paginated following for specific user', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
       const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
+      queryDto.userId = 2;
 
       const mockResult = new PaginatedFollowingViewDto();
       mockResult.items = [
@@ -187,15 +182,13 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
+      expect(query.targetUserId).toBe(currentUserId);
       expect(query.query).toBe(queryDto);
     });
   });
 
   describe('getUserFollowers', () => {
     it('should return paginated followers for specific user via path parameter', async () => {
-      const currentUserId = 1;
       const targetUserId = 2;
       const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
@@ -216,11 +209,7 @@ describe('UserFollowsController', () => {
 
       queryBus.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.getUserFollowers(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const result = await controller.getUserFollowers(targetUserId, queryDto);
 
       expect(result).toEqual(mockResult);
       expect(queryBus.execute).toHaveBeenCalledWith(
@@ -228,15 +217,13 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
-      expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
+      expect(query.currentUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });
   });
 
   describe('getUserFollowing', () => {
     it('should return paginated following for specific user via path parameter', async () => {
-      const currentUserId = 1;
       const targetUserId = 2;
       const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
@@ -257,11 +244,7 @@ describe('UserFollowsController', () => {
 
       queryBus.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.getUserFollowing(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const result = await controller.getUserFollowing(targetUserId, queryDto);
 
       expect(result).toEqual(mockResult);
       expect(queryBus.execute).toHaveBeenCalledWith(
@@ -269,7 +252,6 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
       expect(query.targetUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });

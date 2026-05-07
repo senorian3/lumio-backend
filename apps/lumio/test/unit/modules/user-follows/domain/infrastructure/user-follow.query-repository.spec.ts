@@ -49,16 +49,19 @@ describe('UserFollowQueryRepository', () => {
           profile: { firstName: 'Test', lastName: 'User', avatarUrl: null },
         },
       ];
-      mockPrisma.userFollow.findMany.mockResolvedValue([{ followingId: 2 }]);
       mockPrisma.user.findMany.mockResolvedValue(mockUsers);
       mockPrisma.user.count.mockResolvedValue(1);
 
-      const result = await repository.searchUsers(1, {
-        username: 'test',
-        pageNumber: 1,
-        pageSize: 10,
-        calculateSkip: () => 0,
-      } as any);
+      const result = await repository.searchUsers(
+        1,
+        {
+          username: 'test',
+          pageNumber: 1,
+          pageSize: 10,
+          calculateSkip: () => 0,
+        } as any,
+        [2],
+      );
 
       expect(result.items).toHaveLength(1);
       expect(result.totalCount).toBe(1);
@@ -68,58 +71,22 @@ describe('UserFollowQueryRepository', () => {
     });
 
     it('should return empty array when no users match', async () => {
-      mockPrisma.userFollow.findMany.mockResolvedValue([]);
       mockPrisma.user.findMany.mockResolvedValue([]);
       mockPrisma.user.count.mockResolvedValue(0);
 
-      const result = await repository.searchUsers(1, {
-        username: 'nonexistent',
-        pageNumber: 1,
-        pageSize: 10,
-        calculateSkip: () => 0,
-      } as any);
+      const result = await repository.searchUsers(
+        1,
+        {
+          username: 'nonexistent',
+          pageNumber: 1,
+          pageSize: 10,
+          calculateSkip: () => 0,
+        } as any,
+        [],
+      );
 
       expect(result.items).toHaveLength(0);
       expect(result.totalCount).toBe(0);
-    });
-  });
-
-  describe('getUserProfile', () => {
-    it('should return user profile', async () => {
-      const mockUser = {
-        id: 2,
-        username: 'testuser',
-        email: 'test@test.com',
-        createdAt: new Date(),
-        isBlocked: false,
-      };
-      const mockProfile = {
-        firstName: 'Test',
-        lastName: 'User',
-        avatarUrl: null,
-        aboutMe: null,
-        followersCount: 5,
-        followingCount: 3,
-      };
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
-      mockPrisma.userProfile.findUnique.mockResolvedValue(mockProfile);
-      mockPrisma.post.count.mockResolvedValue(10);
-      mockPrisma.userFollow.findFirst.mockResolvedValue({ id: 1 });
-
-      const result = await repository.getUserProfile(1, 2);
-
-      expect(result).toBeDefined();
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 2, deletedAt: null, isBlocked: false },
-      });
-    });
-
-    it('should throw when user not found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-
-      await expect(repository.getUserProfile(1, 999)).rejects.toThrow(
-        'User not found',
-      );
     });
   });
 

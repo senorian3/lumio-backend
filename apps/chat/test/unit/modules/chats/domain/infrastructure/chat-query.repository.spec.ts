@@ -17,7 +17,7 @@ describe('ChatQueryRepository', () => {
   });
 
   it('requests message type and attachments so history can reconstruct media messages', async () => {
-    await repository.getChatMessages(15, 1, 20);
+    await repository.getChatMessages(15, 20, undefined);
 
     expect(prisma.message.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
