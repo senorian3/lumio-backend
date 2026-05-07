@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
@@ -45,6 +46,7 @@ import {
   USER_FOLLOW_ROUTES,
 } from '@lumio/core/routes/user-follow-routes';
 
+@ApiTags('User Follows')
 @UseGuards(ThrottlerGuard)
 @Controller(USER_FOLLOW_BASE)
 export class UserFollowsController {
