@@ -160,6 +160,7 @@ describe('ChatsController', () => {
       (sendMessageOperation?.requestBody as any)?.content?.['application/json'],
     ).toBeDefined();
     expect(sendMessageOperation?.responses?.['201']).toBeDefined();
+    expect(sendMessageOperation?.responses?.['404']).toBeDefined();
 
     expect(sendMediaMessageOperation?.security).toEqual([{ internal: [] }]);
     expect(
@@ -168,6 +169,7 @@ describe('ChatsController', () => {
       ],
     ).toBeDefined();
     expect(sendMediaMessageOperation?.responses?.['201']).toBeDefined();
+    expect(sendMediaMessageOperation?.responses?.['404']).toBeDefined();
 
     expect(
       getMessagesParameters.some(
