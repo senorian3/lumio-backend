@@ -55,7 +55,6 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
   internalServiceName: string = this.configService.get('INTERNAL_SERVICE_NAME');
 
-  @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEYS' })
   internalApiKeys: InternalApiKeys = parseInternalApiKeys(
     this.configService.get('INTERNAL_API_KEYS'),
     this.internalApiKey,

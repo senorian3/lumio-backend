@@ -42,18 +42,17 @@ export function parseInternalApiKeys(
       : {};
   }
 
-  const parsed = JSON.parse(rawValue) as Record<string, unknown>;
+  const trimmed = rawValue.trim();
 
-  return Object.entries(parsed).reduce<InternalApiKeys>(
-    (acc, [service, key]) => {
-      if (typeof key === 'string' && key.trim()) {
-        acc[service] = key;
-      }
-
-      return acc;
-    },
-    {},
-  );
+  // Формат: service:key,service:key
+  return trimmed.split(',').reduce<InternalApiKeys>((acc, pair) => {
+    const [service, ...keyParts] = pair.split(':');
+    const key = keyParts.join(':');
+    if (service?.trim() && key?.trim()) {
+      acc[service.trim()] = key.trim();
+    }
+    return acc;
+  }, {});
 }
 
 export function isInternalApiKeyMatch(
