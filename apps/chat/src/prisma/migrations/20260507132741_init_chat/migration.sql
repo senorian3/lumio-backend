@@ -1,14 +1,11 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "MessageType" AS ENUM ('TEXT', 'IMAGE', 'VOICE');
 
 -- CreateEnum
-CREATE TYPE "MessageStatus" AS ENUM ('SENT', 'DELIVERED', 'READ');
+CREATE TYPE "MessageStatus" AS ENUM ('SENT', 'READ');
 
 -- CreateEnum
-CREATE TYPE "AttachmentType" AS ENUM ('IMAGE', 'VOICE');
+CREATE TYPE "AttachmentType" AS ENUM ('TEXT', 'IMAGE', 'VOICE');
 
 -- CreateTable
 CREATE TABLE "Chat" (
@@ -74,8 +71,8 @@ CREATE INDEX "Chat_lastMessageAt_idx" ON "Chat"("lastMessageAt");
 -- CreateIndex
 CREATE INDEX "ChatParticipant_userId_idx" ON "ChatParticipant"("userId");
 
--- CreateUniqueConstraint
-ALTER TABLE "ChatParticipant" ADD CONSTRAINT "ChatParticipant_chatId_userId_key" UNIQUE ("chatId", "userId");
+-- CreateIndex
+CREATE UNIQUE INDEX "ChatParticipant_chatId_userId_key" ON "ChatParticipant"("chatId", "userId");
 
 -- CreateIndex
 CREATE INDEX "Message_chatId_createdAt_idx" ON "Message"("chatId", "createdAt");
