@@ -1,6 +1,11 @@
 import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 export function ApiGetPostById() {
   return applyDecorators(
@@ -9,6 +14,14 @@ export function ApiGetPostById() {
       summary: 'Get post by ID',
       description: 'Endpoint for retrieving a post by its ID',
       operationId: 'getPostById',
+    }),
+
+    ApiParam({
+      name: 'postId',
+      type: String,
+      description: 'UUID of the post',
+      example: 'a16e733a-30a4-49c8-a923-61e34928aace',
+      required: true,
     }),
 
     ApiResponse({
@@ -27,6 +40,24 @@ export function ApiGetPostById() {
             postId: '03969ae5-d78d-4bae-b293-ab3370f3de8e',
           },
         ],
+      },
+    }),
+
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_post_id: {
+          summary: 'Invalid post ID format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post ID must be a valid UUID',
+                field: 'postId',
+              },
+            ],
+          },
+        },
       },
     }),
 

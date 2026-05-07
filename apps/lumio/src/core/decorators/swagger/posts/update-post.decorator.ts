@@ -1,10 +1,12 @@
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
-  ApiResponse,
   ApiParam,
+  ApiResponse,
 } from '@nestjs/swagger';
+import { InputUpdatePostDto } from '@lumio/modules/posts/api/dto/input/update-post.input.dto';
 
 export function ApiUpdatePost() {
   return applyDecorators(
@@ -23,6 +25,11 @@ export function ApiUpdatePost() {
       example: '65',
       required: true,
     }),
+    ApiBody({
+      type: InputUpdatePostDto,
+      description: 'Data for updating post description',
+    }),
+
     ApiResponse({
       status: 200,
       description: 'Post successfully updated',

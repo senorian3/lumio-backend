@@ -99,6 +99,81 @@ export function ApiGetPostComments() {
     }),
 
     ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_page_number: {
+          summary: 'Page number must be a positive integer',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Page number must be a positive integer',
+                field: 'pageNumber',
+              },
+            ],
+          },
+        },
+        invalid_page_size: {
+          summary: 'Page size must be a positive integer',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Page size must be a positive integer',
+                field: 'pageSize',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized',
+      examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        invalid_user_data: {
+          summary: 'Invalid user data in JWT',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Invalid user data in JWT',
+                field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: "User doesn't have active session",
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
+              },
+            ],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version mismatch - token is invalidated',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
       status: 404,
       description: 'Not found',
       examples: {
