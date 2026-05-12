@@ -7,7 +7,7 @@ import { ExternalQueryPostsRepository } from '@lumio/modules/posts/domain/infras
 
 export class GetUserProfileQuery {
   constructor(
-    public readonly currentUserId: number,
+    public readonly currentUserId: number | null,
     public readonly targetUserId: number,
   ) {}
 }
@@ -45,10 +45,12 @@ export class GetUserProfileQueryHandler implements IQueryHandler<
         targetUserId,
       );
 
-    const isFollowing = await this.userFollowQueryRepository.isFollowing(
-      currentUserId,
-      targetUserId,
-    );
+    const isFollowing = currentUserId
+      ? await this.userFollowQueryRepository.isFollowing(
+          currentUserId,
+          targetUserId,
+        )
+      : false;
 
     return new UserProfileViewDto({
       id: user.id,
@@ -59,7 +61,7 @@ export class GetUserProfileQueryHandler implements IQueryHandler<
       followingCount: profile?.followingCount || 0,
       postsCount,
       isFollowing,
-      isCurrentUser: currentUserId === targetUserId,
+      isCurrentUser: currentUserId !== null && currentUserId === targetUserId,
     });
   }
 }

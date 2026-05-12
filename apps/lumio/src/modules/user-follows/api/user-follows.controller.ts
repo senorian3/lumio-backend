@@ -13,7 +13,9 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UserId } from '@lumio/core/decorators/user-id.decorator';
+import { OptionalUserId } from '@lumio/core/decorators/optional-user-id.decorator';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { SearchUsersInputDto } from './dto/input/search-users.input-dto';
 import { GetFeedInputDto } from './dto/input/get-feed.input-dto';
@@ -72,9 +74,9 @@ export class UserFollowsController {
   @Get(USER_FOLLOW_ROUTES.PROFILE)
   @ApiGetUserProfile()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   async getUserProfile(
-    @UserId() currentUserId: number,
+    @OptionalUserId() currentUserId: number | null,
     @Param('userId', ParseIntPipe) targetUserId: number,
   ): Promise<UserProfileViewDto> {
     return await this.queryBus.execute<GetUserProfileQuery, UserProfileViewDto>(
