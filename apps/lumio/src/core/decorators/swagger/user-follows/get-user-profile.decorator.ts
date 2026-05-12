@@ -12,7 +12,9 @@ export function ApiGetUserProfile() {
     ApiOperation({
       summary: 'Get user profile',
       description:
-        'Endpoint for getting detailed user profile information including follow status, followers count, and following count.',
+        'Endpoint for getting detailed user profile information. ' +
+        'Available for both authorized and unauthorized users. ' +
+        'For unauthorized users isFollowing and isCurrentUser will be false.',
       operationId: 'getUserProfile',
     }),
     ApiParam({
@@ -26,8 +28,8 @@ export function ApiGetUserProfile() {
       status: 200,
       description: 'User profile retrieved successfully',
       examples: {
-        success: {
-          summary: 'User profile with follow status',
+        authorized: {
+          summary: 'Authorized user - with follow status',
           value: {
             id: 123,
             username: 'john_doe',
@@ -37,6 +39,20 @@ export function ApiGetUserProfile() {
             followingCount: 85,
             postsCount: 42,
             isFollowing: true,
+            isCurrentUser: false,
+          },
+        },
+        unauthorized: {
+          summary: 'Unauthorized user - no follow status',
+          value: {
+            id: 123,
+            username: 'john_doe',
+            avatarUrl: 'https://example.com/avatar.jpg',
+            aboutMe: 'Software developer from New York',
+            followersCount: 150,
+            followingCount: 85,
+            postsCount: 42,
+            isFollowing: false,
             isCurrentUser: false,
           },
         },
