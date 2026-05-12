@@ -1,8 +1,15 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 export function ApiGetProfilePost() {
   return applyDecorators(
+    ApiBearerAuth(),
     ApiOperation({
       summary: 'Get profile post of user',
       description:
@@ -60,6 +67,81 @@ export function ApiGetProfilePost() {
                 },
               },
             },
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_profile_id: {
+          summary: 'Profile ID must be a number',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Profile ID must be a number',
+                field: 'profileId',
+              },
+            ],
+          },
+        },
+        invalid_post_id: {
+          summary: 'Post ID is required',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post ID is required',
+                field: 'postId',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized',
+      examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version is expired',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
+              },
+            ],
+          },
+        },
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Invalid user data in JWT',
+                field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: 'User does not have active session',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
+              },
+            ],
           },
         },
       },

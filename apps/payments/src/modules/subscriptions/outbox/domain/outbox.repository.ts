@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@payments/prisma/prisma.service';
-import { OutboxMessage } from 'generated/prisma-payments';
+import { OutboxMessage } from '@generated/prisma-payments';
 import {
   OutboxAggregateType,
   OutboxEventType,

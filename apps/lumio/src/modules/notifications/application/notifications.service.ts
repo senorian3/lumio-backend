@@ -59,4 +59,18 @@ export class NotificationsService {
       executeAt: new Date().toISOString(),
     });
   }
+
+  async createUserSendMessageNotification(
+    userId: number,
+    message: string,
+    username: string,
+  ): Promise<void> {
+    await this.notificationRepository.createNotification({
+      userId,
+      type: NotificationType.USER_MESSAGE_SENT,
+      title: `${username}`,
+      message: `${message}`,
+      executeAt: new Date().toISOString(),
+    });
+  }
 }

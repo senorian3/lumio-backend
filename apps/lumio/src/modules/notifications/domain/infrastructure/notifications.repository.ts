@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { CreateNotificationDto } from '@lumio/modules/notifications/api/dto/transfer/create-notification.transfer.dto';
 import { NotificationStatus } from '@lumio/modules/notifications/constants/notification-constants';
-import { Notification } from 'generated/prisma-lumio';
+import { Notification } from '@generated/prisma-lumio';
 
 @Injectable()
 export class NotificationRepository {

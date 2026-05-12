@@ -31,6 +31,7 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
       await this.postQueryRepository.findUserPosts(
         command.userIdParam,
         command.query,
+        command.userId ?? undefined,
       );
 
     const result: PaginatedPostViewDto = {
@@ -38,7 +39,7 @@ export class GetAllUserPostsQueryHandler implements IQueryHandler<
       pageSize: paginatedPosts.pageSize,
       pagesCount: paginatedPosts.pagesCount,
       totalCount: paginatedPosts.totalCount,
-      items: paginatedPosts.items.map(PostView.fromPrisma),
+      items: paginatedPosts.items,
       role,
     };
 

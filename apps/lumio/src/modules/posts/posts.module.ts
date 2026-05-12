@@ -17,25 +17,39 @@ import { UserAccountsModule } from '@lumio/modules/user-accounts/user-accounts.m
 import { FilesHttpAdapter } from './application/files-http.adapter';
 import { PostFilesRepository } from './domain/infrastructure/post-files.repository';
 import { GetPostByIdQueryHandler } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
+import { GetPostWithCommentsQueryHandler } from '@lumio/modules/posts/application/queries/get-post-with-comments.query-handler';
 import { PostEventsPublisher } from './application/post-events.publisher';
+import { CreateCommentCommandHandler } from './application/commands/create-comment.command-handler';
+import { CommentRepository } from '@lumio/modules/posts/domain/infrastructure/comment.repository';
+import { GetCreatedCommentQueryHandler } from './application/queries/get-created-comment.query-handler';
+import { ExternalQueryPostsRepository } from './domain/infrastructure/post.external-query.repository';
+import { LikeCommentCommandHandler } from '@lumio/modules/posts/application/commands/like-comment.command-handler';
+import { LikePostCommandHandler } from '@lumio/modules/posts/application/commands/like-post.command-handler';
 
 const useCases = [
   CreatePostCommandHandler,
   UpdatePostCommandHandler,
   DeletePostCommandHandler,
+  CreateCommentCommandHandler,
   GetCreatePostQueryHandler,
   GetMainPageQueryHandler,
   GetCreatePostQueryHandler,
   GetAllUserPostsQueryHandler,
   GetProfilePostQueryHandler,
   GetPostByIdQueryHandler,
+  GetPostWithCommentsQueryHandler,
+  GetCreatedCommentQueryHandler,
+  LikeCommentCommandHandler,
+  LikePostCommandHandler,
 ];
 
 const adapters = [FilesHttpAdapter];
 
-const repositories = [PostRepository, PostFilesRepository];
+const repositories = [PostRepository, PostFilesRepository, CommentRepository];
 
 const queryRepositories = [QueryPostRepository];
+
+const externalQueryRepositories = [ExternalQueryPostsRepository];
 
 const eventPublishers = [PostEventsPublisher];
 
@@ -47,7 +61,9 @@ const eventPublishers = [PostEventsPublisher];
     ...adapters,
     ...repositories,
     ...queryRepositories,
+    ...externalQueryRepositories,
     ...eventPublishers,
   ],
+  exports: [...externalQueryRepositories],
 })
 export class PostsModule {}

@@ -3,37 +3,22 @@ import { appSetup } from './app-setup';
 import { CoreConfig } from '../core/core.config';
 import { initAppModule } from './init-app-module';
 import { AppLoggerService } from '@libs/logger/logger.service';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MicroserviceOptions } from '@nestjs/microservices';
+import { getRabbitmqMicroserviceOptions } from '../core/rabbitmq.module';
 
 async function bootstrap() {
   const DynamicAppModule = await initAppModule();
   const app = await NestFactory.create(DynamicAppModule);
 
   const coreConfig = app.get<CoreConfig>(CoreConfig);
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [coreConfig.rmqUrl],
-      exchange: 'sub_payments_exchange',
-      exchangeOptions: {
-        type: 'topic',
-        durable: true,
-      },
-      queue: 'payments_to_lumio_queue',
-      queueOptions: {
-        durable: true,
-        deadLetterExchange: 'dlx_payments_exchange',
-        deadLetterRoutingKey: 'dlq.payments',
-        messageTtl: 300000,
-      },
-      noAck: false,
-    },
-  });
+  app.connectMicroservice<MicroserviceOptions>(
+    getRabbitmqMicroserviceOptions(coreConfig),
+  );
 
   appSetup(app, coreConfig, DynamicAppModule);
   const port = coreConfig.port;
 
-  const logger = new AppLoggerService();
+  const logger = app.get(AppLoggerService);
 
   await app.startAllMicroservices();
   await app.listen(port, () => {

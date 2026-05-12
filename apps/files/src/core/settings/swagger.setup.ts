@@ -24,6 +24,12 @@ export function swaggerSetup(app: INestApplication, isSwaggerEnabled: boolean) {
         in: 'header',
         description: 'Internal API key for service-to-service communication',
       })
+      .addSecurity('internal-service', {
+        type: 'apiKey',
+        name: 'x-internal-service',
+        in: 'header',
+        description: 'Internal caller service name',
+      })
       .addGlobalResponse({
         status: 500,
         description: 'Internal server error',

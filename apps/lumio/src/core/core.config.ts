@@ -2,15 +2,11 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from '@libs/settings/config-valdation.utility';
-
-export enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-  TESTING = 'testing',
-}
+import { Environments } from '@libs/settings/environments.enum';
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({ message: 'Set Env variable PORT, example: 3000' })
   @IsNumber({}, { message: 'Set Env variable PORT, example: 3000' })
   port: number = Number(this.configService.get('PORT'));
 
@@ -30,6 +26,7 @@ export class CoreConfig {
   })
   rmqUrl: string = this.configService.get('RMQ_URL');
 
+  @IsNotEmpty({ message: 'Set Env variable NODE_ENV, example: development' })
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
@@ -37,6 +34,10 @@ export class CoreConfig {
   })
   env: string = this.configService.get('NODE_ENV');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
+  })
   @IsBoolean({
     message:
       'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
@@ -45,6 +46,10 @@ export class CoreConfig {
     this.configService.get('IS_SWAGGER_ENABLED'),
   ) as boolean;
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
+  })
   @IsBoolean({
     message:
       'Set Env variable INCLUDE_TESTING_MODULE to enable/disable Dangerous for production TestingModule, example: true, available values: true, false, 0, 1',
@@ -68,11 +73,31 @@ export class CoreConfig {
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
 
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
+  internalServiceName: string = this.configService.get('INTERNAL_SERVICE_NAME');
+
   @IsNotEmpty({ message: 'Set Env variable FILES_FRONTEND_URL' })
   filesFrontendUrl: string = this.configService.get('FILES_FRONTEND_URL');
 
   @IsNotEmpty({ message: 'Set Env variable PAYMENTS_FRONTEND_URL' })
   paymentsFrontendUrl: string = this.configService.get('PAYMENTS_FRONTEND_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable CHAT_FRONTEND_URL' })
+  chatFrontendUrl: string = this.configService.get('CHAT_FRONTEND_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable FILES_SERVICE_URL' })
+  filesServiceUrl: string = this.configService.get('FILES_SERVICE_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable PAYMENTS_SERVICE_URL' })
+  paymentsServiceUrl: string = this.configService.get('PAYMENTS_SERVICE_URL');
+
+  @IsNotEmpty({ message: 'Set Env variable SUPER_ADMIN_SERVICE_URL' })
+  superAdminServiceUrl: string = this.configService.get(
+    'SUPER_ADMIN_SERVICE_URL',
+  );
+
+  @IsNotEmpty({ message: 'Set Env variable CHAT_SERVICE_URL' })
+  chatServiceUrl: string = this.configService.get('CHAT_SERVICE_URL');
 
   @IsNotEmpty({
     message: 'Set Env variable THROTTLER_TTL in milliseconds, example: 10000',

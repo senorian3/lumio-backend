@@ -2,6 +2,7 @@ import { CoreConfig } from '@lumio/core/core.config';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import FormData from 'form-data';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 @Injectable()
 export class FilesHttpAdapter {
@@ -9,7 +10,10 @@ export class FilesHttpAdapter {
 
   private getHeaders(additionalHeaders?: Record<string, string>) {
     return {
-      'X-Internal-API-Key': this.coreConfig.internalApiKey,
+      ...buildInternalApiHeaders(
+        this.coreConfig.internalServiceName,
+        this.coreConfig.internalApiKey,
+      ),
       'Content-Type': 'application/json',
       ...additionalHeaders,
     };
@@ -50,7 +54,10 @@ export class FilesHttpAdapter {
     });
 
     const headers = {
-      'X-Internal-API-Key': this.coreConfig.internalApiKey,
+      ...buildInternalApiHeaders(
+        this.coreConfig.internalServiceName,
+        this.coreConfig.internalApiKey,
+      ),
       ...formData.getHeaders(),
     };
 
@@ -77,7 +84,10 @@ export class FilesHttpAdapter {
     });
 
     const headers = {
-      'X-Internal-API-Key': this.coreConfig.internalApiKey,
+      ...buildInternalApiHeaders(
+        this.coreConfig.internalServiceName,
+        this.coreConfig.internalApiKey,
+      ),
       ...formData.getHeaders(),
     };
 

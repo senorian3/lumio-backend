@@ -1,4 +1,4 @@
-import { EmailConfirmation } from 'generated/prisma-lumio';
+import { EmailConfirmation } from '@generated/prisma-lumio';
 import { UserEntity } from './user.entity';
 
 export class EmailConfirmationEntity implements EmailConfirmation {

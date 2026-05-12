@@ -6,6 +6,7 @@ import { FileDto } from './dto/file.dto';
 import { FileSortBy } from './dto/file-sort-by.enum';
 import { FilesResponse } from './dto/files-response.dto';
 import { AppLoggerService } from '@libs/logger/logger.service';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 @Injectable()
 export class FilesHttpClient {
@@ -34,7 +35,10 @@ export class FilesHttpClient {
             sortBy: sortByParam,
           },
           headers: {
-            'x-internal-api-key': this.config.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.config.internalServiceName,
+              this.config.internalApiKey,
+            ),
           },
           timeout: 10000,
         }),

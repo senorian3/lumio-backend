@@ -3,7 +3,8 @@ import { Logger } from '@nestjs/common';
 import { initAppModule } from './init-app-module';
 import { appSetup } from './app-setup';
 import { CoreConfig } from '@payments/core/core.config';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MicroserviceOptions } from '@nestjs/microservices';
+import { getRabbitmqMicroserviceOptions } from '@payments/core/rabbitmq.module';
 
 async function bootstrap() {
   const DynamicAppModule = await initAppModule();
@@ -14,25 +15,9 @@ async function bootstrap() {
 
   const coreConfig = app.get<CoreConfig>(CoreConfig);
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
-    options: {
-      urls: [coreConfig.rmqUrl],
-      exchange: 'sub_payments_exchange',
-      exchangeOptions: {
-        type: 'topic',
-        durable: true,
-      },
-      queue: 'lumio_to_payments_queue',
-      queueOptions: {
-        durable: true,
-        deadLetterExchange: 'dlx_payments_exchange',
-        deadLetterRoutingKey: 'dlq.payments',
-        messageTtl: 300000,
-      },
-      noAck: false,
-    },
-  });
+  app.connectMicroservice<MicroserviceOptions>(
+    getRabbitmqMicroserviceOptions(coreConfig),
+  );
 
   appSetup(app, coreConfig, DynamicAppModule);
 

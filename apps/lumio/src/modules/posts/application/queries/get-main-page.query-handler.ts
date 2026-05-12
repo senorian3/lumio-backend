@@ -1,13 +1,15 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { MainPageView } from '@lumio/modules/posts/api/dto/output/main-page.output.dto';
-import { PostRepository } from '@lumio/modules/posts/domain/infrastructure/post.repository';
+import { QueryPostRepository } from '@lumio/modules/posts/domain/infrastructure/post.query.repository';
 import { GetMainPageInputDto } from '@lumio/modules/posts/api/dto/input/get-main-page.input.dto';
-import { PostView } from '@lumio/modules/posts/api/dto/output/post.output.dto';
 import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
 import { ExternalQueryUserAccountsRepository } from './../../../user-accounts/users/domain/infrastructure/user.external-query.repository';
 
 export class GetMainPageQuery {
-  constructor(public readonly paginationParams: GetMainPageInputDto) {}
+  constructor(
+    public readonly currentUserId: number | null,
+    public readonly paginationParams: GetMainPageInputDto,
+  ) {}
 }
 
 @QueryHandler(GetMainPageQuery)
@@ -16,23 +18,23 @@ export class GetMainPageQueryHandler implements IQueryHandler<
   MainPageView
 > {
   constructor(
-    private readonly postRepository: PostRepository,
+    private readonly postQueryRepository: QueryPostRepository,
     private readonly externalQueryUserAccountsRepository: ExternalQueryUserAccountsRepository,
   ) {}
 
   async execute(query: GetMainPageQuery): Promise<MainPageView> {
     const { posts, totalCount } =
-      await this.postRepository.getPostsWithPagination(
+      await this.postQueryRepository.getPostsWithPagination(
         query.paginationParams.calculateSkip(),
         query.paginationParams.pageSize,
+        query.currentUserId ?? undefined,
       );
 
     const allRegisteredUsersCount: number =
       await this.externalQueryUserAccountsRepository.getAllRegisteredUsersCount();
 
-    const postViews = posts.map(PostView.fromPrisma);
     const paginatedPosts = PaginatedViewDto.mapToView({
-      items: postViews,
+      items: posts,
       page: query.paginationParams.pageNumber,
       size: query.paginationParams.pageSize,
       totalCount,

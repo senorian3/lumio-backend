@@ -1,6 +1,6 @@
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { UserProfile } from 'generated/prisma-lumio';
+import { UserProfile } from '@generated/prisma-lumio';
 
 @Injectable()
 export class ExternalQueryUserAccountsRepository {
@@ -98,6 +98,25 @@ export class ExternalQueryUserAccountsRepository {
       },
     });
 
-    return user?.isBlocked === true || user?.deletedAt !== null;
+    if (!user) {
+      return false;
+    }
+
+    return user.isBlocked === true || user.deletedAt !== null;
+  }
+
+  async getProfileCounters(userId: number): Promise<{
+    followersCount: number;
+    followingCount: number;
+  }> {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+      select: { followersCount: true, followingCount: true },
+    });
+
+    return {
+      followersCount: profile?.followersCount || 0,
+      followingCount: profile?.followingCount || 0,
+    };
   }
 }

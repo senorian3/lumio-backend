@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
-import { Post } from 'generated/prisma-lumio';
+import { LikePostStatus } from '@lumio/modules/posts/api/dto/input/like-post.input.dto';
 
 @Injectable()
 export class PostRepository {
@@ -56,25 +56,51 @@ export class PostRepository {
     });
   }
 
-  async getPostsWithPagination(
-    skip: number,
-    take: number,
-  ): Promise<{ posts: (Post & { files: any[] })[]; totalCount: number }> {
-    const [posts, totalCount] = await Promise.all([
-      this.prisma.post.findMany({
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-        include: {
-          files: true,
-        },
-      }),
-      this.prisma.post.count({
-        where: { deletedAt: null },
-      }),
-    ]);
+  async findActivePostById(postId: string) {
+    return this.prisma.post.findFirst({
+      where: { id: postId.toString(), deletedAt: null },
+    });
+  }
 
-    return { posts, totalCount };
+  async updatePostLike(
+    postId: string,
+    userId: number,
+    status: LikePostStatus,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      if (status === 'none') {
+        await tx.postLike.deleteMany({
+          where: { postId, userId },
+        });
+      } else {
+        await tx.postLike.upsert({
+          where: {
+            postId_userId: { postId, userId },
+          },
+          create: {
+            postId,
+            userId,
+            status,
+          },
+          update: {
+            status,
+          },
+        });
+      }
+
+      const [likeCount, dislikeCount] = await Promise.all([
+        tx.postLike.count({
+          where: { postId, status: 'like' },
+        }),
+        tx.postLike.count({
+          where: { postId, status: 'dislike' },
+        }),
+      ]);
+
+      await tx.post.update({
+        where: { id: postId.toString() },
+        data: { likeCount, dislikeCount },
+      });
+    });
   }
 }

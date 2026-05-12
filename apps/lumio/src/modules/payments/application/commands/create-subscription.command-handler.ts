@@ -9,7 +9,6 @@ export class CreateSubscriptionPaymentUrlCommand {
   constructor(
     public readonly userId: number,
     public readonly dto: InputCreateSubscriptionPaymentUrlDto,
-    public readonly localhostOrigin?: string,
   ) {}
 }
 
@@ -42,7 +41,6 @@ export class CreateSubscriptionPaymentUrlCommandHandler implements ICommandHandl
       }>(`${GLOBAL_PREFIX}/subscription-payments/create-url`, {
         ...command.dto,
         profileId: profileId.toString(),
-        localhostOrigin: command.localhostOrigin,
       });
 
       return urlData.url;

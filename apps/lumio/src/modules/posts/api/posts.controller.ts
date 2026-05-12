@@ -35,13 +35,28 @@ import { ApiGetUserPosts } from '@lumio/core/decorators/swagger/posts/get-my-pos
 import { InputCreatePostDto } from './dto/input/create-post.input.dto';
 import { GetAllUserPostsQuery } from '@lumio/modules/posts/application/queries/get-all-user-posts.query-handler';
 import { GetCreatePostUserQuery } from '@lumio/modules/posts/application/queries/get-by-id-create-post.query-handler';
-import { POST_BASE } from '@lumio/core/routes/post-routes';
+import { POST_BASE, POST_ROUTES } from '@lumio/core/routes/post-routes';
 import { GetProfilePostQuery } from '../application/queries/get-profile-post.query-handler';
 import { ApiGetProfilePost } from '@lumio/core/decorators/swagger/posts/get-profile-post.decorator';
 import { GetPostByIdQuery } from '@lumio/modules/posts/application/queries/get-post-by-id.query-handler';
 import { ApiGetPostById } from '@lumio/core/decorators/swagger/posts/get-post-by-post-id.decorator';
 import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 import { PaginatedPostViewDto } from '@lumio/modules/posts/api/dto/output/posts.paginated.view-dto';
+import { CreateCommentInputDto } from './dto/create-comment.input-dto';
+import { CreateCommentCommand } from '@lumio/modules/posts/application/commands/create-comment.command-handler';
+import { GetPostWithCommentsQuery } from '@lumio/modules/posts/application/queries/get-post-with-comments.query-handler';
+import { GetCreatedCommentQuery } from '@lumio/modules/posts/application/queries/get-created-comment.query-handler';
+import { CommentViewDto } from './dto/output/comment.output.dto';
+import { GetPostCommentsQueryDto } from './dto/input/get-post-comments.query.dto';
+import { PaginatedViewDto } from '@libs/core/dto/pagination/base.paginated.view-dto';
+import { LikeCommentInputDto } from './dto/input/like-comment.input.dto';
+import { LikePostInputDto } from './dto/input/like-post.input.dto';
+import { LikePostCommand } from '@lumio/modules/posts/application/commands/like-post.command-handler';
+import { LikeCommentCommand } from '@lumio/modules/posts/application/commands/like-comment.command-handler';
+import { ApiCreatePostComment } from '@lumio/core/decorators/swagger/posts/create-post-comment.decorator';
+import { ApiGetPostComments } from '@lumio/core/decorators/swagger/posts/get-post-comments.decorator';
+import { ApiLikeComment } from '@lumio/core/decorators/swagger/posts/like-comment.decorator';
+import { ApiLikePost } from '@lumio/core/decorators/swagger/posts/like-post.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller(POST_BASE)
@@ -51,7 +66,7 @@ export class PostsController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get(':userId')
+  @Get(POST_ROUTES.GET_USER_POSTS)
   @ApiGetUserPosts()
   @HttpCode(HttpStatus.OK)
   @UseGuards(OptionalJwtAuthGuard)
@@ -67,18 +82,19 @@ export class PostsController {
     >(new GetAllUserPostsQuery(currentUserId, query, userId));
   }
 
-  @Get(':profileId')
+  @Get(POST_ROUTES.GET_PROFILE_POST)
   @ApiGetProfilePost()
   @UseGuards(OptionalJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getProfilePost(
     @Param('profileId', ParseIntPipe) profileId: number,
     @Query('postId') postId: string,
+    @OptionalUserId() currentUserId: number | null,
   ): Promise<PostView> {
     const profilePost = await this.queryBus.execute<
       GetProfilePostQuery,
       PostView
-    >(new GetProfilePostQuery(profileId, postId));
+    >(new GetProfilePostQuery(profileId, postId, currentUserId));
 
     return profilePost;
   }
@@ -103,7 +119,7 @@ export class PostsController {
     );
   }
 
-  @Put(':postId')
+  @Put(POST_ROUTES.UPDATE_POST)
   @ApiUpdatePost()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -120,7 +136,7 @@ export class PostsController {
     return updatedPost;
   }
 
-  @Delete(':postId')
+  @Delete(POST_ROUTES.DELETE_POST)
   @ApiDeletePost()
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
@@ -133,7 +149,7 @@ export class PostsController {
     );
   }
 
-  @Get('post/:postId')
+  @Get(POST_ROUTES.GET_POST_BY_ID)
   @ApiGetPostById()
   @UseGuards(JwtAuthGuard)
   async getPostById(
@@ -142,6 +158,67 @@ export class PostsController {
   ): Promise<PostView> {
     return await this.queryBus.execute<GetPostByIdQuery, PostView>(
       new GetPostByIdQuery(postId, userId),
+    );
+  }
+
+  @Post(POST_ROUTES.CREATE_COMMENT)
+  @ApiCreatePostComment()
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
+  async createComment(
+    @Param('postId') postId: string,
+    @UserId() userId: number,
+    @Body() dto: CreateCommentInputDto,
+  ): Promise<CommentViewDto> {
+    const { commentId } = await this.commandBus.execute<
+      CreateCommentCommand,
+      { commentId: number }
+    >(new CreateCommentCommand(userId, postId, dto.content, dto.parentId));
+
+    return await this.queryBus.execute<GetCreatedCommentQuery, CommentViewDto>(
+      new GetCreatedCommentQuery(commentId, userId),
+    );
+  }
+
+  @Get(POST_ROUTES.GET_POST_COMMENTS)
+  @ApiGetPostComments()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalJwtAuthGuard)
+  async getPostWithComments(
+    @Param('postId') postId: string,
+    @Query() query: GetPostCommentsQueryDto,
+    @OptionalUserId() userId: number | null,
+  ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    return await this.queryBus.execute<GetPostWithCommentsQuery>(
+      new GetPostWithCommentsQuery(postId, userId, query),
+    );
+  }
+
+  @Post(POST_ROUTES.LIKE_COMMENT)
+  @ApiLikeComment()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async likeComment(
+    @UserId() userId: number,
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Body() dto: LikeCommentInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute<LikeCommentCommand, void>(
+      new LikeCommentCommand(userId, commentId, dto.status),
+    );
+  }
+
+  @Post(POST_ROUTES.LIKE_POST)
+  @ApiLikePost()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async likePost(
+    @UserId() userId: number,
+    @Param('postId') postId: string,
+    @Body() dto: LikePostInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute<LikePostCommand, void>(
+      new LikePostCommand(userId, postId, dto.status),
     );
   }
 }

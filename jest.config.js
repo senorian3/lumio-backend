@@ -7,7 +7,7 @@ module.exports = {
         '^@lumio/(.*)$': '<rootDir>/src/$1',
         '^@libs/(.*)$': '<rootDir>/../../libs/$1',
         '^@files/(.*)$': '<rootDir>/../../apps/files/src/$1',
-        '^generated/(.*)$': '<rootDir>/../../generated/$1',
+        '^@generated/(.*)$': '<rootDir>/../../generated/$1',
       },
       testMatch: ['**/*.spec.ts'],
       transform: {
@@ -28,7 +28,7 @@ module.exports = {
         '^@files/(.*)$': '<rootDir>/src/$1',
         '^@libs/(.*)$': '<rootDir>/../../libs/$1',
         '^@lumio/(.*)$': '<rootDir>/../../apps/lumio/src/$1',
-        '^generated/(.*)$': '<rootDir>/../../generated/$1',
+        '^@generated/(.*)$': '<rootDir>/../../generated/$1',
       },
       testMatch: ['**/*.spec.ts'],
       transform: {
@@ -49,7 +49,7 @@ module.exports = {
         '^@payments/(.*)$': '<rootDir>/src/$1',
         '^@libs/(.*)$': '<rootDir>/../../libs/$1',
         '^@lumio/(.*)$': '<rootDir>/../../apps/lumio/src/$1',
-        '^generated/(.*)$': '<rootDir>/../../generated/$1',
+        '^@generated/(.*)$': '<rootDir>/../../generated/$1',
       },
       testMatch: ['**/*.spec.ts'],
       transform: {
@@ -70,7 +70,28 @@ module.exports = {
         '^@super-admin/(.*)$': '<rootDir>/src/$1',
         '^@libs/(.*)$': '<rootDir>/../../libs/$1',
         '^@lumio/(.*)$': '<rootDir>/../../apps/lumio/src/$1',
-        '^generated/(.*)$': '<rootDir>/../../generated/$1',
+        '^@generated/(.*)$': '<rootDir>/../../generated/$1',
+      },
+      testMatch: ['**/*.spec.ts'],
+      transform: {
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: '<rootDir>/tsconfig.spec.json',
+          },
+        ],
+      },
+      moduleFileExtensions: ['ts', 'js', 'json'],
+      testEnvironment: 'node',
+    },
+    {
+      displayName: 'chat',
+      rootDir: './apps/chat',
+      moduleNameMapper: {
+        '^@chat/(.*)$': '<rootDir>/src/$1',
+        '^@libs/(.*)$': '<rootDir>/../../libs/$1',
+        '^@lumio/(.*)$': '<rootDir>/../../apps/lumio/src/$1',
+        '^@generated/(.*)$': '<rootDir>/../../generated/$1',
       },
       testMatch: ['**/*.spec.ts'],
       transform: {

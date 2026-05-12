@@ -19,6 +19,8 @@ import { DeleteUserAvatarCommandHandler } from '@files/modules/avatar/applicatio
 import { AvatarController } from '@files/modules/avatar/api/avatar.controller';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
 import { TestingModule } from '@files/modules/tests/testing.module';
+import { ChatFilesModule } from '@files/modules/chat-files/chat-files.module';
+import { HealthModule } from '@files/modules/health/health.module';
 
 const commandHandlers = [
   UploadFilesCreatedPostCommandHandler,
@@ -47,6 +49,8 @@ const queryRepositories = [QueryFileRepository];
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),
       inject: [CoreConfig],
     }),
+    ChatFilesModule,
+    HealthModule,
   ],
 
   controllers: [PostFilesController, AvatarController],

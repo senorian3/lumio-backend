@@ -10,9 +10,8 @@ import { PaymentsHttpAdapter } from './application/payments-http.adapter';
 import { SubscriptionRepository } from './domain/infrastructure/subscription.repository';
 import { IdempotencyKeyRepository } from './domain/infrastructure/idempotency-key.repository';
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CqrsModule } from '@nestjs/cqrs';
-import { CoreConfig } from '../../core/core.config';
+import { RabbitmqModule } from '../../core/rabbitmq.module';
 import { DlqNotificationService } from './application/dlq-notification.service';
 import { MessageProcessingService } from './application/message-processing.service';
 import { ChangeAutoRenewalCommandHandler } from './application/commands/change-autorenewal.command.handler';
@@ -48,31 +47,7 @@ const schedulers = [PaymentsScheduler];
     LoggerModule,
     CqrsModule,
     NotificationsModule,
-    ClientsModule.registerAsync([
-      {
-        name: 'PAYMENTS_SERVICE',
-        useFactory: (coreConfig: CoreConfig) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [coreConfig.rmqUrl],
-            exchange: 'sub_payments_exchange',
-            exchangeOptions: {
-              type: 'topic',
-              durable: true,
-            },
-            queue: 'lumio_to_payments_queue',
-            queueOptions: {
-              durable: true,
-              deadLetterExchange: 'dlx_payments_exchange',
-              deadLetterRoutingKey: 'dlq.payments',
-              messageTtl: 300000,
-            },
-            noAck: true,
-          },
-        }),
-        inject: [CoreConfig],
-      },
-    ]),
+    RabbitmqModule,
   ],
   controllers: [PaymentsController, PaymentsRabbitMQController],
   providers: [

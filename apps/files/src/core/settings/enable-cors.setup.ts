@@ -13,12 +13,7 @@ export function enableCorsSetup(app: INestApplication) {
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'X-Internal-API-Key',
-    ],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     exposedHeaders: ['Content-Disposition', 'Content-Length', 'ETag'],
   });
 }

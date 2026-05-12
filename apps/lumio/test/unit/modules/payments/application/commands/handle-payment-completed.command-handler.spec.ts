@@ -32,6 +32,8 @@ describe('HandlePaymentCompletedCommandHandler', () => {
     profileFilled: true,
     profileFilledAt: new Date(),
     profileUpdatedAt: new Date(),
+    followersCount: 0,
+    followingCount: 0,
     accountType: 'free',
     userId: 1,
     user: {} as any,

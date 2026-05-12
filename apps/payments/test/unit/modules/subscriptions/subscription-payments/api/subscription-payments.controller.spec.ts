@@ -4,6 +4,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { InternalApiGuard } from '@payments/core/guards/internal/internal-api.guard';
 import { StripeWebhookGuard } from '@payments/core/guards/webhook/stripe-webhook.guard';
 import { InputCreateSubscriptionPaymentUrlDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-create-subscription-payment-url.dto';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 import { InputChangeAutorenewalSubscriptionPaymentDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/input-update-autorenewal.dto';
 
 describe('SubscriptionPaymentsController', () => {
@@ -144,7 +145,7 @@ describe('SubscriptionPaymentsController', () => {
       const payload: InputCreateSubscriptionPaymentUrlDto = {
         profileId: '1',
         currency: 'usd',
-        subscriptionType: '1 month',
+        subscriptionType: SubscriptionType.ONE_MONTH,
         paymentProvider: 'stripe',
       };
 
@@ -161,34 +162,6 @@ describe('SubscriptionPaymentsController', () => {
       expect(commandBus.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           dto: payload,
-        }),
-      );
-    });
-
-    it('should pass localhostOrigin from payload to command', async () => {
-      const payload: InputCreateSubscriptionPaymentUrlDto = {
-        profileId: '1',
-        currency: 'usd',
-        subscriptionType: '1 month',
-        paymentProvider: 'stripe',
-        localhostOrigin: 'http://localhost:3000',
-      };
-
-      const expectedUrl = 'https://checkout.stripe.com/pay_123';
-
-      commandBus.execute.mockResolvedValue(expectedUrl);
-
-      const result =
-        await subscriptionPaymentsController.createSubscriptionPaymentUrl(
-          payload,
-        );
-
-      expect(result).toEqual({ url: expectedUrl });
-      expect(commandBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dto: expect.objectContaining({
-            localhostOrigin: 'http://localhost:3000',
-          }),
         }),
       );
     });

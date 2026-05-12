@@ -1,4 +1,4 @@
-import { User } from 'generated/prisma-lumio';
+import { User } from '@generated/prisma-lumio';
 import { EmailConfirmationEntity } from './email-confirmation.entity';
 import { SessionEntity } from '@lumio/modules/sessions/domain/session.entity';
 import { YandexEntity } from '@lumio/modules/user-accounts/users/domain/entities/yandex.entity';

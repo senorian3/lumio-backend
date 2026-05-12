@@ -2,14 +2,13 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from '@libs/settings/config-valdation.utility';
-
-export enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-}
+import { Environments } from '@libs/settings/environments.enum';
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({
+    message: 'Set Env variable PORT, example: 3003',
+  })
   @IsNumber(
     {},
     {
@@ -24,6 +23,9 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable NODE_ENV, example: development',
+  })
   @IsEnum(Environments, {
     message:
       'Set correct NODE_ENV value, available values: ' +
@@ -55,6 +57,9 @@ export class CoreConfig {
 
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
+
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
+  internalServiceName: string = this.configService.get('INTERNAL_SERVICE_NAME');
 
   @IsNotEmpty({
     message:
@@ -88,6 +93,10 @@ export class CoreConfig {
   })
   superAdminPassword: string = this.configService.get('SUPER_ADMIN_PASSWORD');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable SUPER_ADMIN_TOKEN_EXPIRATION_MINUTES, example: 15',
+  })
   @IsNumber(
     {},
     {

@@ -34,6 +34,7 @@ import { InputCreateSubscriptionPaymentUrlDto } from './dto/input/input-create-s
 import { InputChangeAutorenewalSubscriptionPaymentDto } from './dto/input/input-update-autorenewal.dto';
 import { GetAllPaymentsQuery } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
 import { GetAllPaymentsQueryDto } from '@payments/modules/subscriptions/subscription-payments/api/dto/input/get-all-payments.input';
+import { AllowInternalServices } from '@libs/core/internal-api/internal-api';
 
 @Controller(SUBSCRIPTION_PAYMENTS_BASE)
 export class SubscriptionPaymentsController {
@@ -45,6 +46,7 @@ export class SubscriptionPaymentsController {
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.PROFILE_PAYMENTS)
   @ApiGetUserProfilePayments()
   @UseGuards(InternalApiGuard)
+  @AllowInternalServices('lumio', 'super-admin')
   async getUserProfilePayments(
     @Query('profileId') profileId: number,
     @Query('page') page: number = 1,
@@ -78,6 +80,7 @@ export class SubscriptionPaymentsController {
   @Post(SUBSCRIPTION_PAYMENTS_ROUTES.CREATE_PAYMENT_URL)
   @ApiCreateSubscriptionPayment()
   @UseGuards(InternalApiGuard)
+  @AllowInternalServices('lumio')
   async createSubscriptionPaymentUrl(
     @Body() payload: InputCreateSubscriptionPaymentUrlDto,
   ): Promise<{ url: string }> {
@@ -108,6 +111,7 @@ export class SubscriptionPaymentsController {
   @Patch(SUBSCRIPTION_PAYMENTS_ROUTES.CHANGE_AUTORENEWAL)
   @ApiChangeAutorenewal()
   @UseGuards(InternalApiGuard)
+  @AllowInternalServices('lumio')
   async changeAutorenwal(
     @Body() payload: InputChangeAutorenewalSubscriptionPaymentDto,
   ): Promise<void> {
@@ -119,6 +123,7 @@ export class SubscriptionPaymentsController {
   @Get(SUBSCRIPTION_PAYMENTS_ROUTES.ALL_PAYMENTS)
   @ApiGetAllPayments()
   @UseGuards(InternalApiGuard)
+  @AllowInternalServices('super-admin')
   async getAllPayments(@Query() query: GetAllPaymentsQueryDto) {
     const result = await this.queryBus.execute(
       new GetAllPaymentsQuery(

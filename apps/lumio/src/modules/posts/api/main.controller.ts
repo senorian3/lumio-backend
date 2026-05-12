@@ -13,6 +13,7 @@ import { GetMainPageQuery } from '@lumio/modules/posts/application/queries/get-m
 import { GetMainPageInputDto } from '@lumio/modules/posts/api/dto/input/get-main-page.input.dto';
 import { MainPageView } from './dto/output/main-page.output.dto';
 import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
+import { OptionalUserId } from '@lumio/core/decorators/optional-user-id.decorator';
 
 @UseGuards(ThrottlerGuard)
 @Controller('/')
@@ -25,7 +26,10 @@ export class MainController {
   @HttpCode(HttpStatus.OK)
   async getMainPage(
     @Query() queryParams: GetMainPageInputDto,
+    @OptionalUserId() currentUserId: number | null,
   ): Promise<MainPageView> {
-    return await this.queryBus.execute(new GetMainPageQuery(queryParams));
+    return await this.queryBus.execute(
+      new GetMainPageQuery(currentUserId, queryParams),
+    );
   }
 }

@@ -18,6 +18,7 @@ describe('PaymentsHttpAdapter', () => {
           useValue: {
             paymentsFrontendUrl: 'http://payments-service:3000',
             internalApiKey: 'test-api-key',
+            internalServiceName: 'lumio',
           },
         },
       ],
@@ -51,7 +52,8 @@ describe('PaymentsHttpAdapter', () => {
         dto,
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
             'Content-Type': 'application/json',
           }),
         },
@@ -102,7 +104,8 @@ describe('PaymentsHttpAdapter', () => {
         dto,
         {
           headers: expect.objectContaining({
-            'X-Internal-API-Key': 'test-api-key',
+            'x-internal-api-key': 'test-api-key',
+            'x-internal-service': 'lumio',
             'Content-Type': 'application/json',
           }),
         },

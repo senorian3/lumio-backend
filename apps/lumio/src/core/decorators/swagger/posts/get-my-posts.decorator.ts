@@ -1,5 +1,12 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { SortDirection } from '@libs/core/dto/pagination/base.query-params.input-dto';
+import { PostsSortBy } from '@lumio/modules/posts/api/dto/input/get-all-user-posts.query.dto';
 
 export function ApiGetUserPosts() {
   return applyDecorators(
@@ -8,6 +15,35 @@ export function ApiGetUserPosts() {
       summary: 'Get user posts',
       description: 'Endpoint for get user posts',
       operationId: 'getUserPosts',
+    }),
+
+    ApiQuery({
+      name: 'pageNumber',
+      type: Number,
+      required: false,
+      description: 'Page number (default: 1)',
+      example: 1,
+    }),
+    ApiQuery({
+      name: 'pageSize',
+      type: Number,
+      required: false,
+      description: 'Items per page (default: 10)',
+      example: 10,
+    }),
+    ApiQuery({
+      name: 'sortBy',
+      enum: PostsSortBy,
+      required: false,
+      description: 'Field to sort by (default: createdAt)',
+      example: PostsSortBy.CREATED_AT,
+    }),
+    ApiQuery({
+      name: 'sortDirection',
+      enum: SortDirection,
+      required: false,
+      description: 'Sort direction (default: desc)',
+      example: SortDirection.Desc,
     }),
 
     ApiResponse({
@@ -35,6 +71,99 @@ export function ApiGetUserPosts() {
                     postId: 65,
                   },
                 ],
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_page_number: {
+          summary: 'Page number must be a positive integer',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Page number must be a positive integer',
+                field: 'pageNumber',
+              },
+            ],
+          },
+        },
+        invalid_page_size: {
+          summary: 'Page size must be a positive integer',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Page size must be a positive integer',
+                field: 'pageSize',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized',
+      examples: {
+        no_access_token: {
+          summary: 'No access token in request',
+          value: {
+            errorsMessages: [],
+          },
+        },
+        token_version_mismatch: {
+          summary: 'Token version is expired',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Token version mismatch - token is invalidated',
+                field: 'tokenVersion',
+              },
+            ],
+          },
+        },
+        invalid_jwt_data: {
+          summary: 'Invalid user data in JWT',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Invalid user data in JWT',
+                field: 'user',
+              },
+            ],
+          },
+        },
+        no_active_session: {
+          summary: 'User does not have active session',
+          value: {
+            errorsMessages: [
+              {
+                message: "User doesn't have active session",
+                field: 'session',
+              },
+            ],
+          },
+        },
+      },
+    }),
+
+    ApiResponse({
+      status: 404,
+      description: 'Not found',
+      examples: {
+        user_not_found: {
+          summary: 'User does not exist',
+          value: {
+            errorsMessages: [
+              {
+                message: 'User does not exist',
+                field: 'userId',
               },
             ],
           },

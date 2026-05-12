@@ -7,7 +7,7 @@
       "@payments/*": ["src/*"],
       "@lumio/*": ["../../apps/lumio/src/*"],
       "@files/*": ["../../apps/files/src/*"],
-      "generated/*": ["../../generated/*"]
+      "@generated/*": ["../../generated/*"]
     },
     "types": ["jest", "node", "@types/multer"],
     "module": "commonjs"

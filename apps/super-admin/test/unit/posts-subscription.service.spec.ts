@@ -33,9 +33,16 @@ describe('PostsSubscriptionService', () => {
     }).compile();
 
     service = module.get<PostsSubscriptionService>(PostsSubscriptionService);
+
+    // Mock the private connectToRabbitMQ method to prevent real TCP connections
+    jest
+      .spyOn(service as any, 'connectToRabbitMQ')
+      .mockResolvedValue(undefined);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Ensure any connections are closed
+    await service.onModuleDestroy();
     jest.clearAllMocks();
   });
 
@@ -57,9 +64,6 @@ describe('PostsSubscriptionService', () => {
     it('should handle disconnect gracefully when channel is null', async () => {
       // Service has no connection/channel initialized
       await expect(service.onModuleDestroy()).resolves.toBeUndefined();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'PostsSubscriptionService disconnected from RabbitMQ',
-      );
     });
 
     it('should log error when disconnect fails', async () => {

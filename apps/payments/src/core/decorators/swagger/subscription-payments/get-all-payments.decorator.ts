@@ -5,6 +5,7 @@ import {
   ApiQuery,
   ApiSecurity,
 } from '@nestjs/swagger';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 
 export function ApiGetAllPayments() {
   return applyDecorators(
@@ -88,7 +89,7 @@ export function ApiGetAllPayments() {
                 amount: 999,
                 currency: 'RUB',
                 paymentProvider: 'stripe',
-                subscriptionType: '1 month',
+                subscriptionType: SubscriptionType.ONE_MONTH,
               },
             ],
             totalCount: 1,

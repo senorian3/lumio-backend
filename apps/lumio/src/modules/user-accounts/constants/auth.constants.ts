@@ -1,0 +1,2 @@
+export const DEFAULT_PASSWORD_LENGTH = 12;
+export const MILLISECONDS_IN_SECOND = 1000;
