@@ -6,6 +6,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { PaymentsSortBy } from '@lumio/modules/payments/api/dto/input/get-user-payments.query';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 
 export function ApiGetUserPayments() {
   return applyDecorators(
@@ -62,7 +63,7 @@ export function ApiGetUserPayments() {
                 amount: 2.99,
                 currency: 'USD',
                 paymentType: 'Stripe',
-                subscriptionType: '1 week',
+                subscriptionType: SubscriptionType.ONE_WEEK,
               },
               {
                 datePayment: '2026-02-18T09:19:25.181Z',
@@ -70,7 +71,7 @@ export function ApiGetUserPayments() {
                 amount: 2.99,
                 currency: 'USD',
                 paymentType: 'Stripe',
-                subscriptionType: '1 week',
+                subscriptionType: SubscriptionType.ONE_WEEK,
               },
             ],
           },

@@ -64,7 +64,7 @@ export class SubscriptionRepository {
     });
   }
 
-  async deletelSubscription(
+  async deleteSubscription(
     subscriptionId: string,
     tx?: any,
   ): Promise<Subscription> {

@@ -2,9 +2,9 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from '@libs/logger/logger.module';
 import { CoreModule } from '@payments/core/core.module';
+import { RabbitmqModule } from '@payments/core/rabbitmq.module';
 import { CoreConfig } from '@payments/core/core.config';
 import { PrismaModule } from '@payments/prisma/prisma.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CqrsModule } from '@nestjs/cqrs';
 import { SubscriptionPaymentsController } from '@payments/modules/subscriptions/subscription-payments/api/subscription-payments.controller';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
@@ -25,7 +25,8 @@ import { ExternalCallsProcessor } from '@payments/modules/subscriptions/outbox/a
 import { ScheduleModule } from '@nestjs/schedule';
 import { TestingModule } from '@payments/modules/tests/testing.module';
 import { GetAllPaymentsHandler } from '@payments/modules/subscriptions/subscription-payments/application/queries/get-all-payments.query-handler';
-import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/ayments.query-repository';
+import { QueryPaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.query-repository';
+import { HealthModule } from '@payments/modules/health/health.module';
 
 const adapters = [StripeAdapter];
 
@@ -54,36 +55,13 @@ const services = [RetryService, ManualReviewService];
   imports: [
     ScheduleModule.forRoot(),
     CqrsModule,
-    ClientsModule.registerAsync([
-      {
-        name: 'LUMIO_SERVICE',
-        useFactory: (coreConfig: CoreConfig) => ({
-          transport: Transport.RMQ,
-          options: {
-            urls: [coreConfig.rmqUrl],
-            exchange: 'sub_payments_exchange',
-            exchangeOptions: {
-              type: 'topic',
-              durable: true,
-            },
-            queue: 'payments_to_lumio_queue',
-            queueOptions: {
-              durable: true,
-              deadLetterExchange: 'dlx_payments_exchange',
-              deadLetterRoutingKey: 'dlq.payments',
-              messageTtl: 300000,
-            },
-            noAck: true,
-          },
-        }),
-        inject: [CoreConfig],
-      },
-    ]),
+    RabbitmqModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     LoggerModule,
     CoreModule,
+    HealthModule,
     LoggerModule,
     PrismaModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => ({ url: coreConfig.dbUrl }),

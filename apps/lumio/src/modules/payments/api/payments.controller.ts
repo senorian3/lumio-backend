@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Patch,
@@ -71,21 +70,11 @@ export class PaymentsController {
   async getSubscriptionPaymentUrl(
     @UserId() userId: number,
     @Body() dto: InputCreateSubscriptionPaymentDto,
-    @Headers('origin') origin: string,
   ): Promise<{ url: string }> {
-    const isLocalhost =
-      origin?.includes('localhost') || origin?.includes('127.0.0.1');
-
     const url = await this.commandBus.execute<
       CreateSubscriptionPaymentUrlCommand,
       string
-    >(
-      new CreateSubscriptionPaymentUrlCommand(
-        userId,
-        dto,
-        isLocalhost ? origin : undefined,
-      ),
-    );
+    >(new CreateSubscriptionPaymentUrlCommand(userId, dto));
 
     return { url };
   }

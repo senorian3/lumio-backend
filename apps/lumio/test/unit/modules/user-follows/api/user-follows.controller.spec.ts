@@ -3,8 +3,7 @@ import { UserFollowsController } from '@lumio/modules/user-follows/api/user-foll
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { GetFollowersInputDto } from '@lumio/modules/user-follows/api/dto/input/get-followers.input-dto';
-import { GetFollowingInputDto } from '@lumio/modules/user-follows/api/dto/input/get-following.input-dto';
+import { UserFollowQueryDto } from '@lumio/modules/user-follows/api/dto/input/user-follow-query.input-dto';
 import { PaginatedFollowersViewDto } from '@lumio/modules/user-follows/api/dto/output/followers.paginated.view-dto';
 import { PaginatedFollowingViewDto } from '@lumio/modules/user-follows/api/dto/output/following.paginated.view-dto';
 import { GetFollowersQuery } from '@lumio/modules/user-follows/application/queries/get-followers.query-handler';
@@ -53,7 +52,7 @@ describe('UserFollowsController', () => {
   describe('getFollowers', () => {
     it('should return paginated followers for current user', async () => {
       const currentUserId = 1;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
 
@@ -81,17 +80,15 @@ describe('UserFollowsController', () => {
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
       expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(queryDto.userId);
       expect(query.query).toBe(queryDto);
     });
 
     it('should return paginated followers for specific user', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
+      queryDto.userId = 2;
 
       const mockResult = new PaginatedFollowersViewDto();
       mockResult.items = [
@@ -117,7 +114,6 @@ describe('UserFollowsController', () => {
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
       expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });
   });
@@ -125,7 +121,7 @@ describe('UserFollowsController', () => {
   describe('getFollowing', () => {
     it('should return paginated following for current user', async () => {
       const currentUserId = 1;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
 
@@ -152,18 +148,16 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(queryDto.userId);
+      expect(query.targetUserId).toBe(currentUserId);
       expect(query.query).toBe(queryDto);
     });
 
     it('should return paginated following for specific user', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
+      queryDto.userId = 2;
 
       const mockResult = new PaginatedFollowingViewDto();
       mockResult.items = [
@@ -188,17 +182,15 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
+      expect(query.targetUserId).toBe(currentUserId);
       expect(query.query).toBe(queryDto);
     });
   });
 
   describe('getUserFollowers', () => {
     it('should return paginated followers for specific user via path parameter', async () => {
-      const currentUserId = 1;
       const targetUserId = 2;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
 
@@ -217,11 +209,7 @@ describe('UserFollowsController', () => {
 
       queryBus.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.getUserFollowers(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const result = await controller.getUserFollowers(targetUserId, queryDto);
 
       expect(result).toEqual(mockResult);
       expect(queryBus.execute).toHaveBeenCalledWith(
@@ -229,17 +217,15 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowersQuery;
-      expect(query.currentUserId).toBe(currentUserId);
-      expect(query.targetUserId).toBe(targetUserId);
+      expect(query.currentUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });
   });
 
   describe('getUserFollowing', () => {
     it('should return paginated following for specific user via path parameter', async () => {
-      const currentUserId = 1;
       const targetUserId = 2;
-      const queryDto = new GetFollowingInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
 
@@ -258,11 +244,7 @@ describe('UserFollowsController', () => {
 
       queryBus.execute.mockResolvedValue(mockResult);
 
-      const result = await controller.getUserFollowing(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const result = await controller.getUserFollowing(targetUserId, queryDto);
 
       expect(result).toEqual(mockResult);
       expect(queryBus.execute).toHaveBeenCalledWith(
@@ -270,7 +252,6 @@ describe('UserFollowsController', () => {
       );
 
       const query = queryBus.execute.mock.calls[0][0] as GetFollowingQuery;
-      expect(query.currentUserId).toBe(currentUserId);
       expect(query.targetUserId).toBe(targetUserId);
       expect(query.query).toBe(queryDto);
     });

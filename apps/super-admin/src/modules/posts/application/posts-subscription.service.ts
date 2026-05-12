@@ -104,7 +104,6 @@ export class PostsSubscriptionService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.channel?.close();
       await this.connection?.close();
-      this.logger.log('PostsSubscriptionService disconnected from RabbitMQ');
     } catch (error) {
       this.logger.error(
         `Failed to disconnect from RabbitMQ: ${error.message}`,

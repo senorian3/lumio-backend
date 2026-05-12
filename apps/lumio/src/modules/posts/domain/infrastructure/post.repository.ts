@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@lumio/prisma/prisma.service';
 import { PostEntity } from '@lumio/modules/posts/domain/entities/post.entity';
-import { Post } from '@generated/prisma-lumio';
 import { LikePostStatus } from '@lumio/modules/posts/api/dto/input/like-post.input.dto';
 
 @Injectable()
@@ -55,28 +54,6 @@ export class PostRepository {
       where: { id: postId },
       data: { deletedAt: new Date() },
     });
-  }
-
-  async getPostsWithPagination(
-    skip: number,
-    take: number,
-  ): Promise<{ posts: (Post & { files: any[] })[]; totalCount: number }> {
-    const [posts, totalCount] = await Promise.all([
-      this.prisma.post.findMany({
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-        include: {
-          files: true,
-        },
-      }),
-      this.prisma.post.count({
-        where: { deletedAt: null },
-      }),
-    ]);
-
-    return { posts, totalCount };
   }
 
   async findActivePostById(postId: string) {

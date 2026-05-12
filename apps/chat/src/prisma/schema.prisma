@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../../generated/prisma-chat"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chat {
+  id            Int                 @id @default(autoincrement())
+  
+  // Название чата (опционально, для групповых чатов; null для личных)
+  name          String?             @db.VarChar(100)
+  
+  createdAt     DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime            @updatedAt @db.Timestamp(6)
+  deletedAt     DateTime?           @db.Timestamp(6)
+  
+  // Для быстрой сортировки списка чатов
+  lastMessageAt DateTime?           @db.Timestamp(6)
+  
+  participants  ChatParticipant[]
+  messages      Message[]
+  
+  @@index([deletedAt])
+  @@index([lastMessageAt])
+}
+
+model ChatParticipant {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId    Int      // ID пользователя из микросервиса пользователей
+  
+  joinedAt  DateTime @default(now()) @db.Timestamp(6)
+  leftAt    DateTime? @db.Timestamp(6) // Для возможности выхода из чата
+  
+  // Уникальная пара: пользователь может быть в чате только один раз
+  @@unique([chatId, userId])
+  @@index([userId]) // Быстрый поиск всех чатов пользователя
+}
+
+model Message {
+  id          String              @id @default(uuid())
+  
+  chatId      Int
+  chat        Chat                @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  senderId    Int                 // ID отправителя из микросервиса пользователей
+  
+  // Текстовое содержимое (заполняется только для типа TEXT)
+  content     String?             @db.VarChar(2000)
+  
+  // Тип сообщения: определяет, как интерпретировать данные (текст или вложение)
+  type        MessageType         @default(TEXT)
+  
+  // Статус доставки
+  status      MessageStatus       @default(SENT)
+  
+  createdAt   DateTime            @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime            @updatedAt @db.Timestamp(6)
+  deletedAt   DateTime?           @db.Timestamp(6)
+  
+  readAt      DateTime?           @db.Timestamp(6) // Время прочтения
+  
+  attachments MessageAttachment[]
+  
+  // Индексы для эффективной пагинации истории чата
+  @@index([chatId, createdAt])
+  @@index([senderId])
+  @@index([deletedAt])
+}
+
+model MessageAttachment {
+  id          String            @id @default(uuid())
+  
+  messageId   String
+  message     Message           @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  // Тип вложения: только медиа (изображение или голос)
+  type        AttachmentType
+  
+  // URL файла (путь к S3 или статике)
+  url         String            @db.VarChar(500)
+  mimeType    String            @db.VarChar(100)
+  size        Int               // Размер файла в байтах
+  
+  // Метаданные для медиа
+  duration    Int?              // Длительность в секундах (для голосовых)
+  width       Int?              // Ширина (для изображений)
+  height      Int?              // Высота (для изображений)
+  
+  createdAt   DateTime          @default(now()) @db.Timestamp(6)
+  
+  @@index([messageId])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VOICE
+}
+
+enum MessageStatus {
+  SENT
+  READ
+}
+
+enum AttachmentType {
+  TEXT
+  IMAGE
+  VOICE
+}

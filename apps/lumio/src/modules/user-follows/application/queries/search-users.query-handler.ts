@@ -15,12 +15,19 @@ export class SearchUsersQueryHandler implements IQueryHandler<
   SearchUsersQuery,
   PaginatedUserSearchViewDto
 > {
-  constructor(private readonly queryRepository: UserFollowQueryRepository) {}
+  constructor(
+    private readonly userFollowqueryRepository: UserFollowQueryRepository,
+  ) {}
 
   async execute(query: SearchUsersQuery): Promise<PaginatedUserSearchViewDto> {
-    return await this.queryRepository.searchUsers(
+    const followingIds = await this.userFollowqueryRepository.getFollowingIds(
+      query.currentUserId,
+    );
+
+    return await this.userFollowqueryRepository.searchUsers(
       query.currentUserId,
       query.query,
+      followingIds,
     );
   }
 }

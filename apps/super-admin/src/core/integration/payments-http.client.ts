@@ -7,6 +7,7 @@ import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentDto } from './dto/payment.dto';
 import { PaymentsResponse } from './dto/payments-response.dto';
 import { PaymentSortBy } from '@super-admin/core/integration/dto/payment-sort-by.enum';
+import { buildInternalApiHeaders } from '@libs/core/internal-api/internal-api';
 
 export interface PaymentsApiResponse {
   data: any[];
@@ -44,11 +45,6 @@ export class PaymentsHttpClient {
       if (params.sortOrder) queryParams['sortOrder'] = params.sortOrder;
       if (params.search) queryParams['search'] = params.search;
 
-      this.logger.log(
-        `Fetching payments from: ${url}`,
-        PaymentsHttpClient.name,
-      );
-
       const response = await firstValueFrom(
         this.httpService.get<PaymentsApiResponse>(url, {
           params: queryParams,
@@ -57,7 +53,10 @@ export class PaymentsHttpClient {
           },
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-api-key': this.config.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.config.internalServiceName,
+              this.config.internalApiKey,
+            ),
           },
           timeout: 10000,
         }),
@@ -97,7 +96,10 @@ export class PaymentsHttpClient {
             sortBy: sortByParam,
           },
           headers: {
-            'x-internal-api-key': this.config.internalApiKey,
+            ...buildInternalApiHeaders(
+              this.config.internalServiceName,
+              this.config.internalApiKey,
+            ),
           },
           timeout: 10000,
         }),

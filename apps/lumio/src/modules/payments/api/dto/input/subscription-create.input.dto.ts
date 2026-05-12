@@ -1,5 +1,6 @@
-import { IsString, IsNotEmpty, IsIn, IsNumberString } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsNumberString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 
 export class InputCreateSubscriptionPaymentDto {
   @ApiProperty({
@@ -33,22 +34,19 @@ export class InputCreateSubscriptionPaymentDto {
 
   @ApiProperty({
     description: 'Subscription duration type',
-    example: '1 month',
+    example: SubscriptionType.ONE_MONTH,
     required: true,
     nullable: false,
-    enum: ['1 week', '2 weeks', '1 month', '3 months', '1 year'],
+    enum: SubscriptionType,
   })
-  @IsString({
-    message: 'Subscription type must be a string',
+  @IsEnum(SubscriptionType, {
+    message:
+      'Invalid subscription type. Must be one of: 1 week, 2 weeks, 1 month, 3 months, 1 year',
   })
   @IsNotEmpty({
     message: 'Subscription type is required',
   })
-  @IsIn(['1 week', '2 weeks', '1 month', '3 months', '1 year'], {
-    message:
-      'Invalid subscription type. Must be one of: 1 week, 2 weeks, 1 month, 3 months, 1 year',
-  })
-  subscriptionType: '1 week' | '2 weeks' | '1 month' | '3 months' | '1 year';
+  subscriptionType: SubscriptionType;
 
   @ApiProperty({
     description: 'Payment provider name',

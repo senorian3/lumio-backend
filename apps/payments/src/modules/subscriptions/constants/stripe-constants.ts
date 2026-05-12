@@ -1,3 +1,5 @@
+import { SubscriptionType } from '@libs/core/types/subscription-type';
+
 export enum StripeEventType {
   INVOICE_PAID = 'invoice.paid',
   CHECKOUT_SESSION_COMPLETED = 'checkout.session.completed',
@@ -17,42 +19,45 @@ export enum PaymentStatus {
   PENDING = 'pending',
 }
 
-export const subscriptionConfigs = {
-  '1 week': {
-    interval: 'week' as const,
+export const subscriptionConfigs: Record<
+  SubscriptionType,
+  {
+    interval: 'week' | 'month' | 'year';
+    intervalCount: number;
+    description: string;
+  }
+> = {
+  [SubscriptionType.ONE_WEEK]: {
+    interval: 'week',
     intervalCount: 1,
     description: '1 неделя',
   },
-
-  '2 weeks': {
-    interval: 'week' as const,
+  [SubscriptionType.TWO_WEEKS]: {
+    interval: 'week',
     intervalCount: 2,
     description: '2 недели',
   },
-
-  '1 month': {
-    interval: 'month' as const,
+  [SubscriptionType.ONE_MONTH]: {
+    interval: 'month',
     intervalCount: 1,
     description: '1 месяц',
   },
-
-  '3 months': {
-    interval: 'month' as const,
+  [SubscriptionType.THREE_MONTHS]: {
+    interval: 'month',
     intervalCount: 3,
     description: '3 месяца',
   },
-
-  '1 year': {
-    interval: 'year' as const,
+  [SubscriptionType.ONE_YEAR]: {
+    interval: 'year',
     intervalCount: 1,
     description: '1 год',
   },
 };
 
-export const SUBSCRIPTION_PRICES = {
-  '1 week': 2.99,
-  '2 weeks': 5.39,
-  '1 month': 9.99,
-  '3 months': 23.99,
-  '1 year': 71.99,
+export const SUBSCRIPTION_PRICES: Record<SubscriptionType, number> = {
+  [SubscriptionType.ONE_WEEK]: 2.99,
+  [SubscriptionType.TWO_WEEKS]: 5.39,
+  [SubscriptionType.ONE_MONTH]: 9.99,
+  [SubscriptionType.THREE_MONTHS]: 23.99,
+  [SubscriptionType.ONE_YEAR]: 71.99,
 };

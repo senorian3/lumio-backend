@@ -50,6 +50,16 @@
         "tsConfigPath": "apps/super-admin/tsconfig.app.json",
         "webpackConfigPath": "webpack.config.js"
       }
+    },
+    "chat": {
+      "type": "application",
+      "root": "apps/chat",
+      "entryFile": "app/main",
+      "sourceRoot": "apps/chat/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/chat/tsconfig.app.json",
+        "webpackConfigPath": "webpack.config.js"
+      }
     }
   }
 }

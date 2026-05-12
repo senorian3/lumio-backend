@@ -23,14 +23,14 @@ export function ApiSearchUsers() {
       example: 'john',
     }),
     ApiQuery({
-      name: 'page',
+      name: 'pageNumber',
       description: 'Page number for pagination',
       required: false,
       type: Number,
       example: 1,
     }),
     ApiQuery({
-      name: 'limit',
+      name: 'pageSize',
       description: 'Number of items per page',
       required: false,
       type: Number,

@@ -1,5 +1,10 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 export function ApiDeletePost() {
   return applyDecorators(
@@ -10,9 +15,35 @@ export function ApiDeletePost() {
       operationId: 'deletePost',
     }),
 
+    ApiParam({
+      name: 'postId',
+      type: String,
+      description: 'UUID of the post to delete',
+      example: 'a16e733a-30a4-49c8-a923-61e34928aace',
+      required: true,
+    }),
+
     ApiResponse({
       status: 204,
       description: 'Post successfully deleted',
+    }),
+
+    ApiResponse({
+      status: 400,
+      description: 'Validation error',
+      examples: {
+        invalid_post_id: {
+          summary: 'Invalid post ID format',
+          value: {
+            errorsMessages: [
+              {
+                message: 'Post ID must be a valid UUID',
+                field: 'postId',
+              },
+            ],
+          },
+        },
+      },
     }),
 
     ApiResponse({

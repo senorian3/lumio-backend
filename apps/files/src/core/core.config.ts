@@ -2,14 +2,17 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { configValidationUtility } from '@libs/settings/config-valdation.utility';
-
-export enum Environments {
-  DEVELOPMENT = 'development',
-  PRODUCTION = 'production',
-}
+import {
+  InternalApiKeys,
+  parseInternalApiKeys,
+} from '@libs/core/internal-api/internal-api';
+import { Environments } from '@libs/settings/environments.enum';
 
 @Injectable()
 export class CoreConfig {
+  @IsNotEmpty({
+    message: 'Set Env variable PORT, example: 3001',
+  })
   @IsNumber(
     {},
     {
@@ -24,6 +27,9 @@ export class CoreConfig {
   })
   dbUrl: string = this.configService.get('DATABASE_URL');
 
+  @IsNotEmpty({
+    message: 'Set Env variable NODE_ENV, example: development',
+  })
   @IsEnum(Environments, {
     message:
       'Ser correct NODE_ENV value, available values: ' +
@@ -31,6 +37,10 @@ export class CoreConfig {
   })
   env: string = this.configService.get('NODE_ENV');
 
+  @IsNotEmpty({
+    message:
+      'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
+  })
   @IsBoolean({
     message:
       'Set Env variable IS_SWAGGER_ENABLED to enable/disable Swagger, example: true, available values: true, false',
@@ -56,6 +66,14 @@ export class CoreConfig {
 
   @IsNotEmpty({ message: 'Set Env variable INTERNAL_API_KEY' })
   internalApiKey: string = this.configService.get('INTERNAL_API_KEY');
+
+  @IsNotEmpty({ message: 'Set Env variable INTERNAL_SERVICE_NAME' })
+  internalServiceName: string = this.configService.get('INTERNAL_SERVICE_NAME');
+
+  internalApiKeys: InternalApiKeys = parseInternalApiKeys(
+    this.configService.get('INTERNAL_API_KEYS'),
+    this.internalApiKey,
+  );
 
   @IsNotEmpty({
     message:

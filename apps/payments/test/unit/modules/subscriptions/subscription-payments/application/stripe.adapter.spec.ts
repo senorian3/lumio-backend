@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 import { AppLoggerService } from '@libs/logger/logger.service';
 import { CoreConfig } from '@payments/core/core.config';
 
@@ -72,7 +73,7 @@ describe('StripeAdapter', () => {
 
       // Act
       const result = await adapter.createPaymentSession(
-        '1 month',
+        SubscriptionType.ONE_MONTH,
         1000,
         '1',
         'RUB',
@@ -92,7 +93,13 @@ describe('StripeAdapter', () => {
 
       // Act & Assert
       await expect(
-        adapter.createPaymentSession('1 month', 1000, '1', 'RUB', 'sub_123'),
+        adapter.createPaymentSession(
+          SubscriptionType.ONE_MONTH,
+          1000,
+          '1',
+          'RUB',
+          'sub_123',
+        ),
       ).rejects.toThrow('Stripe error');
     });
   });

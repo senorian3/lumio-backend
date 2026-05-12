@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestDomainException } from '@libs/core/exceptions/domain-exceptions';
 import { SubscriptionPaymentTransferDto } from '@libs/dto/transfer/subscription-payment.transfer.dto';
+import { SubscriptionType } from '@libs/core/types/subscription-type';
 import { PaymentsRepository } from '@payments/modules/subscriptions/subscription-payments/domain/infrastructure/payments.repository';
 import { StripeAdapter } from '@payments/modules/subscriptions/subscription-payments/application/stripe.adapter';
 import { AppLoggerService } from '@libs/logger/logger.service';
@@ -21,7 +22,7 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
 
   const mockDto: SubscriptionPaymentTransferDto = {
     profileId: '1',
-    subscriptionType: '1 month',
+    subscriptionType: SubscriptionType.ONE_MONTH,
     currency: 'RUB',
     paymentProvider: 'Stripe',
   };
@@ -105,7 +106,6 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         mockDto.profileId,
         mockDto.currency,
         'null',
-        undefined,
       );
       expect(result).toBe(mockSession.url);
     });
@@ -137,7 +137,6 @@ describe('CreateSubscriptionPaymentCommandHandler', () => {
         mockDto.profileId,
         mockDto.currency,
         'sub_123',
-        undefined,
       );
       expect(result).toBe(mockSession.url);
     });

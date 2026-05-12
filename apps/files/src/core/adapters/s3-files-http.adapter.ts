@@ -39,7 +39,7 @@ export class S3FilesHttpAdapter {
   }
 
   async uploadFiles(
-    type: 'users' | 'posts',
+    type: 'users' | 'posts' | 'chats',
     id: string | number,
     files: Array<{ buffer: any; originalname: string }>,
   ): Promise<PostFileEntity[]> {

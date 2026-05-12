@@ -7,14 +7,15 @@ import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from '@lumio/modules/user-accounts/constants/auth-tokens.inject-constants';
+import {
+  DEFAULT_PASSWORD_LENGTH,
+  MILLISECONDS_IN_SECOND,
+} from '@lumio/modules/user-accounts/constants/auth.constants';
 import { SessionRepository } from '@lumio/modules/sessions/domain/infrastructure/session.repository';
 import { UserRepository } from '@lumio/modules/user-accounts/users/domain/infrastructure/user.repository';
 import { CryptoService } from '@lumio/modules/user-accounts/adapters/crypto.service';
 import { YandexTransferDto } from '@lumio/modules/user-accounts/users/api/dto/transfer/yandex-login.dto';
 import { PrismaService } from '@lumio/prisma/prisma.service';
-
-const DEFAULT_PASSWORD_LENGTH = 12;
-const MILLISECONDS_IN_SECOND = 1000;
 
 export class LoginUserYandexCommand {
   constructor(

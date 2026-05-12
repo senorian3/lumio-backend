@@ -5,7 +5,7 @@ import {
 } from '@lumio/modules/user-follows/application/queries/get-followers.query-handler';
 import { UserFollowQueryRepository } from '@lumio/modules/user-follows/domain/infrastructure/user-follow.query-repository';
 import { PaginatedFollowersViewDto } from '@lumio/modules/user-follows/api/dto/output/followers.paginated.view-dto';
-import { GetFollowersInputDto } from '@lumio/modules/user-follows/api/dto/input/get-followers.input-dto';
+import { UserFollowQueryDto } from '@lumio/modules/user-follows/api/dto/input/user-follow-query.input-dto';
 
 describe('GetFollowersQueryHandler', () => {
   let handler: GetFollowersQueryHandler;
@@ -37,17 +37,11 @@ describe('GetFollowersQueryHandler', () => {
   describe('execute', () => {
     it('should return paginated followers', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
 
-      const query = new GetFollowersQuery(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const query = new GetFollowersQuery(currentUserId, queryDto);
 
       const mockPaginatedResult = new PaginatedFollowersViewDto();
       mockPaginatedResult.items = [
@@ -74,7 +68,7 @@ describe('GetFollowersQueryHandler', () => {
 
       expect(result).toEqual(mockPaginatedResult);
       expect(queryRepository.getFollowers).toHaveBeenCalledWith(
-        targetUserId,
+        currentUserId,
         queryDto.pageNumber,
         queryDto.pageSize,
       );
@@ -82,17 +76,11 @@ describe('GetFollowersQueryHandler', () => {
 
     it('should handle empty followers list', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 1;
       queryDto.pageSize = 10;
-      queryDto.userId = targetUserId;
 
-      const query = new GetFollowersQuery(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const query = new GetFollowersQuery(currentUserId, queryDto);
 
       const mockPaginatedResult = new PaginatedFollowersViewDto();
       mockPaginatedResult.items = [];
@@ -111,17 +99,11 @@ describe('GetFollowersQueryHandler', () => {
 
     it('should handle pagination correctly', async () => {
       const currentUserId = 1;
-      const targetUserId = 2;
-      const queryDto = new GetFollowersInputDto();
+      const queryDto = new UserFollowQueryDto();
       queryDto.pageNumber = 2;
       queryDto.pageSize = 5;
-      queryDto.userId = targetUserId;
 
-      const query = new GetFollowersQuery(
-        currentUserId,
-        targetUserId,
-        queryDto,
-      );
+      const query = new GetFollowersQuery(currentUserId, queryDto);
 
       const mockPaginatedResult = new PaginatedFollowersViewDto();
       mockPaginatedResult.items = [
@@ -142,7 +124,7 @@ describe('GetFollowersQueryHandler', () => {
 
       expect(result).toEqual(mockPaginatedResult);
       expect(queryRepository.getFollowers).toHaveBeenCalledWith(
-        targetUserId,
+        currentUserId,
         queryDto.pageNumber,
         queryDto.pageSize,
       );

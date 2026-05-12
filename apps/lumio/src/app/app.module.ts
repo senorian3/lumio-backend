@@ -8,12 +8,12 @@ import { CoreModule } from '../core/core.module';
 import { UserAccountsModule } from '../modules/user-accounts/user-accounts.module';
 import { throttlerModule } from '@lumio/modules/features/throttler/throttler.module';
 import { PostsModule } from '@lumio/modules/posts/posts.module';
-import { AppLoggerService } from '@libs/logger/logger.service';
 import { PaymentsModule } from '@lumio/modules/payments/payments.module';
 import { SessionsModule } from '@lumio/modules/sessions/sessions.module';
 import { HealthModule } from '@lumio/modules/features/health/health.module';
 import { NotificationsModule } from '@lumio/modules/notifications/notifications.module';
 import { UserFollowsModule } from '@lumio/modules/user-follows/user-follows.module';
+import { HealthMonitoringModule } from '@lumio/modules/features/health-monitoring/health-monitoring.module';
 
 @Module({
   imports: [
@@ -22,16 +22,13 @@ import { UserFollowsModule } from '@lumio/modules/user-follows/user-follows.modu
     throttlerModule,
     NotificationsModule,
     HealthModule,
+    HealthMonitoringModule,
     PrismaModule.forRootAsync({
-      useFactory: (coreConfig: CoreConfig) => {
-        const logger = new AppLoggerService();
-        const url = coreConfig.dbUrl;
-        logger.log(`Connected to DB:${url}`, AppModule.name);
-        return { url };
-      },
+      useFactory: (coreConfig: CoreConfig) => ({
+        url: coreConfig.dbUrl,
+      }),
       inject: [CoreConfig],
     }),
-
     CoreModule,
     UserAccountsModule,
     PostsModule,
