@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserFollowsController } from '@lumio/modules/user-follows/api/user-follows.controller';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '@lumio/core/guards/bearer/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@lumio/core/guards/bearer/jwt-optional-auth.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { UserFollowQueryDto } from '@lumio/modules/user-follows/api/dto/input/user-follow-query.input-dto';
 import { PaginatedFollowersViewDto } from '@lumio/modules/user-follows/api/dto/output/followers.paginated.view-dto';
@@ -36,6 +37,8 @@ describe('UserFollowsController', () => {
       ],
     })
       .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(OptionalJwtAuthGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(ThrottlerGuard)
       .useValue({ canActivate: () => true })
