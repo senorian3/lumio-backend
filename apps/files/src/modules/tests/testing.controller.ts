@@ -7,6 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { S3FilesHttpAdapter } from '@files/core/adapters/s3-files-http.adapter';
+import { ApiDeleteAllTestingData } from '@files/core/decorators/swagger/tests/delete-all-testing-data.decorator';
 
 @Controller('testing')
 export class TestingController {
@@ -16,6 +17,7 @@ export class TestingController {
   ) {}
 
   @Delete('all-data')
+  @ApiDeleteAllTestingData()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAllData(): Promise<void> {
     await this.s3Adapter.deleteAllFiles();

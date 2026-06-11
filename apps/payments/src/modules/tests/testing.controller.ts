@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import { ApiDeleteAllTestingData } from '@payments/core/decorators/swagger/testing/delete-all-testing-data.decorator';
 
 @Controller('testing')
 export class TestingController {
@@ -23,6 +24,7 @@ export class TestingController {
   }
 
   @Delete('all-data')
+  @ApiDeleteAllTestingData()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAllData(): Promise<void> {
     let hasMore = true;

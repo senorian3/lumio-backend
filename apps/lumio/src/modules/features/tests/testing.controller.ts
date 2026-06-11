@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import { ApiDeleteAllData } from '@lumio/core/decorators/swagger/testing/delete-all-data.decorator';
 
 @Controller('testing')
 export class TestingController {
@@ -18,6 +19,7 @@ export class TestingController {
 
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiDeleteAllData()
   async deleteAllData(): Promise<void> {
     const filesResponse = await axios.delete(
       `${this.coreConfig.filesFrontendUrl}/api/v1/testing/all-data`,

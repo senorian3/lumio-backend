@@ -33,11 +33,23 @@ export function ApiGetPostById() {
         description: 'some create data for post',
         createdAt: '2026-02-19T21:17:16.278Z',
         userId: 1,
+        likeCount: 12,
+        dislikeCount: 2,
+        userReaction: 'like',
         postFiles: [
           {
             id: 1,
             url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/.../.png',
             postId: '03969ae5-d78d-4bae-b293-ab3370f3de8e',
+            createdAt: '2026-02-19T21:17:17.278Z',
+          },
+        ],
+        newestLikes: [
+          {
+            userId: 51,
+            username: 'jane_doe',
+            avatarUrl: 'https://example.com/avatar.jpg',
+            addedAt: '2026-02-19T22:17:16.278Z',
           },
         ],
       },

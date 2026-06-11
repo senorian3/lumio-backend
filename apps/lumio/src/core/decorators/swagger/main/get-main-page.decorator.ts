@@ -36,15 +36,27 @@ export function ApiGetMainPage() {
           totalCount: 1,
           items: [
             {
-              id: 65,
+              id: 'a16e733a-30a4-49c8-a923-61e34928aace',
               description: 'Мой первый пост',
               createdAt: '2026-01-08T07:16:03.016Z',
               userId: 46,
+              likeCount: 12,
+              dislikeCount: 2,
+              userReaction: 'none',
               postFiles: [
                 {
                   id: 65,
                   url: 'https://i.pravatar.cc/150?u=alex_ivanov  ',
-                  postId: 65,
+                  postId: 'a16e733a-30a4-49c8-a923-61e34928aace',
+                  createdAt: '2026-01-08T07:16:03.120Z',
+                },
+              ],
+              newestLikes: [
+                {
+                  userId: 51,
+                  username: 'jane_doe',
+                  avatarUrl: 'https://example.com/avatar.jpg',
+                  addedAt: '2026-01-08T08:16:03.016Z',
                 },
               ],
             },
