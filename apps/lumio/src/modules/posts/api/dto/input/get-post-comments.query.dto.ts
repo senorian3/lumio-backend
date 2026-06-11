@@ -11,7 +11,7 @@ export enum CommentSortField {
 
 export class GetPostCommentsQueryDto extends BaseSortablePaginationParams<CommentSortField> {
   @ApiProperty({
-    description: 'Поле сортировки',
+    description: 'Sort field',
     example: 'createdAt',
     required: false,
     enum: CommentSortField,
@@ -21,7 +21,11 @@ export class GetPostCommentsQueryDto extends BaseSortablePaginationParams<Commen
   @Transform(({ value }) => value || CommentSortField.CreatedAt)
   sortBy: CommentSortField = CommentSortField.CreatedAt;
 
-  @ApiProperty({ description: 'Размер страницы', example: 20, required: false })
+  @ApiProperty({
+    description: 'Page size',
+    example: 20,
+    required: false,
+  })
   @IsOptional()
   @Type(() => Number)
   @Transform(({ value }) => (value ? Math.max(1, parseInt(value, 10)) : 20))

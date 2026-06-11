@@ -64,11 +64,23 @@ export function ApiGetUserPosts() {
                 description: 'Мой первый пост',
                 createdAt: '2026-01-08T07:16:03.016Z',
                 userId: 46,
+                likeCount: 12,
+                dislikeCount: 2,
+                userReaction: 'like',
                 postFiles: [
                   {
                     id: 6,
                     url: 'https://test-bucket-lumio.storage.yandexcloud.net/content/posts/65/65_image_1_b8ab8ba8.png',
-                    postId: 65,
+                    postId: 'a16e733a-30a4-49c8-a923-61e34928aace',
+                    createdAt: '2026-01-08T07:16:03.120Z',
+                  },
+                ],
+                newestLikes: [
+                  {
+                    userId: 51,
+                    username: 'jane_doe',
+                    avatarUrl: 'https://example.com/avatar.jpg',
+                    addedAt: '2026-01-08T08:16:03.016Z',
                   },
                 ],
               },

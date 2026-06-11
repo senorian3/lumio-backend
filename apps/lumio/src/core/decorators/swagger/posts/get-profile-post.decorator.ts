@@ -49,6 +49,22 @@ export function ApiGetProfilePost() {
             example: '2026-01-10T20:23:35.435Z',
           },
           userId: { type: 'integer', example: 46 },
+          likeCount: {
+            type: 'integer',
+            example: 12,
+            description: 'Number of likes on the post',
+          },
+          dislikeCount: {
+            type: 'integer',
+            example: 2,
+            description: 'Number of dislikes on the post',
+          },
+          userReaction: {
+            type: 'string',
+            enum: ['like', 'dislike', 'none'],
+            example: 'none',
+            description: 'Current user reaction to the post',
+          },
           postFiles: {
             type: 'array',
             items: {
@@ -64,6 +80,32 @@ export function ApiGetProfilePost() {
                   type: 'string',
                   format: 'uuid',
                   example: 'a16e733a-30a4-49c8-a923-61e34928aace',
+                },
+                createdAt: {
+                  type: 'string',
+                  format: 'date-time',
+                  example: '2026-01-10T20:23:35.435Z',
+                },
+              },
+            },
+          },
+          newestLikes: {
+            type: 'array',
+            description: 'Newest likes on the post, limited to 3 users',
+            items: {
+              type: 'object',
+              properties: {
+                userId: { type: 'integer', example: 51 },
+                username: { type: 'string', example: 'jane_doe' },
+                avatarUrl: {
+                  type: 'string',
+                  nullable: true,
+                  example: 'https://example.com/avatar.jpg',
+                },
+                addedAt: {
+                  type: 'string',
+                  format: 'date-time',
+                  example: '2026-01-10T21:23:35.435Z',
                 },
               },
             },
