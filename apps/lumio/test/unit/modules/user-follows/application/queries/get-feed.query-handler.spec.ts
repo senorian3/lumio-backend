@@ -77,6 +77,9 @@ describe('GetFeedQueryHandler', () => {
         posts: mockPosts,
         totalCount: 2,
       });
+      externalQueryPostsRepository.getUsersReactionsForPosts.mockResolvedValue(
+        new Map(),
+      );
 
       const result = await handler.execute(query);
 
@@ -144,6 +147,9 @@ describe('GetFeedQueryHandler', () => {
         posts: mockPosts,
         totalCount: 6,
       });
+      externalQueryPostsRepository.getUsersReactionsForPosts.mockResolvedValue(
+        new Map(),
+      );
 
       const result = await handler.execute(query);
 
