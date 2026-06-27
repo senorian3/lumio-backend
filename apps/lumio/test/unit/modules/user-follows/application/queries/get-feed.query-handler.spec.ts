@@ -19,6 +19,7 @@ describe('GetFeedQueryHandler', () => {
 
     const mockExternalQueryPostsRepository = {
       getPostsByUserIds: jest.fn(),
+      getUsersReactionsForPosts: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
