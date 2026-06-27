@@ -75,6 +75,24 @@ export class PostView {
     description: 'ID of the post owner',
   })
   userId: number;
+  @ApiProperty({
+    example: 'jane_smith',
+    description: 'Username of the post owner',
+  })
+  username: string;
+
+  @ApiProperty({
+    example: 'https://example.com/avatar2.jpg',
+    nullable: true,
+    description: 'Avatar URL of the post owner',
+  })
+  avatarUrl: string | null;
+
+  @ApiProperty({
+    example: 7,
+    description: 'Number of comments on the post',
+  })
+  commentsCount: number;
 
   @ApiProperty({
     example: 12,
@@ -134,6 +152,9 @@ export class PostView {
     view.description = post.description;
     view.createdAt = post.createdAt;
     view.userId = post.userId;
+    view.username = '';
+    view.avatarUrl = null;
+    view.commentsCount = 0;
 
     view.likeCount = post.likeCount;
     view.dislikeCount = post.dislikeCount;
@@ -151,7 +172,12 @@ export class PostView {
   }
 
   static fromPrisma(
-    post: Post & { files: any[]; postLikes?: any[] },
+    post: Post & {
+      files: any[];
+      postLikes?: any[];
+      _count?: { comments: number };
+      user?: { username: string; profile?: { avatarUrl: string | null } };
+    },
     userReaction?: 'like' | 'dislike' | 'none',
     newestLikes?: PostLikeView[],
   ): PostView {
@@ -161,6 +187,9 @@ export class PostView {
     view.description = post.description;
     view.createdAt = post.createdAt;
     view.userId = post.userId;
+    view.username = post.user?.username ?? '';
+    view.avatarUrl = post.user?.profile?.avatarUrl ?? null;
+    view.commentsCount = post._count?.comments ?? 0;
 
     view.likeCount = post.likeCount;
     view.dislikeCount = post.dislikeCount;

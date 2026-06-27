@@ -19,6 +19,7 @@ describe('GetFeedQueryHandler', () => {
 
     const mockExternalQueryPostsRepository = {
       getPostsByUserIds: jest.fn(),
+      getUsersReactionsForPosts: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -76,6 +77,9 @@ describe('GetFeedQueryHandler', () => {
         posts: mockPosts,
         totalCount: 2,
       });
+      externalQueryPostsRepository.getUsersReactionsForPosts.mockResolvedValue(
+        new Map(),
+      );
 
       const result = await handler.execute(query);
 
@@ -143,6 +147,9 @@ describe('GetFeedQueryHandler', () => {
         posts: mockPosts,
         totalCount: 6,
       });
+      externalQueryPostsRepository.getUsersReactionsForPosts.mockResolvedValue(
+        new Map(),
+      );
 
       const result = await handler.execute(query);
 

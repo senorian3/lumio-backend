@@ -10,6 +10,9 @@ describe('ExternalQueryPostsRepository', () => {
       findMany: jest.fn(),
       count: jest.fn(),
     },
+    postLike: {
+      findMany: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -47,7 +50,23 @@ describe('ExternalQueryPostsRepository', () => {
         orderBy: { createdAt: 'desc' },
         skip: 0,
         take: 10,
-        include: { files: true },
+        include: {
+          files: true,
+          user: {
+            include: {
+              profile: {
+                select: {
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+            },
+          },
+        },
       });
       expect(mockPrisma.post.count).toHaveBeenCalledWith({
         where: {
@@ -78,6 +97,22 @@ describe('ExternalQueryPostsRepository', () => {
           take: 10,
         }),
       );
+    });
+  });
+
+  describe('getUsersReactionsForPosts', () => {
+    it('should return reactions map', async () => {
+      const mockReactions = [
+        { postId: 'post-1', status: 'like' },
+        { postId: 'post-3', status: 'dislike' },
+      ];
+      mockPrisma.postLike.findMany.mockResolvedValue(mockReactions);
+      const result = await repository.getUsersReactionsForPosts(
+        ['post-1', 'post-3'],
+        1,
+      );
+      expect(result.get('post-1')).toBe('like');
+      expect(result.get('post-3')).toBe('dislike');
     });
   });
 });

@@ -46,7 +46,16 @@ export class GetFeedQueryHandler implements IQueryHandler<
         pageSize,
       );
 
-    const postViews = posts.map((post) => PostView.fromPrisma(post));
+    const postIds = posts.map((p) => p.id);
+    const userReactions =
+      await this.externalQueryPostsRepository.getUsersReactionsForPosts(
+        postIds,
+        currentUserId,
+      );
+
+    const postViews = posts.map((post) =>
+      PostView.fromPrisma(post, userReactions.get(post.id) ?? 'none'),
+    );
 
     return PaginatedViewDto.mapToView({
       items: postViews,

@@ -21,6 +21,20 @@ export class ExternalQueryPostsRepository {
         take,
         include: {
           files: true,
+          user: {
+            include: {
+              profile: {
+                select: {
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              comments: true,
+            },
+          },
         },
       }),
       this.prisma.post.count({
@@ -38,5 +52,26 @@ export class ExternalQueryPostsRepository {
     return this.prisma.post.count({
       where: { userId, deletedAt: null },
     });
+  }
+
+  async getUsersReactionsForPosts(
+    postIds: string[],
+    userId: number,
+  ): Promise<Map<string, 'like' | 'dislike'>> {
+    const reactionsMap = new Map<string, 'like' | 'dislike'>();
+    const userReactions = await this.prisma.postLike.findMany({
+      where: {
+        userId,
+        postId: { in: postIds },
+      },
+      select: {
+        postId: true,
+        status: true,
+      },
+    });
+    userReactions.forEach((reaction) => {
+      reactionsMap.set(reaction.postId, reaction.status as 'like' | 'dislike');
+    });
+    return reactionsMap;
   }
 }
