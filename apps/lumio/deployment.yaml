@@ -180,3 +180,8 @@ spec:
                 secretKeyRef:
                   name: lumio-back-end-production-config-secret
                   key: NODE_ENV
+            - name: INTERNAL_API_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: lumio-back-end-production-config-secret
+                  key: INTERNAL_API_KEYS
